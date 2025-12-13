@@ -140,10 +140,14 @@
 
       <!-- ✅ QR mini cliquable -->
       <div class="header-qr">
-        <a href="https://dituttitn-code.github.io/maxi-jdc-delivery/" target="_blank" title="Ouvrir le site">
-          <img src="qr-maxi-jdc-site.jpg" alt="QR MAXI JDC MARKET (Site)" class="qr-mini" />
-        </a>
-      </div>
+  <img 
+    src="qr-maxi-jdc-site.jpg"
+    alt="QR MAXI JDC MARKET (Site)"
+    class="qr-mini"
+    id="qrHeader"
+    title="Cliquer pour agrandir le QR"
+  />
+</div>
 
       <div class="cart-button" id="open-cart">
         <span class="icon">🧺</span>
@@ -855,7 +859,74 @@
 
     init();
   </script>
+  <!-- 🔍 QR AGRANDI (popup) -->
+<div id="qrModal" class="qr-modal">
+  <div class="qr-modal-content">
+    <span id="closeQr" class="qr-close">&times;</span>
+    <img src="qr-maxi-jdc-site.jpg" alt="QR MAXI JDC MARKET" />
+    <p>Scannez ce QR code pour commander</p>
+  </div>
+</div>
+/* ===== QR ZOOM ===== */
+.qr-mini {
+  cursor: zoom-in;
+  transition: transform 0.2s ease;
+}
+.qr-mini:hover {
+  transform: scale(1.05);
+}
+
+.qr-modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  justify-content: center;
+  align-items: center;
+}
+
+.qr-modal-content {
+  background: #111;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.qr-modal-content img {
+  max-width: 320px;
+  width: 100%;
+}
+
+.qr-close {
+  color: #fff;
+  font-size: 28px;
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  cursor: pointer;
+}
+<script>
+  const qrHeader = document.getElementById("qrHeader");
+  const qrModal = document.getElementById("qrModal");
+  const closeQr = document.getElementById("closeQr");
+
+  qrHeader.addEventListener("click", () => {
+    qrModal.style.display = "flex";
+  });
+
+  closeQr.addEventListener("click", () => {
+    qrModal.style.display = "none";
+  });
+
+  qrModal.addEventListener("click", (e) => {
+    if (e.target === qrModal) {
+      qrModal.style.display = "none";
+    }
+  });
+</script>
 </body>
 </html>
+
 
 
