@@ -1,867 +1,524 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>MAXI JDC MARKET – Vente en ligne</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- ✅ PWA -->
-  <meta name="theme-color" content="#000000" />
-  <link rel="manifest" href="manifest.json" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MAXI JDC MARKET – Livraison</title>
 
   <style>
     :root{
-      --bg-dark:#050505;--bg-page:#101010;--card-bg:#181818;
-      --accent:#25d366;--accent-soft:rgba(37,211,102,.18);
-      --text-main:#f5f5f5;--text-muted:#aaaaaa;--border-soft:#333333;
-      --radius-lg:16px;--radius-md:12px;--shadow-soft:0 10px 30px rgba(0,0,0,.5);
-      --logo-size:60px;--logo-radius:50%;
+      --bg:#0b0b0c;
+      --card:#121214;
+      --soft:#1b1b1e;
+      --text:#f3f3f5;
+      --muted:#a8a8b3;
+      --accent:#00c853;
+      --accent-soft:rgba(0,200,83,.25);
+      --border:#2a2a2f;
+      --radius:18px;
+      --radius-sm:14px;
     }
+
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:radial-gradient(circle at top,#202020 0,#050505 40%,#000 100%);color:var(--text-main)}
-    a{color:inherit;text-decoration:none}
-    header{background:#000;color:#f9f9f9;padding:14px 16px;display:flex;align-items:center;
-      justify-content:space-between;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:50;border-bottom:1px solid #222}
-    header .brand{display:flex;align-items:center;gap:12px}
-    header img.logo{width:var(--logo-size);height:var(--logo-size);border-radius:var(--logo-radius);
-      object-fit:cover;border:none;box-shadow:none;background:transparent;display:block}
-    header h1{margin:0;font-size:21px;letter-spacing:1px}
-    header p.slogan{margin:2px 0 0;font-size:12px;opacity:.85}
-    .header-info{font-size:11px;text-align:right;line-height:1.4}
-    .header-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-    .header-qr{display:flex;align-items:center;gap:10px}
-    .qr-mini{width:58px;height:58px;border-radius:10px;background:#fff;padding:4px;display:block}
-    .cart-button{position:relative;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;
-      border-radius:999px;border:1px solid rgba(255,255,255,.35);background:rgba(20,20,20,.85);
-      cursor:pointer;font-size:13px}
-    .cart-button span.icon{font-size:18px}
-    .cart-count-badge{position:absolute;top:-6px;right:-4px;background:#ff5252;color:#fff;font-size:10px;
-      padding:2px 6px;border-radius:999px;font-weight:700}
-    .cart-total-mini{font-size:11px;opacity:.9}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background: radial-gradient(1200px 800px at 10% -10%, #1a1a1f 0%, var(--bg) 55%);
+      color:var(--text);
+    }
 
-    .hero{padding:20px 16px 10px}
-    .hero-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(0,2.3fr) minmax(0,1.5fr);
-      gap:16px;align-items:center}
-    @media (max-width:768px){.hero-inner{grid-template-columns:1fr}}
-    .hero h2{margin:0 0 8px;font-size:22px}
-    .hero p{margin:0 0 10px;font-size:13px;opacity:.9}
-    .hero .chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px}
-    .chip{font-size:11px;padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.18);opacity:.9}
-    .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:var(--accent);
-      color:#000;text-decoration:none;font-weight:600;font-size:14px;border:none;cursor:pointer}
-    .hero-note{font-size:11px;opacity:.8;margin-top:6px}
-    .hero-highlight{border-radius:var(--radius-lg);background:rgba(0,0,0,.7);border:1px solid #303030;padding:10px 14px;
-      font-size:11px;line-height:1.4}
+    .wrap{max-width:1100px;margin:0 auto;padding:14px 12px 48px}
 
-    .page{max-width:1100px;margin:8px auto 30px;padding:0 14px 20px}
-    .card{background:var(--card-bg);border-radius:var(--radius-lg);box-shadow:var(--shadow-soft);padding:16px 16px 18px;
-      border:1px solid #252525;margin-bottom:14px}
-    .cards-row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1.5fr);gap:14px}
-    @media (max-width:900px){.cards-row{grid-template-columns:1fr}}
-    .card h3{margin:0 0 10px;font-size:16px}
-    .card-subtitle{font-size:12px;color:var(--text-muted);margin-bottom:12px}
+    header{
+      position:sticky;top:0;z-index:20;
+      background:linear-gradient(180deg, rgba(11,11,12,.95) 0%, rgba(11,11,12,.78) 75%, rgba(11,11,12,.0) 100%);
+      backdrop-filter: blur(8px);
+      padding:10px 0 14px;
+    }
 
-    .cart-items{max-height:220px;overflow-y:auto;border-radius:12px;background:#101010;padding:10px;border:1px solid var(--border-soft);margin-bottom:10px}
-    .cart-empty{font-size:12px;color:var(--text-muted);text-align:center;padding:20px 8px}
-    .cart-item{display:grid;grid-template-columns:minmax(0,1.5fr) auto auto auto;gap:4px 8px;font-size:12px;padding:6px 0;
-      border-bottom:1px dashed #333;align-items:center}
-    .cart-item:last-child{border-bottom:none}
-    .cart-item-name{font-weight:500}
-    .cart-item-qty{text-align:center}
-    .cart-item-total{text-align:right;font-weight:600}
-    .cart-remove{cursor:pointer;font-size:14px;color:#ff7777;text-align:center}
-    .cart-summary{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-top:6px;border-top:1px solid #333;padding-top:8px}
-    .cart-summary span.label{color:var(--text-muted)}
-    .cart-summary span.value{font-weight:700;font-size:15px}
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      border:1px solid rgba(255,255,255,.06);
+      background:rgba(18,18,20,.72);
+      border-radius:22px;
+      padding:10px 12px;
+    }
 
-    .checkout-form{display:flex;flex-direction:column;gap:8px;margin-top:6px}
-    .form-row{display:flex;flex-direction:column;gap:3px;font-size:12px}
-    .form-row label{color:var(--text-muted)}
-    .input-field,.select-field{border-radius:999px;border:1px solid var(--border-soft);padding:7px 11px;font-size:13px;outline:none;
-      background:#101010;color:var(--text-main);transition:border-color .15s,box-shadow .15s,background .15s}
-    .input-field::placeholder{color:#666}
-    .input-field:focus,.select-field:focus{border-color:var(--accent);background:#141414;box-shadow:0 0 0 2px var(--accent-soft)}
-    .location-row{display:flex;gap:6px;align-items:center;margin-top:2px}
-    .location-display{font-size:11px;color:var(--text-muted);flex:1;min-height:14px;word-break:break-all}
-    .btn-location{border-radius:999px;border:1px dashed var(--accent);padding:5px 9px;font-size:11px;cursor:pointer;background:#061b0f;color:#9af7c2;white-space:nowrap}
-    .btn-submit{margin-top:8px;border-radius:999px;border:none;background:var(--accent);color:#000;padding:10px 10px;font-size:14px;font-weight:700;
-      cursor:pointer;width:100%;display:inline-flex;justify-content:center;align-items:center;gap:6px}
-    .btn-submit:disabled{opacity:.6;cursor:not-allowed}
-    .note-whatsapp{font-size:11px;color:var(--text-muted);margin-top:6px}
+    .brand{display:flex;gap:10px;align-items:center}
+    .logo{
+      width:42px;height:42px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:#111;
+      overflow:hidden;
+      display:grid;place-items:center;
+    }
+    .logo img{width:100%;height:100%;object-fit:cover}
+    .brand h1{margin:0;font-size:15px;letter-spacing:.6px}
+    .slogan{margin:2px 0 0;color:var(--muted);font-size:12px}
 
-    .section-title{margin:22px 0 8px;font-size:16px}
-    .categories-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-    .category-pill{padding:6px 11px;border-radius:999px;border:1px solid var(--border-soft);background:#101010;font-size:12px;cursor:pointer;white-space:nowrap;color:var(--text-main)}
-    .category-pill.active{background:var(--accent-soft);border-color:var(--accent);color:#00ff99;font-weight:600}
+    .header-actions{display:flex;align-items:center;gap:10px}
+    .header-info{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+    .header-info strong{color:var(--text)}
+    .header-qr{display:flex;align-items:center;gap:8px}
+    .qr-mini{
+      width:44px;height:44px;border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      overflow:hidden;background:#fff;
+    }
+    .qr-mini img{width:100%;height:100%;object-fit:cover}
 
-    .products-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
-    .product-card{border-radius:var(--radius-md);border:1px solid var(--border-soft);padding:10px;display:flex;flex-direction:column;gap:6px;font-size:12px;background:#121212}
-    .product-img{width:100%;height:120px;object-fit:cover;border-radius:12px;border:1px solid #2a2a2a;background:#0b0b0b}
-    .product-header{display:flex;justify-content:space-between;gap:6px;align-items:flex-start}
-    .product-name{font-weight:600;font-size:13px}
-    .product-category{font-size:11px;color:var(--text-muted)}
-    .product-price{font-weight:700;font-size:13px;margin-top:4px}
-    .product-actions{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:4px}
-    .qty-control{display:inline-flex;align-items:center;border-radius:999px;border:1px solid var(--border-soft);overflow:hidden;background:#101010}
-    .qty-control button{border:none;background:#181818;color:#f5f5f5;padding:4px 8px;font-size:14px;cursor:pointer}
-    .qty-control span{padding:0 8px;font-size:13px;min-width:20px;text-align:center}
-    .btn-add{flex:1;border-radius:999px;border:none;background:var(--accent);color:#000;padding:6px 8px;font-size:12px;font-weight:600;cursor:pointer}
+    .cart-button{
+      display:flex;align-items:center;gap:10px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(18,18,20,.85);
+      padding:8px 10px;border-radius:999px;
+      cursor:pointer;user-select:none;
+      min-width:140px;justify-content:space-between;
+    }
+    .cart-total-mini{font-size:12px;color:var(--muted)}
+    .cart-count-badge{
+      min-width:22px;height:22px;border-radius:999px;
+      background:var(--accent);color:#021a0c;
+      display:grid;place-items:center;
+      font-weight:800;font-size:12px;
+    }
 
-    .search-bar{display:flex;gap:8px;align-items:center;margin:10px 0 12px}
-    .search-bar input{flex:1}
-    .small-text{font-size:11px;color:var(--text-muted)}
+    .section-title{
+      margin:18px 0 10px;
+      font-size:16px;
+      color:var(--text);
+    }
 
-    .qr-card{max-width:360px}
-    .qr-img{width:190px;max-width:100%;display:block;margin:10px auto 0;border-radius:12px;background:#fff;padding:8px}
+    .categories-list{
+      display:flex;flex-wrap:wrap;gap:8px;
+      margin-bottom:12px;
+    }
+    .category-pill{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(16,16,18,.7);
+      color:var(--text);
+      font-size:12px;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .category-pill.active{
+      background:var(--accent-soft);
+      border-color:rgba(0,200,83,.45);
+      color:#eafff2;
+      font-weight:700;
+    }
 
-    footer{text-align:center;padding:14px;font-size:11px;color:#666;background:#000;border-top:1px solid #222}
-    .loading{font-size:12px;color:#aaa}
+    .search-bar{
+      display:flex;gap:8px;align-items:center;
+      margin:10px 0 12px;
+    }
+    .search-bar input{
+      flex:1;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(18,18,20,.8);
+      color:var(--text);
+      outline:none;
+    }
+    .search-bar button{
+      border:none;
+      background:var(--accent);
+      color:#021a0c;
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .products-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));
+      gap:10px;
+    }
+
+    .product-card{
+      border-radius:var(--radius-sm);
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(18,18,20,.92);
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-height:320px;
+    }
+
+    /* ✅ FIX IMAGE: pas coupée, centrée, même taille */
+    .product-img{
+      width:100%;
+      height:140px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background:#0b0b0c;
+      object-fit:contain;     /* IMPORTANT */
+      object-position:center; /* IMPORTANT */
+      display:block;
+      padding:6px;            /* un petit air autour */
+    }
+
+    .product-header{
+      display:flex;justify-content:space-between;gap:8px;align-items:flex-start;
+    }
+    .product-name{font-weight:800;font-size:13px;line-height:1.15}
+    .product-meta{font-size:12px;color:var(--muted);margin-top:2px}
+    .product-price{
+      font-weight:900;
+      font-size:14px;
+      text-align:right;
+      white-space:nowrap;
+    }
+
+    .product-actions{
+      margin-top:auto;
+      display:flex;justify-content:space-between;align-items:center;gap:8px;
+    }
+
+    .qty-control{
+      display:inline-flex;align-items:center;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+      background:rgba(16,16,18,.75);
+    }
+    .qty-control button{
+      border:none;background:transparent;color:var(--text);
+      padding:6px 10px;font-size:16px;cursor:pointer;
+    }
+    .qty-control span{padding:0 10px;color:var(--text);min-width:22px;text-align:center}
+
+    .btn-add{
+      flex:1;
+      border:none;
+      background:var(--accent);
+      color:#021a0c;
+      font-weight:900;
+      padding:10px 10px;
+      border-radius:999px;
+      cursor:pointer;
+      line-height:1.1;
+    }
+
+    .small-text{font-size:12px;color:var(--muted)}
+    #loading{padding:12px;color:var(--muted)}
   </style>
 </head>
 
 <body>
-
   <header>
-    <div class="brand">
-     <img src="logo-maxi-jdc-market.jpg" alt="MAXI JDC MARKET" class="logo" />
-      <div>
-        <h1>MAXI JDC MARKET</h1>
-        <p class="slogan">Des prix mini – Un MAXI choix</p>
-      </div>
-    </div>
-
-    <div class="header-actions">
-      <div class="header-info">
-        <div>📍 Jardins de Carthage, derrière mosquée Esselem</div>
-        <div>⏰ 7h – 1h du matin</div>
-        <div>📱 WhatsApp : <strong>00216 25 600 978</strong></div>
-      </div>
-
-      <!-- ✅ QR mini cliquable -->
-      <div class="header-qr">
-  <img 
-    src="qr-maxi-jdc-site.jpg"
-    alt="QR MAXI JDC MARKET (Site)"
-    class="qr-mini"
-    id="qrHeader"
-    title="Cliquer pour agrandir le QR"
-  />
-</div>
-
-      <div class="cart-button" id="open-cart">
-        <span class="icon">🧺</span>
-        <div>
-          <div style="font-size:12px;">Panier</div>
-          <div class="cart-total-mini"><span id="mini-cart-total">0,000</span> dt</div>
-        </div>
-        <div class="cart-count-badge" id="mini-cart-count">0</div>
-      </div>
-    </div>
-  </header>
-
-  <section class="hero">
-    <div class="hero-inner">
-      <div>
-        <h2>Vente en ligne – MAXI JDC MARKET</h2>
-        <p>Choisissez vos produits, ajoutez au panier et envoyez votre commande directement sur WhatsApp.</p>
-        <div class="chips">
-          <span class="chip">🔎 Recherche globale</span>
-          <span class="chip">📱 Installable iOS / Android</span>
-          <span class="chip">🚚 Livraison min 15 dt</span>
-        </div>
-        <button class="btn-primary" type="button" id="scroll-to-cart">Voir mon panier</button>
-        <div class="hero-note">Le message s’ouvre dans WhatsApp avec la liste des produits et le total.</div>
-      </div>
-
-      <div class="hero-highlight">
-        <strong>Livraison & retrait :</strong><br>
-        • Livraison Jardins de Carthage et alentours (selon zone)<br>
-        • <strong>Minimum livraison : 15 dt</strong><br>
-        • Livraison gratuite à partir de 30 dt d’achats<br>
-        • Sinon, frais de livraison : 5 dt<br>
-        • Retrait possible en magasin MAXI JDC MARKET
-      </div>
-    </div>
-  </section>
-
-  <main class="page">
-    <div class="cards-row" id="cart-and-client">
-      <section class="card">
-        <h3>🛒 Panier</h3>
-        <div class="card-subtitle">Votre panier est vide. Ajoutez des produits pour commencer.</div>
-
-        <div class="cart-items" id="cart-items">
-          <div class="cart-empty">Aucun article dans le panier pour l’instant.</div>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo">
+            <img src="logo-maxi-jdc-market.jpg" alt="MAXI JDC MARKET">
+          </div>
+          <div>
+            <h1>MAXI JDC MARKET</h1>
+            <div class="slogan">Des prix mini – Un MAXI choix</div>
+          </div>
         </div>
 
-        <div class="cart-summary">
-          <span class="label"><span id="cart-count-label">0 article</span> – Total produits</span>
-          <span class="value"><span id="cart-total">0,000</span> dt</span>
-        </div>
-
-        <div class="small-text">
-          Livraison : min 15 dt (si “Livraison à domicile”). Frais (0 ou 5 dt) ajoutés automatiquement.
-        </div>
-      </section>
-
-      <section class="card">
-        <h3>👤 Informations client</h3>
-
-        <form class="checkout-form" onsubmit="event.preventDefault(); sendWhatsAppOrder();">
-          <div class="form-row">
-            <label for="customer-name">Nom & prénom</label>
-            <input id="customer-name" class="input-field" type="text" placeholder="Ex : Nour Khelifi" required />
+        <div class="header-actions">
+          <div class="header-info">
+            <div>📍 Jardins de Carthage, derrière mosquée Esselem</div>
+            <div>⏰ 7h – 1h du matin</div>
+            <div>📱 WhatsApp : <strong>00216 25 600 978</strong></div>
           </div>
 
-          <div class="form-row">
-            <label for="customer-phone">Téléphone</label>
-            <input id="customer-phone" class="input-field" type="tel" placeholder="Ex : 55 123 456" required />
-          </div>
-
-          <div class="form-row">
-            <label for="customer-address">Adresse complète</label>
-            <input id="customer-address" class="input-field" type="text" placeholder="Immeuble, rue, étage, porte…" required />
-          </div>
-
-          <div class="form-row">
-            <label for="order-type">Type de commande</label>
-            <select id="order-type" class="select-field" required>
-              <option value="Livraison à domicile" selected>Livraison à domicile</option>
-              <option value="Retrait en magasin">Retrait en magasin</option>
-            </select>
-          </div>
-
-          <div class="form-row">
-            <label for="payment-method">Mode de paiement</label>
-            <select id="payment-method" class="select-field" required>
-              <option value="Espèces à la livraison" selected>Espèces à la livraison</option>
-              <option value="Paiement par carte en magasin">Carte bancaire en magasin</option>
-            </select>
-          </div>
-
-          <div class="form-row">
-            <label>Localisation GPS (optionnel)</label>
-            <div class="location-row">
-              <button type="button" class="btn-location" onclick="getLocation()">📍 Récupérer ma position</button>
-              <div class="location-display" id="location-display">Aucune position pour l’instant.</div>
+          <div class="header-qr">
+            <div class="qr-mini" title="QR site">
+              <img src="qr-maxi-jdc-site.jpg" alt="QR MAXI JDC MARKET">
             </div>
           </div>
 
-          <button class="btn-submit" type="submit" id="btn-send">Envoyer la commande sur WhatsApp 📲</button>
-
-          <div class="note-whatsapp">
-            Numéro magasin : <strong>00216 25 600 978</strong><br />
+          <div class="cart-button" id="open-cart">
+            <div>
+              <div style="font-weight:800">🧺 Panier</div>
+              <div class="cart-total-mini"><span id="mini-cart-total">0,000</span> dt</div>
+            </div>
+            <div class="cart-count-badge" id="mini-cart-count">0</div>
           </div>
-        </form>
-      </section>
-    </div>
-
-    <section class="card">
-      <h3>🔎 Recherche</h3>
-      <div class="search-bar">
-        <input id="search-input" class="input-field" type="text" placeholder="Chercher un article (ex: VANCAT, Stika, couches...)" />
-        <button class="btn-add" type="button" id="clear-search" style="flex:none;padding:6px 12px;">Effacer</button>
+        </div>
       </div>
-      <div class="small-text" id="search-hint">Tape un mot : la recherche s’applique à <strong>tous</strong> les produits.</div>
-    </section>
 
-    <section>
       <h3 class="section-title">Catégories</h3>
       <div class="categories-list" id="categories-container"></div>
 
+      <div class="search-bar">
+        <input id="search" placeholder="Rechercher un produit…" />
+        <button id="clear-search" type="button">X</button>
+      </div>
+
       <h3 class="section-title">Produits</h3>
-      <div id="loading" class="loading">Chargement des produits…</div>
+      <div id="loading">Chargement des produits…</div>
       <div class="products-grid" id="products-container"></div>
-    </section>
-
-       <section class="card">
-      <h3>📦 Historique de mes commandes (2 dernières années)</h3>
-      <p class="small-text">
-        Entrez le même numéro de téléphone utilisé pour vos commandes pour voir votre historique (sur cet appareil).
-      </p>
-      <div class="form-row">
-        <label for="history-phone">Téléphone</label>
-        <input id="history-phone" class="input-field" type="tel" placeholder="Ex : 55 123 456" />
-      </div>
-      <button type="button" class="btn-submit" id="show-history-btn" style="margin-top:10px;">Afficher mon historique</button>
-      <div id="history-result" class="small-text" style="margin-top:10px;"></div>
-    </section>
-
-    <section class="card">
-      <h3>🔐 Espace admin (magasin)</h3>
-      <p class="small-text">Gestion des statuts et validation des points (localStorage).</p>
-      <div class="form-row">
-        <label for="admin-code">Code accès admin</label>
-        <input id="admin-code" class="input-field" type="password" placeholder="Code admin (MAXI2024)" />
-      </div>
-      <button type="button" class="btn-submit" id="open-admin-btn" style="margin-top:10px;">Ouvrir le panneau admin</button>
-
-      <div id="admin-panel" style="display:none;margin-top:12px;">
-        <div class="small-text">
-          Code admin actuel : <strong>MAXI2024</strong>
-        </div>
-        <div id="admin-orders-container" style="margin-top:10px;"></div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    MAXI JDC MARKET – Jardins de Carthage • WhatsApp 00216 25 600 978 • Des prix mini – Un MAXI choix
-  </footer>
+    </div>
+  </header>
 
   <script>
-    /* =======================
-       ✅ CONFIG
-    ======================= */
-    const ADMIN_CODE = "MAXI2024";
-    const ORDER_STATUSES = ["En attente","En cours de préparation","Prêt à livrer","Livré"];
+    // =========================
+    // CONFIG
+    // =========================
+    const PRODUCTS_JSON_URL = "products.json";
+    const PLACEHOLDER = "placeholder.jpg";
 
-    const WHATSAPP_PHONE_E164 = "21625600978";
+    // ✅ corrections codes (ce que tu m’as envoyé)
+    const CATEGORY_OVERRIDES_BY_CODE = {
+      "2481": "Hygiène et entretien",
+      "3143": "Hygiène et entretien",
+      "2482": "Hygiène et entretien",
+      "4497": "Hygiène et entretien",
+      "4484": "Épicerie salée",
+      "4485": "Épicerie salée",
+      "2999": "Surgelés",
+      "2639": "Surgelés",
+      "1335": "Fruits secs & Graines",
+      "4322": "Boissons"
+    };
 
-    const MIN_DELIVERY_AMOUNT = 15;
-    const FREE_DELIVERY_FROM  = 30;
-    const DELIVERY_FEE        = 5;
+    // ✅ règles (si d’autres erreurs similaires arrivent)
+    function smartCategoryFix(name, currentCat){
+      const n = (name || "").toUpperCase();
 
-    // ✅ Ton fichier JSON
-    const PRODUCTS_JSON_URL = "data/products.json";
+      // Produits nettoyage
+      if (/(JUDY|LILAS|LESSIVE|LAVANT|SOL|SURFACES|JEL LAVANT|LIQUIDE VAISSELLE)/.test(n)) return "Hygiène et entretien";
 
-    /* =======================
-       ✅ ETAT
-    ======================= */
-    let categories = [];
-    let products = [];
-    const cart = {};
-    let activeCategory = "";
-    let customerLocation = "";
-    let searchQuery = "";
+      // Salades / conserves salées
+      if (/(SALADE|MECHWIA|HARISSA|THONA|MAKROUNA|CONSERVE|SAUCE|TOMATE)/.test(n)) return "Épicerie salée";
 
-    /* =======================
-       ✅ ELEMENTS
-    ======================= */
-    const categoriesContainer = document.getElementById("categories-container");
-    const productsContainer   = document.getElementById("products-container");
-    const loadingEl           = document.getElementById("loading");
+      // Glaces / bouza / frozen
+      if (/(GLACE|BOUZA|LONDON DAIRY|ICE|CORNET)/.test(n)) return "Surgelés";
 
-    const cartItemsEl      = document.getElementById("cart-items");
-    const cartTotalEl      = document.getElementById("cart-total");
-    const miniCartTotalEl  = document.getElementById("mini-cart-total");
-    const miniCartCountEl  = document.getElementById("mini-cart-count");
-    const cartCountLabelEl = document.getElementById("cart-count-label");
-
-    const searchInput = document.getElementById("search-input");
-
-    /* =======================
-       ✅ OUTILS
-    ======================= */
-    function formatMoney(value) {
-      return Number(value || 0).toFixed(3).replace(".", ",");
-    }
-    function slugify(str) {
-      return String(str || "")
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase().trim()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-    }
-    function toPriceNumber(v) {
-      const s = String(v || "").replace(",", ".").replace(/[^0-9.]/g, "");
-      const n = Number(s);
-      return Number.isFinite(n) ? n : 0;
+      return currentCat;
     }
 
-    /* =======================
-       ✅ CHARGEMENT JSON (TON FORMAT)
-       { categories:[...], products:[...] }
-    ======================= */
-    async function loadAllProducts() {
-      products = [];
+    // ✅ Chemin image automatique :
+    // Si image = placeholder.jpg → on essaye images/products/<CODE>.jpg puis images/<CODE>.jpg
+    function resolveImagePath(product){
+      const code = String(product.code || product.CODE_ARTICLE || product.id || "").trim();
 
-      const res = await fetch(PRODUCTS_JSON_URL, { cache: "no-store" });
-      if (!res.ok) throw new Error("HTTP " + res.status);
+      const raw = String(product.image || product.imageUrl || product.IMAGE_URL || "").trim();
 
-      const data = await res.json();
-
-      const list = Array.isArray(data) ? data : (data.products || []);
-      const catsFromFile = Array.isArray(data.categories) ? data.categories : [];
-
-      list.forEach(r => {
-        const idRaw = String(r.id ?? "").trim();
-        const code = String(r.code || r.CODE_ARTICLE || "").trim();
-        const name = String(r.name || r.DESIGNATION || "").trim();
-        const category = String(r.category || "Divers").trim();
-        const price = toPriceNumber(r.price || r.PRIX);
-        const unit = String(r.unit || "pièce").trim();
-        const imageUrl = String(r.image || r.imageUrl || r.IMAGE_URL || "placeholder.jpg").trim();
-
-        if (!name) return;
-
-        const finalId = code ? ("code-" + code) : (idRaw ? ("p-" + idRaw) : ("p-" + slugify(name)));
-
-        products.push({
-          id: finalId,
-          code,
-          name,
-          category,
-          price,
-          unit,
-          imageUrl
-        });
-      });
-
-      if (catsFromFile.length) {
-        categories = catsFromFile.slice();
-      } else {
-        categories = Array.from(new Set(products.map(p => p.category)))
-          .sort((a,b)=>a.localeCompare(b, "fr"));
+      // Si l’utilisateur a mis un chemin complet (ex: images/products/4731.jpg), on le garde
+      if (raw && raw !== PLACEHOLDER && raw !== "images/products/" + PLACEHOLDER && raw !== "images/" + PLACEHOLDER){
+        // si raw ne contient pas "/", on suppose que c’est un nom de fichier dans images/products/
+        if (!raw.includes("/")) return "images/products/" + raw;
+        return raw;
       }
 
-      activeCategory = categories[0] || "";
+      // Sinon on génère automatiquement depuis le code
+      if (code){
+        return "images/products/" + code + ".jpg";
+      }
+
+      // fallback
+      return "images/products/" + PLACEHOLDER;
     }
 
-    /* =======================
-       ✅ UI
-    ======================= */
-    function renderCategories() {
-      categoriesContainer.innerHTML = "";
-      categories.forEach(cat => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "category-pill" + (cat === activeCategory ? " active" : "");
-        btn.textContent = cat;
-        btn.onclick = () => {
+    // fallback si l’image n’existe pas → essayer images/<code>.jpg puis placeholder
+    function attachImageFallback(imgEl, product){
+      const code = String(product.code || product.CODE_ARTICLE || product.id || "").trim();
+      let tried = 0;
+
+      imgEl.addEventListener("error", () => {
+        tried++;
+        if (tried === 1 && code) {
+          imgEl.src = "images/" + code + ".jpg"; // au cas où tu as mis les images direct dans /images/
+          return;
+        }
+        imgEl.src = "images/products/" + PLACEHOLDER;
+      });
+    }
+
+    // =========================
+    // APP STATE
+    // =========================
+    let ALL = [];
+    let activeCategory = "Tout";
+    let searchTerm = "";
+
+    // =========================
+    // UI HELPERS
+    // =========================
+    function fmtDt(n){
+      const x = Number(n || 0);
+      return x.toFixed(3).replace(".", ",");
+    }
+
+    function normalizeCategory(c){
+      const s = String(c || "Divers").trim();
+      if (!s) return "Divers";
+      return s;
+    }
+
+    function buildCategories(products){
+      const set = new Set(["Tout"]);
+      products.forEach(p => set.add(normalizeCategory(p.category)));
+      return Array.from(set);
+    }
+
+    function renderCategories(cats){
+      const wrap = document.getElementById("categories-container");
+      wrap.innerHTML = "";
+      cats.forEach(cat => {
+        const b = document.createElement("button");
+        b.className = "category-pill" + (cat === activeCategory ? " active" : "");
+        b.textContent = cat;
+        b.onclick = () => {
           activeCategory = cat;
-          searchQuery = "";
-          searchInput.value = "";
-          renderCategories();
-          renderProducts();
+          render();
         };
-        categoriesContainer.appendChild(btn);
+        wrap.appendChild(b);
       });
     }
 
-    function renderProducts() {
-      productsContainer.innerHTML = "";
+    function productMatches(p){
+      const catOk = (activeCategory === "Tout") || (p.category === activeCategory);
+      if (!catOk) return false;
 
-      const q = (searchQuery || "").trim().toLowerCase();
+      if (!searchTerm) return true;
+      const q = searchTerm.toLowerCase().trim();
+      const hay = (p.name + " " + p.category + " " + (p.code||"")).toLowerCase();
+      return hay.includes(q);
+    }
 
-      let filtered = products;
-      if (q) {
-        filtered = products.filter(p => (
-          p.name.toLowerCase().includes(q) ||
-          String(p.code || "").toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q)
-        ));
-      } else {
-        filtered = products.filter(p => p.category === activeCategory);
-      }
+    function render(){
+      // categories active style refresh
+      renderCategories(buildCategories(ALL.filter(p => true)));
 
-      if (filtered.length === 0) {
-        productsContainer.innerHTML = "<p style='font-size:12px;color:#aaa;'>Aucun produit trouvé.</p>";
-        return;
-      }
+      const list = ALL.filter(productMatches);
+      const grid = document.getElementById("products-container");
+      grid.innerHTML = "";
 
-      filtered.forEach(product => {
+      list.forEach(p => {
         const card = document.createElement("div");
         card.className = "product-card";
 
         const img = document.createElement("img");
         img.className = "product-img";
-        img.src = product.imageUrl || "placeholder.jpg";
-        img.alt = product.name;
+        img.alt = p.name || "Produit";
+        img.src = resolveImagePath(p);
+        attachImageFallback(img, p);
 
         const header = document.createElement("div");
         header.className = "product-header";
 
         const left = document.createElement("div");
-        const nameEl = document.createElement("div");
-        nameEl.className = "product-name";
-        nameEl.textContent = product.name;
+        const name = document.createElement("div");
+        name.className = "product-name";
+        name.textContent = p.name;
 
-        const catEl = document.createElement("div");
-        catEl.className = "product-category";
-        catEl.textContent = product.category + (product.code ? (" • " + product.code) : "");
-        left.appendChild(nameEl);
-        left.appendChild(catEl);
+        const meta = document.createElement("div");
+        meta.className = "product-meta";
+        meta.textContent = `${p.category} • ${p.code || ""}`.trim();
 
-        const right = document.createElement("div");
-        right.style.textAlign = "right";
-        const priceEl = document.createElement("div");
-        priceEl.className = "product-price";
-        priceEl.textContent = product.price.toFixed(3) + " dt" + (product.unit ? (" / " + product.unit) : "");
-        right.appendChild(priceEl);
+        left.appendChild(name);
+        left.appendChild(meta);
+
+        const price = document.createElement("div");
+        price.className = "product-price";
+        price.innerHTML = `${fmtDt(p.price)} dt<br/><span class="small-text">/ ${p.unit || "pièce"}</span>`;
 
         header.appendChild(left);
-        header.appendChild(right);
+        header.appendChild(price);
 
         const actions = document.createElement("div");
         actions.className = "product-actions";
 
-        let qty = 1;
-        const qtyControl = document.createElement("div");
-        qtyControl.className = "qty-control";
+        const qty = document.createElement("div");
+        qty.className = "qty-control";
+        const minus = document.createElement("button");
+        minus.textContent = "−";
+        const qspan = document.createElement("span");
+        qspan.textContent = "1";
+        const plus = document.createElement("button");
+        plus.textContent = "+";
 
-        const minusBtn = document.createElement("button");
-        minusBtn.type = "button";
-        minusBtn.textContent = "−";
+        minus.onclick = () => qspan.textContent = String(Math.max(1, Number(qspan.textContent)-1));
+        plus.onclick  = () => qspan.textContent = String(Number(qspan.textContent)+1);
 
-        const qtySpan = document.createElement("span");
-        qtySpan.textContent = qty;
+        qty.appendChild(minus);
+        qty.appendChild(qspan);
+        qty.appendChild(plus);
 
-        minusBtn.onclick = () => { if (qty > 1) { qty--; qtySpan.textContent = qty; } };
+        const add = document.createElement("button");
+        add.className = "btn-add";
+        add.textContent = "Ajouter au panier";
+        add.onclick = () => {
+          alert(`✅ Ajouté : ${p.name} (x${qspan.textContent})`);
+          // ici tu peux connecter ton panier actuel si tu veux
+        };
 
-        const plusBtn = document.createElement("button");
-        plusBtn.type = "button";
-        plusBtn.textContent = "+";
-        plusBtn.onclick = () => { qty++; qtySpan.textContent = qty; };
-
-        qtyControl.appendChild(minusBtn);
-        qtyControl.appendChild(qtySpan);
-        qtyControl.appendChild(plusBtn);
-
-        const addBtn = document.createElement("button");
-        addBtn.type = "button";
-        addBtn.className = "btn-add";
-        addBtn.textContent = "Ajouter au panier";
-        addBtn.onclick = () => addToCart(product, qty);
-
-        actions.appendChild(qtyControl);
-        actions.appendChild(addBtn);
+        actions.appendChild(qty);
+        actions.appendChild(add);
 
         card.appendChild(img);
         card.appendChild(header);
         card.appendChild(actions);
-        productsContainer.appendChild(card);
-      });
-    }
 
-    /* =======================
-       ✅ Panier
-    ======================= */
-    function addToCart(product, quantity) {
-      if (!cart[product.id]) cart[product.id] = { product, qty: 0 };
-      cart[product.id].qty += quantity;
-      updateCartUI();
-    }
-    function removeFromCart(productId) {
-      if (cart[productId]) { delete cart[productId]; updateCartUI(); }
-    }
-    function updateCartUI() {
-      const entries = Object.values(cart).filter(item => item.qty > 0);
-      let totalAmount = 0;
-      let totalQty = 0;
-
-      entries.forEach(item => { totalAmount += item.product.price * item.qty; totalQty += item.qty; });
-
-      cartTotalEl.textContent = formatMoney(totalAmount);
-      miniCartTotalEl.textContent = formatMoney(totalAmount);
-      miniCartCountEl.textContent = totalQty;
-      cartCountLabelEl.textContent = totalQty + (totalQty <= 1 ? " article" : " articles");
-
-      if (entries.length === 0) {
-        cartItemsEl.innerHTML = "<div class='cart-empty'>Aucun article dans le panier pour l’instant.</div>";
-        return;
-      }
-
-      cartItemsEl.innerHTML = "";
-      entries.forEach(item => {
-        const row = document.createElement("div");
-        row.className = "cart-item";
-
-        const nameCol = document.createElement("div");
-        nameCol.className = "cart-item-name";
-        nameCol.textContent = item.product.name;
-
-        const qtyCol = document.createElement("div");
-        qtyCol.className = "cart-item-qty";
-        qtyCol.textContent = "× " + item.qty;
-
-        const totalCol = document.createElement("div");
-        totalCol.className = "cart-item-total";
-        totalCol.textContent = formatMoney(item.product.price * item.qty) + " dt";
-
-        const removeCol = document.createElement("div");
-        removeCol.className = "cart-remove";
-        removeCol.textContent = "✕";
-        removeCol.title = "Retirer du panier";
-        removeCol.onclick = () => removeFromCart(item.product.id);
-
-        row.appendChild(nameCol);
-        row.appendChild(qtyCol);
-        row.appendChild(totalCol);
-        row.appendChild(removeCol);
-        cartItemsEl.appendChild(row);
-      });
-    }
-
-    function clearCartAndForm() {
-      for (const key in cart) delete cart[key];
-      updateCartUI();
-      const form = document.querySelector(".checkout-form");
-      if (form) form.reset();
-      customerLocation = "";
-      const display = document.getElementById("location-display");
-      if (display) display.textContent = "Aucune position pour l’instant.";
-    }
-
-    /* =======================
-       ✅ Localisation
-    ======================= */
-    function getLocation() {
-      const display = document.getElementById("location-display");
-      if (!navigator.geolocation) { display.textContent = "La géolocalisation n’est pas supportée."; return; }
-      display.textContent = "Localisation en cours...";
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          const lat = pos.coords.latitude.toFixed(6);
-          const lng = pos.coords.longitude.toFixed(6);
-          customerLocation = `https://www.google.com/maps?q=${lat},${lng}`;
-          display.textContent = customerLocation;
-        },
-        () => { display.textContent = "Impossible d’obtenir la position."; }
-      );
-    }
-
-    /* =======================
-       ✅ Historique / Admin
-    ======================= */
-    function loadOrders() {
-      const json = localStorage.getItem("maxiOrdersV1");
-      return json ? JSON.parse(json) : [];
-    }
-    function saveOrders(orders) {
-      localStorage.setItem("maxiOrdersV1", JSON.stringify(orders));
-    }
-    function createOrderId() {
-      const now = new Date();
-      const y = now.getFullYear();
-      const m = String(now.getMonth() + 1).padStart(2, "0");
-      const d = String(now.getDate()).padStart(2, "0");
-      let counter = Number(localStorage.getItem("maxiOrderCounter") || "0") + 1;
-      localStorage.setItem("maxiOrderCounter", String(counter));
-      return `MAXI-${y}${m}${d}-${counter}`;
-    }
-
-    /* =======================
-       ✅ Envoi WhatsApp
-    ======================= */
-    function sendWhatsAppOrder() {
-      const entries = Object.values(cart).filter(item => item.qty > 0);
-      if (entries.length === 0) { alert("Votre panier est vide."); return; }
-
-      const name    = document.getElementById("customer-name").value.trim();
-      const phone   = document.getElementById("customer-phone").value.trim();
-      const address = document.getElementById("customer-address").value.trim();
-      const orderType     = document.getElementById("order-type").value;
-      const paymentMethod = document.getElementById("payment-method").value;
-
-      if (!name || !phone || !address) { alert("Veuillez remplir nom, téléphone et adresse."); return; }
-
-      let totalProducts = 0;
-      entries.forEach(item => { totalProducts += item.product.price * item.qty; });
-
-      if (orderType === "Livraison à domicile" && totalProducts < MIN_DELIVERY_AMOUNT) {
-        alert(`Minimum livraison : ${MIN_DELIVERY_AMOUNT.toFixed(3)} dt. Votre panier est à ${totalProducts.toFixed(3)} dt.`);
-        return;
-      }
-
-      let deliveryFee = 0;
-      if (orderType === "Livraison à domicile") deliveryFee = totalProducts >= FREE_DELIVERY_FROM ? 0 : DELIVERY_FEE;
-
-      const totalWithDelivery = totalProducts + deliveryFee;
-      const potentialPoints = +(totalProducts * 0.01).toFixed(3);
-
-      const now = new Date();
-      const orderId = createOrderId();
-      const dateStr = now.toLocaleString("fr-FR");
-
-      const lines = [];
-      lines.push(`ID : ${orderId}`);
-      lines.push(`Date : ${dateStr}`);
-      lines.push("");
-      lines.push("🛒 Nouvelle commande MAXI JDC MARKET");
-      lines.push("");
-      lines.push("👤 Nom : " + name);
-      lines.push("📞 Téléphone : " + phone);
-      lines.push("📍 Adresse : " + address);
-      lines.push("🚚 Type de commande : " + orderType);
-      lines.push("💳 Mode de paiement : " + paymentMethod);
-      lines.push("🌍 Localisation : " + (customerLocation ? customerLocation : "non fournie"));
-      lines.push("");
-      lines.push("Produits :");
-
-      entries.forEach(item => {
-        const lineTotal = item.product.price * item.qty;
-        lines.push(`• ${item.qty} × ${item.product.name} (${item.product.price.toFixed(3)} dt) = ${lineTotal.toFixed(3)} dt`);
+        grid.appendChild(card);
       });
 
-      lines.push("");
-      lines.push("💰 Total produits : " + totalProducts.toFixed(3) + " dt");
-      lines.push("🚚 Frais de livraison : " + deliveryFee.toFixed(3) + " dt");
-      lines.push("💳 Total à payer : " + totalWithDelivery.toFixed(3) + " dt");
-      lines.push("🎁 Points fidélité (potentiels) : " + potentialPoints.toFixed(3) + " dt (validés après paiement)");
-
-      const orders = loadOrders();
-      orders.push({
-        id: orderId,
-        dateISO: now.toISOString(),
-        status: "En attente",
-        customer: { name, phone, address, orderType, paymentMethod, location: customerLocation },
-        items: entries.map(item => ({ id: item.product.id, code: item.product.code, name: item.product.name, price: item.product.price, qty: item.qty })),
-        totalProducts: +totalProducts.toFixed(3),
-        deliveryFee: +deliveryFee.toFixed(3),
-        totalWithDelivery: +totalWithDelivery.toFixed(3),
-        potentialPoints,
-        validatedPoints: 0,
-        pointsValidated: false
-      });
-      saveOrders(orders);
-
-      clearCartAndForm();
-
-      const whatsappUrl = "https://wa.me/" + WHATSAPP_PHONE_E164 + "?text=" + encodeURIComponent(lines.join("\n"));
-      window.location.href = whatsappUrl;
+      document.getElementById("loading").style.display = "none";
     }
 
-    function showCustomerHistory() {
-      const phone = document.getElementById("history-phone").value.trim();
-      const result = document.getElementById("history-result");
-      if (!phone) { result.textContent = "Veuillez entrer un numéro de téléphone."; return; }
+    // =========================
+    // LOAD
+    // =========================
+    async function init(){
+      const res = await fetch(PRODUCTS_JSON_URL, { cache:"no-store" });
+      const data = await res.json();
 
-      const all = loadOrders();
-      const now = new Date();
-      const cutoff = new Date();
-      cutoff.setFullYear(now.getFullYear() - 2);
+      // support 2 formats: [..] ou {categories:[..], products:[..]}
+      const items = Array.isArray(data) ? data : (data.products || []);
 
-      const list = all.filter(o => o.customer.phone === phone && new Date(o.dateISO) >= cutoff);
+      ALL = items.map((r) => {
+        const code = String(r.code || r.CODE_ARTICLE || r.id || "").trim();
+        const name = String(r.name || r.DESIGNATION || "").trim();
+        let category = normalizeCategory(r.category || "Divers");
 
-      if (list.length === 0) {
-        result.textContent = "Aucune commande trouvée pour ce numéro sur les 2 dernières années (sur cet appareil).";
-        return;
-      }
+        // 1) override par code
+        if (CATEGORY_OVERRIDES_BY_CODE[code]) category = CATEGORY_OVERRIDES_BY_CODE[code];
 
-      list.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
+        // 2) correction automatique par mots-clés
+        category = smartCategoryFix(name, category);
 
-      let txt = "";
-      list.forEach(order => {
-        const dt = new Date(order.dateISO);
-        const dateStr = dt.toLocaleString("fr-FR");
-        txt +=
-`• ${order.id} — ${dateStr}
-   Statut : ${order.status}
-   Total produits : ${formatMoney(order.totalProducts)} dt
-   Livraison : ${formatMoney(order.deliveryFee)} dt
-   Total payé : ${formatMoney(order.totalWithDelivery)} dt
-
-`;
+        return {
+          code,
+          name,
+          category,
+          price: Number(r.price || r.PRX || r.PRIX || 0),
+          unit: String(r.unit || "pièce"),
+          image: String(r.image || PLACEHOLDER)
+        };
       });
 
-      result.innerHTML = "<pre style='white-space:pre-wrap;font-size:11px;'>" + txt + "</pre>";
+      // UI
+      renderCategories(buildCategories(ALL));
+      render();
     }
 
-    function renderAdminOrders() {
-      const container = document.getElementById("admin-orders-container");
-      const orders = loadOrders();
-
-      if (orders.length === 0) {
-        container.innerHTML = "<div style='font-size:12px;color:#aaa;'>Aucune commande enregistrée pour le moment.</div>";
-        return;
-      }
-
-      orders.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
-
-      let html = "";
-      orders.forEach((order, index) => {
-        const dt = new Date(order.dateISO);
-        const dateStr = dt.toLocaleString("fr-FR");
-        const selectId = `status-${index}`;
-
-        html += `
-<div style="border-top:1px solid #333;padding:8px 0;">
-  <div style="font-size:12px;font-weight:600;">
-    ${order.id} – ${order.customer.name} (${order.customer.phone})
-  </div>
-  <div style="font-size:11px;">
-    ${dateStr} – Total : ${formatMoney(order.totalWithDelivery)} dt (livraison ${formatMoney(order.deliveryFee)} dt)
-  </div>
-  <div style="font-size:11px;margin-top:4px;">
-    Statut :
-    <select id="${selectId}" class="select-field" style="max-width:190px;margin-top:4px;">
-      ${ORDER_STATUSES.map(s => `<option value="${s}" ${s === order.status ? "selected" : ""}>${s}</option>`).join("")}
-    </select>
-  </div>
-  <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
-    <button type="button" class="btn-add" style="flex:none;padding:4px 10px;font-size:11px;"
-      onclick="updateOrderStatus('${order.id}', document.getElementById('${selectId}').value)">
-      Enregistrer le statut
-    </button>
-  </div>
-</div>`;
-      });
-
-      container.innerHTML = html;
-    }
-
-    function updateOrderStatus(orderId, newStatus) {
-      const orders = loadOrders();
-      const idx = orders.findIndex(o => o.id === orderId);
-      if (idx === -1) { alert("Commande introuvable."); return; }
-      orders[idx].status = newStatus;
-      saveOrders(orders);
-      alert("Statut mis à jour.");
-      renderAdminOrders();
-    }
-
-    /* =======================
-       ✅ Events + Init
-    ======================= */
-    document.getElementById("scroll-to-cart").addEventListener("click", () => {
-      document.getElementById("cart-and-client").scrollIntoView({ behavior: "smooth" });
+    // Search
+    document.getElementById("search").addEventListener("input", (e)=>{
+      searchTerm = e.target.value || "";
+      render();
     });
-    document.getElementById("open-cart").addEventListener("click", () => {
-      document.getElementById("cart-and-client").scrollIntoView({ behavior: "smooth" });
+    document.getElementById("clear-search").onclick = ()=>{
+      document.getElementById("search").value = "";
+      searchTerm = "";
+      render();
+    };
+
+    init().catch(err=>{
+      console.error(err);
+      document.getElementById("loading").textContent = "Erreur de chargement (products.json).";
     });
-
-    document.getElementById("show-history-btn").addEventListener("click", showCustomerHistory);
-
-    document.getElementById("open-admin-btn").addEventListener("click", () => {
-      const code = document.getElementById("admin-code").value.trim();
-      const panel = document.getElementById("admin-panel");
-      if (code === ADMIN_CODE) { panel.style.display = "block"; renderAdminOrders(); }
-      else { panel.style.display = "none"; alert("Code admin incorrect."); }
-    });
-
-    searchInput.addEventListener("input", () => {
-      searchQuery = searchInput.value;
-      renderProducts();
-    });
-    document.getElementById("clear-search").addEventListener("click", () => {
-      searchQuery = "";
-      searchInput.value = "";
-      renderProducts();
-    });
-
-    async function init() {
-      if ("serviceWorker" in navigator) {
-        try { await navigator.serviceWorker.register("sw.js"); } catch (e) {}
-      }
-
-      await loadAllProducts();
-      loadingEl.style.display = "none";
-      renderCategories();
-      renderProducts();
-      updateCartUI();
-    }
-
-    window.getLocation = getLocation;
-    window.sendWhatsAppOrder = sendWhatsAppOrder;
-    window.updateOrderStatus = updateOrderStatus;
-
-    init();
   </script>
 </body>
 </html>
-
-
-
-
