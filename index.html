@@ -3,322 +3,625 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MAXI JDC MARKET — Commande</title>
+  <title>MAXI JDC MARKET — Commande en ligne</title>
+
   <style>
-    :root{--bg:#1f1f1f;--card:#2a2a2a;--txt:#f2f2f2;--muted:#bdbdbd;--green:#35d04f;}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#111;color:var(--txt);}
-    header{padding:18px 16px;background:#181818;border-bottom:1px solid #2b2b2b;}
-    .top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-    .brand{display:flex;align-items:center;gap:10px}
-    .logo{width:34px;height:34px;border-radius:50%;background:#333;display:grid;place-items:center;font-weight:800}
-    .sub{color:var(--muted);font-size:12px;margin-top:2px}
-    .info{color:var(--muted);font-size:13px}
-    .bar{margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    input{background:#101010;border:1px solid #2b2b2b;color:var(--txt);padding:10px 12px;border-radius:10px;min-width:280px;outline:none}
-    button{background:#232323;border:1px solid #2b2b2b;color:var(--txt);padding:10px 12px;border-radius:999px;cursor:pointer}
-    button.active{border-color:var(--green);box-shadow:0 0 0 2px rgba(53,208,79,.15) inset}
-    .actions{display:flex;gap:8px;align-items:center}
-    .pill{background:#0f0f0f;border:1px solid #2b2b2b;border-radius:999px;padding:8px 10px;color:var(--muted);font-size:12px}
-    main{padding:16px}
-    .cats{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
-    .card{background:#141414;border:1px solid #2b2b2b;border-radius:16px;overflow:hidden}
-    .img{height:130px;background:#0c0c0c;display:grid;place-items:center}
-    .img img{max-width:100%;max-height:100%;object-fit:contain}
-    .cbody{padding:10px 10px 12px}
-    .name{font-weight:700;font-size:13px;line-height:1.2;min-height:32px}
-    .meta{margin-top:6px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:8px}
-    .price{margin-top:10px;font-size:18px;font-weight:800}
-    .cat{color:var(--muted);font-size:12px;margin-top:4px}
-    .row{display:flex;gap:8px;align-items:center;margin-top:10px}
-    .qty{display:flex;gap:8px;align-items:center;background:#0f0f0f;border:1px solid #2b2b2b;border-radius:999px;padding:6px 10px}
-    .qty b{min-width:18px;text-align:center}
-    .add{flex:1;background:var(--green);border:none;color:#0b1a0f;font-weight:800}
-    .small{font-size:12px;color:var(--muted)}
-    .footerbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:12px}
+    :root{
+      --bg:#0b0f14;
+      --panel:#111826;
+      --panel2:#0f1520;
+      --text:#e8eef7;
+      --muted:#9bb0c6;
+      --line:rgba(255,255,255,.08);
+      --btn:#1a2636;
+      --btn2:#142030;
+      --accent:#2bd576;
+      --accent2:#1aa85a;
+      --danger:#ff4d4d;
+      --shadow: 0 12px 30px rgba(0,0,0,.35);
+      --radius:14px;
+      --radius2:20px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(43,213,118,.15), transparent 60%),
+                  radial-gradient(900px 500px at 90% 0%, rgba(80,160,255,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      background: rgba(11,15,20,.78);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+    }
+    .wrap{max-width:1200px;margin:0 auto;padding:14px 16px}
+    .topbar{
+      display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+    }
+    .brand{
+      display:flex;align-items:center;gap:10px;min-width:280px;
+    }
+    .logo{
+      width:40px;height:40px;border-radius:12px;
+      background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:800;
+      box-shadow: var(--shadow);
+    }
+    .brand h1{font-size:15px;margin:0;line-height:1.1}
+    .brand .sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .rightinfo{
+      display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+      color:var(--muted);font-size:12px;justify-content:flex-end;
+    }
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 10px;border:1px solid var(--line);border-radius:999px;
+      background: rgba(17,24,38,.55);
+    }
+
+    .controls{
+      margin-top:12px;
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+    }
+    .searchRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex:1}
+    input[type="search"]{
+      width:min(620px, 100%);
+      padding:11px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(17,24,38,.45);
+      color:var(--text);
+      outline:none;
+    }
+    input[type="search"]::placeholder{color:rgba(155,176,198,.75)}
+    .btn{
+      padding:10px 12px;border-radius:999px;
+      border:1px solid var(--line);
+      background: var(--btn);
+      color:var(--text);
+      cursor:pointer;
+      transition:.15s;
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-1px);background:var(--btn2)}
+    .btn.primary{
+      border-color: rgba(43,213,118,.35);
+      background: rgba(43,213,118,.10);
+      box-shadow: 0 10px 22px rgba(43,213,118,.08);
+    }
+    .btn.primary:hover{background: rgba(43,213,118,.16)}
+    .stat{
+      display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;
+      color:var(--muted);font-size:12px;
+    }
+
+    .notice{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      padding:10px 12px;
+      border:1px dashed rgba(255,255,255,.14);
+      border-radius: var(--radius);
+      background: rgba(17,24,38,.30);
+    }
+
+    main .wrap{padding-top:16px;padding-bottom:28px}
+
+    .grid{
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap:14px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns: 1fr}
+    }
+
+    .card{
+      background: rgba(17,24,38,.55);
+      border:1px solid var(--line);
+      border-radius: var(--radius2);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card h2{
+      font-size:13px;margin:0;
+      padding:14px 14px;
+      border-bottom:1px solid var(--line);
+      color:rgba(232,238,247,.92);
+      background: rgba(15,21,32,.55);
+      letter-spacing:.2px;
+    }
+    .catList{padding:10px}
+    .catBtn{
+      width:100%;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px solid transparent;
+      background: transparent;
+      color:var(--text);
+      cursor:pointer;
+      transition:.12s;
+      text-align:left;
+    }
+    .catBtn:hover{background: rgba(255,255,255,.04)}
+    .catBtn.active{
+      background: rgba(43,213,118,.10);
+      border-color: rgba(43,213,118,.25);
+    }
+    .catName{display:flex;flex-direction:column;gap:2px}
+    .catName b{font-size:13px}
+    .catName span{font-size:11px;color:var(--muted)}
+    .badge{
+      font-size:11px;color:var(--muted);
+      padding:6px 10px;border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(17,24,38,.45);
+      white-space:nowrap;
+    }
+
+    .productsCardHeader{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      padding:14px 14px;
+      border-bottom:1px solid var(--line);
+      background: rgba(15,21,32,.55);
+    }
+    .productsCardHeader .title{
+      display:flex;flex-direction:column;gap:3px;
+    }
+    .productsCardHeader .title b{font-size:14px}
+    .productsCardHeader .title span{font-size:12px;color:var(--muted)}
+    .pager{display:flex;gap:8px;align-items:center}
+    .pager .btn{padding:8px 10px}
+    .pager .pageInfo{font-size:12px;color:var(--muted)}
+
+    .products{
+      padding:12px;
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:10px;
+    }
+    @media (max-width: 1150px){ .products{grid-template-columns: repeat(2, minmax(0, 1fr));} }
+    @media (max-width: 620px){ .products{grid-template-columns: 1fr;} }
+
+    .p{
+      border:1px solid var(--line);
+      background: rgba(17,24,38,.45);
+      border-radius: 18px;
+      padding:12px;
+      display:flex;flex-direction:column;gap:8px;
+      min-height:112px;
+    }
+    .p .row1{
+      display:flex;justify-content:space-between;gap:10px;align-items:flex-start;
+    }
+    .p .name{font-weight:700;font-size:14px;line-height:1.2}
+    .p .code{font-size:11px;color:var(--muted)}
+    .p .price{
+      font-weight:800;
+      padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(43,213,118,.28);
+      background: rgba(43,213,118,.10);
+      white-space:nowrap;
+      align-self:flex-start;
+    }
+    .empty{
+      padding:18px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .warn{
+      color: rgba(255,190,80,.95);
+      font-size:12px;
+      padding:10px 12px;
+      border:1px solid rgba(255,190,80,.25);
+      background: rgba(255,190,80,.08);
+      border-radius: 14px;
+      margin:12px;
+    }
+    footer{
+      border-top:1px solid var(--line);
+      color:var(--muted);
+      font-size:12px;
+      padding:14px 16px;
+    }
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
   </style>
 </head>
 
 <body>
 <header>
-  <div class="top">
-    <div class="brand">
-      <div class="logo">M</div>
-      <div>
-        <div style="font-weight:900">MAXI JDC MARKET</div>
-        <div class="sub">Des prix mini — Un MAXI choix</div>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">M</div>
+        <div>
+          <h1>MAXI JDC MARKET</h1>
+          <div class="sub">Des prix mini — Un MAXI choix</div>
+        </div>
+      </div>
+
+      <div class="rightinfo">
+        <div class="pill">📍 Jardins de Carthage, derrière mosquée Essalem</div>
+        <div class="pill">🕒 7h – 1h</div>
+        <div class="pill">💬 WhatsApp: 00216 25 600 978</div>
       </div>
     </div>
-    <div class="info">📍 Jardins de Carthage, derrière mosquée Essalem • 🕒 7h – 1h • 💬 WhatsApp: 00216 25 600 978</div>
-  </div>
 
-  <div class="bar">
-    <input id="q" placeholder="Rechercher un produit (nom, catégorie, code)..." />
-    <div class="actions">
-      <button id="btnClear">Effacer</button>
-      <button id="btnAll" class="active">Recherche globale</button>
-      <span class="pill" id="count">0 article(s)</span>
+    <div class="controls">
+      <div class="searchRow">
+        <input id="q" type="search" placeholder="Rechercher un produit (nom, catégorie, code)..." />
+        <button class="btn" id="clearBtn">Effacer</button>
+        <button class="btn primary" id="globalBtn">Recherche globale</button>
+      </div>
+      <div class="stat">
+        <span id="countTxt">0 article(s)</span>
+        <span class="pill">Conditions: minimum livraison 15 dt • Livraison gratuite si total ≥ 30 dt • Sinon frais 5 dt • Retrait magasin possible</span>
+      </div>
     </div>
-  </div>
 
-  <div class="cats" id="cats"></div>
-
-  <div class="footerbar">
-    <div>Conditions: minimum livraison 15 dt • Livraison gratuite si total ≥ 30 dt • Sinon frais 5 dt • Retrait magasin possible</div>
-    <div id="pageInfo">Page 1/1</div>
+    <div class="notice">
+      ✅ Données chargées depuis <span class="mono">/data/*.csv</span> — une catégorie = un fichier CSV (facile à mettre à jour).
+    </div>
   </div>
 </header>
 
 <main>
-  <div class="grid" id="grid"></div>
+  <div class="wrap">
+    <div class="grid">
+
+      <section class="card" aria-label="Catégories">
+        <h2>Catégories</h2>
+        <div class="catList" id="catList"></div>
+        <div class="warn" id="missingInfo" style="display:none"></div>
+      </section>
+
+      <section class="card" aria-label="Produits">
+        <div class="productsCardHeader">
+          <div class="title">
+            <b id="activeTitle">Chargement…</b>
+            <span id="activeSubtitle">Patiente un instant.</span>
+          </div>
+          <div class="pager">
+            <button class="btn" id="prevPage">◀</button>
+            <div class="pageInfo" id="pageInfo">Page 1/1</div>
+            <button class="btn" id="nextPage">▶</button>
+          </div>
+        </div>
+
+        <div id="products" class="products"></div>
+        <div id="empty" class="empty" style="display:none">Aucun produit à afficher.</div>
+      </section>
+
+    </div>
+  </div>
 </main>
 
+<footer>
+  <div class="wrap">
+    MAXI JDC MARKET — gestion des prix via CSV (GitHub). Astuce: modifie un prix dans un CSV, commit, puis actualise le site.
+  </div>
+</footer>
+
 <script>
-/** ===================== CONFIG ===================== **/
-const CSV_FILES = [
-  // fichier -> catégorie PRO affichée
-  { file: "Fruits et legumes.CSV",          cat: "Fruits & Légumes" },
-  { file: "Lait et Dérivés.CSV",            cat: "Produits laitiers & Œufs" },
-  { file: "Fromage.CSV",                    cat: "Fromage & Crèmerie" },
-  { file: "Salami.CSV",                     cat: "Charcuterie" },
-  { file: "Pates et Conserves.CSV",         cat: "Épicerie salée" },
-  { file: "Chocolas et Biscuits.CSV",       cat: "Épicerie sucrée" },
-  { file: "Chips.CSV",                      cat: "Snacking salé" },
-  { file: "Café.CSV",                       cat: "Café & Capsules" },
-  { file: "Jus et Boissons.CSV",            cat: "Boissons & Jus" },
-  { file: "Eaux.CSV",                       cat: "Eaux" },
-  { file: "Surgele.CSV",                    cat: "Surgelés" },
-  { file: "Hygiene et Soins.CSV",           cat: "Hygiène & Soins" },
-  { file: "Hygiene et entretien.CSV",       cat: "Hygiène & Entretien" },
-  { file: "Bébé et Maman.CSV",              cat: "Bébé & Maman" },
-  { file: "Animaux.CSV",                    cat: "Produits animaux" },
-  { file: "Cuisine du monde.CSV",           cat: "Cuisine du monde" },
-  { file: "Fruits Secs.CSV",                cat: "Fruits secs & Graines" },
-  { file: "Vipa.CSV",                       cat: "Épicerie healthy" },
+/**
+ * CONFIG: Catégories "professionnelles" + fichier CSV (dans /data)
+ * - Mets ici toutes les catégories.
+ * - Quand tu n’as pas encore la liste, laisse le CSV vide -> le site ne plante pas.
+ */
+const CATEGORY_CONFIG = [
+  { name: "Fruits & Légumes",                 file: "fruits_legumes.csv",     unitDefault: "kg" },
+
+  { name: "Produits laitiers & Œufs",         file: "lait_derives.csv",       unitDefault: "pièce" },
+  { name: "Fromage & Charcuterie",            file: "fromage_charcuterie.csv", unitDefault: "pièce" },
+  { name: "Boulangerie & Pâtisserie",         file: "boulangerie_patisserie.csv", unitDefault: "pièce" },
+
+  { name: "Épicerie Salée",                   file: "epicerie_salee.csv",     unitDefault: "pièce" },
+  { name: "Épicerie Sucrée",                  file: "epicerie_sucree.csv",    unitDefault: "pièce" },
+
+  { name: "Snacks & Chips",                   file: "snacks_chips.csv",       unitDefault: "pièce" },
+  { name: "Café, Thé & Infusions",            file: "cafe_the_infusions.csv", unitDefault: "pièce" },
+  { name: "Jus & Boissons",                   file: "jus_boissons.csv",       unitDefault: "pièce" },
+  { name: "Eaux",                             file: "eaux.csv",              unitDefault: "pièce" },
+
+  { name: "Surgelés",                         file: "surgele.csv",           unitDefault: "pièce" },
+
+  { name: "Hygiène et entretien",             file: "hygiene_entretien.csv",  unitDefault: "pièce" },
+  { name: "Hygiene et soins",                 file: "hygiene_soins.csv",      unitDefault: "pièce",
+    extraLabel: "Produits Santé & Bien-Être" },
+
+  { name: "Bébé et Maman",                    file: "bebe_maman.csv",         unitDefault: "pièce" },
+  { name: "Animaux",                          file: "animaux.csv",            unitDefault: "pièce" },
+
+  { name: "Cuisine du monde",                 file: "cuisine_du_monde.csv",   unitDefault: "pièce" },
+  { name: "Fruits secs & Graines",            file: "fruits_secs_graines.csv", unitDefault: "pièce" },
+
+  { name: "Promotions",                       file: "promotions.csv",         unitDefault: "pièce" }
 ];
 
-const DATA_DIR = "data/";                 // ton dossier data
-const IMG_DIR  = "images/products/";      // ton dossier images/products
-const PLACEHOLDER = "images/products/placeholder.jpg"; // mets un placeholder si tu veux
-
+// Pagination
 const PAGE_SIZE = 24;
 
-/** ===================== STATE ===================== **/
-let ALL = [];              // tous les produits (fusionnés mais catégorie conservée)
-let ACTIVE_CAT = "Toutes catégories";
-let page = 1;
-let query = "";
+// State
+let cacheByCategory = new Map(); // name -> products[]
+let activeCategory = CATEGORY_CONFIG[0].name;
+let globalMode = false;
+let currentPage = 1;
 
-/** ===================== HELPERS ===================== **/
-function norm(s){
-  return (s ?? "").toString().trim();
+// DOM
+const catListEl = document.getElementById('catList');
+const productsEl = document.getElementById('products');
+const emptyEl = document.getElementById('empty');
+const qEl = document.getElementById('q');
+const countTxt = document.getElementById('countTxt');
+const activeTitle = document.getElementById('activeTitle');
+const activeSubtitle = document.getElementById('activeSubtitle');
+const pageInfo = document.getElementById('pageInfo');
+const prevPageBtn = document.getElementById('prevPage');
+const nextPageBtn = document.getElementById('nextPage');
+const missingInfo = document.getElementById('missingInfo');
+const clearBtn = document.getElementById('clearBtn');
+const globalBtn = document.getElementById('globalBtn');
+
+function normalize(s){
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .trim();
 }
-function toPrice(s){
-  // gère "10,800" -> 10.8  et "10.8"
-  const x = norm(s).replace(/\s/g,"").replace(",",".");
-  const n = parseFloat(x);
-  return Number.isFinite(n) ? n : 0;
+
+function safeNumber(x){
+  const n = Number(String(x).replace(',', '.'));
+  return Number.isFinite(n) ? n : null;
 }
-function detectSep(line){
-  const sc = (line.match(/;/g)||[]).length;
-  const cc = (line.match(/,/g)||[]).length;
-  return sc >= cc ? ";" : ",";
-}
+
+/**
+ * CSV parser simple :
+ * - accepte virgule
+ * - accepte guillemets "..."
+ * - ignore lignes vides
+ */
 function parseCSV(text){
-  const lines = text.split(/\r?\n/).filter(l => l.trim().length);
-  if(!lines.length) return [];
-  const sep = detectSep(lines[0]);
+  const lines = text.replace(/\r/g,'').split('\n').filter(l => l.trim().length);
+  if (!lines.length) return [];
 
-  const headers = lines[0].split(sep).map(h => norm(h).toUpperCase());
-  const idx = (nameList) => {
-    for(const nm of nameList){
-      const i = headers.indexOf(nm);
-      if(i !== -1) return i;
-    }
-    return -1;
-  };
-
-  const iCode = idx(["CODE_ARTICL","CODE_ARTI","CODE","CODE_ARTICLE"]);
-  const iName = idx(["DESIGNATION","LIBELLE","NOM","NAME"]);
-  const iPrice= idx(["PV_TTC","PV_TTO","PRIX","PRICE"]);
+  const header = splitCSVLine(lines[0]).map(h => normalize(h));
+  const idxCode = header.indexOf('code');
+  const idxDesignation = header.indexOf('designation');
+  const idxPrice = header.indexOf('price');
 
   const out = [];
-  for(let k=1;k<lines.length;k++){
-    const cols = lines[k].split(sep);
-    const code = iCode>=0 ? norm(cols[iCode]) : "";
-    const name = iName>=0 ? norm(cols[iName]) : "";
-    const price = iPrice>=0 ? toPrice(cols[iPrice]) : 0;
-    if(!name) continue;
-
-    out.push({ code, name, price });
+  for (let i=1;i<lines.length;i++){
+    const cols = splitCSVLine(lines[i]);
+    const code = cols[idxCode] ?? '';
+    const designation = cols[idxDesignation] ?? '';
+    const price = cols[idxPrice] ?? '';
+    if (!String(code).trim() && !String(designation).trim()) continue;
+    out.push({ code: String(code).trim(), designation: String(designation).trim(), price: safeNumber(price) });
   }
   return out;
 }
-function imgFor(code){
-  if(!code) return PLACEHOLDER;
-  return IMG_DIR + encodeURIComponent(code) + ".jpg";
+
+function splitCSVLine(line){
+  const res = [];
+  let cur = '';
+  let inQ = false;
+  for (let i=0;i<line.length;i++){
+    const ch = line[i];
+    if (ch === '"'){
+      if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (ch === ',' && !inQ){
+      res.push(cur);
+      cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  res.push(cur);
+  return res;
 }
 
-/** ===================== UI BUILD ===================== **/
-const elCats = document.getElementById("cats");
-const elGrid = document.getElementById("grid");
-const elCount= document.getElementById("count");
-const elPage = document.getElementById("pageInfo");
-const elQ    = document.getElementById("q");
+async function loadCategory(cat){
+  if (cacheByCategory.has(cat.name)) return cacheByCategory.get(cat.name);
 
-function buildCatButtons(){
-  const cats = ["Toutes catégories", ...Array.from(new Set(ALL.map(p=>p.category)))];
-  elCats.innerHTML = "";
-  for(const c of cats){
-    const b = document.createElement("button");
-    b.textContent = c;
-    b.className = (c===ACTIVE_CAT) ? "active" : "";
-    b.onclick = () => { ACTIVE_CAT=c; page=1; render(); };
-    elCats.appendChild(b);
+  const url = `data/${cat.file}`;
+  try{
+    const r = await fetch(url, { cache: "no-store" });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const text = await r.text();
+    const rows = parseCSV(text);
+
+    const products = rows.map((x) => ({
+      code: x.code,
+      name: x.designation,
+      price: x.price,
+      category: cat.name,
+      unit: cat.unitDefault || 'pièce'
+    }));
+
+    cacheByCategory.set(cat.name, products);
+    return products;
+  }catch(e){
+    // Catégorie pas encore disponible -> liste vide (pas d’erreur bloquante)
+    cacheByCategory.set(cat.name, []);
+    return [];
   }
 }
 
-function filtered(){
-  const q = query.toLowerCase();
-  return ALL.filter(p=>{
-    const okCat = (ACTIVE_CAT==="Toutes catégories") || (p.category===ACTIVE_CAT);
-    if(!okCat) return false;
-    if(!q) return true;
-    return (p.name.toLowerCase().includes(q) ||
-            p.category.toLowerCase().includes(q) ||
-            (p.code||"").toLowerCase().includes(q));
+function renderCategories(counts){
+  catListEl.innerHTML = '';
+  CATEGORY_CONFIG.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'catBtn' + (cat.name === activeCategory && !globalMode ? ' active' : '');
+    btn.onclick = () => {
+      globalMode = false;
+      activeCategory = cat.name;
+      currentPage = 1;
+      document.querySelectorAll('.catBtn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      refresh();
+    };
+
+    const left = document.createElement('div');
+    left.className = 'catName';
+    const b = document.createElement('b');
+    b.textContent = cat.name;
+    const s = document.createElement('span');
+    s.textContent = cat.extraLabel ? cat.extraLabel : (cat.file ? `CSV: ${cat.file}` : 'CSV: —');
+    left.appendChild(b);
+    left.appendChild(s);
+
+    const badge = document.createElement('div');
+    badge.className = 'badge';
+    badge.textContent = (counts.get(cat.name) ?? 0) + ' article(s)';
+
+    btn.appendChild(left);
+    btn.appendChild(badge);
+    catListEl.appendChild(btn);
   });
 }
 
-function render(){
-  const list = filtered();
-  elCount.textContent = ${list.length} article(s);
+function renderProducts(list){
+  const q = normalize(qEl.value);
+  let filtered = list;
 
-  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
-  page = Math.min(page, totalPages);
-  elPage.textContent = Page ${page}/${totalPages};
+  if (q){
+    filtered = list.filter(p => {
+      const hay = normalize(p.name) + ' ' + normalize(p.category) + ' ' + normalize(p.code);
+      return hay.includes(q);
+    });
+  }
 
-  const start = (page-1)*PAGE_SIZE;
-  const slice = list.slice(start, start + PAGE_SIZE);
+  // Pagination
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  currentPage = Math.min(Math.max(1, currentPage), totalPages);
 
-  // rendu stable (évite clignote)
-  const frag = document.createDocumentFragment();
-  for(const p of slice){
-    const card = document.createElement("div");
-    card.className = "card";
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = filtered.slice(start, start + PAGE_SIZE);
 
-    const imgWrap = document.createElement("div");
-    imgWrap.className = "img";
-    const img = document.createElement("img");
-    img.loading = "lazy";
-    img.src = imgFor(p.code);
-    img.onerror = () => { img.src = PLACEHOLDER; };
-    imgWrap.appendChild(img);
+  pageInfo.textContent = `Page ${currentPage}/${totalPages}`;
+  prevPageBtn.disabled = currentPage <= 1;
+  nextPageBtn.disabled = currentPage >= totalPages;
 
-    const body = document.createElement("div");
-    body.className = "cbody";
+  countTxt.textContent = `${total} article(s)`;
 
-    const name = document.createElement("div");
-    name.className = "name";
+  productsEl.innerHTML = '';
+  emptyEl.style.display = total ? 'none' : 'block';
+
+  for (const p of pageItems){
+    const card = document.createElement('div');
+    card.className = 'p';
+
+    const row1 = document.createElement('div');
+    row1.className = 'row1';
+
+    const left = document.createElement('div');
+    const name = document.createElement('div');
+    name.className = 'name';
     name.textContent = p.name;
 
-    const cat = document.createElement("div");
-    cat.className = "cat";
-    cat.textContent = ${p.category}${p.code ? " • " + p.code : ""};
+    const code = document.createElement('div');
+    code.className = 'code';
+    code.innerHTML = `Code: <span class="mono">${p.code}</span> • ${p.category}`;
 
-    const price = document.createElement("div");
-    price.className = "price";
-    price.textContent = ${p.price.toFixed(3)} dt;
+    left.appendChild(name);
+    left.appendChild(code);
 
-    const row = document.createElement("div");
-    row.className = "row";
+    const price = document.createElement('div');
+    price.className = 'price';
+    const pr = (p.price === null) ? '—' : (Number(p.price).toFixed(1).replace('.0',''));
+    price.textContent = `${pr} dt`;
 
-    const qty = document.createElement("div");
-    qty.className = "qty";
-    const minus = document.createElement("button"); minus.textContent = "−";
-    const plus  = document.createElement("button"); plus.textContent = "+";
-    const num   = document.createElement("b"); num.textContent = "0";
-    minus.onclick = ()=>{ let v=+num.textContent; v=Math.max(0,v-1); num.textContent=v; };
-    plus.onclick  = ()=>{ let v=+num.textContent; v=v+1; num.textContent=v; };
-    qty.append(minus,num,plus);
+    row1.appendChild(left);
+    row1.appendChild(price);
 
-    const add = document.createElement("button");
-    add.className = "add";
-    add.textContent = "Ajouter";
-    add.onclick = ()=>{ alert(Ajouté: ${p.name} x ${num.textContent}); };
-
-    row.append(qty, add);
-
-    body.append(name, cat, price, row);
-    card.append(imgWrap, body);
-    frag.appendChild(card);
+    card.appendChild(row1);
+    productsEl.appendChild(card);
   }
-
-  elGrid.innerHTML = "";
-  elGrid.appendChild(frag);
 }
 
-/** ===================== LOAD ALL CSV ===================== **/
-async function loadAll(){
-  const products = [];
-  for(const it of CSV_FILES){
-    const url = DATA_DIR + encodeURIComponent(it.file);
-    try{
-      const res = await fetch(url, { cache: "no-store" });
-      if(!res.ok) throw new Error(res.status);
-      const txt = await res.text();
-      const rows = parseCSV(txt);
+async function refresh(){
+  // Charger tout (si recherche globale) sinon juste la catégorie active
+  const counts = new Map();
 
-      for(const r of rows){
-        products.push({
-          id: ${it.cat}-${r.code}-${r.name}.slice(0,200),
-          code: r.code,
-          name: r.name,
-          category: it.cat,
-          price: r.price
-        });
-      }
-    }catch(e){
-      console.warn("CSV non chargé:", it.file, e);
+  let list = [];
+  if (globalMode){
+    activeTitle.textContent = 'Recherche globale';
+    activeSubtitle.textContent = 'Tous les produits, toutes les catégories (CSV).';
+    missingInfo.style.display = 'none';
+
+    for (const cat of CATEGORY_CONFIG){
+      const arr = await loadCategory(cat);
+      counts.set(cat.name, arr.length);
+      list = list.concat(arr);
     }
+  } else {
+    const cat = CATEGORY_CONFIG.find(c => c.name === activeCategory) || CATEGORY_CONFIG[0];
+    activeTitle.textContent = cat.name;
+    activeSubtitle.textContent = `Source: data/${cat.file} • Mise à jour rapide (prix + nouveaux articles)`;
+
+    // message “manque de CSV”
+    const arr = await loadCategory(cat);
+    counts.set(cat.name, arr.length);
+
+    // Pour afficher badges corrects même sans globale :
+    // (on évite de tout charger à chaque fois)
+    CATEGORY_CONFIG.forEach(c => {
+      if (!counts.has(c.name)) counts.set(c.name, cacheByCategory.get(c.name)?.length ?? 0);
+    });
+
+    if (arr.length === 0){
+      missingInfo.style.display = 'block';
+      missingInfo.innerHTML =
+        `ℹ️ Cette catégorie est vide pour l’instant (CSV manquant ou sans lignes).<br>
+         Crée le fichier <span class="mono">data/${cat.file}</span> avec l’en-tête <span class="mono">code,designation,price</span>.`;
+    } else {
+      missingInfo.style.display = 'none';
+    }
+
+    list = arr;
   }
 
-  ALL = products;
-  buildCatButtons();
-  render();
+  renderCategories(counts);
+  renderProducts(list);
 }
 
-document.getElementById("btnClear").onclick = ()=>{
-  elQ.value = "";
-  query = "";
-  page = 1;
-  render();
-};
-document.getElementById("btnAll").onclick = ()=>{
-  ACTIVE_CAT = "Toutes catégories";
-  page = 1;
-  buildCatButtons();
-  render();
-};
+// Events
+qEl.addEventListener('input', () => { currentPage = 1; refresh(); });
 
-// recherche (debounce)
-let t=null;
-elQ.addEventListener("input", ()=>{
-  clearTimeout(t);
-  t = setTimeout(()=>{
-    query = elQ.value.trim();
-    page = 1;
-    render();
-  }, 180);
+clearBtn.addEventListener('click', () => {
+  qEl.value = '';
+  currentPage = 1;
+  refresh();
 });
 
-// pagination clavier (← →)
-window.addEventListener("keydown", (e)=>{
-  if(e.key==="ArrowRight"){ page++; render(); }
-  if(e.key==="ArrowLeft"){ page=Math.max(1,page-1); render(); }
+globalBtn.addEventListener('click', () => {
+  globalMode = !globalMode;
+  currentPage = 1;
+
+  // Mettre “active” sur aucune catégorie quand global
+  document.querySelectorAll('.catBtn').forEach(b => b.classList.remove('active'));
+  refresh();
 });
 
-loadAll();
+prevPageBtn.addEventListener('click', () => {
+  currentPage--;
+  refresh();
+});
+nextPageBtn.addEventListener('click', () => {
+  currentPage++;
+  refresh();
+});
+
+// Start
+refresh();
 </script>
 </body>
 </html>
