@@ -374,10 +374,18 @@ function parseCSV(text){
   const lines = text.replace(/\r/g,'').split('\n').filter(l => l.trim().length);
   if (!lines.length) return [];
 
-  const header = splitCSVLine(lines[0]).map(h => normalize(h));
-  const idxCode = header.indexOf('code');
-  const idxDesignation = header.indexOf('designation');
-  const idxPrice = header.indexOf('price');
+ const header = splitCSVLine(lines[0]).map(h => normalize(h).replace(/^\uFEFF/, '').trim());
+const idxCode = header.indexOf('code');
+
+// accepte designation OU name OU nom
+const idxDesignation =
+  header.indexOf('designation') !== -1 ? header.indexOf('designation') :
+  header.indexOf('name')        !== -1 ? header.indexOf('name') :
+  header.indexOf('nom')         !== -1 ? header.indexOf('nom') :
+  -1;
+
+const idxPrice = header.indexOf('price');
+
 
   const out = [];
   for (let i=1;i<lines.length;i++){
@@ -613,6 +621,7 @@ refresh();
 
 </body>
 </html>
+
 
 
 
