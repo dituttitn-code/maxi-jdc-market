@@ -401,8 +401,9 @@ const idxPrice = header.indexOf('price');
     const designation = cols[idxDesignation] ?? '';
     const price = cols[idxPrice] ?? '';
     if (!String(code).trim() && !String(designation).trim()) continue;
-    out.push({ code: String(code).trim(), designation: String(designation).trim(), price: safeNumber(price) });
-  }
+   const d = String(designation).trim();
+out.push({ code: String(code).trim(), designation: d, name: d, price: safeNumber(price) });
+
   return out;
 }
 
@@ -524,8 +525,7 @@ function renderProducts(list){
     const left = document.createElement('div');
     const name = document.createElement('div');
     name.className = 'name';
-    name.textContent = p.designation;
-
+    name.textContent = (p.designation || p.name || '').trim();
 
     const code = document.createElement('div');
     code.className = 'code';
@@ -629,6 +629,7 @@ refresh();
 
 </body>
 </html>
+
 
 
 
