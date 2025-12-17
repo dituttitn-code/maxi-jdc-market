@@ -973,7 +973,19 @@ function grandTotal(){
 
     function refreshCartUI(){
       $("cartTopCount").textContent = cartCount();
-      $("cartTotal").textContent = cartTotal().toFixed(2).replace('.',',') + " dt";
+
+const fee = shippingFee();
+const totalBox = $("cartTotal");
+
+if (fee === null) {
+  totalBox.textContent = "Minimum commande 15 dt";
+  totalBox.style.color = "#ff6b6b";
+} else {
+  const gTotal = grandTotal();
+  totalBox.textContent = gTotal.toFixed(2).replace('.', ',') + " dt";
+  totalBox.style.color = "";
+}
+
 
       const list = $("cartList");
       list.innerHTML = "";
@@ -1163,5 +1175,6 @@ function grandTotal(){
   </script>
 </body>
 </html>
+
 
 
