@@ -374,8 +374,15 @@ function parseCSV(text){
   const lines = text.replace(/\r/g,'').split('\n').filter(l => l.trim().length);
   if (!lines.length) return [];
 
- const header = splitCSVLine(lines[0]).map(h => normalize(h).replace(/^\uFEFF/, '').trim());
+// détecter le séparateur (virgule ou point-virgule)
+const sep = (lines[0].includes(';') && !lines[0].includes(',')) ? ';' : ',';
+const splitLine = (line) => sep === ';' ? line.split(';') : splitCSVLine(line);
+
+const header = splitLine(lines[0]).map(h =>
+  normalize(h).replace(/^\uFEFF/, '').trim()
+);
 const idxCode = header.indexOf('code');
+
 
 // accepte designation OU name OU nom
 const idxDesignation =
@@ -389,7 +396,7 @@ const idxPrice = header.indexOf('price');
 
   const out = [];
   for (let i=1;i<lines.length;i++){
-    const cols = splitCSVLine(lines[i]);
+   const cols = splitLine(lines[i]);
     const code = cols[idxCode] ?? '';
     const designation = cols[idxDesignation] ?? '';
     const price = cols[idxPrice] ?? '';
@@ -622,6 +629,7 @@ refresh();
 
 </body>
 </html>
+
 
 
 
