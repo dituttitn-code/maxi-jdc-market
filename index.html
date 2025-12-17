@@ -1,627 +1,459 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MAXI JDC MARKET — Commande en ligne</title>
+<!-- ===================== PANIER + FICHE CLIENT + ADMIN (BLOC UNIQUE) ===================== -->
+<style>
+/* Bouton Panier visible dès ouverture (HAUT DROITE) */
+.cart-fab{
+  position:fixed;
+  right:16px;
+  top:16px;
+  left:auto;
+  bottom:auto;
+  z-index:99999;
 
-  <style>
-    :root{
-      --bg:#0b0f14;
-      --panel:#111826;
-      --panel2:#0f1520;
-      --text:#e8eef7;
-      --muted:#9bb0c6;
-      --line:rgba(255,255,255,.08);
-      --btn:#1a2636;
-      --btn2:#142030;
-      --accent:#2bd576;
-      --accent2:#1aa85a;
-      --danger:#ff4d4d;
-      --shadow: 0 12px 30px rgba(0,0,0,.35);
-      --radius:14px;
-      --radius2:20px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
-      background: radial-gradient(1200px 600px at 20% -10%, rgba(43,213,118,.15), transparent 60%),
-                  radial-gradient(900px 500px at 90% 0%, rgba(80,160,255,.10), transparent 55%),
-                  var(--bg);
-      color:var(--text);
-    }
-    header{
-      position:sticky; top:0; z-index:10;
-      background: rgba(11,15,20,.78);
-      backdrop-filter: blur(10px);
-      border-bottom:1px solid var(--line);
-    }
-    .wrap{max-width:1200px;margin:0 auto;padding:14px 16px}
-    .topbar{
-      display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
-    }
-    .brand{
-      display:flex;align-items:center;gap:10px;min-width:280px;
-    }
-    .logo{
-      width:40px;height:40px;border-radius:12px;
-      background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
-      border:1px solid var(--line);
-      display:flex;align-items:center;justify-content:center;
-      font-weight:800;
-      box-shadow: var(--shadow);
-    }
-    .brand h1{font-size:15px;margin:0;line-height:1.1}
-    .brand .sub{font-size:12px;color:var(--muted);margin-top:2px}
-    .rightinfo{
-      display:flex;gap:14px;align-items:center;flex-wrap:wrap;
-      color:var(--muted);font-size:12px;justify-content:flex-end;
-    }
-    .pill{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:8px 10px;border:1px solid var(--line);border-radius:999px;
-      background: rgba(17,24,38,.55);
-    }
+  padding:10px 14px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.15);
+  background: rgba(17,24,38,.95);
+  color:#fff;
+  cursor:pointer;
+  font-weight:900;
+  box-shadow: 0 16px 40px rgba(0,0,0,.35);
+}
+.cart-badge{
+  display:inline-block; min-width:20px; height:20px; line-height:20px;
+  text-align:center; border-radius:999px; margin-left:8px;
+  background:#d4af37; color:#111826; font-size:12px; padding:0 6px;
+  font-weight:900;
+}
 
-    .controls{
-      margin-top:12px;
-      display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;
-    }
-    .searchRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex:1}
-    input[type="search"]{
-      width:min(620px, 100%);
-      padding:11px 12px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background: rgba(17,24,38,.45);
-      color:var(--text);
-      outline:none;
-    }
-    input[type="search"]::placeholder{color:rgba(155,176,198,.75)}
-    .btn{
-      padding:10px 12px;border-radius:999px;
-      border:1px solid var(--line);
-      background: var(--btn);
-      color:var(--text);
-      cursor:pointer;
-      transition:.15s;
-      user-select:none;
-    }
-    .btn:hover{transform:translateY(-1px);background:var(--btn2)}
-    .btn.primary{
-      border-color: rgba(43,213,118,.35);
-      background: rgba(43,213,118,.10);
-      box-shadow: 0 10px 22px rgba(43,213,118,.08);
-    }
-    .btn.primary:hover{background: rgba(43,213,118,.16)}
-    .stat{
-      display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;
-      color:var(--muted);font-size:12px;
-    }
+/* Drawer panier (caché par défaut) */
+.cart-drawer{
+  position:fixed; top:0; right:0; height:100vh; width:min(420px, 92vw);
+  background:#0f1522;
+  border-left:1px solid rgba(255,255,255,.12);
+  z-index:99998;
+  transform:translateX(110%);     /* ✅ caché par défaut */
+  transition:.25s ease;
+  display:flex; flex-direction:column;
+}
+.cart-drawer.open{ transform:translateX(0); }
 
-    .notice{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:12px;
-      padding:10px 12px;
-      border:1px dashed rgba(255,255,255,.14);
-      border-radius: var(--radius);
-      background: rgba(17,24,38,.30);
-    }
+.cart-header{
+  padding:14px;
+  border-bottom:1px solid rgba(255,255,255,.12);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.cart-close{
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color:#fff; border-radius:12px; padding:8px 10px; cursor:pointer;
+  font-weight:900;
+}
+.cart-body{ padding:12px 14px; overflow:auto; flex:1; }
+.cart-item{
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px; padding:10px; margin-bottom:10px;
+  background: rgba(255,255,255,.03);
+}
+.cart-row{ display:flex; justify-content:space-between; gap:10px; }
+.cart-name{ font-weight:900; }
+.cart-meta{ opacity:.75; font-size:12px; margin-top:4px; }
+.qty-controls{ display:flex; gap:6px; align-items:center; margin-top:8px; }
+.qty-btn{
+  width:32px; height:32px; border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color:#fff; cursor:pointer; font-weight:900;
+}
+.qty{ min-width:28px; text-align:center; font-weight:900; }
 
-    main .wrap{padding-top:16px;padding-bottom:28px}
+.cart-footer{
+  border-top:1px solid rgba(255,255,255,.12);
+  padding:12px 14px; display:flex; flex-direction:column; gap:10px;
+}
+.cart-total{ display:flex; justify-content:space-between; font-weight:900; font-size:16px; }
+.cart-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+.cart-hint{ font-size:12px; opacity:.8; }
 
-    .grid{
-      display:grid;
-      grid-template-columns: 320px 1fr;
-      gap:14px;
-    }
-    @media (max-width: 980px){
-      .grid{grid-template-columns: 1fr}
-    }
+.btn{
+  padding:10px 12px; border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color:#fff; cursor:pointer; font-weight:900;
+}
+.btn-gold{ background:#d4af37; color:#111826; border-color:#d4af37; }
 
-    .card{
-      background: rgba(17,24,38,.55);
-      border:1px solid var(--line);
-      border-radius: var(--radius2);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .card h2{
-      font-size:13px;margin:0;
-      padding:14px 14px;
-      border-bottom:1px solid var(--line);
-      color:rgba(232,238,247,.92);
-      background: rgba(15,21,32,.55);
-      letter-spacing:.2px;
-    }
-    .catList{padding:10px}
-    .catBtn{
-      width:100%;
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
-      padding:10px 12px;
-      border-radius: 14px;
-      border:1px solid transparent;
-      background: transparent;
-      color:var(--text);
-      cursor:pointer;
-      transition:.12s;
-      text-align:left;
-    }
-    .catBtn:hover{background: rgba(255,255,255,.04)}
-    .catBtn.active{
-      background: rgba(43,213,118,.10);
-      border-color: rgba(43,213,118,.25);
-    }
-    .catName{display:flex;flex-direction:column;gap:2px}
-    .catName b{font-size:13px}
-    .catName span{font-size:11px;color:var(--muted)}
-    .badge{
-      font-size:11px;color:var(--muted);
-      padding:6px 10px;border-radius:999px;
-      border:1px solid var(--line);
-      background: rgba(17,24,38,.45);
-      white-space:nowrap;
-    }
+/* Modals cachés par défaut */
+.modal{
+  position:fixed; inset:0; z-index:999999;
+  background: rgba(0,0,0,.55);
+  display:none; padding:18px;         /* ✅ caché par défaut */
+}
+.modal.open{ display:flex; align-items:center; justify-content:center; }
 
-    .productsCardHeader{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-      padding:14px 14px;
-      border-bottom:1px solid var(--line);
-      background: rgba(15,21,32,.55);
-    }
-    .productsCardHeader .title{
-      display:flex;flex-direction:column;gap:3px;
-    }
-    .productsCardHeader .title b{font-size:14px}
-    .productsCardHeader .title span{font-size:12px;color:var(--muted)}
-    .pager{display:flex;gap:8px;align-items:center}
-    .pager .btn{padding:8px 10px}
-    .pager .pageInfo{font-size:12px;color:var(--muted)}
+.modal-card{
+  width:min(520px, 95vw);
+  background:#0f1522;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;
+  box-shadow: 0 16px 60px rgba(0,0,0,.55);
+  overflow:hidden;
+}
+.modal-head{
+  padding:14px;
+  border-bottom:1px solid rgba(255,255,255,.12);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.modal-body{ padding:14px; display:flex; flex-direction:column; gap:12px; }
+.field span{ display:block; font-size:12px; opacity:.8; margin-bottom:6px; }
+.field input, .field select, .field textarea{
+  width:100%;
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color:#fff;
+}
+.modal-actions{ display:flex; justify-content:flex-end; margin-top:6px; }
+.tiny{ font-size:12px; opacity:.75; }
 
-    .products{
-      padding:12px;
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap:10px;
-    }
-    @media (max-width: 1150px){ .products{grid-template-columns: repeat(2, minmax(0, 1fr));} }
-    @media (max-width: 620px){ .products{grid-template-columns: 1fr;} }
+/* (Optionnel) style bouton “Ajouter au panier” si tu l’utilises dans les cartes produits */
+.add-cart-btn{
+  margin-top:10px; width:100%;
+  padding:10px 12px; border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color:#fff; cursor:pointer; font-weight:900;
+}
+</style>
 
-    .p{
-      border:1px solid var(--line);
-      background: rgba(17,24,38,.45);
-      border-radius: 18px;
-      padding:12px;
-      display:flex;flex-direction:column;gap:8px;
-      min-height:112px;
-    }
-    .p .row1{
-      display:flex;justify-content:space-between;gap:10px;align-items:flex-start;
-    }
-    .p .name{font-weight:700;font-size:14px;line-height:1.2}
-    .p .code{font-size:11px;color:var(--muted)}
-    .p .price{
-      font-weight:800;
-      padding:6px 10px;border-radius:999px;
-      border:1px solid rgba(43,213,118,.28);
-      background: rgba(43,213,118,.10);
-      white-space:nowrap;
-      align-self:flex-start;
-    }
-    .empty{
-      padding:18px;
-      color:var(--muted);
-      font-size:13px;
-    }
-    .warn{
-      color: rgba(255,190,80,.95);
-      font-size:12px;
-      padding:10px 12px;
-      border:1px solid rgba(255,190,80,.25);
-      background: rgba(255,190,80,.08);
-      border-radius: 14px;
-      margin:12px;
-    }
-    footer{
-      border-top:1px solid var(--line);
-      color:var(--muted);
-      font-size:12px;
-      padding:14px 16px;
-    }
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
-  </style>
-</head>
+<!-- Bouton Panier (visible dès ouverture) -->
+<button id="cartFab" class="cart-fab" type="button" title="Ouvrir le panier">
+  🛒 Panier <span id="cartBadge" class="cart-badge">0</span>
+</button>
 
-<body>
-<header>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand">
-        <div class="logo">M</div>
-        <div>
-          <h1>MAXI JDC MARKET</h1>
-          <div class="sub">Des prix mini — Un MAXI choix</div>
-        </div>
-      </div>
+<!-- Drawer Panier -->
+<aside id="cartDrawer" class="cart-drawer" aria-hidden="true">
+  <div class="cart-header">
+    <h3>🛒 Votre panier</h3>
+    <button id="cartClose" class="cart-close" type="button">Fermer ✖</button>
+  </div>
 
-      <div class="rightinfo">
-        <div class="pill">📍 Jardins de Carthage, derrière mosquée Essalem</div>
-        <div class="pill">🕒 7h – 1h</div>
-        <div class="pill">💬 WhatsApp: 00216 25 600 978</div>
-      </div>
+  <div id="cartItems" class="cart-body"></div>
+
+  <div class="cart-footer">
+    <div class="cart-total">
+      <span>Total</span>
+      <span id="cartTotal">0 dt</span>
     </div>
 
-    <div class="controls">
-      <div class="searchRow">
-        <input id="q" type="search" placeholder="Rechercher un produit (nom, catégorie, code)..." />
-        <button class="btn" id="clearBtn">Effacer</button>
-        <button class="btn primary" id="globalBtn">Recherche globale</button>
-      </div>
-      <div class="stat">
-        <span id="countTxt">0 article(s)</span>
-        <span class="pill">Conditions: minimum livraison 15 dt • Livraison gratuite si total ≥ 30 dt • Sinon frais 5 dt • Retrait magasin possible</span>
-      </div>
+    <div class="cart-actions">
+      <button id="cartClear" class="btn" type="button">Vider</button>
+      <button id="openCheckout" class="btn btn-gold" type="button">Valider commande</button>
     </div>
 
-    <div class="notice">
-      ✅ Données chargées depuis <span class="mono">/data/*.csv</span> — une catégorie = un fichier CSV (facile à mettre à jour).
+    <div class="cart-hint">Minimum livraison : <b>15 dt</b></div>
+  </div>
+</aside>
+
+<!-- Modal Fiche Client (caché au démarrage) -->
+<div id="checkoutModal" class="modal" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>🧾 Informations client</h3>
+      <button id="closeCheckout" class="cart-close" type="button">Fermer ✖</button>
+    </div>
+
+    <div class="modal-body">
+      <label class="field">
+        <span>Nom & Prénom *</span>
+        <input id="cName" type="text" placeholder="Ex: Lotfi Khelifi" />
+      </label>
+
+      <label class="field">
+        <span>Téléphone *</span>
+        <input id="cPhone" type="tel" placeholder="Ex: 25 600 978" />
+      </label>
+
+      <label class="field">
+        <span>Mode *</span>
+        <select id="cMode">
+          <option value="Livraison">Livraison</option>
+          <option value="Retrait magasin">Retrait magasin</option>
+        </select>
+      </label>
+
+      <label class="field" id="addressField">
+        <span>Adresse livraison *</span>
+        <input id="cAddress" type="text" placeholder="Ex: Jardins de Carthage, derrière mosquée Essalem" />
+      </label>
+
+      <label class="field">
+        <span>Note (optionnel)</span>
+        <textarea id="cNote" rows="3" placeholder="Ex: Interphone, étage, heure souhaitée..."></textarea>
+      </label>
+
+      <div class="modal-actions">
+        <button id="sendWhatsApp" class="btn btn-gold" type="button">Envoyer sur WhatsApp</button>
+      </div>
+
+      <div class="tiny">* Champs obligatoires. (Aucun point fidélité ici.)</div>
     </div>
   </div>
-</header>
+</div>
 
-<main>
-  <div class="wrap">
-    <div class="grid">
+<!-- Admin caché (ouvre seulement avec #admin + PIN) -->
+<div id="adminPanel" class="modal" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>🔒 Admin (caché)</h3>
+      <button id="closeAdmin" class="cart-close" type="button">Fermer ✖</button>
+    </div>
 
-      <section class="card" aria-label="Catégories">
-        <h2>Catégories</h2>
-        <div class="catList" id="catList"></div>
-        <div class="warn" id="missingInfo" style="display:none"></div>
-      </section>
+    <div class="modal-body">
+      <div class="tiny">Pour l’ouvrir : ajoute <b>#admin</b> à la fin du lien (PIN demandé).</div>
 
-      <section class="card" aria-label="Produits">
-        <div class="productsCardHeader">
-          <div class="title">
-            <b id="activeTitle">Chargement…</b>
-            <span id="activeSubtitle">Patiente un instant.</span>
-          </div>
-          <div class="pager">
-            <button class="btn" id="prevPage">◀</button>
-            <div class="pageInfo" id="pageInfo">Page 1/1</div>
-            <button class="btn" id="nextPage">▶</button>
-          </div>
-        </div>
+      <label class="field">
+        <span>Code article</span>
+        <input id="aCode" type="text" placeholder="Ex: 4124" />
+      </label>
 
-        <div id="products" class="products"></div>
-        <div id="empty" class="empty" style="display:none">Aucun produit à afficher.</div>
-      </section>
+      <label class="field">
+        <span>Nouveau prix (dt)</span>
+        <input id="aPrice" type="number" step="0.001" placeholder="Ex: 6.5" />
+      </label>
 
+      <div class="modal-actions" style="gap:10px">
+        <button id="saveOverride" class="btn btn-gold" type="button">Enregistrer prix</button>
+        <button id="clearOverrides" class="btn" type="button">Effacer tous les prix admin</button>
+      </div>
+
+      <div class="tiny">Prix admin enregistrés dans ce navigateur (localStorage).</div>
     </div>
   </div>
-</main>
-
-<footer>
-  <div class="wrap">
-    MAXI JDC MARKET — gestion des prix via CSV (GitHub). Astuce: modifie un prix dans un CSV, commit, puis actualise le site.
-  </div>
-</footer>
+</div>
 
 <script>
-/**
- * CONFIG: Catégories "professionnelles" + fichier CSV (dans /data)
- * - Mets ici toutes les catégories.
- * - Quand tu n’as pas encore la liste, laisse le CSV vide -> le site ne plante pas.
- */
-const CATEGORY_CONFIG = [
-  { name: "Fruits & Légumes",                 file: "fruits_legumes.csv",     unitDefault: "kg" },
+/* ===================== LOGIQUE PANIER + FICHE CLIENT + ADMIN ===================== */
+const WHATSAPP_NUMBER = "21625600978";
+const MIN_ORDER_DT = 15;
 
-  { name: "Produits laitiers & Œufs",         file: "lait_derives.csv",       unitDefault: "pièce" },
-  { name: "Fromage & Charcuterie",            file: "fromage_charcuterie.csv", unitDefault: "pièce" },
-  { name: "Boulangerie & Pâtisserie",         file: "boulangerie_patisserie.csv", unitDefault: "pièce" },
+const CART_KEY = "maxi_jdc_cart_v3";
+const ADMIN_OVERRIDES_KEY = "maxi_jdc_price_overrides_v1";
 
-  { name: "Épicerie Salée",                   file: "epicerie_salee.csv",     unitDefault: "pièce" },
-  { name: "Épicerie Sucrée",                  file: "epicerie_sucree.csv",    unitDefault: "pièce" },
-
-  { name: "Snacks & Chips",                   file: "snacks_chips.csv",       unitDefault: "pièce" },
-  { name: "Café, Thé & Infusions",            file: "cafe_the_infusions.csv", unitDefault: "pièce" },
-  { name: "Jus & Boissons",                   file: "jus_boissons.csv",       unitDefault: "pièce" },
-  { name: "Eaux",                             file: "eaux.csv",              unitDefault: "pièce" },
-
-  { name: "Surgelés",                         file: "surgele.csv",           unitDefault: "pièce" },
-
-  { name: "Hygiène et entretien",             file: "hygiene_entretien.csv",  unitDefault: "pièce" },
-  { name: "Hygiene et soins",                 file: "hygiene_soins.csv",      unitDefault: "pièce",
-    extraLabel: "Produits Santé & Bien-Être" },
-
-  { name: "Bébé et Maman",                    file: "bebe_maman.csv",         unitDefault: "pièce" },
-  { name: "Animaux",                          file: "animaux.csv",            unitDefault: "pièce" },
-
-  { name: "Cuisine du monde",                 file: "cuisine_du_monde.csv",   unitDefault: "pièce" },
-  { name: "Fruits secs & Graines",            file: "fruits_secs_graines.csv", unitDefault: "pièce" },
-
-  { name: "Promotions",                       file: "promotions.csv",         unitDefault: "pièce" }
-];
-
-// Pagination
-const PAGE_SIZE = 24;
-
-// State
-let cacheByCategory = new Map(); // name -> products[]
-let activeCategory = CATEGORY_CONFIG[0].name;
-let globalMode = false;
-let currentPage = 1;
-
-// DOM
-const catListEl = document.getElementById('catList');
-const productsEl = document.getElementById('products');
-const emptyEl = document.getElementById('empty');
-const qEl = document.getElementById('q');
-const countTxt = document.getElementById('countTxt');
-const activeTitle = document.getElementById('activeTitle');
-const activeSubtitle = document.getElementById('activeSubtitle');
-const pageInfo = document.getElementById('pageInfo');
-const prevPageBtn = document.getElementById('prevPage');
-const nextPageBtn = document.getElementById('nextPage');
-const missingInfo = document.getElementById('missingInfo');
-const clearBtn = document.getElementById('clearBtn');
-const globalBtn = document.getElementById('globalBtn');
-
-function normalize(s){
-  return String(s || '')
-    .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .trim();
+function priceToNumber(p){
+  if (p == null) return 0;
+  const s = String(p).replace(",", ".").replace(/[^\d.]/g, "");
+  const n = Number(s);
+  return isNaN(n) ? 0 : n;
 }
-
-function safeNumber(x){
-  const n = Number(String(x).replace(',', '.'));
-  return Number.isFinite(n) ? n : null;
+function fmtDT(n){
+  const v = Math.round(n * 1000) / 1000;
+  return String(v).replace(".", ",") + " dt";
 }
-
-/**
- * CSV parser simple :
- * - accepte virgule
- * - accepte guillemets "..."
- * - ignore lignes vides
- */
-function parseCSV(text){
-  const lines = text.replace(/\r/g,'').split('\n').filter(l => l.trim().length);
-  if (!lines.length) return [];
-
-  const header = splitCSVLine(lines[0]).map(h => normalize(h));
-  const idxCode = header.indexOf('code');
-  const idxDesignation = header.indexOf('designation');
-  const idxPrice = header.indexOf('price');
-
-  const out = [];
-  for (let i=1;i<lines.length;i++){
-    const cols = splitCSVLine(lines[i]);
-    const code = cols[idxCode] ?? '';
-    const designation = cols[idxDesignation] ?? '';
-    const price = cols[idxPrice] ?? '';
-    if (!String(code).trim() && !String(designation).trim()) continue;
-    out.push({ code: String(code).trim(), designation: String(designation).trim(), price: safeNumber(price) });
-  }
-  return out;
+function loadJSON(k, fallback){
+  try{ return JSON.parse(localStorage.getItem(k)) ?? fallback; }catch(e){ return fallback; }
 }
+function saveJSON(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
 
-function splitCSVLine(line){
-  const res = [];
-  let cur = '';
-  let inQ = false;
-  for (let i=0;i<line.length;i++){
-    const ch = line[i];
-    if (ch === '"'){
-      if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
-      else inQ = !inQ;
-    } else if (ch === ',' && !inQ){
-      res.push(cur);
-      cur = '';
-    } else {
-      cur += ch;
-    }
-  }
-  res.push(cur);
-  return res;
-}
+let CART = loadJSON(CART_KEY, {});
+let PRICE_OVERRIDES = loadJSON(ADMIN_OVERRIDES_KEY, {});
 
-async function loadCategory(cat){
-  if (cacheByCategory.has(cat.name)) return cacheByCategory.get(cat.name);
+// UI refs
+const cartFab = document.getElementById("cartFab");
+const cartBadge = document.getElementById("cartBadge");
+const cartDrawer = document.getElementById("cartDrawer");
+const cartClose = document.getElementById("cartClose");
+const cartItems = document.getElementById("cartItems");
+const cartTotalEl = document.getElementById("cartTotal");
+const cartClear = document.getElementById("cartClear");
+const openCheckout = document.getElementById("openCheckout");
 
-  const url = data/${cat.file};
-  try{
-    const r = await fetch(url, { cache: "no-store" });
-    if (!r.ok) throw new Error(HTTP ${r.status});
-    const text = await r.text();
-    const rows = parseCSV(text);
+const checkoutModal = document.getElementById("checkoutModal");
+const closeCheckout = document.getElementById("closeCheckout");
+const sendWhatsAppBtn = document.getElementById("sendWhatsApp");
+const cName = document.getElementById("cName");
+const cPhone = document.getElementById("cPhone");
+const cMode = document.getElementById("cMode");
+const addressField = document.getElementById("addressField");
+const cAddress = document.getElementById("cAddress");
+const cNote = document.getElementById("cNote");
 
-    const products = rows.map((x) => ({
-      code: x.code,
-      name: x.designation,
-      price: x.price,
-      category: cat.name,
-      unit: cat.unitDefault || 'pièce'
-    }));
+const adminPanel = document.getElementById("adminPanel");
+const closeAdmin = document.getElementById("closeAdmin");
+const aCode = document.getElementById("aCode");
+const aPrice = document.getElementById("aPrice");
+const saveOverride = document.getElementById("saveOverride");
+const clearOverrides = document.getElementById("clearOverrides");
 
-    cacheByCategory.set(cat.name, products);
-    return products;
-  }catch(e){
-    // Catégorie pas encore disponible -> liste vide (pas d’erreur bloquante)
-    cacheByCategory.set(cat.name, []);
-    return [];
-  }
-}
+function openCart(){ cartDrawer.classList.add("open"); cartDrawer.setAttribute("aria-hidden","false"); }
+function closeCart(){ cartDrawer.classList.remove("open"); cartDrawer.setAttribute("aria-hidden","true"); }
 
-function renderCategories(counts){
-  catListEl.innerHTML = '';
-  CATEGORY_CONFIG.forEach(cat => {
-    const btn = document.createElement('button');
-    btn.className = 'catBtn' + (cat.name === activeCategory && !globalMode ? ' active' : '');
-    btn.onclick = () => {
-      globalMode = false;
-      activeCategory = cat.name;
-      currentPage = 1;
-      document.querySelectorAll('.catBtn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      refresh();
-    };
+function openModal(el){ el.classList.add("open"); el.setAttribute("aria-hidden","false"); }
+function closeModal(el){ el.classList.remove("open"); el.setAttribute("aria-hidden","true"); }
 
-    const left = document.createElement('div');
-    left.className = 'catName';
-    const b = document.createElement('b');
-    b.textContent = cat.name;
-    const s = document.createElement('span');
-    s.textContent = cat.extraLabel ? cat.extraLabel : (cat.file ? CSV: ${cat.file} : 'CSV: —');
-    left.appendChild(b);
-    left.appendChild(s);
+function cartCount(){ return Object.values(CART).reduce((s,it)=>s+(it.qty||0),0); }
+function cartTotal(){ return Object.values(CART).reduce((s,it)=>s+(priceToNumber(it.price)*(it.qty||0)),0); }
 
-    const badge = document.createElement('div');
-    badge.className = 'badge';
-    badge.textContent = (counts.get(cat.name) ?? 0) + ' article(s)';
+function renderCart(){
+  cartBadge.textContent = cartCount();
+  const items = Object.values(CART);
 
-    btn.appendChild(left);
-    btn.appendChild(badge);
-    catListEl.appendChild(btn);
-  });
-}
-
-function renderProducts(list){
-  const q = normalize(qEl.value);
-  let filtered = list;
-
-  if (q){
-    filtered = list.filter(p => {
-      const hay = normalize(p.name) + ' ' + normalize(p.category) + ' ' + normalize(p.code);
-      return hay.includes(q);
-    });
-  }
-
-  // Pagination
-  const total = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  currentPage = Math.min(Math.max(1, currentPage), totalPages);
-
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = filtered.slice(start, start + PAGE_SIZE);
-
-  pageInfo.textContent = Page ${currentPage}/${totalPages};
-  prevPageBtn.disabled = currentPage <= 1;
-  nextPageBtn.disabled = currentPage >= totalPages;
-
-  countTxt.textContent = ${total} article(s);
-
-  productsEl.innerHTML = '';
-  emptyEl.style.display = total ? 'none' : 'block';
-
-  for (const p of pageItems){
-    const card = document.createElement('div');
-    card.className = 'p';
-
-    const row1 = document.createElement('div');
-    row1.className = 'row1';
-
-    const left = document.createElement('div');
-    const name = document.createElement('div');
-    name.className = 'name';
-    name.textContent = p.name;
-
-    const code = document.createElement('div');
-    code.className = 'code';
-    code.innerHTML = Code: <span class="mono">${p.code}</span> • ${p.category};
-
-    left.appendChild(name);
-    left.appendChild(code);
-
-    const price = document.createElement('div');
-    price.className = 'price';
-    const pr = (p.price === null) ? '—' : (Number(p.price).toFixed(1).replace('.0',''));
-    price.textContent = ${pr} dt;
-
-    row1.appendChild(left);
-    row1.appendChild(price);
-
-    card.appendChild(row1);
-    productsEl.appendChild(card);
-  }
-}
-
-async function refresh(){
-  // Charger tout (si recherche globale) sinon juste la catégorie active
-  const counts = new Map();
-
-  let list = [];
-  if (globalMode){
-    activeTitle.textContent = 'Recherche globale';
-    activeSubtitle.textContent = 'Tous les produits, toutes les catégories (CSV).';
-    missingInfo.style.display = 'none';
-
-    for (const cat of CATEGORY_CONFIG){
-      const arr = await loadCategory(cat);
-      counts.set(cat.name, arr.length);
-      list = list.concat(arr);
-    }
+  if (!items.length){
+    cartItems.innerHTML = `<div style="opacity:.75">Panier vide.</div>`;
   } else {
-    const cat = CATEGORY_CONFIG.find(c => c.name === activeCategory) || CATEGORY_CONFIG[0];
-    activeTitle.textContent = cat.name;
-    activeSubtitle.textContent = Source: data/${cat.file} • Mise à jour rapide (prix + nouveaux articles);
-
-    // message “manque de CSV”
-    const arr = await loadCategory(cat);
-    counts.set(cat.name, arr.length);
-
-    // Pour afficher badges corrects même sans globale :
-    // (on évite de tout charger à chaque fois)
-    CATEGORY_CONFIG.forEach(c => {
-      if (!counts.has(c.name)) counts.set(c.name, cacheByCategory.get(c.name)?.length ?? 0);
-    });
-
-    if (arr.length === 0){
-      missingInfo.style.display = 'block';
-      missingInfo.innerHTML =
-        `ℹ Cette catégorie est vide pour l’instant (CSV manquant ou sans lignes).<br>
-         Crée le fichier <span class="mono">data/${cat.file}</span> avec l’en-tête <span class="mono">code,designation,price</span>.`;
-    } else {
-      missingInfo.style.display = 'none';
-    }
-
-    list = arr;
+    cartItems.innerHTML = items.map(it=>{
+      const line = priceToNumber(it.price) * it.qty;
+      return `
+        <div class="cart-item">
+          <div class="cart-row">
+            <div>
+              <div class="cart-name">${it.name}</div>
+              <div class="cart-meta">Code: ${it.code} • Prix: ${fmtDT(priceToNumber(it.price))}</div>
+            </div>
+            <div style="font-weight:900;color:#d4af37">${fmtDT(line)}</div>
+          </div>
+          <div class="qty-controls">
+            <button class="qty-btn" type="button" onclick="cartDec('${it.code}')">−</button>
+            <div class="qty">${it.qty}</div>
+            <button class="qty-btn" type="button" onclick="cartInc('${it.code}')">+</button>
+          </div>
+        </div>
+      `;
+    }).join("");
   }
 
-  renderCategories(counts);
-  renderProducts(list);
+  cartTotalEl.textContent = fmtDT(cartTotal());
 }
 
-// Events
-qEl.addEventListener('input', () => { currentPage = 1; refresh(); });
+window.addToCart = function(code, name, price){
+  code = String(code || "").trim();
+  if (!code) return;
 
-clearBtn.addEventListener('click', () => {
-  qEl.value = '';
-  currentPage = 1;
-  refresh();
+  const override = PRICE_OVERRIDES[code];
+  const finalPrice = (override != null) ? priceToNumber(override) : priceToNumber(price);
+
+  if (!CART[code]) CART[code] = { code, name: String(name||"Article"), price: finalPrice, qty: 0 };
+  CART[code].qty += 1;
+
+  saveJSON(CART_KEY, CART);
+  renderCart();
+  openCart();
+};
+window.cartInc = function(code){
+  if (!CART[code]) return;
+  CART[code].qty += 1;
+  saveJSON(CART_KEY, CART);
+  renderCart();
+};
+window.cartDec = function(code){
+  if (!CART[code]) return;
+  CART[code].qty -= 1;
+  if (CART[code].qty <= 0) delete CART[code];
+  saveJSON(CART_KEY, CART);
+  renderCart();
+};
+function clearCart(){
+  CART = {};
+  saveJSON(CART_KEY, CART);
+  renderCart();
+}
+
+function updateAddressVisibility(){
+  const isDelivery = cMode.value === "Livraison";
+  addressField.style.display = isDelivery ? "" : "none";
+}
+cMode.addEventListener("change", updateAddressVisibility);
+
+function validateClient(){
+  const name = (cName.value || "").trim();
+  const phone = (cPhone.value || "").trim();
+  const mode = cMode.value;
+  const addr = (cAddress.value || "").trim();
+
+  if (!name) return "Nom & Prénom obligatoire.";
+  if (!phone) return "Téléphone obligatoire.";
+  if (cartCount() === 0) return "Panier vide.";
+
+  const total = cartTotal();
+  if (total < MIN_ORDER_DT) return `Minimum livraison : ${MIN_ORDER_DT} dt. Total actuel : ${fmtDT(total)}.`;
+
+  if (mode === "Livraison" && !addr) return "Adresse obligatoire pour livraison.";
+  return null;
+}
+
+function buildWhatsAppMessage(){
+  const items = Object.values(CART);
+  const total = cartTotal();
+
+  const name = (cName.value || "").trim();
+  const phone = (cPhone.value || "").trim();
+  const mode = cMode.value;
+  const addr = (cAddress.value || "").trim();
+  const note = (cNote.value || "").trim();
+
+  let msg = `Bonjour MAXI JDC MARKET 👋\nNouvelle commande\n\n`;
+  msg += `Client: ${name}\nTéléphone: ${phone}\nMode: ${mode}\n`;
+  if (mode === "Livraison") msg += `Adresse: ${addr}\n`;
+  if (note) msg += `Note: ${note}\n`;
+  msg += `\n--- Articles ---\n`;
+
+  items.forEach(it=>{
+    const line = priceToNumber(it.price) * it.qty;
+    msg += `• ${it.name} (Code ${it.code}) x${it.qty} = ${fmtDT(line)}\n`;
+  });
+
+  msg += `\nTotal: ${fmtDT(total)}\nMerci.\n`;
+  return encodeURIComponent(msg);
+}
+
+function sendWhatsApp(){
+  const err = validateClient();
+  if (err) { alert(err); return; }
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${buildWhatsAppMessage()}`, "_blank");
+}
+
+/* Admin caché : ouvre seulement via #admin + PIN */
+function openAdminIfHash(){
+  if (location.hash !== "#admin") return;
+  const pin = prompt("Code admin (PIN) :");
+  if (pin !== "2025") { alert("Code incorrect."); location.hash = ""; return; }
+  openModal(adminPanel);
+}
+window.addEventListener("hashchange", openAdminIfHash);
+
+saveOverride.addEventListener("click", ()=>{
+  const code = (aCode.value||"").trim();
+  const price = (aPrice.value||"").trim();
+  if (!code || !price) { alert("Code + prix requis."); return; }
+  PRICE_OVERRIDES[code] = priceToNumber(price);
+  saveJSON(ADMIN_OVERRIDES_KEY, PRICE_OVERRIDES);
+  alert("Prix admin enregistré ✅");
+});
+clearOverrides.addEventListener("click", ()=>{
+  if (!confirm("Effacer tous les prix admin ?")) return;
+  PRICE_OVERRIDES = {};
+  saveJSON(ADMIN_OVERRIDES_KEY, PRICE_OVERRIDES);
+  alert("OK ✅");
 });
 
-globalBtn.addEventListener('click', () => {
-  globalMode = !globalMode;
-  currentPage = 1;
+/* Events UI */
+cartFab.addEventListener("click", ()=>{ renderCart(); openCart(); });
+cartClose.addEventListener("click", closeCart);
+cartClear.addEventListener("click", clearCart);
 
-  // Mettre “active” sur aucune catégorie quand global
-  document.querySelectorAll('.catBtn').forEach(b => b.classList.remove('active'));
-  refresh();
+openCheckout.addEventListener("click", ()=>{
+  if (cartCount() === 0) { alert("Panier vide."); return; }
+  updateAddressVisibility();
+  openModal(checkoutModal);
 });
+closeCheckout.addEventListener("click", ()=> closeModal(checkoutModal));
+sendWhatsAppBtn.addEventListener("click", sendWhatsApp);
 
-prevPageBtn.addEventListener('click', () => {
-  currentPage--;
-  refresh();
-});
-nextPageBtn.addEventListener('click', () => {
-  currentPage++;
-  refresh();
-});
+closeAdmin.addEventListener("click", ()=>{ closeModal(adminPanel); location.hash=""; });
 
-// Start
-refresh();
+/* Init */
+renderCart();
+updateAddressVisibility();
+openAdminIfHash();
 </script>
-</body>
-</html>
+<!-- =================== FIN BLOC UNIQUE =================== -->
