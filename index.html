@@ -2,146 +2,182 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>MAXI JDC MARKET</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAXI JDC MARKET – Commande en ligne</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{margin:0;font-family:Arial;background:#0b0f14;color:#fff}
-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0e1621}
-.logo{font-size:20px;font-weight:bold}
-.logo span{color:#1f8f55}
-input,button{padding:10px;border-radius:20px;border:none}
-button{cursor:pointer}
-#container{display:flex}
-#cats{width:240px;padding:10px}
-.cat{background:#131b28;padding:10px;border-radius:10px;margin-bottom:6px;cursor:pointer}
-.cat.active{background:#1f8f55}
-#products{flex:1;padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
-.card{background:#131b28;padding:10px;border-radius:10px}
-.price{float:right;background:#1f8f55;padding:4px 8px;border-radius:12px}
-.cart-btn{position:relative}
-.cart-count{position:absolute;top:-5px;right:-5px;background:red;color:#fff;border-radius:50%;padding:2px 6px;font-size:12px}
-#cartBox{position:fixed;top:0;right:0;width:340px;height:100%;background:#0e1621;padding:12px;display:none;overflow:auto}
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#0e1412;
+  color:#fff;
+}
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 20px;
+  background:#0b1a14;
+  box-shadow:0 2px 10px rgba(0,0,0,.6);
+}
+.logo{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  background:#0f5132;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  line-height:1;
+}
+.logo span:nth-child(1){font-size:18px;}
+.logo span:nth-child(2){font-size:14px;}
+.logo span:nth-child(3){font-size:18px;}
+
+.cart-btn{
+  cursor:pointer;
+  background:#198754;
+  padding:10px 14px;
+  border-radius:20px;
+}
+main{
+  display:flex;
+  padding:20px;
+  gap:20px;
+}
+.products{
+  flex:3;
+}
+.product{
+  background:#121f1a;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:12px;
+}
+.product button{
+  background:#198754;
+  border:none;
+  padding:8px 14px;
+  border-radius:20px;
+  color:white;
+  cursor:pointer;
+}
+aside{
+  flex:1;
+  background:#121f1a;
+  padding:15px;
+  border-radius:12px;
+}
+input,button{
+  width:100%;
+  margin-top:8px;
+  padding:8px;
+  border-radius:8px;
+  border:none;
+}
+.send{
+  background:#0d6efd;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+.footer{
+  margin-top:10px;
+  font-size:13px;
+  color:#bbb;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-<div class="logo">M<span>/JDC/</span>M</div>
-<button class="cart-btn" onclick="toggleCart()">🛒 Panier <span class="cart-count" id="cartCount">0</span></button>
+  <div class="logo">
+    <span>M</span>
+    <span>JDC</span>
+    <span>M</span>
+  </div>
+  <div class="cart-btn" onclick="toggleCart()">🛒 Panier (<span id="cartCount">0</span>)</div>
 </header>
 
-<div id="container">
-<div id="cats"></div>
-<div id="products"></div>
-</div>
+<main>
+  <section class="products" id="products">
+    <div class="product">
+      <h3>Produit exemple</h3>
+      <p>Prix : 3.500 DT</p>
+      <button onclick="addToCart('Produit exemple',3.5)">Ajouter</button>
+    </div>
+  </section>
 
-<div id="cartBox">
-<h3>🛒 Panier</h3>
-<div id="cartItems"></div>
-<hr>
-<div id="totalBox"></div>
+  <aside id="cart" style="display:none;">
+    <h3>Votre panier</h3>
+    <div id="cartItems"></div>
+    <strong>Total : <span id="total">0</span> DT</strong>
 
-<h4>👤 Informations client</h4>
-<input id="cName" placeholder="Nom"><br><br>
-<input id="cPhone" placeholder="Téléphone"><br><br>
-<input id="cAddr" placeholder="Adresse"><br><br>
-<button onclick="getGPS()">📍 Utiliser ma position</button>
-<div id="gps"></div>
+    <h4>Fiche client</h4>
+    <input id="name" placeholder="Nom">
+    <input id="phone" placeholder="Téléphone">
+    <input id="address" placeholder="Adresse">
 
-<hr>
-<button onclick="sendOrder()">📤 Envoyer la commande</button>
-</div>
+    <button onclick="getLocation()">📍 GPS</button>
+    <button class="send" onclick="sendOrder()">Envoyer la commande</button>
+
+    <div class="footer">
+      Minimum livraison : 15 DT<br>
+      Livraison gratuite dès 30 DT<br>
+      Sinon frais : 5 DT
+    </div>
+  </aside>
+</main>
 
 <script>
-const MIN_ORDER = 15;
-const DELIVERY_FEE = 5;
-
-const CATEGORIES=[
- {id:"sucree",name:"Épicerie Sucrée",file:"data/epicerie_sucree.csv"},
- {id:"salee",name:"Épicerie Salée",file:"data/epicerie_salee.csv"},
- {id:"pates",name:"Pâtes",file:"data/pates.csv"}
-];
-
 let cart=[];
-let gpsData="";
-
-function parseCSV(t,cat){
- const l=t.replace(/\r/g,"").split("\n").filter(x=>x.trim());
- const h=l[0].split(";").map(x=>x.toLowerCase());
- const iN=h.indexOf("designation");
- const iP=h.indexOf("price");
- return l.slice(1).map(r=>{
-  const c=r.split(";");
-  return{n:c[iN],p:Number(c[iP].replace(",",".")),cat};
- });
-}
-
-async function showCat(c){
- document.querySelectorAll(".cat").forEach(x=>x.classList.remove("active"));
- document.getElementById("cat-"+c.id).classList.add("active");
- const t=await fetch(c.file+"?v="+Date.now()).then(r=>r.text());
- const d=parseCSV(t,c.name);
- products.innerHTML="";
- d.forEach(p=>{
-  products.innerHTML+=`
-  <div class="card">
-   <div class="price">${p.p.toFixed(2)} dt</div>
-   <b>${p.n}</b><br><br>
-   <button onclick='addCart(${JSON.stringify(p)})'>Ajouter</button>
-  </div>`;
- });
-}
-
-function addCart(p){
- cart.push(p);
- updateCart();
-}
-
-function updateCart(){
- cartCount.innerText=cart.length;
- cartItems.innerHTML="";
- let sum=0;
- cart.forEach((p,i)=>{
-  sum+=p.p;
-  cartItems.innerHTML+=`${p.n} - ${p.p.toFixed(2)} dt <button onclick="cart.splice(${i},1);updateCart()">❌</button><br>`;
- });
- totalBox.innerHTML=`Total produits : ${sum.toFixed(2)} dt<br>Livraison : ${DELIVERY_FEE} dt<br><b>Total : ${(sum+DELIVERY_FEE).toFixed(2)} dt</b>`;
-}
+let gps="";
 
 function toggleCart(){
- cartBox.style.display=cartBox.style.display?"":"block";
+  document.getElementById("cart").style.display =
+  document.getElementById("cart").style.display==="none"?"block":"none";
 }
 
-function getGPS(){
- navigator.geolocation.getCurrentPosition(p=>{
-  gpsData=`${p.coords.latitude}, ${p.coords.longitude}`;
-  gps.innerText="GPS enregistré";
- });
+function addToCart(name,price){
+  cart.push({name,price});
+  renderCart();
+}
+
+function renderCart(){
+  let html="";
+  let total=0;
+  cart.forEach(p=>{
+    html+=`<div>${p.name} - ${p.price} DT</div>`;
+    total+=p.price;
+  });
+  document.getElementById("cartItems").innerHTML=html;
+  document.getElementById("total").innerText=total.toFixed(2);
+  document.getElementById("cartCount").innerText=cart.length;
+}
+
+function getLocation(){
+  navigator.geolocation.getCurrentPosition(pos=>{
+    gps=pos.coords.latitude+","+pos.coords.longitude;
+    alert("GPS enregistré");
+  });
 }
 
 function sendOrder(){
- const sum=cart.reduce((a,b)=>a+b.p,0);
- if(sum<MIN_ORDER){alert("Commande minimum "+MIN_ORDER+" dt");return;}
- localStorage.setItem("client",JSON.stringify({
-  n:cName.value,t:cPhone.value,a:cAddr.value
- }));
- alert("Commande envoyée !");
- cart=[];
- updateCart();
- cartBox.style.display="none";
+  if(cart.length===0){alert("Panier vide");return;}
+  localStorage.setItem("client",JSON.stringify({
+    name:name.value,
+    phone:phone.value,
+    address:address.value
+  }));
+  alert("Commande envoyée !");
+  cart=[];
+  renderCart();
+  toggleCart();
 }
-
-function init(){
- const cl=JSON.parse(localStorage.getItem("client")||"{}");
- cName.value=cl.n||"";cPhone.value=cl.t||"";cAddr.value=cl.a||"";
- CATEGORIES.forEach(c=>{
-  cats.innerHTML+=`<div class="cat" id="cat-${c.id}" onclick='showCat(CATEGORIES.find(x=>x.id=="${c.id}"))'>${c.name}</div>`;
- });
- showCat(CATEGORIES[0]);
-}
-init();
 </script>
+
 </body>
 </html>
