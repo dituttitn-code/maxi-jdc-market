@@ -393,18 +393,27 @@ const idxDesignation =
 
 const idxPrice = header.indexOf('price');
 
+ const out = [];
+for (let i = 1; i < lines.length; i++) {
+  const cols = splitCSVLine(lines[i]);
 
-  const out = [];
-  for (let i=1;i<lines.length;i++){
-   const cols = splitLine(lines[i]);
-    const code = cols[idxCode] ?? '';
-    const designation = cols[idxDesignation] ?? '';
-    const price = cols[idxPrice] ?? '';
-    if (!String(code).trim() && !String(designation).trim()) continue;
-   const d = String(designation).trim();
-out.push({ code: String(code).trim(), designation: d, name: d, price: safeNumber(price) });
+  const code = (cols[idxCode] ?? '').trim();
+  const designation = (idxDesignation !== -1 ? (cols[idxDesignation] ?? '') : '').trim();
+  const price = cols[idxPrice] ?? '';
 
-  return out;
+  // ✅ ignorer seulement si les deux sont vides
+  if (!code && !designation) continue;
+
+  const d = designation;
+  out.push({
+    code,
+    designation: d,
+    name: d,                 // compatibilité affichage
+    price: safeNumber(price)
+  });
+}
+return out;
+
 }
 
 function splitCSVLine(line){
@@ -629,6 +638,7 @@ refresh();
 
 </body>
 </html>
+
 
 
 
