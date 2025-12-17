@@ -2,195 +2,203 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>MAXI JDC MARKET – Commande en ligne</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAXI JDC MARKET</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body{
   margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  background:#0e1412;
+  font-family:Arial, sans-serif;
+  background:#0f1522;
   color:#fff;
 }
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px 20px;
-  background:#0b1a14;
-  box-shadow:0 2px 10px rgba(0,0,0,.6);
+
+/* ===== PANIER BOUTON ===== */
+.cart-fab{
+  position:fixed;
+  top:15px;
+  right:15px;
+  z-index:9999;
+  background:#d4af37;
+  color:#111;
+  padding:10px 15px;
+  border-radius:999px;
+  font-weight:bold;
+  cursor:pointer;
+  border:none;
 }
-.logo{
-  width:60px;
-  height:60px;
+.cart-badge{
+  background:#111;
+  color:#fff;
+  padding:2px 7px;
   border-radius:50%;
-  background:#0f5132;
+  margin-left:6px;
+}
+
+/* ===== PANIER ===== */
+.cart-drawer{
+  position:fixed;
+  top:0;
+  right:0;
+  width:360px;
+  max-width:95%;
+  height:100vh;
+  background:#111826;
+  transform:translateX(100%);
+  transition:0.3s;
+  z-index:9998;
   display:flex;
   flex-direction:column;
+}
+.cart-drawer.open{transform:translateX(0);}
+
+.cart-header{
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  border-bottom:1px solid #333;
+}
+
+.cart-body{flex:1;overflow:auto;padding:10px;}
+.cart-item{border-bottom:1px solid #333;padding:8px 0;}
+.cart-footer{padding:10px;border-top:1px solid #333;}
+
+button{
+  cursor:pointer;
+  padding:8px 12px;
+  border-radius:8px;
+  border:none;
+  font-weight:bold;
+}
+.btn-gold{background:#d4af37;color:#111;}
+.btn-dark{background:#333;color:#fff;}
+
+/* ===== MODAL ===== */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  display:none;
   align-items:center;
   justify-content:center;
-  font-weight:bold;
-  line-height:1;
+  z-index:10000;
 }
-.logo span:nth-child(1){font-size:18px;}
-.logo span:nth-child(2){font-size:14px;}
-.logo span:nth-child(3){font-size:18px;}
-
-.cart-btn{
-  cursor:pointer;
-  background:#198754;
-  padding:10px 14px;
-  border-radius:20px;
-}
-main{
-  display:flex;
-  padding:20px;
-  gap:20px;
-}
-.products{
-  flex:3;
-}
-.product{
-  background:#121f1a;
+.modal.open{display:flex;}
+.modal-card{
+  background:#111826;
   padding:15px;
   border-radius:12px;
-  margin-bottom:12px;
+  width:95%;
+  max-width:400px;
 }
-.product button{
-  background:#198754;
-  border:none;
-  padding:8px 14px;
-  border-radius:20px;
-  color:white;
-  cursor:pointer;
-}
-aside{
-  flex:1;
-  background:#121f1a;
-  padding:15px;
-  border-radius:12px;
-}
-input,button{
+.modal-card input, select, textarea{
   width:100%;
-  margin-top:8px;
+  margin:6px 0;
   padding:8px;
   border-radius:8px;
   border:none;
-}
-.send{
-  background:#0d6efd;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
-}
-.footer{
-  margin-top:10px;
-  font-size:13px;
-  color:#bbb;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-  <div class="logo">
-    <span>M</span>
-    <span>JDC</span>
-    <span>M</span>
+<!-- ===== BOUTON PANIER ===== -->
+<button id="cartBtn" class="cart-fab">
+🛒 Panier <span id="cartCount" class="cart-badge">0</span>
+</button>
+
+<!-- ===== PANIER ===== -->
+<div id="cart" class="cart-drawer">
+  <div class="cart-header">
+    <strong>Votre panier</strong>
+    <button onclick="toggleCart()">✖</button>
   </div>
-  <div class="cart-btn" onclick="toggleCart()">🛒 Panier (<span id="cartCount">0</span>)</div>
-</header>
-
-<main>
-  <section class="products" id="products">
-    <div class="product">
-      <h3>Produit exemple</h3>
-      <p>Prix : 3.500 DT</p>
-      <button onclick="addToCart('Produit exemple',3.5)">Ajouter</button>
-    </div>
-    <div class="product">
-  <h3>Pâtes Spaghetti Barilla 500g</h3>
-  <p>Prix : 2.800 DT</p>
-  <button onclick="addToCart('Pâtes Spaghetti Barilla 500g',2.8)">Ajouter</button>
+  <div id="cartItems" class="cart-body"></div>
+  <div class="cart-footer">
+    Total : <strong id="cartTotal">0 DT</strong><br><br>
+    <button class="btn-dark" onclick="clearCart()">Vider</button>
+    <button class="btn-gold" onclick="openCheckout()">Valider</button>
+  </div>
 </div>
 
-<div class="product">
-  <h3>Pâtes Penne 500g</h3>
-  <p>Prix : 2.600 DT</p>
-  <button onclick="addToCart('Pâtes Penne 500g',2.6)">Ajouter</button>
+<!-- ===== MODAL CLIENT ===== -->
+<div id="checkout" class="modal">
+  <div class="modal-card">
+    <h3>Informations client</h3>
+    <input id="cName" placeholder="Nom & Prénom">
+    <input id="cPhone" placeholder="Téléphone">
+    <select id="cMode" onchange="toggleAddress()">
+      <option value="Livraison">Livraison</option>
+      <option value="Retrait">Retrait magasin</option>
+    </select>
+    <input id="cAddress" placeholder="Adresse">
+    <textarea id="cNote" placeholder="Note (optionnel)"></textarea>
+    <br>
+    <button class="btn-gold" onclick="sendWhatsApp()">Envoyer WhatsApp</button>
+    <button class="btn-dark" onclick="closeCheckout()">Fermer</button>
+  </div>
 </div>
-
-  </section>
-
-  <aside id="cart" style="display:none;">
-    <h3>Votre panier</h3>
-    <div id="cartItems"></div>
-    <strong>Total : <span id="total">0</span> DT</strong>
-
-    <h4>Fiche client</h4>
-    <input id="name" placeholder="Nom">
-    <input id="phone" placeholder="Téléphone">
-    <input id="address" placeholder="Adresse">
-
-    <button onclick="getLocation()">📍 GPS</button>
-    <button class="send" onclick="sendOrder()">Envoyer la commande</button>
-
-    <div class="footer">
-      Minimum livraison : 15 DT<br>
-      Livraison gratuite dès 30 DT<br>
-      Sinon frais : 5 DT
-    </div>
-  </aside>
-</main>
 
 <script>
-let cart=[];
-let gps="";
+const WHATSAPP="21625600978";
+let cart={};
 
 function toggleCart(){
-  document.getElementById("cart").style.display =
-  document.getElementById("cart").style.display==="none"?"block":"none";
+  document.getElementById("cart").classList.toggle("open");
 }
+document.getElementById("cartBtn").onclick=toggleCart;
 
-function addToCart(name,price){
-  cart.push({name,price});
+function addToCart(code,name,price){
+  if(!cart[code]) cart[code]={name,price,qty:0};
+  cart[code].qty++;
   renderCart();
 }
 
 function renderCart(){
-  let html="";
-  let total=0;
-  cart.forEach(p=>{
-    html+=`<div>${p.name} - ${p.price} DT</div>`;
-    total+=p.price;
-  });
-  document.getElementById("cartItems").innerHTML=html;
-  document.getElementById("total").innerText=total.toFixed(2);
-  document.getElementById("cartCount").innerText=cart.length;
+  let html="",total=0,count=0;
+  for(let k in cart){
+    let it=cart[k];
+    let t=it.qty*it.price;
+    total+=t; count+=it.qty;
+    html+=`<div class="cart-item">
+      ${it.name} x${it.qty} = ${t.toFixed(2)} DT
+    </div>`;
+  }
+  document.getElementById("cartItems").innerHTML=html||"Panier vide";
+  document.getElementById("cartTotal").innerText=total.toFixed(2)+" DT";
+  document.getElementById("cartCount").innerText=count;
 }
 
-function getLocation(){
-  navigator.geolocation.getCurrentPosition(pos=>{
-    gps=pos.coords.latitude+","+pos.coords.longitude;
-    alert("GPS enregistré");
-  });
+function clearCart(){cart={};renderCart();}
+
+function openCheckout(){document.getElementById("checkout").classList.add("open");}
+function closeCheckout(){document.getElementById("checkout").classList.remove("open");}
+
+function toggleAddress(){
+  document.getElementById("cAddress").style.display=
+    document.getElementById("cMode").value==="Livraison"?"block":"none";
 }
 
-function sendOrder(){
-  if(cart.length===0){alert("Panier vide");return;}
-  localStorage.setItem("client",JSON.stringify({
-    name:name.value,
-    phone:phone.value,
-    address:address.value
-  }));
-  alert("Commande envoyée !");
-  cart=[];
-  renderCart();
-  toggleCart();
+function sendWhatsApp(){
+  let n=cName.value,p=cPhone.value,m=cMode.value,a=cAddress.value;
+  if(!n||!p){alert("Nom et téléphone obligatoires");return;}
+  let msg=`Commande MAXI JDC MARKET\nClient:${n}\nTel:${p}\nMode:${m}\n`;
+  if(m==="Livraison") msg+=`Adresse:${a}\n`;
+  for(let k in cart){
+    let it=cart[k];
+    msg+=`${it.name} x${it.qty}\n`;
+  }
+  window.open(`https://wa.me/${WHATSAPP}?text=`+encodeURIComponent(msg));
 }
 </script>
 
+<!-- ===== EXEMPLE PRODUIT (TEST) ===== -->
+<div style="padding:20px">
+<h3>Produits test</h3>
+<button onclick="addToCart('4124','GRAINES SARRASIN',6.5)">Ajouter Sarrasin</button>
+<button onclick="addToCart('4830','THON GALITE',13.9)">Ajouter Thon</button>
+</div>
+
 </body>
 </html>
-
