@@ -1,1015 +1,147 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MAXI JDC MARKET — Commande en ligne</title>
+<meta charset="UTF-8">
+<title>MAXI JDC MARKET</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    :root{
-      --bg:#0b0f14;
-      --panel:#111826;
-      --panel2:#0f1520;
-      --text:#e8eef7;
-      --muted:#9bb0c6;
-      --line:rgba(255,255,255,.10);
-      --btn:#1a2636;
-      --btn2:#142030;
-      --accent:#2bd576;
-      --accent2:#1aa85a;
-      --danger:#ff4d4d;
-      --shadow: 0 12px 30px rgba(0,0,0,.35);
-      --radius:14px;
-      --radius2:20px;
-      --maxw: 1200px;
-    }
-
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial,sans-serif;
-      background: radial-gradient(1200px 500px at 20% 0%, rgba(43,213,118,.12), transparent 60%),
-                  radial-gradient(900px 400px at 90% 0%, rgba(52,152,219,.12), transparent 50%),
-                  var(--bg);
-      color:var(--text);
-    }
-    a{color:inherit}
-    .wrap{max-width:var(--maxw); margin:0 auto; padding:16px;}
-    header{
-      position:sticky; top:0; z-index:5;
-      backdrop-filter: blur(10px);
-      background: rgba(11,15,20,.65);
-      border-bottom:1px solid var(--line);
-    }
-    .topbar{
-      display:flex; align-items:center; gap:14px; padding:12px 16px;
-    }
-    .brand{
-      display:flex; align-items:center; gap:10px; min-width:220px;
-    }
-    .brand .logo{
-      width:34px; height:34px; border-radius:10px;
-      background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.04));
-      border:1px solid rgba(255,255,255,.10);
-      display:grid; place-items:center;
-      font-weight:800;
-    }
-    .brand .txt{line-height:1.1}
-    .brand .txt b{display:block; font-size:14px}
-    .brand .txt span{display:block; font-size:12px; color:var(--muted)}
-
-    .controls{
-      display:flex; align-items:center; gap:10px; flex:1;
-    }
-    .search{
-      flex:1; display:flex; gap:10px; align-items:center;
-      background: rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius: 999px;
-      padding:10px 12px;
-    }
-    .search input{
-      flex:1; border:0; outline:0; background:transparent; color:var(--text);
-      font-size:14px;
-    }
-    .pill{
-      display:flex; gap:10px; align-items:center;
-      padding:10px 12px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      font-size:12px;
-      color:var(--muted);
-      white-space:nowrap;
-    }
-    .btn{
-      border:1px solid rgba(255,255,255,.12);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      color:var(--text);
-      padding:10px 14px;
-      border-radius:999px;
-      cursor:pointer;
-      font-size:13px;
-      transition:.15s;
-    }
-    .btn:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.22)}
-    .btn.green{
-      border-color: rgba(43,213,118,.35);
-      background: linear-gradient(180deg, rgba(43,213,118,.20), rgba(43,213,118,.08));
-    }
-
-    .notice{
-      margin: 10px 16px 0 16px;
-      color:var(--muted);
-      font-size:12px;
-      padding:10px 12px;
-      border:1px dashed rgba(255,255,255,.14);
-      border-radius: var(--radius);
-      background: rgba(17,24,38,.30);
-    }
-
-    main .grid{
-      display:grid; grid-template-columns: 320px 1fr;
-      gap:16px; padding:16px;
-    }
-
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      border:1px solid rgba(255,255,255,.10);
-      border-radius: var(--radius2);
-      box-shadow: var(--shadow);
-    }
-
-    .cats{padding:12px;}
-    .cats h3{margin:8px 8px 10px; font-size:14px; color:var(--muted); font-weight:600}
-    .catItem{
-      width:100%;
-      text-align:left;
-      padding:12px 12px;
-      margin:8px 0;
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(17,24,38,.40);
-      cursor:pointer;
-      transition:.15s;
-      display:flex; justify-content:space-between; gap:10px; align-items:center;
-    }
-    .catItem:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.20)}
-    .catItem.active{border-color: rgba(43,213,118,.40); background: rgba(43,213,118,.08)}
-    .catItem .name{font-weight:700; font-size:13px}
-    .catItem .file{font-size:11px; color:var(--muted)}
-    .count{
-      font-size:12px; color:var(--text);
-      padding:6px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      white-space:nowrap;
-    }
-
-    .products{padding:14px;}
-    .productsHead{
-      display:flex; justify-content:space-between; align-items:center;
-      gap:12px; margin-bottom:10px;
-    }
-    .productsHead .title{font-weight:800; font-size:16px}
-    .productsHead .meta{font-size:12px; color:var(--muted)}
-    .pager{
-      display:flex; align-items:center; gap:8px;
-    }
-    .pager .pbtn{
-      width:34px; height:34px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color:var(--text);
-      cursor:pointer;
-    }
-    .pager .pbtn:disabled{opacity:.35; cursor:not-allowed}
-
-    .prodGrid{
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap:12px;
-    }
-    @media (max-width: 1100px){
-      main .grid{grid-template-columns:1fr}
-      .prodGrid{grid-template-columns: repeat(2, minmax(0, 1fr));}
-    }
-    @media (max-width: 650px){
-      .prodGrid{grid-template-columns: 1fr;}
-      .brand{min-width:auto}
-      .pill{display:none}
-    }
-
-    .prod{
-      padding:14px;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(17,24,38,.35);
-      display:flex; flex-direction:column; gap:10px;
-      min-height: 142px;
-    }
-    .prod .row{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
-    .prod .name{font-weight:800; font-size:13px; line-height:1.15}
-    .prod .sub{font-size:11px; color:var(--muted); margin-top:4px}
-    .price{
-      font-weight:900;
-      padding:6px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(43,213,118,.35);
-      background: rgba(43,213,118,.10);
-      white-space:nowrap;
-      align-self:flex-start;
-    }
-    .addBtn{
-      margin-top:auto;
-      width:100%;
-      padding:10px 12px;
-      border-radius: 14px;
-      border:1px solid rgba(43,213,118,.35);
-      background: rgba(43,213,118,.10);
-      color:var(--text);
-      font-weight:800;
-      cursor:pointer;
-    }
-    .addBtn:hover{background: rgba(43,213,118,.14)}
-
-    /* ===== PANIER bouton top-right ===== */
-    .cart-fab{
-      position:fixed;
-      top:14px;
-      right:14px;
-      z-index:9999;
-      display:flex; gap:10px; align-items:center;
-      padding:10px 14px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(17,24,38,.80);
-      color:var(--text);
-      cursor:pointer;
-      box-shadow: var(--shadow);
-    }
-    .cart-badge{
-      min-width:22px;
-      height:22px;
-      border-radius:999px;
-      display:grid; place-items:center;
-      font-size:12px;
-      font-weight:900;
-      border:1px solid rgba(43,213,118,.35);
-      background: rgba(43,213,118,.12);
-    }
-
-    .drawer{
-      position:fixed; inset:0;
-      background: rgba(0,0,0,.55);
-      display:none;
-      z-index:9998;
-    }
-    .drawer.open{display:block}
-    .panel{
-      position:absolute;
-      top:0; right:0;
-      height:100%;
-      width:min(520px, 92vw);
-      background: linear-gradient(180deg, rgba(17,24,38,.98), rgba(15,21,32,.98));
-      border-left:1px solid rgba(255,255,255,.10);
-      box-shadow: var(--shadow);
-      padding:14px;
-      overflow:auto;
-    }
-    .panelHead{
-      display:flex; justify-content:space-between; align-items:center;
-      gap:10px;
-      padding:8px 6px 12px 6px;
-      border-bottom:1px solid rgba(255,255,255,.10);
-    }
-    .panelHead h3{margin:0; font-size:16px}
-    .xbtn{
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color:var(--text);
-      border-radius:999px;
-      padding:8px 10px;
-      cursor:pointer;
-    }
-
-    .cartList{padding:12px 6px; display:flex; flex-direction:column; gap:10px}
-    .cartItem{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      border-radius: 16px;
-      padding:10px;
-      display:flex; flex-direction:column; gap:8px;
-    }
-    .cartItem .top{display:flex; justify-content:space-between; gap:10px}
-    .cartItem .nm{font-weight:800; font-size:13px}
-    .cartItem .sm{font-size:11px; color:var(--muted)}
-    .qtyRow{display:flex; align-items:center; justify-content:space-between; gap:10px}
-    .qtyBtns{display:flex; gap:8px; align-items:center}
-    .qbtn{
-      width:34px; height:34px; border-radius:12px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color:var(--text);
-      cursor:pointer;
-      font-weight:900;
-    }
-    .qty{min-width:26px; text-align:center; font-weight:900}
-    .rm{
-      border:1px solid rgba(255,77,77,.30);
-      background: rgba(255,77,77,.08);
-      color:var(--text);
-      border-radius: 12px;
-      padding:8px 10px;
-      cursor:pointer;
-      font-weight:800;
-    }
-
-    .totals{
-      border-top:1px solid rgba(255,255,255,.10);
-      padding:12px 6px;
-      display:flex; flex-direction:column; gap:10px;
-    }
-    .totLine{display:flex; justify-content:space-between; gap:10px; color:var(--muted); font-size:13px}
-    .totLine b{color:var(--text)}
-    .ctaRow{display:flex; gap:10px; flex-wrap:wrap}
-    .ctaRow .btnWide{flex:1; min-width:160px}
-    .btnWide{
-      border-radius: 14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color:var(--text);
-      padding:10px 12px;
-      cursor:pointer;
-      font-weight:800;
-    }
-    .btnWide.green{
-      border-color: rgba(43,213,118,.35);
-      background: rgba(43,213,118,.10);
-    }
-    .hint{font-size:12px; color:var(--muted)}
-
-    /* ===== Form client ===== */
-    .form{
-      margin-top:12px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      border-radius: 18px;
-      padding:12px;
-    }
-    .form h4{margin:0 0 10px; font-size:14px}
-    .row2{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
-    .row1{display:grid; grid-template-columns: 1fr; gap:10px}
-    .field{
-      display:flex; flex-direction:column; gap:6px;
-      font-size:12px; color:var(--muted);
-    }
-    .field input, .field select, .field textarea{
-      width:100%;
-      padding:10px 10px;
-      border-radius: 14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(17,24,38,.55);
-      color:var(--text);
-      outline:none;
-      font-size:14px;
-    }
-    .field textarea{min-height:72px; resize:vertical}
-
-    /* ===== Admin ===== */
-    .admin{
-      margin-top:12px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      border-radius: 18px;
-      padding:12px;
-      display:none;
-    }
-    .admin.show{display:block}
-    .admin h4{margin:0 0 10px; font-size:14px}
-    .admin .mini{font-size:12px; color:var(--muted); margin-bottom:10px}
-    .adminRow{display:flex; gap:10px; flex-wrap:wrap}
-    .adminRow input{flex:1; min-width:130px}
-    .adminRow button{min-width:160px}
-    footer{
-      padding:18px 16px;
-      color:var(--muted);
-      font-size:12px;
-      border-top:1px solid rgba(255,255,255,.08);
-      margin-top:20px;
-      text-align:center;
-    }
-  </style>
+<style>
+body{margin:0;font-family:Arial;background:#0b0f14;color:#fff}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0e1621}
+.logo{font-size:20px;font-weight:bold}
+.logo span{color:#1f8f55}
+input,button{padding:10px;border-radius:20px;border:none}
+button{cursor:pointer}
+#container{display:flex}
+#cats{width:240px;padding:10px}
+.cat{background:#131b28;padding:10px;border-radius:10px;margin-bottom:6px;cursor:pointer}
+.cat.active{background:#1f8f55}
+#products{flex:1;padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.card{background:#131b28;padding:10px;border-radius:10px}
+.price{float:right;background:#1f8f55;padding:4px 8px;border-radius:12px}
+.cart-btn{position:relative}
+.cart-count{position:absolute;top:-5px;right:-5px;background:red;color:#fff;border-radius:50%;padding:2px 6px;font-size:12px}
+#cartBox{position:fixed;top:0;right:0;width:340px;height:100%;background:#0e1621;padding:12px;display:none;overflow:auto}
+</style>
 </head>
 
 <body>
+
 <header>
-  <div class="topbar">
-    <div class="brand">
-      <div class="logo">M</div>
-      <div class="txt">
-        <b>MAXI JDC MARKET</b>
-        <span>Des prix mini — Un MAXI choix</span>
-      </div>
-    </div>
-
-    <div class="controls">
-      <div class="search" title="Recherche par nom, catégorie ou code">
-        🔎
-        <input id="q" placeholder="Rechercher un produit (nom, catégorie, code)..." autocomplete="off" />
-      </div>
-
-      <button id="clearBtn" class="btn" type="button">Effacer</button>
-      <button id="globalBtn" class="btn green" type="button">Recherche globale</button>
-    </div>
-
-    <div class="pill">📍 Jardins de Carthage, derrière mosquée Essalem</div>
-    <div class="pill">🕒 7h – 1h</div>
-    <div class="pill">💬 WhatsApp: 00216 25 600 978</div>
-  </div>
-
-  <div class="notice" id="notice">
-    ✅ Données chargées depuis <b>/data/*.csv</b> — une catégorie = un fichier CSV (facile à mettre à jour).<br/>
-    Conditions: minimum livraison <b>15 dt</b> • Livraison gratuite si total ≥ <b>30 dt</b> • Sinon frais <b>5 dt</b> • Retrait magasin possible.
-  </div>
+<div class="logo">M<span>/JDC/</span>M</div>
+<button class="cart-btn" onclick="toggleCart()">🛒 Panier <span class="cart-count" id="cartCount">0</span></button>
 </header>
 
-<!-- Bouton panier (toujours visible) -->
-<button id="cartFab" class="cart-fab" type="button" title="Ouvrir le panier">
-  🛒 <b>Panier</b> <span id="cartBadge" class="cart-badge">0</span>
-</button>
-
-<main class="wrap">
-  <div class="grid">
-    <section class="card cats">
-      <h3>Catégories</h3>
-      <div id="catList"></div>
-    </section>
-
-    <section class="card products">
-      <div class="productsHead">
-        <div>
-          <div class="title" id="catTitle">Chargement…</div>
-          <div class="meta" id="catMeta"></div>
-        </div>
-        <div class="pager">
-          <button class="pbtn" id="prevPage" type="button">◀</button>
-          <div class="meta" id="pageInfo">Page 1/1</div>
-          <button class="pbtn" id="nextPage" type="button">▶</button>
-        </div>
-      </div>
-
-      <div class="prodGrid" id="productGrid"></div>
-    </section>
-  </div>
-</main>
-
-<!-- Drawer Panier -->
-<div id="drawer" class="drawer" aria-hidden="true">
-  <div class="panel" role="dialog" aria-label="Panier">
-    <div class="panelHead">
-      <h3>🛒 Votre panier</h3>
-      <button id="closeDrawer" class="xbtn" type="button">Fermer ✕</button>
-    </div>
-
-    <div class="cartList" id="cartList"></div>
-
-    <div class="totals">
-      <div class="totLine"><span>Sous-total</span><b><span id="subTotal">0</span> dt</b></div>
-      <div class="totLine"><span>Frais livraison</span><b><span id="shipFee">0</span> dt</b></div>
-      <div class="totLine"><span>Total</span><b><span id="grandTotal">0</span> dt</b></div>
-      <div class="hint" id="minHint">Minimum livraison: <b>15 dt</b></div>
-
-      <div class="ctaRow">
-        <button id="clearCart" class="btnWide" type="button">Vider</button>
-        <button id="openForm" class="btnWide green" type="button">Valider commande</button>
-      </div>
-
-      <!-- FORM CLIENT -->
-      <div class="form" id="clientForm" style="display:none;">
-        <h4>🧾 Informations client</h4>
-
-        <div class="row2">
-          <label class="field">
-            Nom & Prénom <span style="color:var(--danger)">*</span>
-            <input id="cName" placeholder="Ex: Lotfi Khelifi" />
-          </label>
-          <label class="field">
-            Téléphone <span style="color:var(--danger)">*</span>
-            <input id="cPhone" placeholder="Ex: 25 600 978" />
-          </label>
-        </div>
-
-        <div class="row2" style="margin-top:10px;">
-          <label class="field">
-            Mode <span style="color:var(--danger)">*</span>
-            <select id="cMode">
-              <option value="Livraison">Livraison</option>
-              <option value="Retrait magasin">Retrait magasin</option>
-            </select>
-          </label>
-          <label class="field">
-            Adresse livraison <span style="color:var(--danger)">*</span>
-            <input id="cAddress" placeholder="Ex: Jardins de Carthage, derrière mosquée Essalem" />
-          </label>
-        </div>
-
-        <div class="row1" style="margin-top:10px;">
-          <label class="field">
-            Note (optionnel)
-            <textarea id="cNote" placeholder="Ex: Interphone, étage, heure souhaitée…"></textarea>
-          </label>
-        </div>
-
-        <div class="ctaRow" style="margin-top:10px;">
-          <button id="sendWA" class="btnWide green" type="button">Envoyer sur WhatsApp</button>
-          <button id="cancelForm" class="btnWide" type="button">Annuler</button>
-        </div>
-
-        <div class="hint" style="margin-top:8px;">
-          * Champs obligatoires. (Aucun point fidélité ici.)
-        </div>
-      </div>
-
-      <!-- ADMIN (caché) -->
-      <div class="admin" id="adminBox">
-        <h4>🔒 Admin (caché)</h4>
-        <div class="mini">Admin invisible pour les clients. Pour l’ouvrir : ajoute <b>#admin</b> à la fin du lien.</div>
-
-        <div class="adminRow">
-          <input id="aCode" placeholder="Code article (Ex: 4124)" />
-          <input id="aPrice" placeholder="Nouveau prix (dt) (Ex: 6.5)" />
-          <button id="saveAdmin" class="btnWide green" type="button">Enregistrer prix</button>
-          <button id="clearAdmin" class="btnWide" type="button">Effacer prix admin</button>
-        </div>
-
-        <div class="hint" style="margin-top:8px;">
-          Les prix admin sont enregistrés dans ce navigateur (localStorage).
-        </div>
-      </div>
-
-    </div>
-  </div>
+<div id="container">
+<div id="cats"></div>
+<div id="products"></div>
 </div>
 
-<footer>
-  MAXI JDC MARKET — Vente en ligne (GitHub Pages)
-</footer>
+<div id="cartBox">
+<h3>🛒 Panier</h3>
+<div id="cartItems"></div>
+<hr>
+<div id="totalBox"></div>
+
+<h4>👤 Informations client</h4>
+<input id="cName" placeholder="Nom"><br><br>
+<input id="cPhone" placeholder="Téléphone"><br><br>
+<input id="cAddr" placeholder="Adresse"><br><br>
+<button onclick="getGPS()">📍 Utiliser ma position</button>
+<div id="gps"></div>
+
+<hr>
+<button onclick="sendOrder()">📤 Envoyer la commande</button>
+</div>
 
 <script>
-/* ===================== CONFIG ===================== */
-const WHATSAPP_NUMBER = "0021625600978"; // ton numéro
 const MIN_ORDER = 15;
-const FREE_SHIP_FROM = 30;
-const SHIP_FEE = 5;
+const DELIVERY_FEE = 5;
 
-/* Une catégorie = un fichier CSV dans /data/ */
-const CATEGORIES = [
-  { id:"fruits_legumes", name:"Fruits & Légumes", file:"data/fruits_legumes.csv" },
-  { id:"lait_oeufs_produits_frais", name:"Lait, Œufs & Produits frais", file:"data/lait_oeufs_produits_frais.csv" },
-  { id:"fromage_charcuterie", name:"Fromage & Charcuterie", file:"data/fromage_charcuterie.csv" },
-  { id:"boulangerie_patisserie", name:"Boulangerie & Pâtisserie", file:"data/boulangerie_patisserie.csv" },
-  { id:"epicerie_salee", name:"Épicerie Salée", file:"data/epicerie_salee.csv" },
-  { id:"epicerie_sucree", name:"Épicerie Sucrée", file:"data/epicerie_sucree.csv" },
-  { id:"pates", name:"Pâtes", file:"data/pates.csv" },
-  { id:"conserves", name:"Conserves", file:"data/conserves.csv" },
+const CATEGORIES=[
+ {id:"sucree",name:"Épicerie Sucrée",file:"data/epicerie_sucree.csv"},
+ {id:"salee",name:"Épicerie Salée",file:"data/epicerie_salee.csv"},
+ {id:"pates",name:"Pâtes",file:"data/pates.csv"}
 ];
 
-/* ===================== HELPERS ===================== */
-const $ = (id) => document.getElementById(id);
+let cart=[];
+let gpsData="";
 
-function normalize(s){
-  return (s||"").toString().toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-    .replace(/\s+/g," ").trim();
-}
-function dt(n){
-  // affichage propre: 6.5 → "6.5", 6 → "6"
-  if (!isFinite(n)) return "0";
-  const x = Math.round(n*100)/100;
-  return (x % 1 === 0) ? String(x.toFixed(0)) : String(x);
-}
-
-/* ===================== CSV PARSER (FIX PRIX) ===================== */
-/* Supporte séparateur ';' et prix '6,5' ou '6.5' */
-function parseCSV(text){
-  const lines = text.replace(/\r/g,"").split("\n").filter(l => l.trim().length);
-  if(!lines.length) return [];
-
-  const header = lines[0].split(";").map(h => normalize(h));
-  const idxCode  = header.findIndex(h => h.includes("code"));
-  const idxName  = header.findIndex(h => h.includes("designation") || h.includes("name"));
-  const idxPrice = header.findIndex(h => h.includes("price") || h.includes("prix"));
-
-  const out = [];
-  for(let i=1;i<lines.length;i++){
-    const cols = lines[i].split(";");
-
-    const code = (cols[idxCode]  || "").trim();
-    const name = (cols[idxName]  || "").trim();
-    let priceRaw = (cols[idxPrice] || "").trim();
-
-    if(!code || !name) continue;
-
-    // Prix robuste
-    priceRaw = priceRaw.replace(/\s+/g,"").replace(",", "."); // "6,5" -> "6.5"
-    let price = parseFloat(priceRaw);
-    if(isNaN(price)) price = 0;
-
-    out.push({ code, name, price });
-  }
-  return out;
+function parseCSV(t,cat){
+ const l=t.replace(/\r/g,"").split("\n").filter(x=>x.trim());
+ const h=l[0].split(";").map(x=>x.toLowerCase());
+ const iN=h.indexOf("designation");
+ const iP=h.indexOf("price");
+ return l.slice(1).map(r=>{
+  const c=r.split(";");
+  return{n:c[iN],p:Number(c[iP].replace(",",".")),cat};
+ });
 }
 
-/* ===================== STATE ===================== */
-let currentCat = CATEGORIES[0];
-let products = [];           // produits affichés (cat ou global)
-let allCache = {};           // cache par cat.id -> array
-let globalMode = false;
-
-let page = 1;
-const PAGE_SIZE = 9;
-
-const CART_KEY = "maxi_cart_v1";
-const ADMIN_PRICE_KEY = "maxi_admin_prices_v1";
-
-/* cart = { code: {code,name,price,qty,cat} } */
-let cart = loadCart();
-let adminPrices = loadAdminPrices();
-
-/* ===================== LOAD CSV ===================== */
-async function loadCategory(cat){
-  if(allCache[cat.id]) return allCache[cat.id];
-
-  try{
-    const res = await fetch(cat.file, {cache:"no-store"});
-    if(!res.ok) throw new Error("CSV introuvable: " + cat.file);
-    const text = await res.text();
-    const arr = parseCSV(text).map(p => ({
-      ...p,
-      cat: cat.name,
-      // override admin price (si existe)
-      price: (adminPrices[p.code] != null) ? adminPrices[p.code] : p.price
-    }));
-    allCache[cat.id] = arr;
-    return arr;
-  }catch(e){
-    console.warn(e);
-    allCache[cat.id] = [];
-    return [];
-  }
+async function showCat(c){
+ document.querySelectorAll(".cat").forEach(x=>x.classList.remove("active"));
+ document.getElementById("cat-"+c.id).classList.add("active");
+ const t=await fetch(c.file+"?v="+Date.now()).then(r=>r.text());
+ const d=parseCSV(t,c.name);
+ products.innerHTML="";
+ d.forEach(p=>{
+  products.innerHTML+=`
+  <div class="card">
+   <div class="price">${p.p.toFixed(2)} dt</div>
+   <b>${p.n}</b><br><br>
+   <button onclick='addCart(${JSON.stringify(p)})'>Ajouter</button>
+  </div>`;
+ });
 }
 
-async function refresh(){
-  setActiveCategoryUI();
-  $("productGrid").innerHTML = "";
-  $("catMeta").textContent = "Chargement…";
-
-  let arr = [];
-  if(globalMode){
-    let all = [];
-    for(const c of CATEGORIES){
-      const a = await loadCategory(c);
-      all = all.concat(a);
-      $("count_"+c.id).textContent = a.length + " article(s)";
-    }
-    arr = all;
-    $("catTitle").textContent = "Recherche globale";
-    $("catMeta").textContent = `Total: ${arr.length} article(s) — toutes catégories`;
-  }else{
-    arr = await loadCategory(currentCat);
-    $("catTitle").textContent = currentCat.name;
-    $("catMeta").textContent = `Source: ${currentCat.file} • Mise à jour rapide (prix + nouveaux articles)`;
-    $("count_"+currentCat.id).textContent = arr.length + " article(s)";
-  }
-
-  products = applySearch(arr);
-  page = 1;
-  renderProducts();
+function addCart(p){
+ cart.push(p);
+ updateCart();
 }
 
-function applySearch(list){
-  const q = normalize($("q").value);
-  if(!q) return list;
-
-  return list.filter(p => {
-    const code = normalize(p.code);
-    const name = normalize(p.name);
-    const cat  = normalize(p.cat || "");
-    return name.includes(q) || code.includes(q) || cat.includes(q);
-  });
+function updateCart(){
+ cartCount.innerText=cart.length;
+ cartItems.innerHTML="";
+ let sum=0;
+ cart.forEach((p,i)=>{
+  sum+=p.p;
+  cartItems.innerHTML+=`${p.n} - ${p.p.toFixed(2)} dt <button onclick="cart.splice(${i},1);updateCart()">❌</button><br>`;
+ });
+ totalBox.innerHTML=`Total produits : ${sum.toFixed(2)} dt<br>Livraison : ${DELIVERY_FEE} dt<br><b>Total : ${(sum+DELIVERY_FEE).toFixed(2)} dt</b>`;
 }
 
-/* ===================== UI: Categories ===================== */
-function buildCategories(){
-  const box = $("catList");
-  box.innerHTML = "";
-
-  for(const c of CATEGORIES){
-    const btn = document.createElement("button");
-    btn.className = "catItem" + (c.id===currentCat.id && !globalMode ? " active" : "");
-    btn.onclick = () => { globalMode=false; currentCat=c; refresh(); };
-
-    const left = document.createElement("div");
-    left.innerHTML = `<div class="name">${c.name}</div><div class="file">CSV: ${c.file}</div>`;
-
-    const right = document.createElement("div");
-    right.className = "count";
-    right.id = "count_"+c.id;
-    right.textContent = "…";
-
-    btn.appendChild(left);
-    btn.appendChild(right);
-    box.appendChild(btn);
-  }
+function toggleCart(){
+ cartBox.style.display=cartBox.style.display?"":"block";
 }
 
-function setActiveCategoryUI(){
-  // Update active button styles
-  const buttons = document.querySelectorAll(".catItem");
-  buttons.forEach((b, idx) => {
-    const c = CATEGORIES[idx];
-    b.classList.toggle("active", !globalMode && c.id === currentCat.id);
-  });
+function getGPS(){
+ navigator.geolocation.getCurrentPosition(p=>{
+  gpsData=`${p.coords.latitude}, ${p.coords.longitude}`;
+  gps.innerText="GPS enregistré";
+ });
 }
 
-/* ===================== UI: Products ===================== */
-function renderProducts(){
-  const grid = $("productGrid");
-  grid.innerHTML = "";
-
-  const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
-  page = Math.min(page, totalPages);
-
-  const start = (page-1) * PAGE_SIZE;
-  const slice = products.slice(start, start + PAGE_SIZE);
-
-  $("pageInfo").textContent = `Page ${page}/${totalPages}`;
-  $("prevPage").disabled = (page<=1);
-  $("nextPage").disabled = (page>=totalPages);
-
-  if(slice.length === 0){
-    grid.innerHTML = `<div class="card" style="padding:16px; color:var(--muted); border-radius:18px;">
-      Aucun article trouvé.
-    </div>`;
-    return;
-  }
-
-  for(const p of slice){
-    const div = document.createElement("div");
-    div.className = "prod";
-    div.innerHTML = `
-      <div class="row">
-        <div>
-          <div class="name">${escapeHtml(p.name)}</div>
-          <div class="sub">Code: ${escapeHtml(p.code)} • ${escapeHtml(p.cat||"")}</div>
-        </div>
-        <div class="price">${dt(p.price)} dt</div>
-      </div>
-      <button class="addBtn" type="button">Ajouter</button>
-    `;
-    div.querySelector(".addBtn").onclick = () => addToCart(p, 1);
-    grid.appendChild(div);
-  }
+function sendOrder(){
+ const sum=cart.reduce((a,b)=>a+b.p,0);
+ if(sum<MIN_ORDER){alert("Commande minimum "+MIN_ORDER+" dt");return;}
+ localStorage.setItem("client",JSON.stringify({
+  n:cName.value,t:cPhone.value,a:cAddr.value
+ }));
+ alert("Commande envoyée !");
+ cart=[];
+ updateCart();
+ cartBox.style.display="none";
 }
 
-function escapeHtml(s){
-  return (s||"").toString()
-    .replaceAll("&","&amp;").replaceAll("<","&lt;")
-    .replaceAll(">","&gt;").replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+function init(){
+ const cl=JSON.parse(localStorage.getItem("client")||"{}");
+ cName.value=cl.n||"";cPhone.value=cl.t||"";cAddr.value=cl.a||"";
+ CATEGORIES.forEach(c=>{
+  cats.innerHTML+=`<div class="cat" id="cat-${c.id}" onclick='showCat(CATEGORIES.find(x=>x.id=="${c.id}"))'>${c.name}</div>`;
+ });
+ showCat(CATEGORIES[0]);
 }
-
-/* ===================== CART ===================== */
-function loadCart(){
-  try{
-    const raw = localStorage.getItem(CART_KEY);
-    return raw ? JSON.parse(raw) : {};
-  }catch{ return {}; }
-}
-function saveCart(){
-  localStorage.setItem(CART_KEY, JSON.stringify(cart));
-}
-function loadAdminPrices(){
-  try{
-    const raw = localStorage.getItem(ADMIN_PRICE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  }catch{ return {}; }
-}
-function saveAdminPrices(){
-  localStorage.setItem(ADMIN_PRICE_KEY, JSON.stringify(adminPrices));
-}
-
-function cartCount(){
-  return Object.values(cart).reduce((s,it)=> s + (it.qty||0), 0);
-}
-function cartSubtotal(){
-  return Object.values(cart).reduce((s,it)=> s + (it.qty||0) * (it.price||0), 0);
-}
-
-function addToCart(p, qty){
-  const key = p.code;
-  if(!cart[key]){
-    cart[key] = { code:p.code, name:p.name, price:p.price, qty:0, cat:p.cat||"" };
-  }
-  cart[key].qty += qty;
-  if(cart[key].qty <= 0) delete cart[key];
-  saveCart();
-  renderCart();
-}
-
-function renderCart(){
-  $("cartBadge").textContent = String(cartCount());
-
-  const list = $("cartList");
-  list.innerHTML = "";
-
-  const items = Object.values(cart);
-  if(items.length === 0){
-    list.innerHTML = `<div class="hint">Votre panier est vide.</div>`;
-  }else{
-    for(const it of items){
-      const div = document.createElement("div");
-      div.className = "cartItem";
-      div.innerHTML = `
-        <div class="top">
-          <div>
-            <div class="nm">${escapeHtml(it.name)}</div>
-            <div class="sm">Code: ${escapeHtml(it.code)} • ${escapeHtml(it.cat||"")} • ${dt(it.price)} dt</div>
-          </div>
-          <button class="rm" type="button">Supprimer</button>
-        </div>
-        <div class="qtyRow">
-          <div class="qtyBtns">
-            <button class="qbtn" type="button">-</button>
-            <div class="qty">${it.qty}</div>
-            <button class="qbtn" type="button">+</button>
-          </div>
-          <div><b>${dt((it.qty||0)*(it.price||0))} dt</b></div>
-        </div>
-      `;
-      const [minus, plus] = div.querySelectorAll(".qbtn");
-      div.querySelector(".rm").onclick = () => { delete cart[it.code]; saveCart(); renderCart(); };
-      minus.onclick = () => addToCart(it, -1);
-      plus.onclick  = () => addToCart(it, +1);
-      list.appendChild(div);
-    }
-  }
-
-  const sub = cartSubtotal();
-  const fee = (sub >= FREE_SHIP_FROM || sub === 0) ? 0 : SHIP_FEE;
-  const grand = sub + fee;
-
-  $("subTotal").textContent = dt(sub);
-  $("shipFee").textContent = dt(fee);
-  $("grandTotal").textContent = dt(grand);
-
-  $("minHint").innerHTML = `Minimum livraison: <b>${MIN_ORDER} dt</b>`;
-}
-
-/* ===================== CHECKOUT (WhatsApp) ===================== */
-function openDrawer(){ $("drawer").classList.add("open"); $("drawer").setAttribute("aria-hidden","false"); }
-function closeDrawer(){ $("drawer").classList.remove("open"); $("drawer").setAttribute("aria-hidden","true"); }
-
-function formatOrderText(client){
-  const items = Object.values(cart);
-  const sub = cartSubtotal();
-  const fee = (sub >= FREE_SHIP_FROM || sub === 0) ? 0 : SHIP_FEE;
-  const grand = sub + fee;
-
-  let txt = `🛒 *Commande MAXI JDC MARKET*%0A`;
-  txt += `——————————————%0A`;
-  txt += `👤 *Client:* ${encodeURIComponent(client.name)}%0A`;
-  txt += `📞 *Téléphone:* ${encodeURIComponent(client.phone)}%0A`;
-  txt += `🚚 *Mode:* ${encodeURIComponent(client.mode)}%0A`;
-  txt += `📍 *Adresse:* ${encodeURIComponent(client.address)}%0A`;
-  if(client.note) txt += `📝 *Note:* ${encodeURIComponent(client.note)}%0A`;
-  txt += `——————————————%0A`;
-  txt += `🧾 *Articles:*%0A`;
-
-  for(const it of items){
-    const line = `- ${it.qty} x ${it.name} (Code ${it.code}) = ${dt(it.qty*it.price)} dt`;
-    txt += encodeURIComponent(line) + `%0A`;
-  }
-
-  txt += `——————————————%0A`;
-  txt += encodeURIComponent(`Sous-total: ${dt(sub)} dt`) + `%0A`;
-  txt += encodeURIComponent(`Frais livraison: ${dt(fee)} dt`) + `%0A`;
-  txt += encodeURIComponent(`TOTAL: ${dt(grand)} dt`) + `%0A`;
-
-  return txt;
-}
-
-function openClientForm(){
-  if(cartCount() === 0){
-    alert("Votre panier est vide.");
-    return;
-  }
-  $("clientForm").style.display = "block";
-}
-function closeClientForm(){
-  $("clientForm").style.display = "none";
-}
-
-/* ===================== ADMIN (caché #admin) ===================== */
-function setupAdmin(){
-  const show = location.hash.includes("admin");
-  $("adminBox").classList.toggle("show", show);
-}
-function applyAdminPriceToCache(code){
-  // Met à jour tous les caches déjà chargés
-  for(const key of Object.keys(allCache)){
-    allCache[key] = allCache[key].map(p => {
-      if(p.code === code){
-        return {...p, price: adminPrices[code]};
-      }
-      return p;
-    });
-  }
-  // Met à jour aussi le panier si l'article est dedans
-  if(cart[code]){
-    cart[code].price = adminPrices[code];
-    saveCart();
-  }
-}
-
-/* ===================== EVENTS ===================== */
-$("prevPage").onclick = () => { page--; renderProducts(); };
-$("nextPage").onclick = () => { page++; renderProducts(); };
-
-$("q").addEventListener("input", () => { refresh(); });
-$("clearBtn").onclick = () => { $("q").value=""; globalMode=false; refresh(); };
-
-$("globalBtn").onclick = async () => { globalMode=true; refresh(); };
-
-$("cartFab").onclick = () => { openDrawer(); renderCart(); };
-$("closeDrawer").onclick = () => closeDrawer();
-$("drawer").addEventListener("click", (e)=> { if(e.target === $("drawer")) closeDrawer(); });
-
-$("clearCart").onclick = () => {
-  if(confirm("Vider le panier ?")){
-    cart = {};
-    saveCart();
-    renderCart();
-    closeClientForm();
-  }
-};
-
-$("openForm").onclick = () => openClientForm();
-$("cancelForm").onclick = () => closeClientForm();
-
-$("sendWA").onclick = () => {
-  const name = $("cName").value.trim();
-  const phone = $("cPhone").value.trim();
-  const mode = $("cMode").value.trim();
-  const address = $("cAddress").value.trim();
-  const note = $("cNote").value.trim();
-
-  if(!name || !phone || !mode || !address){
-    alert("Merci de remplir tous les champs obligatoires (*).");
-    return;
-  }
-
-  // Vérif minimum livraison si mode Livraison
-  const sub = cartSubtotal();
-  if(mode === "Livraison" && sub < MIN_ORDER){
-    alert(`Minimum livraison: ${MIN_ORDER} dt`);
-    return;
-  }
-
-  const msg = formatOrderText({name, phone, mode, address, note});
-  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
-  window.open(url, "_blank");
-};
-
-$("saveAdmin").onclick = () => {
-  const code = $("aCode").value.trim();
-  let priceRaw = $("aPrice").value.trim().replace(/\s+/g,"").replace(",", ".");
-  const price = parseFloat(priceRaw);
-
-  if(!code || !isFinite(price)){
-    alert("Code + prix valides svp.");
-    return;
-  }
-  adminPrices[code] = price;
-  saveAdminPrices();
-  applyAdminPriceToCache(code);
-  alert("Prix admin enregistré.");
-  refresh();
-  renderCart();
-};
-
-$("clearAdmin").onclick = () => {
-  const code = $("aCode").value.trim();
-  if(!code) return alert("Entre le code article.");
-  if(adminPrices[code] == null) return alert("Aucun prix admin pour ce code.");
-  delete adminPrices[code];
-  saveAdminPrices();
-  // recharger caches pour reprendre prix CSV
-  allCache = {};
-  alert("Prix admin effacé. Recharge depuis CSV.");
-  refresh();
-  renderCart();
-};
-
-window.addEventListener("hashchange", setupAdmin);
-
-/* ===================== START ===================== */
-buildCategories();
-setupAdmin();
-refresh();
-renderCart();
-
-/* ===================== PWA (optionnel) ===================== */
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js")
-      .then(() => console.log("Service Worker enregistré ✅"))
-      .catch(err => console.log("Service Worker erreur ❌", err));
-  });
-}
+init();
 </script>
-
 </body>
 </html>
