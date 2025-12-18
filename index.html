@@ -748,8 +748,16 @@
     function cartCount(){
       return Object.values(state.cart).reduce((a,b)=>a + (b.qty||0), 0);
     }
-    function cartTotal(){
-      return Object.values(state.cart).reduce((a,it)=>a + (Number(it.price)||0) * (it.qty||0), 0);
+   function toNum(v){
+  const s = String(v ?? "").trim().replace(/\s/g,"").replace(",",".");
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function cartTotal(){
+  return Object.values(state.cart).reduce((a,it)=> a + toNum(it.price) * (it.qty||0), 0);
+
+
     }
 // ================================
 // FRAIS & EXIGENCES COMMANDE
@@ -1174,6 +1182,7 @@ if (fee === null) {
   </script>
 </body>
 </html>
+
 
 
 
