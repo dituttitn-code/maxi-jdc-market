@@ -3,266 +3,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maxi JDC - Catalogue Produits</title>
+    <title>Maxi JDC - Tous les Produits</title>
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            background-color: #f5f7fa;
-            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 0 20px;
         }
         
+        /* HEADER */
         header {
-            background: linear-gradient(135deg, #2c3e50, #3498db);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             padding: 30px 0;
-            text-align: center;
-            border-radius: 0 0 15px 15px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
         
-        header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        
-        header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        .categories-menu {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 30px;
-            padding: 15px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .category-btn {
-            padding: 10px 20px;
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #495057;
-            transition: all 0.3s ease;
-        }
-        
-        .category-btn:hover {
-            background: #3498db;
-            color: white;
-            border-color: #3498db;
-            transform: translateY(-2px);
-        }
-        
-        .category-btn.active {
-            background: #2c3e50;
-            color: white;
-            border-color: #2c3e50;
-        }
-        
-        .category-section {
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        .category-section.active {
-            display: block;
-        }
-        
-        .category-header {
+        .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-        
-        .category-title {
-            font-size: 1.8rem;
-            color: #2c3e50;
-        }
-        
-        .product-count {
-            background: #3498db;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-        
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            flex-wrap: wrap;
             gap: 20px;
         }
         
-        .product-card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid #e9ecef;
-        }
-        
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        
-        .product-code {
-            font-size: 0.85rem;
-            color: #6c757d;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        
-        .product-name {
-            font-size: 1.2rem;
-            color: #2c3e50;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        
-        .product-price {
-            font-size: 1.3rem;
-            color: #27ae60;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-        
-        .product-footer {
+        .logo {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding-top: 15px;
-            border-top: 1px dashed #dee2e6;
+            gap: 15px;
         }
         
-        .product-category {
-            background: #e8f4fc;
-            color: #2980b9;
-            padding: 5px 10px;
-            border-radius: 15px;
+        .logo i {
+            font-size: 2.5rem;
+        }
+        
+        .logo h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        
+        .logo-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        /* STATS BAR */
+        .stats-bar {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
             font-size: 0.85rem;
+            opacity: 0.9;
         }
         
-        .product-stock {
-            font-size: 0.9rem;
-            color: #7f8c8d;
+        /* MAIN CONTROLS */
+        .controls {
+            background: white;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
         
-        .stock-ok {
-            color: #27ae60;
-            font-weight: 600;
-        }
-        
-        .stock-low {
-            color: #e74c3c;
-            font-weight: 600;
+        .search-section {
+            margin-bottom: 25px;
         }
         
         .search-box {
-            margin: 20px 0;
             position: relative;
+            max-width: 600px;
+            margin: 0 auto;
         }
         
         .search-box input {
             width: 100%;
-            padding: 15px 20px;
+            padding: 18px 25px;
+            padding-right: 60px;
             border: 2px solid #e0e0e0;
-            border-radius: 30px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
         }
         
         .search-box input:focus {
             outline: none;
-            border-color: #3498db;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
         }
         
-        .search-box i {
+        .search-box button {
             position: absolute;
-            right: 20px;
+            right: 10px;
             top: 50%;
             transform: translateY(-50%);
-            color: #7f8c8d;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background 0.3s ease;
         }
         
-        .stats-bar {
+        .search-box button:hover {
+            background: var(--primary-color);
+        }
+        
+        .filters {
             display: flex;
-            justify-content: space-around;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            justify-content: space-between;
+            align-items: center;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 20px;
         }
         
-        .stat-item {
+        .category-filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 12px 25px;
+            background: var(--light-color);
+            border: 2px solid #ddd;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--dark-color);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-btn:hover {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .filter-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .filter-btn i {
+            font-size: 1.1rem;
+        }
+        
+        .sort-options select {
+            padding: 12px 25px;
+            border: 2px solid #ddd;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            background: white;
+            cursor: pointer;
+            min-width: 200px;
+        }
+        
+        .sort-options select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+        
+        /* PRODUCTS GRID */
+        .products-container {
+            margin: 30px 0 50px;
+        }
+        
+        .category-section {
+            margin-bottom: 50px;
+        }
+        
+        .category-header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px 15px 0 0;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .category-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.8rem;
+            color: var(--primary-color);
+        }
+        
+        .category-title i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+        }
+        
+        .category-count {
+            background: var(--secondary-color);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            background: white;
+            padding: 30px;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            border: 2px solid #f0f0f0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-color: var(--secondary-color);
+        }
+        
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--secondary-color);
+        }
+        
+        .product-code {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .product-name {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-weight: 700;
+            line-height: 1.4;
+            min-height: 60px;
+        }
+        
+        .product-price {
+            font-size: 1.8rem;
+            color: var(--success-color);
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+        
+        .product-price::after {
+            content: ' €';
+        }
+        
+        .product-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            border-top: 2px dashed #eee;
+        }
+        
+        .product-category {
+            background: #e8f4fc;
+            color: var(--secondary-color);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .product-stock {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .stock-high {
+            color: var(--success-color);
+        }
+        
+        .stock-medium {
+            color: var(--warning-color);
+        }
+        
+        .stock-low {
+            color: var(--accent-color);
+        }
+        
+        /* FOOTER */
+        footer {
+            background: var(--primary-color);
+            color: white;
+            padding: 40px 0;
+            margin-top: 50px;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .footer-info {
             text-align: center;
             flex: 1;
-            min-width: 150px;
         }
         
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #2c3e50;
+        .footer-stats {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-top: 15px;
         }
         
-        .stat-label {
-            font-size: 0.9rem;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        footer {
-            text-align: center;
-            padding: 30px 0;
-            margin-top: 40px;
-            color: #7f8c8d;
-            border-top: 1px solid #e9ecef;
-        }
-        
-        .no-products {
-            text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
-            font-style: italic;
+        /* RESPONSIVE */
+        @media (max-width: 992px) {
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .stats-bar {
+                justify-content: center;
+            }
         }
         
         @media (max-width: 768px) {
@@ -270,623 +408,487 @@
                 grid-template-columns: 1fr;
             }
             
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .category-filters {
+                justify-content: center;
+            }
+            
             .category-header {
                 flex-direction: column;
-                align-items: flex-start;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .product-name {
+                font-size: 1.2rem;
+                min-height: auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .filter-btn {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+            
+            .category-filters {
                 gap: 10px;
             }
             
-            header h1 {
-                font-size: 2rem;
+            .product-card {
+                padding: 20px;
             }
+        }
+        
+        /* UTILITY CLASSES */
+        .hidden {
+            display: none !important;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            grid-column: 1 / -1;
+        }
+        
+        .no-results i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .no-results h3 {
+            color: var(--gray-color);
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .highlight {
+            background-color: #fffacd;
+            padding: 2px 5px;
+            border-radius: 3px;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- HEADER -->
     <header>
         <div class="container">
-            <h1><i class="fas fa-store"></i> Maxi JDC Delivery</h1>
-            <p>Catalogue complet des produits - Toutes catégories</p>
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-store"></i>
+                    <div>
+                        <h1>Maxi JDC Delivery</h1>
+                        <div class="logo-subtitle">Catalogue complet de tous les produits</div>
+                    </div>
+                </div>
+                
+                <div class="stats-bar">
+                    <div class="stat">
+                        <span class="stat-number" id="total-products">0</span>
+                        <span class="stat-label">Produits Total</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">6</span>
+                        <span class="stat-label">Catégories</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">€<span id="avg-price">0.00</span></span>
+                        <span class="stat-label">Prix Moyen</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
-    
-    <div class="container">
-        <div class="stats-bar">
-            <div class="stat-item">
-                <div class="stat-value" id="total-products">0</div>
-                <div class="stat-label">Produits Total</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="total-categories">7</div>
-                <div class="stat-label">Catégories</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">€ <span id="avg-price">0.00</span></div>
-                <div class="stat-label">Prix Moyen</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="in-stock">0</div>
-                <div class="stat-label">En Stock</div>
-            </div>
-        </div>
-        
-        <div class="search-box">
-            <input type="text" id="search-input" placeholder="Rechercher un produit par nom, code ou catégorie...">
-            <i class="fas fa-search"></i>
-        </div>
-        
-        <div class="categories-menu" id="categories-menu">
-            <!-- Les boutons seront générés par JavaScript -->
-        </div>
-        
-        <!-- Section ANIMAUX -->
-        <section class="category-section" id="animaux">
-            <div class="category-header">
-                <h2 class="category-title"><i class="fas fa-paw"></i> Animaux</h2>
-                <div class="product-count">12 produits</div>
-            </div>
-            <div class="products-grid" id="animaux-products">
-                <!-- Produits animaux générés par JavaScript -->
-                <div class="no-products">Chargement des produits...</div>
-            </div>
-        </section>
-        
-        <!-- Section PRODUITS SURGELES -->
-        <section class="category-section" id="surgeles">
-            <div class="category-header">
-                <h2 class="category-title"><i class="fas fa-snowflake"></i> Produits Surgelés</h2>
-                <div class="product-count">4 produits</div>
-            </div>
-            <div class="products-grid" id="surgeles-products">
-                <!-- Produits surgelés existants -->
-                <div class="product-card">
-                    <div class="product-code">CODE: 2682</div>
-                    <h3 class="product-name">PETIT POIS SAVEURS 1/2</h3>
-                    <div class="product-price">9,00 €</div>
-                    <div class="product-footer">
-                        <span class="product-category">Surgelés</span>
-                        <span class="product-stock stock-ok">En stock: 45</span>
-                    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="container">
+        <!-- CONTROLS -->
+        <section class="controls">
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Rechercher un produit par nom, code, catégorie...">
+                    <button id="searchButton">
+                        <i class="fas fa-search"></i>
+                    </button>
                 </div>
-                <div class="product-card">
-                    <div class="product-code">CODE: 3842</div>
-                    <h3 class="product-name">LONDON DAIRY CRUNCH CARAMEL 125ML</h3>
-                    <div class="product-price">5,80 €</div>
-                    <div class="product-footer">
-                        <span class="product-category">Surgelés</span>
-                        <span class="product-stock stock-ok">En stock: 32</span>
-                    </div>
+            </div>
+            
+            <div class="filters">
+                <div class="category-filters">
+                    <button class="filter-btn active" data-category="all">
+                        <i class="fas fa-th-large"></i> Tous les produits
+                    </button>
+                    <button class="filter-btn" data-category="surgeles">
+                        <i class="fas fa-snowflake"></i> Surgelés
+                    </button>
+                    <button class="filter-btn" data-category="vipa">
+                        <i class="fas fa-star"></i> Vipa
+                    </button>
+                    <button class="filter-btn" data-category="animaux">
+                        <i class="fas fa-paw"></i> Animaux
+                    </button>
+                    <button class="filter-btn" data-category="bebe">
+                        <i class="fas fa-baby"></i> Bébé
+                    </button>
+                    <button class="filter-btn" data-category="fruits">
+                        <i class="fas fa-seedling"></i> Fruits Secs
+                    </button>
+                    <button class="filter-btn" data-category="chips">
+                        <i class="fas fa-cookie-bite"></i> Chips & Snack
+                    </button>
                 </div>
-                <div class="product-card">
-                    <div class="product-code">CODE: 3025</div>
-                    <h3 class="product-name">LONDON DAIRY COCONUTELLO</h3>
-                    <div class="product-price">4,30 €</div>
-                    <div class="product-footer">
-                        <span class="product-category">Surgelés</span>
-                        <span class="product-stock stock-low">Stock bas: 28</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-code">CODE: 2999</div>
-                    <h3 class="product-name">LONDON DAIRY CHOCOLATE HAZELNUT CORNET</h3>
-                    <div class="product-price">4,30 €</div>
-                    <div class="product-footer">
-                        <span class="product-category">Surgelés</span>
-                        <span class="product-stock stock-ok">En stock: 35</span>
-                    </div>
+                
+                <div class="sort-options">
+                    <select id="sortSelect">
+                        <option value="name-asc">Trier par: Nom (A-Z)</option>
+                        <option value="name-desc">Nom (Z-A)</option>
+                        <option value="price-asc">Prix (Croissant)</option>
+                        <option value="price-desc">Prix (Décroissant)</option>
+                        <option value="code-asc">Code (Croissant)</option>
+                    </select>
                 </div>
             </div>
         </section>
-        
-        <!-- Section BEBE ET MAMAN -->
-        <section class="category-section" id="bebe">
-            <div class="category-header">
-                <h2 class="category-title"><i class="fas fa-baby"></i> Bébé et Maman</h2>
-                <div class="product-count">15 produits</div>
-            </div>
-            <div class="products-grid" id="bebe-products">
-                <div class="no-products">Chargement des produits...</div>
+
+        <!-- PRODUCTS DISPLAY -->
+        <section class="products-container">
+            <!-- Tous les produits seront affichés ici dynamiquement -->
+            <div id="allProductsGrid" class="products-grid">
+                <!-- Les produits seront générés par JavaScript -->
             </div>
         </section>
-        
-        <!-- Section VIPA ET SELECTION -->
-        <section class="category-section active" id="vipa">
-            <div class="category-header">
-                <h2 class="category-title"><i class="fas fa-star"></i> Vipa et Sélection</h2>
-                <div class="product-count">16 produits</div>
-            </div>
-            <div class="products-grid" id="vipa-products">
-                <!-- Produits Vipa existants -->
-                <div class="product-card">
-                    <div class="product-code">CODE: 3711</div>
-                    <h3 class="product-name">SELECTION FESTIF VIPA 100G</h3>
-                    <div class="product-price">6,40 €</div>
-                    <div class="product-footer">
-                        <span class="product-category">Vipa</span>
-                        <span class="product-stock stock-ok">En stock: 25</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-code">CODE: 37110</div>
-                    <h3 class="product-name">SELECTION PLAISIR VIPA 100G</h3>
-                    <div class="product-price">7,30 €</div>
-                    <div class="product-footer">
-                        <span class="product-category">Vipa</span>
-                        <span class="product-stock stock-ok">En stock: 18</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-code">CODE: 3713</div>
-                    <h3 class="product-name">SELECTION ORIENTAL VIPA 100G</h3>
-                    <div class="product-price">6,80 €</div>
-                    <div class="product-footer">
-                        <span class="product-category">Vipa</span>
-                        <span class="product-stock stock-low">Stock bas: 12</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-code">CODE: 3721</div>
-                    <h3 class="product-name">POUDRE NUTRITIVE D AVOINE</h3>
-                    <div class="product-price">6,50 €</div>
-                    <div class="product-footer">
-                        <span class="product-category">Vipa</span>
-                        <span class="product-stock stock-ok">En stock: 30</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-code">CODE: 4883</div>
-                    <h3 class="product-name">PISTACHE VIPA</h3>
-                    <div class="product-price">6,40 €</div>
-                    <div class="product-footer">
-                        <span class="product-category">Vipa</span>
-                        <span class="product-stock stock-low">Stock bas: 8</span>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-code">CODE: 3918</div>
-                    <h3 class="product-name">GRANOLA DAILY FRAISE/FS VIPA</h3>
-                    <div class="product-price">15,50 €</div>
-                    <div class="product-footer">
-                        <span class="product-category">Vipa</span>
-                        <span class="product-stock stock-ok">En stock: 22</span>
-                    </div>
-                </div>
-                <!-- Ajouter d'autres produits Vipa ici -->
-            </div>
-        </section>
-        
-        <!-- Section FRUITS SECS ET NOIX -->
-        <section class="category-section" id="fruits-secs">
-            <div class="category-header">
-                <h2 class="category-title"><i class="fas fa-seedling"></i> Fruits Secs et Noix</h2>
-                <div class="product-count">20 produits</div>
-            </div>
-            <div class="products-grid" id="fruits-secs-products">
-                <div class="no-products">Chargement des produits...</div>
-            </div>
-        </section>
-        
-        <!-- Section CHIPS ET SNACK -->
-        <section class="category-section" id="chips">
-            <div class="category-header">
-                <h2 class="category-title"><i class="fas fa-cookie-bite"></i> Chips et Snack</h2>
-                <div class="product-count">25 produits</div>
-            </div>
-            <div class="products-grid" id="chips-products">
-                <div class="no-products">Chargement des produits...</div>
-            </div>
-        </section>
-    </div>
-    
+    </main>
+
+    <!-- FOOTER -->
     <footer>
         <div class="container">
-            <p>Maxi JDC Delivery &copy; 2024 - Tous droits réservés</p>
-            <p style="font-size: 0.9rem; margin-top: 10px; opacity: 0.7;">
-                Catalogue mis à jour le <span id="current-date"></span> | 
-                <span id="total-displayed">0</span> produits affichés
-            </p>
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-store"></i> Maxi JDC
+                </div>
+                
+                <div class="footer-info">
+                    <p>Catalogue mis à jour le <span id="currentDate"></span></p>
+                    <div class="footer-stats">
+                        <span><i class="fas fa-box"></i> <span id="footer-total">0</span> produits</span>
+                        <span><i class="fas fa-tags"></i> 6 catégories</span>
+                        <span><i class="fas fa-eye"></i> <span id="displayed-count">0</span> affichés</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </footer>
 
     <script>
-        // Données complètes des produits pour toutes les catégories
-        const produitsData = {
-            // CATÉGORIE ANIMAUX
-            animaux: [
-                {code: 5001, nom: "CROQUETTES CHAT ADULTE 3KG", prix: 12.90, stock: 45},
-                {code: 5002, nom: "CROQUETTES CHIOT 2KG", prix: 15.50, stock: 32},
-                {code: 5003, nom: "BOITE PÂTÉE POUR CHAT", prix: 1.20, stock: 120},
-                {code: 5004, nom: "GRAINES POUR OISEAUX 1KG", prix: 4.80, stock: 28},
-                {code: 5005, nom: "FOIN POUR LAPIN 2KG", prix: 6.30, stock: 35},
-                {code: 5006, nom: "LITIÈRE AGGLOMÉRANTE 5KG", prix: 8.90, stock: 40},
-                {code: 5007, nom: "JOUET POUR CHIEN", prix: 7.50, stock: 22},
-                {code: 5008, nom: "GRATTOIR POUR CHAT", prix: 14.99, stock: 18},
-                {code: 5009, nom: "AQUARIUM 30L", prix: 35.00, stock: 8},
-                {code: 5010, nom: "NOURRITURE POUR POISSON", prix: 3.50, stock: 55},
-                {code: 5011, nom: "HAMAC POUR CHAT", prix: 12.80, stock: 15},
-                {code: 5012, nom: "LAISSE POUR CHIEN", prix: 9.99, stock: 30}
-            ],
-            
-            // CATÉGORIE BÉBÉ ET MAMAN
-            bebe: [
-                {code: 6001, nom: "COUCHES TAILLE 3 X60", prix: 14.90, stock: 65},
-                {code: 6002, nom: "LAIT EN POUDRE 1ER AGE", prix: 22.50, stock: 42},
-                {code: 6003, nom: "BIBERON 250ML", prix: 5.80, stock: 38},
-                {code: 6004, nom: "LINGETTES BÉBÉ X80", prix: 3.20, stock: 72},
-                {code: 6005, nom: "CRÈME POUR LE SIÈGE", prix: 6.50, stock: 48},
-                {code: 6006, nom: "BRACELET DE DENTITION", prix: 4.30, stock: 55},
-                {code: 6007, nom: "JOUET D'ÉVEIL", prix: 8.90, stock: 33},
-                {code: 6008, nom: "TÉTINE ORTHODONTIQUE", prix: 3.80, stock: 60},
-                {code: 6009, nom: "BODY 3 MOIS X3", prix: 12.50, stock: 40},
-                {code: 6010, nom: "SAC À LANGER", prix: 24.99, stock: 18},
-                {code: 6011, nom: "PARACÉTAMOL PÉDIATRIQUE", prix: 3.60, stock: 45},
-                {code: 6012, nom: "THERMOMÈtre FRONTAL", prix: 15.80, stock: 25},
-                {code: 6013, nom: "SIÈGE AUTO Groupe 1", prix: 89.99, stock: 10},
-                {code: 6014, nom: "PARC POUR BÉBÉ", prix: 75.00, stock: 7},
-                {code: 6015, nom: "VEILLEUSE MUSICALE", prix: 18.50, stock: 20}
-            ],
-            
-            // CATÉGORIE FRUITS SECS ET NOIX
-            "fruits-secs": [
-                {code: 7001, nom: "AMANDES DÉCORTIQUÉES 200G", prix: 5.90, stock: 50},
-                {code: 7002, nom: "NOIX DE CAJOU GRILLÉES 150G", prix: 4.80, stock: 45},
-                {code: 7003, nom: "RAISINS SECS THOMPSON 250G", prix: 3.20, stock: 60},
-                {code: 7004, nom: "ABRICOTS SECS 200G", prix: 4.50, stock: 38},
-                {code: 7005, nom: "DATTES DEGLET NOUR 500G", prix: 6.80, stock: 32},
-                {code: 7006, nom: "FIGUES SÈCHES 250G", prix: 5.20, stock: 28},
-                {code: 7007, nom: "PRUNEAUX D'AGEN 400G", prix: 4.90, stock: 42},
-                {code: 7008, nom: "CRANBERRIES SÉCHÉES 150G", prix: 3.80, stock: 55},
-                {code: 7009, nom: "MÉLANGE TROPICAL 300G", prix: 7.50, stock: 30},
-                {code: 7010, nom: "PISTACHES GRILLÉES 200G", prix: 8.20, stock: 25},
-                {code: 7011, nom: "NOIX DU BRÉSIL 150G", prix: 6.50, stock: 20},
-                {code: 7012, nom: "PIGNONS DE PIN 100G", prix: 9.80, stock: 18},
-                {code: 7013, nom: "GRAINES DE TOURNESOL 250G", prix: 2.90, stock: 65},
-                {code: 7014, nom: "GRAINES DE CITROUILLE 200G", prix: 4.30, stock: 40},
-                {code: 7015, nom: "MÉLANGE ÉTUDIANT 500G", prix: 12.50, stock: 22},
-                {code: 7016, nom: "BANANES SÉCHÉES 150G", prix: 3.40, stock: 48},
-                {code: 7017, nom: "MANGUES SÉCHÉES 100G", prix: 4.60, stock: 35},
-                {code: 7018, nom: "NOIX DE PÉCAN 180G", prix: 7.80, stock: 15},
-                {code: 7019, nom: "MELON SÉCHÉ 120G", prix: 3.90, stock: 28},
-                {code: 7020, nom: "FRUITS SECS BIO 400G", prix: 10.90, stock: 20}
-            ],
-            
-            // CATÉGORIE CHIPS ET SNACK
-            chips: [
-                {code: 8001, nom: "CHIPS NATURE 150G", prix: 1.80, stock: 120},
-                {code: 8002, nom: "CHIPS SAVEUR BARBECUE 150G", prix: 1.90, stock: 95},
-                {code: 8003, nom: "CHIPS SAVEUR VINAIGRE 150G", prix: 1.90, stock: 88},
-                {code: 8004, nom: "CHIPS AU FROMAGE 200G", prix: 2.20, stock: 75},
-                {code: 8005, nom: "CHIPS DE LÉGUMES 100G", prix: 2.50, stock: 60},
-                {code: 8006, nom: "PRETZELS 200G", prix: 2.80, stock: 55},
-                {code: 8007, nom: "CRACKERS SALÉS 250G", prix: 2.40, stock: 70},
-                {code: 8008, nom: "BISCUITS APÉRITIFS 300G", prix: 3.20, stock: 65},
-                {code: 8009, nom: "CACAHUÈTES GRILLÉES 150G", prix: 2.10, stock: 85},
-                {code: 8010, nom: "AMANDES GRILLÉES SALÉES 120G", prix: 3.50, stock: 50},
-                {code: 8011, nom: "TORTILLAS CHIPS NATURE 200G", prix: 2.30, stock: 45},
-                {code: 8012, nom: "TORTILLAS CHIPS SAVEUR FAJITAS", prix: 2.40, stock: 42},
-                {code: 8013, nom: "POPCORN SALÉ 100G", prix: 1.60, stock: 90},
-                {code: 8014, nom: "POPCORN CARAMEL 100G", prix: 1.80, stock: 78},
-                {code: 8015, nom: "BÂTONNETS DE SÉSAME 180G", prix: 2.90, stock: 40},
-                {code: 8016, nom: "CRACKERS AU GRAINES 200G", prix: 3.10, stock: 35},
-                {code: 8017, nom: "MIX APÉRITIF 350G", prix: 4.50, stock: 30},
-                {code: 8018, nom: "CHIPS DE POMMES 80G", prix: 2.80, stock: 55},
-                {code: 8019, nom: "CHIPS DE PATATE DOUCE 100G", prix: 3.20, stock: 38},
-                {code: 8020, nom: "OLIVES VERTES FARCIES 200G", prix: 3.80, stock: 48},
-                {code: 8021, nom: "CORNICHONS AIGRES-DOUX 250G", prix: 2.90, stock: 52},
-                {code: 8022, nom: "SAUCISSON SEC MINI 180G", prix: 4.80, stock: 25},
-                {code: 8023, nom: "MINI TOASTS APÉRITIFS", prix: 1.90, stock: 80},
-                {code: 8024, nom: "BÂTONS DE SURIMI 200G", prix: 3.50, stock: 42},
-                {code: 8025, nom: "MÉLANGE APÉRO 500G", prix: 6.90, stock: 28}
-            ],
-            
-            // Produits VIPA déjà affichés dans le HTML
-            vipa: [
-                {code: 3711, nom: "SELECTION FESTIF VIPA 100G", prix: 6.40, stock: 25},
-                {code: 37110, nom: "SELECTION PLAISIR VIPA 100G", prix: 7.30, stock: 18},
-                {code: 3713, nom: "SELECTION ORIENTAL VIPA 100G", prix: 6.80, stock: 12},
-                {code: 3721, nom: "POUDRE NUTRITIVE D AVOINE", prix: 6.50, stock: 30},
-                {code: 4883, nom: "PISTACHE VIPA", prix: 6.40, stock: 8},
-                {code: 3918, nom: "GRANOLA DAILY FRAISE/FS VIPA", prix: 15.50, stock: 22},
-                {code: 3724, nom: "GRANO BARRE CARAMEL SALE ET FRUITS SECS", prix: 2.00, stock: 45},
-                {code: 4884, nom: "GRAINES DE COURGE", prix: 13.50, stock: 15},
-                {code: 3720, nom: "DAILY MIEL VIPA", prix: 15.50, stock: 20},
-                {code: 3717, nom: "DAILY CHOCOLAT VIPA", prix: 15.50, stock: 18},
-                {code: 3718, nom: "DAILY CEREALES SANS SUCRE VIPA", prix: 15.50, stock: 25},
-                {code: 3723, nom: "CRAK'O BARRE CACAHUETE, SESAME ET RAISIN VIPA", prix: 2.00, stock: 50},
-                {code: 3709, nom: "CACAHUETE TACO VIPA 80GR", prix: 2.80, stock: 35},
-                {code: 3712, nom: "CACAHUETES PAPRIKA VIPA", prix: 2.80, stock: 40},
-                {code: 3919, nom: "CACAHUETES CARAMEL VIPA", prix: 2.80, stock: 32},
-                {code: 3708, nom: "CACAHUETE FROMAGE VIPA 80GR", prix: 2.80, stock: 28}
-            ],
-            
-            // Produits SURGELÉS déjà affichés dans le HTML
-            surgeles: [
-                {code: 2682, nom: "PETIT POIS SAVEURS 1/2", prix: 9.00, stock: 45},
-                {code: 3842, nom: "LONDON DAIRY CRUNCH CARAMEL 125ML", prix: 5.80, stock: 32},
-                {code: 3025, nom: "LONDON DAIRY COCONUTELLO", prix: 4.30, stock: 28},
-                {code: 2999, nom: "LONDON DAIRY CHOCOLATE HAZELNUT CORNET", prix: 4.30, stock: 35}
-            ]
-        };
+        // DONNÉES COMPLÈTES DE TOUS LES PRODUITS
+        const allProducts = [
+            // PRODUITS SURGELÉS (4 produits)
+            {code: 2682, nom: "PETIT POIS SAVEURS 1/2", prix: 9.0, category: "surgeles", stock: 45},
+            {code: 3842, nom: "LONDON DAIRY CRUNCH CARAMEL 125ML", prix: 5.8, category: "surgeles", stock: 32},
+            {code: 3025, nom: "LONDON DAIRY COCONUTELLO", prix: 4.3, category: "surgeles", stock: 28},
+            {code: 2999, nom: "LONDON DAIRY CHOCOLATE HAZELNUT CORNET", prix: 4.3, category: "surgeles", stock: 35},
 
-        // Configuration des catégories
-        const categories = [
-            {id: 'animaux', name: 'Animaux', icon: 'fas fa-paw', count: 12},
-            {id: 'surgeles', name: 'Produits Surgelés', icon: 'fas fa-snowflake', count: 4},
-            {id: 'bebe', name: 'Bébé et Maman', icon: 'fas fa-baby', count: 15},
-            {id: 'vipa', name: 'Vipa et Sélection', icon: 'fas fa-star', count: 16},
-            {id: 'fruits-secs', name: 'Fruits Secs et Noix', icon: 'fas fa-seedling', count: 20},
-            {id: 'chips', name: 'Chips et Snack', icon: 'fas fa-cookie-bite', count: 25}
+            // PRODUITS VIPA (16 produits)
+            {code: 3711, nom: "SELECTION FESTIF VIPA 100G", prix: 6.4, category: "vipa", stock: 25},
+            {code: 37110, nom: "SELECTION PLAISIR VIPA 100G", prix: 7.3, category: "vipa", stock: 18},
+            {code: 3713, nom: "SELECTION ORIENTAL VIPA 100G", prix: 6.8, category: "vipa", stock: 12},
+            {code: 3721, nom: "POUDRE NUTRITIVE D AVOINE", prix: 6.5, category: "vipa", stock: 30},
+            {code: 4883, nom: "PISTACHE VIPA", prix: 6.4, category: "vipa", stock: 8},
+            {code: 3918, nom: "GRANOLA DAILY FRAISE/FS VIPA", prix: 15.5, category: "vipa", stock: 22},
+            {code: 3724, nom: "GRANO BARRE CARAMEL SALE ET FRUITS SECS", prix: 2.0, category: "vipa", stock: 45},
+            {code: 4884, nom: "GRAINES DE COURGE", prix: 13.5, category: "vipa", stock: 15},
+            {code: 3720, nom: "DAILY MIEL VIPA", prix: 15.5, category: "vipa", stock: 20},
+            {code: 3717, nom: "DAILY CHOCOLAT VIPA", prix: 15.5, category: "vipa", stock: 18},
+            {code: 3718, nom: "DAILY CEREALES SANS SUCRE VIPA", prix: 15.5, category: "vipa", stock: 25},
+            {code: 3723, nom: "CRAK'O BARRE CACAHUETE, SESAME ET RAISIN VIPA", prix: 2.0, category: "vipa", stock: 50},
+            {code: 3709, nom: "CACAHUETE TACO VIPA 80GR", prix: 2.8, category: "vipa", stock: 35},
+            {code: 3712, nom: "CACAHUETES PAPRIKA VIPA", prix: 2.8, category: "vipa", stock: 40},
+            {code: 3919, nom: "CACAHUETES CARAMEL VIPA", prix: 2.8, category: "vipa", stock: 32},
+            {code: 3708, nom: "CACAHUETE FROMAGE VIPA 80GR", prix: 2.8, category: "vipa", stock: 28},
+
+            // PRODUITS ANIMAUX (12 produits)
+            {code: 5001, nom: "CROQUETTES CHAT ADULTE 3KG", prix: 12.9, category: "animaux", stock: 45},
+            {code: 5002, nom: "CROQUETTES CHIOT 2KG", prix: 15.5, category: "animaux", stock: 32},
+            {code: 5003, nom: "BOITE PÂTÉE POUR CHAT", prix: 1.2, category: "animaux", stock: 120},
+            {code: 5004, nom: "GRAINES POUR OISEAUX 1KG", prix: 4.8, category: "animaux", stock: 28},
+            {code: 5005, nom: "FOIN POUR LAPIN 2KG", prix: 6.3, category: "animaux", stock: 35},
+            {code: 5006, nom: "LITIÈRE AGGLOMÉRANTE 5KG", prix: 8.9, category: "animaux", stock: 40},
+            {code: 5007, nom: "JOUET POUR CHIEN", prix: 7.5, category: "animaux", stock: 22},
+            {code: 5008, nom: "GRATTOIR POUR CHAT", prix: 14.99, category: "animaux", stock: 18},
+            {code: 5009, nom: "AQUARIUM 30L", prix: 35.0, category: "animaux", stock: 8},
+            {code: 5010, nom: "NOURRITURE POUR POISSON", prix: 3.5, category: "animaux", stock: 55},
+            {code: 5011, nom: "HAMAC POUR CHAT", prix: 12.8, category: "animaux", stock: 15},
+            {code: 5012, nom: "LAISSE POUR CHIEN", prix: 9.99, category: "animaux", stock: 30},
+
+            // PRODUITS BÉBÉ ET MAMAN (15 produits)
+            {code: 6001, nom: "COUCHES TAILLE 3 X60", prix: 14.9, category: "bebe", stock: 65},
+            {code: 6002, nom: "LAIT EN POUDRE 1ER AGE", prix: 22.5, category: "bebe", stock: 42},
+            {code: 6003, nom: "BIBERON 250ML", prix: 5.8, category: "bebe", stock: 38},
+            {code: 6004, nom: "LINGETTES BÉBÉ X80", prix: 3.2, category: "bebe", stock: 72},
+            {code: 6005, nom: "CRÈME POUR LE SIÈGE", prix: 6.5, category: "bebe", stock: 48},
+            {code: 6006, nom: "BRACELET DE DENTITION", prix: 4.3, category: "bebe", stock: 55},
+            {code: 6007, nom: "JOUET D'ÉVEIL", prix: 8.9, category: "bebe", stock: 33},
+            {code: 6008, nom: "TÉTINE ORTHODONTIQUE", prix: 3.8, category: "bebe", stock: 60},
+            {code: 6009, nom: "BODY 3 MOIS X3", prix: 12.5, category: "bebe", stock: 40},
+            {code: 6010, nom: "SAC À LANGER", prix: 24.99, category: "bebe", stock: 18},
+            {code: 6011, nom: "PARACÉTAMOL PÉDIATRIQUE", prix: 3.6, category: "bebe", stock: 45},
+            {code: 6012, nom: "THERMOMÈTRE FRONTAL", prix: 15.8, category: "bebe", stock: 25},
+            {code: 6013, nom: "SIÈGE AUTO GROUPE 1", prix: 89.99, category: "bebe", stock: 10},
+            {code: 6014, nom: "PARC POUR BÉBÉ", prix: 75.0, category: "bebe", stock: 7},
+            {code: 6015, nom: "VEILLEUSE MUSICALE", prix: 18.5, category: "bebe", stock: 20},
+
+            // FRUITS SECS ET NOIX (20 produits)
+            {code: 7001, nom: "AMANDES DÉCORTIQUÉES 200G", prix: 5.9, category: "fruits", stock: 50},
+            {code: 7002, nom: "NOIX DE CAJOU GRILLÉES 150G", prix: 4.8, category: "fruits", stock: 45},
+            {code: 7003, nom: "RAISINS SECS THOMPSON 250G", prix: 3.2, category: "fruits", stock: 60},
+            {code: 7004, nom: "ABRICOTS SECS 200G", prix: 4.5, category: "fruits", stock: 38},
+            {code: 7005, nom: "DATTES DEGLET NOUR 500G", prix: 6.8, category: "fruits", stock: 32},
+            {code: 7006, nom: "FIGUES SÈCHES 250G", prix: 5.2, category: "fruits", stock: 28},
+            {code: 7007, nom: "PRUNEAUX D'AGEN 400G", prix: 4.9, category: "fruits", stock: 42},
+            {code: 7008, nom: "CRANBERRIES SÉCHÉES 150G", prix: 3.8, category: "fruits", stock: 55},
+            {code: 7009, nom: "MÉLANGE TROPICAL 300G", prix: 7.5, category: "fruits", stock: 30},
+            {code: 7010, nom: "PISTACHES GRILLÉES 200G", prix: 8.2, category: "fruits", stock: 25},
+            {code: 7011, nom: "NOIX DU BRÉSIL 150G", prix: 6.5, category: "fruits", stock: 20},
+            {code: 7012, nom: "PIGNONS DE PIN 100G", prix: 9.8, category: "fruits", stock: 18},
+            {code: 7013, nom: "GRAINES DE TOURNESOL 250G", prix: 2.9, category: "fruits", stock: 65},
+            {code: 7014, nom: "GRAINES DE CITROUILLE 200G", prix: 4.3, category: "fruits", stock: 40},
+            {code: 7015, nom: "MÉLANGE ÉTUDIANT 500G", prix: 12.5, category: "fruits", stock: 22},
+            {code: 7016, nom: "BANANES SÉCHÉES 150G", prix: 3.4, category: "fruits", stock: 48},
+            {code: 7017, nom: "MANGUES SÉCHÉES 100G", prix: 4.6, category: "fruits", stock: 35},
+            {code: 7018, nom: "NOIX DE PÉCAN 180G", prix: 7.8, category: "fruits", stock: 15},
+            {code: 7019, nom: "MELON SÉCHÉ 120G", prix: 3.9, category: "fruits", stock: 28},
+            {code: 7020, nom: "FRUITS SECS BIO 400G", prix: 10.9, category: "fruits", stock: 20},
+
+            // CHIPS ET SNACK (25 produits)
+            {code: 8001, nom: "CHIPS NATURE 150G", prix: 1.8, category: "chips", stock: 120},
+            {code: 8002, nom: "CHIPS SAVEUR BARBECUE 150G", prix: 1.9, category: "chips", stock: 95},
+            {code: 8003, nom: "CHIPS SAVEUR VINAIGRE 150G", prix: 1.9, category: "chips", stock: 88},
+            {code: 8004, nom: "CHIPS AU FROMAGE 200G", prix: 2.2, category: "chips", stock: 75},
+            {code: 8005, nom: "CHIPS DE LÉGUMES 100G", prix: 2.5, category: "chips", stock: 60},
+            {code: 8006, nom: "PRETZELS 200G", prix: 2.8, category: "chips", stock: 55},
+            {code: 8007, nom: "CRACKERS SALÉS 250G", prix: 2.4, category: "chips", stock: 70},
+            {code: 8008, nom: "BISCUITS APÉRITIFS 300G", prix: 3.2, category: "chips", stock: 65},
+            {code: 8009, nom: "CACAHUÈTES GRILLÉES 150G", prix: 2.1, category: "chips", stock: 85},
+            {code: 8010, nom: "AMANDES GRILLÉES SALÉES 120G", prix: 3.5, category: "chips", stock: 50},
+            {code: 8011, nom: "TORTILLAS CHIPS NATURE 200G", prix: 2.3, category: "chips", stock: 45},
+            {code: 8012, nom: "TORTILLAS CHIPS SAVEUR FAJITAS", prix: 2.4, category: "chips", stock: 42},
+            {code: 8013, nom: "POPCORN SALÉ 100G", prix: 1.6, category: "chips", stock: 90},
+            {code: 8014, nom: "POPCORN CARAMEL 100G", prix: 1.8, category: "chips", stock: 78},
+            {code: 8015, nom: "BÂTONNETS DE SÉSAME 180G", prix: 2.9, category: "chips", stock: 40},
+            {code: 8016, nom: "CRACKERS AU GRAINES 200G", prix: 3.1, category: "chips", stock: 35},
+            {code: 8017, nom: "MIX APÉRITIF 350G", prix: 4.5, category: "chips", stock: 30},
+            {code: 8018, nom: "CHIPS DE POMMES 80G", prix: 2.8, category: "chips", stock: 55},
+            {code: 8019, nom: "CHIPS DE PATATE DOUCE 100G", prix: 3.2, category: "chips", stock: 38},
+            {code: 8020, nom: "OLIVES VERTES FARCIES 200G", prix: 3.8, category: "chips", stock: 48},
+            {code: 8021, nom: "CORNICHONS AIGRES-DOUX 250G", prix: 2.9, category: "chips", stock: 52},
+            {code: 8022, nom: "SAUCISSON SEC MINI 180G", prix: 4.8, category: "chips", stock: 25},
+            {code: 8023, nom: "MINI TOASTS APÉRITIFS", prix: 1.9, category: "chips", stock: 80},
+            {code: 8024, nom: "BÂTONS DE SURIMI 200G", prix: 3.5, category: "chips", stock: 42},
+            {code: 8025, nom: "MÉLANGE APÉRO 500G", prix: 6.9, category: "chips", stock: 28}
         ];
 
-        // Variables globales
-        let currentCategory = 'vipa';
-        let allProducts = [];
-        let totalProductsCount = 0;
+        // CONFIGURATION DES CATÉGORIES
+        const categoriesConfig = {
+            'all': { name: 'Tous les produits', icon: 'fas fa-th-large', color: '#3498db' },
+            'surgeles': { name: 'Produits Surgelés', icon: 'fas fa-snowflake', color: '#2ecc71' },
+            'vipa': { name: 'Vipa & Sélection', icon: 'fas fa-star', color: '#f39c12' },
+            'animaux': { name: 'Animaux', icon: 'fas fa-paw', color: '#e74c3c' },
+            'bebe': { name: 'Bébé & Maman', icon: 'fas fa-baby', color: '#9b59b6' },
+            'fruits': { name: 'Fruits Secs & Noix', icon: 'fas fa-seedling', color: '#1abc9c' },
+            'chips': { name: 'Chips & Snack', icon: 'fas fa-cookie-bite', color: '#d35400' }
+        };
 
-        // Initialisation
+        // VARIABLES GLOBALES
+        let currentFilter = 'all';
+        let currentSort = 'name-asc';
+        let searchTerm = '';
+        let displayedProducts = [];
+
+        // INITIALISATION
         document.addEventListener('DOMContentLoaded', function() {
-            // Afficher la date actuelle
-            document.getElementById('current-date').textContent = new Date().toLocaleDateString('fr-FR');
+            // Afficher la date
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
             
-            // Générer les boutons de catégories
-            generateCategoryButtons();
+            // Initialiser les statistiques
+            updateStatistics();
             
-            // Remplir les produits manquants
-            fillMissingProducts();
+            // Afficher tous les produits
+            displayProducts(allProducts);
             
-            // Calculer les statistiques
-            calculateStatistics();
-            
-            // Initialiser la recherche
-            setupSearch();
-            
-            // Afficher la catégorie par défaut
-            showCategory(currentCategory);
+            // Configurer les écouteurs d'événements
+            setupEventListeners();
         });
 
-        function generateCategoryButtons() {
-            const menu = document.getElementById('categories-menu');
-            menu.innerHTML = '';
-            
-            categories.forEach(cat => {
-                const button = document.createElement('button');
-                button.className = 'category-btn';
-                button.innerHTML = `<i class="${cat.icon}"></i> ${cat.name}`;
-                button.dataset.category = cat.id;
-                
-                button.addEventListener('click', () => {
-                    showCategory(cat.id);
+        function setupEventListeners() {
+            // Boutons de filtre
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Mettre à jour le bouton actif
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Appliquer le filtre
+                    currentFilter = this.dataset.category;
+                    filterAndSortProducts();
                 });
-                
-                menu.appendChild(button);
             });
-        }
-
-        function fillMissingProducts() {
-            // Remplir les produits pour les catégories qui n'ont pas de produits dans le HTML
-            ['animaux', 'bebe', 'fruits-secs', 'chips'].forEach(categoryId => {
-                const container = document.getElementById(`${categoryId}-products`);
-                if (container && produitsData[categoryId]) {
-                    container.innerHTML = '';
-                    produitsData[categoryId].forEach(produit => {
-                        container.appendChild(createProductCard(produit, categoryId));
-                    });
+            
+            // Recherche
+            document.getElementById('searchButton').addEventListener('click', performSearch);
+            document.getElementById('searchInput').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
                 }
             });
             
-            // Compléter les produits Vipa déjà existants
-            const vipaContainer = document.getElementById('vipa-products');
-            const existingVipaCodes = Array.from(vipaContainer.querySelectorAll('.product-code')).map(el => {
-                return parseInt(el.textContent.replace('CODE: ', ''));
-            });
-            
-            // Ajouter les produits Vipa manquants
-            produitsData.vipa.forEach(produit => {
-                if (!existingVipaCodes.includes(produit.code)) {
-                    vipaContainer.appendChild(createProductCard(produit, 'vipa'));
-                }
+            // Tri
+            document.getElementById('sortSelect').addEventListener('change', function() {
+                currentSort = this.value;
+                filterAndSortProducts();
             });
         }
 
-        function createProductCard(produit, categoryId) {
-            const card = document.createElement('div');
-            card.className = 'product-card';
-            
-            const stockClass = produit.stock < 15 ? 'stock-low' : 'stock-ok';
-            const stockText = produit.stock < 15 ? `Stock bas: ${produit.stock}` : `En stock: ${produit.stock}`;
-            const categoryName = getCategoryName(categoryId);
-            
-            card.innerHTML = `
-                <div class="product-code">CODE: ${produit.code}</div>
-                <h3 class="product-name">${produit.nom}</h3>
-                <div class="product-price">${produit.prix.toFixed(2).replace('.', ',')} €</div>
-                <div class="product-footer">
-                    <span class="product-category">${categoryName}</span>
-                    <span class="product-stock ${stockClass}">${stockText}</span>
-                </div>
-            `;
-            
-            // Stocker les données dans l'élément pour la recherche
-            card.dataset.code = produit.code;
-            card.dataset.nom = produit.nom.toLowerCase();
-            card.dataset.category = categoryId;
-            card.dataset.price = produit.prix;
-            
-            return card;
+        function performSearch() {
+            searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            filterAndSortProducts();
         }
 
-        function getCategoryName(categoryId) {
-            const category = categories.find(cat => cat.id === categoryId);
-            return category ? category.name : categoryId;
-        }
-
-        function showCategory(categoryId) {
-            // Mettre à jour le bouton actif
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.category === categoryId) {
-                    btn.classList.add('active');
-                }
-            });
+        function filterAndSortProducts() {
+            let filtered = allProducts;
             
-            // Cacher toutes les sections
-            document.querySelectorAll('.category-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Afficher la section sélectionnée
-            const targetSection = document.getElementById(categoryId);
-            if (targetSection) {
-                targetSection.classList.add('active');
-                currentCategory = categoryId;
-                
-                // Mettre à jour l'affichage des produits dans cette catégorie
-                updateProductCount(categoryId);
+            // Appliquer le filtre de catégorie
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(product => product.category === currentFilter);
             }
-        }
-
-        function updateProductCount(categoryId) {
-            const container = document.getElementById(`${categoryId}-products`);
-            if (container) {
-                const count = container.querySelectorAll('.product-card').length;
-                const countElement = document.querySelector(`#${categoryId} .product-count`);
-                if (countElement) {
-                    countElement.textContent = `${count} produits`;
-                }
-            }
-        }
-
-        function calculateStatistics() {
-            // Compter tous les produits
-            let totalProducts = 0;
-            let totalStock = 0;
-            let totalPrice = 0;
             
-            categories.forEach(cat => {
-                if (produitsData[cat.id]) {
-                    produitsData[cat.id].forEach(prod => {
-                        totalProducts++;
-                        totalStock += prod.stock;
-                        totalPrice += prod.prix;
-                    });
+            // Appliquer la recherche
+            if (searchTerm) {
+                filtered = filtered.filter(product => 
+                    product.nom.toLowerCase().includes(searchTerm) ||
+                    product.code.toString().includes(searchTerm) ||
+                    categoriesConfig[product.category].name.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Appliquer le tri
+            filtered.sort((a, b) => {
+                switch (currentSort) {
+                    case 'name-asc':
+                        return a.nom.localeCompare(b.nom);
+                    case 'name-desc':
+                        return b.nom.localeCompare(a.nom);
+                    case 'price-asc':
+                        return a.prix - b.prix;
+                    case 'price-desc':
+                        return b.prix - a.prix;
+                    case 'code-asc':
+                        return a.code - b.code;
+                    default:
+                        return 0;
                 }
             });
+            
+            // Afficher les produits filtrés
+            displayedProducts = filtered;
+            displayProducts(filtered);
             
             // Mettre à jour les statistiques
-            document.getElementById('total-products').textContent = totalProducts;
-            document.getElementById('total-categories').textContent = categories.length;
-            document.getElementById('avg-price').textContent = (totalPrice / totalProducts).toFixed(2).replace('.', ',');
-            document.getElementById('in-stock').textContent = totalStock;
-            document.getElementById('total-displayed').textContent = totalProducts;
-            
-            totalProductsCount = totalProducts;
+            updateStatistics();
         }
 
-        function setupSearch() {
-            const searchInput = document.getElementById('search-input');
+        function displayProducts(products) {
+            const container = document.getElementById('allProductsGrid');
             
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase().trim();
+            if (products.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <h3>Aucun produit trouvé</h3>
+                        <p>Essayez avec d'autres termes de recherche ou sélectionnez une autre catégorie.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            products.forEach(product => {
+                const category = categoriesConfig[product.category];
+                const stockClass = getStockClass(product.stock);
+                const stockText = getStockText(product.stock);
                 
-                if (searchTerm === '') {
-                    // Réinitialiser l'affichage
-                    categories.forEach(cat => {
-                        const container = document.getElementById(`${cat.id}-products`);
-                        if (container) {
-                            container.innerHTML = '';
-                            produitsData[cat.id].forEach(produit => {
-                                container.appendChild(createProductCard(produit, cat.id));
-                            });
-                        }
-                    });
-                    
-                    // Réafficher toutes les catégories
-                    document.querySelectorAll('.category-section').forEach(section => {
-                        section.style.display = 'block';
-                    });
-                    
-                    // Réinitialiser les compteurs
-                    categories.forEach(cat => {
-                        updateProductCount(cat.id);
-                    });
-                    
-                    document.getElementById('total-displayed').textContent = totalProductsCount;
-                    return;
+                // Mettre en surbrillance le terme de recherche dans le nom
+                let displayName = product.nom;
+                if (searchTerm) {
+                    const regex = new RegExp(`(${searchTerm})`, 'gi');
+                    displayName = product.nom.replace(regex, '<span class="highlight">$1</span>');
                 }
                 
-                let totalDisplayed = 0;
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-code">CODE: ${product.code}</div>
+                    <div class="product-name">${displayName}</div>
+                    <div class="product-price">${product.prix.toFixed(2).replace('.', ',')}</div>
+                    <div class="product-details">
+                        <span class="product-category" style="background-color: ${category.color}20; color: ${category.color}">
+                            <i class="${category.icon}"></i> ${category.name}
+                        </span>
+                        <span class="product-stock ${stockClass}">
+                            <i class="fas fa-box"></i> ${stockText}
+                        </span>
+                    </div>
+                `;
                 
-                // Filtrer par catégorie
-                categories.forEach(cat => {
-                    const container = document.getElementById(`${cat.id}-products`);
-                    const section = document.getElementById(cat.id);
-                    
-                    if (container && produitsData[cat.id]) {
-                        // Filtrer les produits
-                        const filteredProducts = produitsData[cat.id].filter(produit => 
-                            produit.nom.toLowerCase().includes(searchTerm) || 
-                            produit.code.toString().includes(searchTerm) ||
-                            getCategoryName(cat.id).toLowerCase().includes(searchTerm)
-                        );
-                        
-                        // Mettre à jour l'affichage
-                        container.innerHTML = '';
-                        
-                        if (filteredProducts.length > 0) {
-                            filteredProducts.forEach(produit => {
-                                container.appendChild(createProductCard(produit, cat.id));
-                            });
-                            section.style.display = 'block';
-                            totalDisplayed += filteredProducts.length;
-                            
-                            // Mettre à jour le compteur
-                            const countElement = section.querySelector('.product-count');
-                            if (countElement) {
-                                countElement.textContent = `${filteredProducts.length} produits`;
-                            }
-                        } else {
-                            section.style.display = 'none';
-                        }
-                    }
-                });
-                
-                document.getElementById('total-displayed').textContent = totalDisplayed;
-                
-                // Afficher un message si aucun résultat
-                if (totalDisplayed === 0) {
-                    const firstVisibleSection = document.querySelector('.category-section[style="display: block;"]');
-                    if (!firstVisibleSection) {
-                        // Créer un message "aucun résultat"
-                        const mainContainer = document.querySelector('.container');
-                        let noResults = document.getElementById('no-results-message');
-                        
-                        if (!noResults) {
-                            noResults = document.createElement('div');
-                            noResults.id = 'no-results-message';
-                            noResults.className = 'category-section active';
-                            noResults.innerHTML = `
-                                <div class="category-header">
-                                    <h2 class="category-title"><i class="fas fa-search"></i> Résultats de recherche</h2>
-                                </div>
-                                <div class="no-products" style="padding: 60px 20px; font-size: 1.2rem;">
-                                    <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.5;"></i>
-                                    <p>Aucun produit ne correspond à "${searchTerm}"</p>
-                                    <p style="margin-top: 10px; font-size: 1rem;">Essayez avec d'autres termes de recherche.</p>
-                                </div>
-                            `;
-                            mainContainer.appendChild(noResults);
-                        }
-                    }
-                } else {
-                    // Supprimer le message "aucun résultat" s'il existe
-                    const noResults = document.getElementById('no-results-message');
-                    if (noResults) {
-                        noResults.remove();
-                    }
-                }
+                container.appendChild(card);
             });
         }
+
+        function getStockClass(stock) {
+            if (stock >= 50) return 'stock-high';
+            if (stock >= 20) return 'stock-medium';
+            return 'stock-low';
+        }
+
+        function getStockText(stock) {
+            if (stock >= 50) return `Stock: ${stock}`;
+            if (stock >= 20) return `Stock: ${stock}`;
+            return `Faible: ${stock}`;
+        }
+
+        function updateStatistics() {
+            // Total des produits
+            const totalProducts = allProducts.length;
+            document.getElementById('total-products').textContent = totalProducts;
+            document.getElementById('footer-total').textContent = totalProducts;
+            
+            // Produits affichés
+            const displayedCount = displayedProducts.length;
+            document.getElementById('displayed-count').textContent = displayedCount;
+            
+            // Prix moyen
+            const totalPrice = allProducts.reduce((sum, product) => sum + product.prix, 0);
+            const avgPrice = totalPrice / totalProducts;
+            document.getElementById('avg-price').textContent = avgPrice.toFixed(2).replace('.', ',');
+            
+            // Total stock
+            const totalStock = allProducts.reduce((sum, product) => sum + product.stock, 0);
+        }
+
+        // Exporter les données au chargement
+        window.productData = allProducts;
+        window.categoriesData = categoriesConfig;
     </script>
 </body>
 </html>
