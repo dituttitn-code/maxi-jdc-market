@@ -184,8 +184,6 @@
         
         .category-list {
             list-style: none;
-            max-height: 500px;
-            overflow-y: auto;
         }
         
         .category-item {
@@ -1193,234 +1191,122 @@
     </footer>
 
     <script>
-        // =============================================
-        // DONNÉES COMPLÈTES DES PRODUITS MAXI JDC
-        // =============================================
+        // DONNÉES COMPLÈTES DES PRODUITS
         const allProductsData = [
-            // ==================== JUS & BOISSONS ====================
-            {id: 1, code: 4861, name: "WAW FRAISE PASTEQUE", price: 3.0, category: "boissons", stock: 45, unit: "1L"},
-            {id: 2, code: 4862, name: "WAW CAFE", price: 3.0, category: "boissons", stock: 32, unit: "1L"},
-            {id: 3, code: 3845, name: "VIVA CITRON 1 L", price: 3.0, category: "boissons", stock: 28, unit: "1L"},
-            {id: 4, code: 2210, name: "VIVA CIDRE 24CL", price: 1.8, category: "boissons", stock: 56, unit: "24cl"},
-            {id: 5, code: 3351, name: "Tymbark orange", price: 4.5, category: "boissons", stock: 24, unit: "1L"},
-            {id: 6, code: 2073, name: "TROPICO BOISSON GAZEUSE 0.5 L", price: 1.8, category: "boissons", stock: 38, unit: "0.5L"},
-            {id: 7, code: 2173, name: "TROPICO 1L BOISSON", price: 3.0, category: "boissons", stock: 42, unit: "1L"},
-            {id: 8, code: 4788, name: "TROPICO 125 ML", price: 0.8, category: "boissons", stock: 65, unit: "125ml"},
-            {id: 9, code: 3957, name: "SPRITE 1 L", price: 3.0, category: "boissons", stock: 55, unit: "1L"},
-            {id: 10, code: 4449, name: "SPITZ PINEAPPLE DRINK", price: 6.5, category: "boissons", stock: 18, unit: "1L"},
-            {id: 11, code: 4510, name: "SHWEEPPES LEMON MINT 250ML", price: 3.8, category: "boissons", stock: 30, unit: "250ml"},
-            {id: 12, code: 4576, name: "SHWEEPPES GRENDINE 900ML", price: 3.0, category: "boissons", stock: 25, unit: "900ml"},
-            {id: 13, code: 4511, name: "SHWEEPPES GOLD 250ML", price: 3.8, category: "boissons", stock: 28, unit: "250ml"},
-            {id: 14, code: 4513, name: "SHARK STIMULATION 250ML", price: 5.5, category: "boissons", stock: 22, unit: "250ml"},
-            {id: 15, code: 4231, name: "SHARK ENERGY DRINK", price: 4.5, category: "boissons", stock: 35, unit: "250ml"},
-            {id: 16, code: 4700, name: "SEVEN UP 7", price: 2.8, category: "boissons", stock: 40, unit: "1L"},
-            {id: 17, code: 4366, name: "SCHWEPPES TONIC1L", price: 3.0, category: "boissons", stock: 32, unit: "1L"},
-            {id: 18, code: 2130, name: "SCHWEPPES TONIC 1L", price: 3.0, category: "boissons", stock: 29, unit: "1L"},
-            {id: 19, code: 4512, name: "SCHWEPPES POMEGANTE 250ML", price: 3.8, category: "boissons", stock: 26, unit: "250ml"},
-            {id: 20, code: 4644, name: "SCHWEPPES GRENDINE 240 ml", price: 1.8, category: "boissons", stock: 45, unit: "240ml"},
+            // SURGELÉS (4 produits)
+            {id: 1, code: 2682, name: "PETIT POIS SAVEURS 1/2", price: 9.0, category: "surgeles", stock: 45, unit: "500g"},
+            {id: 2, code: 3842, name: "LONDON DAIRY CRUNCH CARAMEL 125ML", price: 5.8, category: "surgeles", stock: 32, unit: "125ml"},
+            {id: 3, code: 3025, name: "LONDON DAIRY COCONUTELLO", price: 4.3, category: "surgeles", stock: 28, unit: "100ml"},
+            {id: 4, code: 2999, name: "LONDON DAIRY CHOCOLATE HAZELNUT CORNET", price: 4.3, category: "surgeles", stock: 35, unit: "110ml"},
 
-            // ==================== LAIT, ŒUFS & PRODUITS FRAIS ====================
-            {id: 101, code: 4695, name: "YAOURT VITALAIT A BOIRE ORANGE-BISCUIT 170 GR", price: 1.0, category: "lait_oeufs", stock: 85, unit: "170g"},
-            {id: 102, code: 3128, name: "YAOURT AROME VANILLE 110GR-", price: 0.55, category: "lait_oeufs", stock: 120, unit: "110g"},
-            {id: 103, code: 3127, name: "YAOURT AROME FRAISE 110GR-VITALAIT-", price: 0.55, category: "lait_oeufs", stock: 115, unit: "110g"},
-            {id: 104, code: 3129, name: "YAOURT AROME BANANE 110GR-VITALAIT", price: 0.55, category: "lait_oeufs", stock: 95, unit: "110g"},
-            {id: 105, code: 4711, name: "YAOURT AROME ABRICOT DELICE", price: 0.55, category: "lait_oeufs", stock: 88, unit: "110g"},
-            {id: 106, code: 3949, name: "30 OEUFS JAUNE ORANGE EL FIRMA", price: 13.3, category: "lait_oeufs", stock: 25, unit: "30 œufs"},
-            {id: 107, code: 2957, name: "OEUF AICHOUCHA", price: 0.9, category: "lait_oeufs", stock: 200, unit: "unité"},
-            {id: 108, code: 3137, name: "OEUF BLANC 15 EMB JO CHAHIA", price: 8.5, category: "lait_oeufs", stock: 35, unit: "15 œufs"},
-            {id: 109, code: 3138, name: "OEUF BLANC 30 EMB JO CHAHIA", price: 14.3, category: "lait_oeufs", stock: 22, unit: "30 œufs"},
-            {id: 110, code: 3139, name: "OEUF DE 15 CHAHIA OMEGA 3", price: 9.9, category: "lait_oeufs", stock: 28, unit: "15 œufs"},
+            // VIPA (16 produits)
+            {id: 5, code: 3711, name: "SELECTION FESTIF VIPA 100G", price: 6.4, category: "vipa", stock: 25, unit: "100g"},
+            {id: 6, code: 37110, name: "SELECTION PLAISIR VIPA 100G", price: 7.3, category: "vipa", stock: 18, unit: "100g"},
+            {id: 7, code: 3713, name: "SELECTION ORIENTAL VIPA 100G", price: 6.8, category: "vipa", stock: 12, unit: "100g"},
+            {id: 8, code: 3721, name: "POUDRE NUTRITIVE D AVOINE", price: 6.5, category: "vipa", stock: 30, unit: "500g"},
+            {id: 9, code: 4883, name: "PISTACHE VIPA", price: 6.4, category: "vipa", stock: 8, unit: "200g"},
+            {id: 10, code: 3918, name: "GRANOLA DAILY FRAISE/FS VIPA", price: 15.5, category: "vipa", stock: 22, unit: "500g"},
+            {id: 11, code: 3724, name: "GRANO BARRE CARAMEL SALE ET FRUITS SECS", price: 2.0, category: "vipa", stock: 45, unit: "50g"},
+            {id: 12, code: 4884, name: "GRAINES DE COURGE", price: 13.5, category: "vipa", stock: 15, unit: "250g"},
+            {id: 13, code: 3720, name: "DAILY MIEL VIPA", price: 15.5, category: "vipa", stock: 20, unit: "500g"},
+            {id: 14, code: 3717, name: "DAILY CHOCOLAT VIPA", price: 15.5, category: "vipa", stock: 18, unit: "500g"},
+            {id: 15, code: 3718, name: "DAILY CEREALES SANS SUCRE VIPA", price: 15.5, category: "vipa", stock: 25, unit: "500g"},
+            {id: 16, code: 3723, name: "CRAK'O BARRE CACAHUETE, SESAME ET RAISIN VIPA", price: 2.0, category: "vipa", stock: 50, unit: "40g"},
+            {id: 17, code: 3709, name: "CACAHUETE TACO VIPA 80GR", price: 2.8, category: "vipa", stock: 35, unit: "80g"},
+            {id: 18, code: 3712, name: "CACAHUETES PAPRIKA VIPA", price: 2.8, category: "vipa", stock: 40, unit: "150g"},
+            {id: 19, code: 3919, name: "CACAHUETES CARAMEL VIPA", price: 2.8, category: "vipa", stock: 32, unit: "150g"},
+            {id: 20, code: 3708, name: "CACAHUETE FROMAGE VIPA 80GR", price: 2.8, category: "vipa", stock: 28, unit: "80g"},
 
-            // ==================== FRUITS SECS & NOIX ====================
-            {id: 201, code: 2966, name: "PISTACHE AL BARAKA", price: 5.8, category: "fruits_secs", stock: 35, unit: "200g"},
-            {id: 202, code: 3972, name: "NOIX DECORTIQUEES VIPA", price: 6.8, category: "fruits_secs", stock: 28, unit: "200g"},
-            {id: 203, code: 3819, name: "NIC NOC 125GR", price: 10.5, category: "fruits_secs", stock: 18, unit: "125g"},
-            {id: 204, code: 2965, name: "LOUZ MALAH AL BARAKA", price: 6.4, category: "fruits_secs", stock: 32, unit: "200g"},
-            {id: 205, code: 2964, name: "LOUZ HLOU AL BARAKA", price: 6.4, category: "fruits_secs", stock: 30, unit: "200g"},
-            {id: 206, code: 4423, name: "AMANDES GRILLEES SALEES VIPA 70G", price: 6.3, category: "fruits_secs", stock: 42, unit: "70g"},
-            {id: 207, code: 2967, name: "AKAJOU AL BARAKA", price: 6.8, category: "fruits_secs", stock: 25, unit: "200g"},
+            // ANIMAUX (12 produits)
+            {id: 21, code: 5001, name: "CROQUETTES CHAT ADULTE 3KG", price: 12.9, category: "animaux", stock: 45, unit: "3kg"},
+            {id: 22, code: 5002, name: "CROQUETTES CHIOT 2KG", price: 15.5, category: "animaux", stock: 32, unit: "2kg"},
+            {id: 23, code: 5003, name: "BOITE PÂTÉE POUR CHAT", price: 1.2, category: "animaux", stock: 120, unit: "85g"},
+            {id: 24, code: 5004, name: "GRAINES POUR OISEAUX 1KG", price: 4.8, category: "animaux", stock: 28, unit: "1kg"},
+            {id: 25, code: 5005, name: "FOIN POUR LAPIN 2KG", price: 6.3, category: "animaux", stock: 35, unit: "2kg"},
+            {id: 26, code: 5006, name: "LITIÈRE AGGLOMÉRANTE 5KG", price: 8.9, category: "animaux", stock: 40, unit: "5kg"},
+            {id: 27, code: 5007, name: "JOUET POUR CHIEN", price: 7.5, category: "animaux", stock: 22, unit: "unité"},
+            {id: 28, code: 5008, name: "GRATTOIR POUR CHAT", price: 14.99, category: "animaux", stock: 18, unit: "unité"},
+            {id: 29, code: 5009, name: "AQUARIUM 30L", price: 35.0, category: "animaux", stock: 8, unit: "30L"},
+            {id: 30, code: 5010, name: "NOURRITURE POUR POISSON", price: 3.5, category: "animaux", stock: 55, unit: "100g"},
+            {id: 31, code: 5011, name: "HAMAC POUR CHAT", price: 12.8, category: "animaux", stock: 15, unit: "unité"},
+            {id: 32, code: 5012, name: "LAISSE POUR CHIEN", price: 9.99, category: "animaux", stock: 30, unit: "unité"},
 
-            // ==================== VIPA & SÉLECTIONS ====================
-            {id: 301, code: 3711, name: "SELLECTION FESTIF VIPA 100G", price: 6.4, category: "vipa", stock: 25, unit: "100g"},
-            {id: 302, code: 37110, name: "SELECTION PLAISIR VIPA 100G", price: 7.3, category: "vipa", stock: 18, unit: "100g"},
-            {id: 303, code: 3713, name: "SELECTION ORIENTAL VIPA 100G", price: 6.8, category: "vipa", stock: 12, unit: "100g"},
-            {id: 304, code: 3721, name: "POUDRE NUTRITIVE D AVOINE", price: 6.5, category: "vipa", stock: 30, unit: "500g"},
-            {id: 305, code: 4883, name: "PISTACHE VIPA", price: 6.4, category: "vipa", stock: 8, unit: "200g"},
-            {id: 306, code: 3918, name: "GRANOLA DAILY FRAISE/FS VIPA", price: 15.5, category: "vipa", stock: 22, unit: "500g"},
-            {id: 307, code: 3724, name: "GRANO BARRE CARAMEL SALE ET FRUITS SECS", price: 2.0, category: "vipa", stock: 45, unit: "50g"},
-            {id: 308, code: 4884, name: "GRAINES DE COURGE", price: 13.5, category: "vipa", stock: 15, unit: "250g"},
-            {id: 309, code: 3720, name: "DAILY MIEL VIPA", price: 15.5, category: "vipa", stock: 20, unit: "500g"},
-            {id: 310, code: 3717, name: "DAILY CHOCOLAT VIPA", price: 15.5, category: "vipa", stock: 18, unit: "500g"},
-            {id: 311, code: 3718, name: "DAILY CEREALES SANS SUCRE VIPA", price: 15.5, category: "vipa", stock: 25, unit: "500g"},
+            // BÉBÉ (15 produits)
+            {id: 33, code: 6001, name: "COUCHES TAILLE 3 X60", price: 14.9, category: "bebe", stock: 65, unit: "60 unités"},
+            {id: 34, code: 6002, name: "LAIT EN POUDRE 1ER AGE", price: 22.5, category: "bebe", stock: 42, unit: "800g"},
+            {id: 35, code: 6003, name: "BIBERON 250ML", price: 5.8, category: "bebe", stock: 38, unit: "250ml"},
+            {id: 36, code: 6004, name: "LINGETTES BÉBÉ X80", price: 3.2, category: "bebe", stock: 72, unit: "80 unités"},
+            {id: 37, code: 6005, name: "CRÈME POUR LE SIÈGE", price: 6.5, category: "bebe", stock: 48, unit: "100ml"},
+            {id: 38, code: 6006, name: "BRACELET DE DENTITION", price: 4.3, category: "bebe", stock: 55, unit: "unité"},
+            {id: 39, code: 6007, name: "JOUET D'ÉVEIL", price: 8.9, category: "bebe", stock: 33, unit: "unité"},
+            {id: 40, code: 6008, name: "TÉTINE ORTHODONTIQUE", price: 3.8, category: "bebe", stock: 60, unit: "unité"},
+            {id: 41, code: 6009, name: "BODY 3 MOIS X3", price: 12.5, category: "bebe", stock: 40, unit: "3 unités"},
+            {id: 42, code: 6010, name: "SAC À LANGER", price: 24.99, category: "bebe", stock: 18, unit: "unité"},
+            {id: 43, code: 6011, name: "PARACÉTAMOL PÉDIATRIQUE", price: 3.6, category: "bebe", stock: 45, unit: "100ml"},
+            {id: 44, code: 6012, name: "THERMOMÈTRE FRONTAL", price: 15.8, category: "bebe", stock: 25, unit: "unité"},
+            {id: 45, code: 6013, name: "SIÈGE AUTO GROUPE 1", price: 89.99, category: "bebe", stock: 10, unit: "unité"},
+            {id: 46, code: 6014, name: "PARC POUR BÉBÉ", price: 75.0, category: "bebe", stock: 7, unit: "unité"},
+            {id: 47, code: 6015, name: "VEILLEUSE MUSICALE", price: 18.5, category: "bebe", stock: 20, unit: "unité"},
 
-            // ==================== PRODUITS SURGELÉS ====================
-            {id: 401, code: 2682, name: "PETIT POIS SAVEURS 1/2", price: 9.0, category: "surgeles", stock: 45, unit: "500g"},
-            {id: 402, code: 3842, name: "LONDON DAIRY CRUNCH CARAMEL 125ML", price: 5.8, category: "surgeles", stock: 32, unit: "125ml"},
-            {id: 403, code: 3025, name: "LONDON DAIRY COCONUTELLO", price: 4.3, category: "surgeles", stock: 28, unit: "100ml"},
-            {id: 404, code: 2999, name: "LONDON DAIRY CHOCOLATE HAZELNUT CORNET", price: 4.3, category: "surgeles", stock: 35, unit: "110ml"},
+            // FRUITS SECS (20 produits)
+            {id: 48, code: 7001, name: "AMANDES DÉCORTIQUÉES 200G", price: 5.9, category: "fruits", stock: 50, unit: "200g"},
+            {id: 49, code: 7002, name: "NOIX DE CAJOU GRILLÉES 150G", price: 4.8, category: "fruits", stock: 45, unit: "150g"},
+            {id: 50, code: 7003, name: "RAISINS SECS THOMPSON 250G", price: 3.2, category: "fruits", stock: 60, unit: "250g"},
+            {id: 51, code: 7004, name: "ABRICOTS SECS 200G", price: 4.5, category: "fruits", stock: 38, unit: "200g"},
+            {id: 52, code: 7005, name: "DATTES DEGLET NOUR 500G", price: 6.8, category: "fruits", stock: 32, unit: "500g"},
+            {id: 53, code: 7006, name: "FIGUES SÈCHES 250G", price: 5.2, category: "fruits", stock: 28, unit: "250g"},
+            {id: 54, code: 7007, name: "PRUNEAUX D'AGEN 400G", price: 4.9, category: "fruits", stock: 42, unit: "400g"},
+            {id: 55, code: 7008, name: "CRANBERRIES SÉCHÉES 150G", price: 3.8, category: "fruits", stock: 55, unit: "150g"},
+            {id: 56, code: 7009, name: "MÉLANGE TROPICAL 300G", price: 7.5, category: "fruits", stock: 30, unit: "300g"},
+            {id: 57, code: 7010, name: "PISTACHES GRILLÉES 200G", price: 8.2, category: "fruits", stock: 25, unit: "200g"},
+            {id: 58, code: 7011, name: "NOIX DU BRÉSIL 150G", price: 6.5, category: "fruits", stock: 20, unit: "150g"},
+            {id: 59, code: 7012, name: "PIGNONS DE PIN 100G", price: 9.8, category: "fruits", stock: 18, unit: "100g"},
+            {id: 60, code: 7013, name: "GRAINES DE TOURNESOL 250G", price: 2.9, category: "fruits", stock: 65, unit: "250g"},
+            {id: 61, code: 7014, name: "GRAINES DE CITROUILLE 200G", price: 4.3, category: "fruits", stock: 40, unit: "200g"},
+            {id: 62, code: 7015, name: "MÉLANGE ÉTUDIANT 500G", price: 12.5, category: "fruits", stock: 22, unit: "500g"},
+            {id: 63, code: 7016, name: "BANANES SÉCHÉES 150G", price: 3.4, category: "fruits", stock: 48, unit: "150g"},
+            {id: 64, code: 7017, name: "MANGUES SÉCHÉES 100G", price: 4.6, category: "fruits", stock: 35, unit: "100g"},
+            {id: 65, code: 7018, name: "NOIX DE PÉCAN 180G", price: 7.8, category: "fruits", stock: 15, unit: "180g"},
+            {id: 66, code: 7019, name: "MELON SÉCHÉ 120G", price: 3.9, category: "fruits", stock: 28, unit: "120g"},
+            {id: 67, code: 7020, name: "FRUITS SECS BIO 400G", price: 10.9, category: "fruits", stock: 20, unit: "400g"},
 
-            // ==================== BOULANGERIE & PÂTISSERIE ====================
-            {id: 501, code: 3517, name: "Pain BURGER complet", price: 2.0, category: "boulangerie", stock: 65, unit: "4 pièces"},
-            {id: 502, code: 3516, name: "PAIN CHAWARMA 10PCS", price: 3.8, category: "boulangerie", stock: 42, unit: "10 pièces"},
-            {id: 503, code: 4407, name: "PAIN DE MIE AUX CEREALES-MOULIN DOR", price: 3.2, category: "boulangerie", stock: 38, unit: "500g"},
-            {id: 504, code: 2985, name: "PAIN FANKOUCH", price: 0.2, category: "boulangerie", stock: 120, unit: "unité"},
-            {id: 505, code: 3496, name: "PAIN LIBANAIS 28CM 5PCS", price: 2.8, category: "boulangerie", stock: 55, unit: "5 pièces"},
-            {id: 506, code: 3497, name: "PAIN LIBANAIS COMPLET", price: 2.9, category: "boulangerie", stock: 48, unit: "5 pièces"},
-            {id: 507, code: 2657, name: "CAKE AU CHOCOLAT VANOISE", price: 6.8, category: "boulangerie", stock: 22, unit: "340g"},
-            {id: 508, code: 2721, name: "CAKE VANILLE VANOISE", price: 6.4, category: "boulangerie", stock: 25, unit: "340g"},
-
-            // ==================== FROMAGE & CHARCUTERIE ====================
-            {id: 601, code: 2761, name: "SALAMI EL MAZRAA", price: 3.5, category: "charcuterie", stock: 35, unit: "200g"},
-            {id: 602, code: 4796, name: "PEPPERONI CHAHIA 240KG", price: 5.8, category: "charcuterie", stock: 18, unit: "240g"},
-            {id: 603, code: 4795, name: "CHORIZO CHAHIA 140KG", price: 8.9, category: "charcuterie", stock: 15, unit: "140g"},
-            {id: 604, code: 2759, name: "CARRE PRESIDENT 8 PC", price: 5.3, category: "charcuterie", stock: 28, unit: "8 pièces"},
-
-            // ==================== HYGIÈNE & ENTRETIEN ====================
-            {id: 701, code: 4526, name: "WC NET GEL INTENSE OCEAN FRESH 750 ML", price: 9.3, category: "hygiene", stock: 32, unit: "750ml"},
-            {id: 702, code: 2416, name: "VANISH OXI ACTION MAX 500GR", price: 16.5, category: "hygiene", stock: 18, unit: "500g"},
-            {id: 703, code: 2415, name: "VANICH LIQUIDE 450 ML", price: 9.3, category: "hygiene", stock: 25, unit: "450ml"},
-            {id: 704, code: 2711, name: "SPONTEX", price: 0.3, category: "hygiene", stock: 85, unit: "unité"},
-            {id: 705, code: 4881, name: "SOTRA CLEAN 40X40", price: 11.8, category: "hygiene", stock: 22, unit: "40x40cm"},
-            {id: 706, code: 4201, name: "SOL & SURFACE LILAS JASMIN 1L", price: 6.3, category: "hygiene", stock: 35, unit: "1L"},
-            {id: 707, code: 2420, name: "PRIL 580ML LEMON", price: 5.5, category: "hygiene", stock: 42, unit: "580ml"},
-            {id: 708, code: 4520, name: "PLIZ AERO SPRINGTIME FLORALE/LAVANDE 300ML", price: 11.3, category: "hygiene", stock: 15, unit: "300ml"},
-
-            // ==================== HYGIÈNE & SOINS ====================
-            {id: 801, code: 3557, name: "VATIKA HENNA NATURAL BLACK", price: 12.3, category: "soins", stock: 18, unit: "100g"},
-            {id: 802, code: 3558, name: "VATIKA HENNA BROWN", price: 12.3, category: "soins", stock: 15, unit: "100g"},
-            {id: 803, code: 3559, name: "VATIKA DARK BROWN", price: 12.3, category: "soins", stock: 12, unit: "100g"},
-            {id: 804, code: 4430, name: "VASELINE JET7", price: 3.5, category: "soins", stock: 45, unit: "50ml"},
-            {id: 805, code: 2338, name: "TRAITEMENT RAYHANE CITRON 250ML", price: 2.5, category: "soins", stock: 38, unit: "250ml"},
-            {id: 806, code: 3123, name: "Top virucide", price: 9.8, category: "soins", stock: 25, unit: "500ml"},
-            {id: 807, code: 4806, name: "TAHITI YLANG YLANG", price: 7.6, category: "soins", stock: 28, unit: "100ml"},
-            {id: 808, code: 4805, name: "TAHITI VANILLE", price: 7.6, category: "soins", stock: 24, unit: "100ml"},
-
-            // ==================== PÂTES ====================
-            {id: 901, code: 4124, name: "VIPA GRAINES DE SARRASIN 500G", price: 6.5, category: "pates", stock: 25, unit: "500g"},
-            {id: 902, code: 4382, name: "TAGLIATELLE N°2 WARDA 250GR", price: 1.8, category: "pates", stock: 55, unit: "250g"},
-            {id: 903, code: 3609, name: "SPAGHETTI INTEGRALES WARDA 500G", price: 1.9, category: "pates", stock: 48, unit: "500g"},
-            {id: 904, code: 2037, name: "SPAGHETTI 3 RANDA 500G", price: 0.48, category: "pates", stock: 75, unit: "500g"},
-            {id: 905, code: 1244, name: "SPAGHETTI 1 RANDA 500G", price: 0.48, category: "pates", stock: 80, unit: "500g"},
-            {id: 906, code: 4657, name: "SPAGETTI INTEGRALI 500G DIVELLA", price: 7.3, category: "pates", stock: 18, unit: "500g"},
-
-            // ==================== CONSERVES ====================
-            {id: 1001, code: 4830, name: "THON LA GALITE A L'HUILE VEGETALE 400G", price: 13.9, category: "conserves", stock: 22, unit: "400g"},
-            {id: 1002, code: 4257, name: "THON ENTIER AMIRAL 130GR HV", price: 3.8, category: "conserves", stock: 45, unit: "130g"},
-            {id: 1003, code: 4302, name: "THON EN MIETTES EL MANAR A HUILE D'OLIVE 85G", price: 4.3, category: "conserves", stock: 38, unit: "85g"},
-            {id: 1004, code: 3799, name: "THON EL MANAR HV 162GR", price: 7.6, category: "conserves", stock: 28, unit: "162g"},
-            {id: 1005, code: 4500, name: "SardiNE NOOR TOMATE", price: 2.5, category: "conserves", stock: 55, unit: "100g"},
-            {id: 1006, code: 4256, name: "SARDINE NOOR", price: 2.8, category: "conserves", stock: 52, unit: "100g"},
-            {id: 1007, code: 4715, name: "SARDINE EL HABIB 110G", price: 2.8, category: "conserves", stock: 48, unit: "110g"},
-
-            // ==================== ÉPICERIE SALÉE ====================
-            {id: 1101, code: 2284, name: "RIZ ETUVE THAILANDAIS", price: 3.8, category: "epicerie_salee", stock: 65, unit: "1kg"},
-            {id: 1102, code: 4448, name: "BASMATI RICE RAHAF 1KG", price: 11.8, category: "epicerie_salee", stock: 25, unit: "1kg"},
-            {id: 1103, code: 2025, name: "SEMOULE FINE RANDA 1KG", price: 0.85, category: "epicerie_salee", stock: 85, unit: "1kg"},
-            {id: 1104, code: 3798, name: "COUSCOUS MOYEN DE 1KG(CC15)-CARAVAN-", price: 0.85, category: "epicerie_salee", stock: 78, unit: "1kg"},
-            {id: 1105, code: 2035, name: "COUSCOUS MOYEN DE 1KG", price: 0.8, category: "epicerie_salee", stock: 72, unit: "1kg"},
-            {id: 1106, code: 3952, name: "COUSCOUS EXPRESS FIN 500GR", price: 1.3, category: "epicerie_salee", stock: 45, unit: "500g"},
-            {id: 1107, code: 1226, name: "TOMATE TUCAL 1kg", price: 4.5, category: "epicerie_salee", stock: 38, unit: "1kg"},
-            {id: 1108, code: 1222, name: "TOMATE CONCENTREE SICAM 400G", price: 2.7, category: "epicerie_salee", stock: 55, unit: "400g"},
-
-            // ==================== ÉPICERIE SUCRÉE ====================
-            {id: 1201, code: 4823, name: "NUTELLA PATE A TARTINER DE 180 GR Vrac", price: 18.5, category: "epicerie_sucree", stock: 28, unit: "180g"},
-            {id: 1202, code: 2943, name: "NESTLE CEREALE NESQUIK 330GR", price: 15.9, category: "epicerie_sucree", stock: 22, unit: "330g"},
-            {id: 1203, code: 2647, name: "SUCRE GLACE VANOISE", price: 5.8, category: "epicerie_sucree", stock: 35, unit: "500g"},
-            {id: 1204, code: 2041, name: "SUCRE EN MORCEAUX", price: 4.5, category: "epicerie_sucree", stock: 42, unit: "1kg"},
-            {id: 1205, code: 2646, name: "CACAO EN POUDRE VANOISE 150GR", price: 8.8, category: "epicerie_sucree", stock: 25, unit: "150g"},
-            {id: 1206, code: 2266, name: "CHAMIA LA GAZELLE NATURE 350G BOITE", price: 8.4, category: "epicerie_sucree", stock: 18, unit: "350g"},
-            {id: 1207, code: 2267, name: "CHAMIA LA GAZELLE AUX AMANDES 350G BOITE", price: 9.8, category: "epicerie_sucree", stock: 15, unit: "350g"},
-            {id: 1208, code: 4166, name: "BEURRE DE CACAHUETE VIPA 200G", price: 9.8, category: "epicerie_sucree", stock: 22, unit: "200g"},
-
-            // ==================== CHIPS & SNACKS ====================
-            {id: 1301, code: 2584, name: "PRINGLES PAPRIKA 165G", price: 15.5, category: "chips", stock: 32, unit: "165g"},
-            {id: 1302, code: 2112, name: "PRESIDENT 8P TRIANGLE", price: 4.3, category: "chips", stock: 45, unit: "8 pièces"},
-            {id: 1303, code: 2119, name: "PRESIDENT 48P TRIANGLE", price: 16.0, category: "chips", stock: 18, unit: "48 pièces"},
-            {id: 1304, code: 2285, name: "PRESIDENT 24P TRIANGLE", price: 9.6, category: "chips", stock: 25, unit: "24 pièces"},
-            {id: 1305, code: 2111, name: "PRESIDENT 16P TRIANGLE", price: 7.7, category: "chips", stock: 30, unit: "16 pièces"},
-            {id: 1306, code: 4107, name: "CHOCOLINE PM", price: 2.8, category: "chips", stock: 55, unit: "100g"},
-
-            // ==================== CAFÉ & THÉS ====================
-            {id: 1401, code: 1102, name: "NESCAFE DOYPACK 55G", price: 10.3, category: "cafe", stock: 42, unit: "55g"},
-            {id: 1402, code: 4607, name: "BOITE DE 10 CAPSULES TISANE DE CAMOMILLE", price: 2.5, category: "cafe", stock: 65, unit: "10 capsules"},
-            {id: 1403, code: 4561, name: "DOGADAN GINGER AND HONEY", price: 13.5, category: "cafe", stock: 22, unit: "500g"},
-            {id: 1404, code: 3579, name: "ABE ORANGE", price: 10.5, category: "cafe", stock: 28, unit: "200g"},
-
-            // ==================== ANIMAUX DE COMPAGNIE ====================
-            {id: 1501, code: 5001, name: "CROQUETTES CHAT ADULTE 3KG", price: 12.9, category: "animaux", stock: 45, unit: "3kg"},
-            {id: 1502, code: 5002, name: "CROQUETTES CHIOT 2KG", price: 15.5, category: "animaux", stock: 32, unit: "2kg"},
-            {id: 1503, code: 5003, name: "BOITE PÂTÉE POUR CHAT", price: 1.2, category: "animaux", stock: 120, unit: "85g"},
-            {id: 1504, code: 5004, name: "GRAINES POUR OISEAUX 1KG", price: 4.8, category: "animaux", stock: 28, unit: "1kg"},
-            {id: 1505, code: 5005, name: "FOIN POUR LAPIN 2KG", price: 6.3, category: "animaux", stock: 35, unit: "2kg"},
-            {id: 1506, code: 5006, name: "LITIÈRE AGGLOMÉRANTE 5KG", price: 8.9, category: "animaux", stock: 40, unit: "5kg"},
-
-            // ==================== BÉBÉ & MAMAN ====================
-            {id: 1601, code: 6001, name: "COUCHES TAILLE 3 X60", price: 14.9, category: "bebe", stock: 65, unit: "60 unités"},
-            {id: 1602, code: 6002, name: "LAIT EN POUDRE 1ER AGE", price: 22.5, category: "bebe", stock: 42, unit: "800g"},
-            {id: 1603, code: 6003, name: "BIBERON 250ML", price: 5.8, category: "bebe", stock: 38, unit: "250ml"},
-            {id: 1604, code: 6004, name: "LINGETTES BÉBÉ X80", price: 3.2, category: "bebe", stock: 72, unit: "80 unités"},
-            {id: 1605, code: 6005, name: "CRÈME POUR LE SIÈGE", price: 6.5, category: "bebe", stock: 48, unit: "100ml"},
-            {id: 1606, code: 6006, name: "BRACELET DE DENTITION", price: 4.3, category: "bebe", stock: 55, unit: "unité"},
-
-            // ==================== CUISINE DU MONDE ====================
-            {id: 1701, code: 3823, name: "VINAIGRE POMME 38CL", price: 2.7, category: "cuisine_monde", stock: 45, unit: "380ml"},
-            {id: 1702, code: 4771, name: "VINAIGRE DE CIDRE GALLON 500ML AL JAZIRA", price: 8.7, category: "cuisine_monde", stock: 22, unit: "500ml"},
-            {id: 1703, code: 3080, name: "SAUCE FRENCH DIJON 250ML", price: 11.9, category: "cuisine_monde", stock: 18, unit: "250ml"},
-            {id: 1704, code: 4224, name: "SAUCE CURRY 250ML", price: 11.8, category: "cuisine_monde", stock: 15, unit: "250ml"},
-            {id: 1705, code: 4559, name: "REMIA HONEY MUSTARD", price: 7.4, category: "cuisine_monde", stock: 28, unit: "250ml"},
-            {id: 1706, code: 2591, name: "KELLOGG'S JUMBOS", price: 9.5, category: "cuisine_monde", stock: 32, unit: "500g"},
-            {id: 1707, code: 2593, name: "KELLOGG'S CHOCOS", price: 9.5, category: "cuisine_monde", stock: 30, unit: "500g"},
-            {id: 1708, code: 2739, name: "CHARMOULA SFAXIENNE", price: 35.0, category: "cuisine_monde", stock: 12, unit: "500g"},
-
-            // ==================== EAUX ====================
-            {id: 1801, code: 2778, name: "EAU GAZIFIER GARCI 1L", price: 0.9, category: "eaux", stock: 85, unit: "1L"},
-            {id: 1802, code: 2136, name: "APLA 1.5 L", price: 3.8, category: "eaux", stock: 65, unit: "1.5L"},
-            {id: 1803, code: 3578, name: "ABE FRUIT CANDY", price: 10.5, category: "eaux", stock: 28, unit: "1L"},
-            {id: 1804, code: 3581, name: "ABE CLOUDY", price: 10.5, category: "eaux", stock: 25, unit: "1L"},
-
-            // ==================== FRUITS & LÉGUMES (exemples) ====================
-            {id: 1901, code: 10001, name: "POMMES GOLDEN 1KG", price: 2.8, category: "fruits_legumes", stock: 75, unit: "1kg"},
-            {id: 1902, code: 10002, name: "BANANES 1KG", price: 2.5, category: "fruits_legumes", stock: 65, unit: "1kg"},
-            {id: 1903, code: 10003, name: "TOMATES 1KG", price: 3.2, category: "fruits_legumes", stock: 55, unit: "1kg"},
-            {id: 1904, code: 10004, name: "SALADE ICEBERG", price: 1.5, category: "fruits_legumes", stock: 45, unit: "unité"},
-            {id: 1905, code: 10005, name: "CAROTTES 1KG", price: 1.8, category: "fruits_legumes", stock: 60, unit: "1kg"},
-            {id: 1906, code: 10006, name: "OIGNONS 1KG", price: 1.6, category: "fruits_legumes", stock: 70, unit: "1kg"},
-            {id: 1907, code: 10007, name: "POMMES DE TERRE 1KG", price: 1.9, category: "fruits_legumes", stock: 58, unit: "1kg"},
-            {id: 1908, code: 10008, name: "ORANGES 1KG", price: 3.5, category: "fruits_legumes", stock: 42, unit: "1kg"},
-
-            // ==================== CHOCOLATS & BISCUITS ====================
-            {id: 2001, code: 4207, name: "BISCUIT SAIDA AU CHOCOLAT 24 PCS", price: 3.2, category: "chocolats", stock: 55, unit: "24 pièces"},
-            {id: 2002, code: 2295, name: "MUFFIN CHOCOLAT SAIDA", price: 0.8, category: "chocolats", stock: 85, unit: "unité"},
-            {id: 2003, code: 2659, name: "MUFFIN CHOCOLAT DE 335GR", price: 7.3, category: "chocolats", stock: 28, unit: "335g"},
-            {id: 2004, code: 2656, name: "COOKIES VANILLE VANOISE 300G", price: 5.3, category: "chocolats", stock: 35, unit: "300g"},
-            {id: 2005, code: 2654, name: "COOKIES CHOCOLAT DE 332 GR VANOISE", price: 5.3, category: "chocolats", stock: 32, unit: "332g"},
-            {id: 2006, code: 2650, name: "MINI SALES DE 245GR VANOISE", price: 4.5, category: "chocolats", stock: 42, unit: "245g"}
+            // CHIPS & SNACK (25 produits)
+            {id: 68, code: 8001, name: "CHIPS NATURE 150G", price: 1.8, category: "chips", stock: 120, unit: "150g"},
+            {id: 69, code: 8002, name: "CHIPS SAVEUR BARBECUE 150G", price: 1.9, category: "chips", stock: 95, unit: "150g"},
+            {id: 70, code: 8003, name: "CHIPS SAVEUR VINAIGRE 150G", price: 1.9, category: "chips", stock: 88, unit: "150g"},
+            {id: 71, code: 8004, name: "CHIPS AU FROMAGE 200G", price: 2.2, category: "chips", stock: 75, unit: "200g"},
+            {id: 72, code: 8005, name: "CHIPS DE LÉGUMES 100G", price: 2.5, category: "chips", stock: 60, unit: "100g"},
+            {id: 73, code: 8006, name: "PRETZELS 200G", price: 2.8, category: "chips", stock: 55, unit: "200g"},
+            {id: 74, code: 8007, name: "CRACKERS SALÉS 250G", price: 2.4, category: "chips", stock: 70, unit: "250g"},
+            {id: 75, code: 8008, name: "BISCUITS APÉRITIFS 300G", price: 3.2, category: "chips", stock: 65, unit: "300g"},
+            {id: 76, code: 8009, name: "CACAHUÈTES GRILLÉES 150G", price: 2.1, category: "chips", stock: 85, unit: "150g"},
+            {id: 77, code: 8010, name: "AMANDES GRILLÉES SALÉES 120G", price: 3.5, category: "chips", stock: 50, unit: "120g"},
+            {id: 78, code: 8011, name: "TORTILLAS CHIPS NATURE 200G", price: 2.3, category: "chips", stock: 45, unit: "200g"},
+            {id: 79, code: 8012, name: "TORTILLAS CHIPS SAVEUR FAJITAS", price: 2.4, category: "chips", stock: 42, unit: "200g"},
+            {id: 80, code: 8013, name: "POPCORN SALÉ 100G", price: 1.6, category: "chips", stock: 90, unit: "100g"},
+            {id: 81, code: 8014, name: "POPCORN CARAMEL 100G", price: 1.8, category: "chips", stock: 78, unit: "100g"},
+            {id: 82, code: 8015, name: "BÂTONNETS DE SÉSAME 180G", price: 2.9, category: "chips", stock: 40, unit: "180g"},
+            {id: 83, code: 8016, name: "CRACKERS AU GRAINES 200G", price: 3.1, category: "chips", stock: 35, unit: "200g"},
+            {id: 84, code: 8017, name: "MIX APÉRITIF 350G", price: 4.5, category: "chips", stock: 30, unit: "350g"},
+            {id: 85, code: 8018, name: "CHIPS DE POMMES 80G", price: 2.8, category: "chips", stock: 55, unit: "80g"},
+            {id: 86, code: 8019, name: "CHIPS DE PATATE DOUCE 100G", price: 3.2, category: "chips", stock: 38, unit: "100g"},
+            {id: 87, code: 8020, name: "OLIVES VERTES FARCIES 200G", price: 3.8, category: "chips", stock: 48, unit: "200g"},
+            {id: 88, code: 8021, name: "CORNICHONS AIGRES-DOUX 250G", price: 2.9, category: "chips", stock: 52, unit: "250g"},
+            {id: 89, code: 8022, name: "SAUCISSON SEC MINI 180G", price: 4.8, category: "chips", stock: 25, unit: "180g"},
+            {id: 90, code: 8023, name: "MINI TOASTS APÉRITIFS", price: 1.9, category: "chips", stock: 80, unit: "200g"},
+            {id: 91, code: 8024, name: "BÂTONS DE SURIMI 200G", price: 3.5, category: "chips", stock: 42, unit: "200g"},
+            {id: 92, code: 8025, name: "MÉLANGE APÉRO 500G", price: 6.9, category: "chips", stock: 28, unit: "500g"}
         ];
 
-        // CATÉGORIES COMPLÈTES
+        // CATÉGORIES
         const categories = [
-            {id: 'all', name: 'Tous les produits', icon: 'fas fa-th-large', count: 0},
-            {id: 'boissons', name: 'Jus & Boissons', icon: 'fas fa-glass-whiskey', count: 0},
-            {id: 'lait_oeufs', name: 'Lait, Œufs & Frais', icon: 'fas fa-egg', count: 0},
-            {id: 'fruits_secs', name: 'Fruits Secs & Noix', icon: 'fas fa-seedling', count: 0},
-            {id: 'vipa', name: 'Vipa & Sélection', icon: 'fas fa-star', count: 0},
-            {id: 'surgeles', name: 'Produits Surgelés', icon: 'fas fa-snowflake', count: 0},
-            {id: 'boulangerie', name: 'Boulangerie', icon: 'fas fa-bread-slice', count: 0},
-            {id: 'charcuterie', name: 'Fromage & Charcuterie', icon: 'fas fa-cheese', count: 0},
-            {id: 'hygiene', name: 'Hygiène & Entretien', icon: 'fas fa-broom', count: 0},
-            {id: 'soins', name: 'Hygiène & Soins', icon: 'fas fa-soap', count: 0},
-            {id: 'pates', name: 'Pâtes', icon: 'fas fa-utensils', count: 0},
-            {id: 'conserves', name: 'Conserves', icon: 'fas fa-box', count: 0},
-            {id: 'epicerie_salee', name: 'Épicerie Salée', icon: 'fas fa-cookie-bite', count: 0},
-            {id: 'epicerie_sucree', name: 'Épicerie Sucrée', icon: 'fas fa-candy-cane', count: 0},
-            {id: 'chips', name: 'Chips & Snack', icon: 'fas fa-pizza-slice', count: 0},
-            {id: 'cafe', name: 'Café & Thés', icon: 'fas fa-coffee', count: 0},
-            {id: 'animaux', name: 'Animaux', icon: 'fas fa-paw', count: 0},
-            {id: 'bebe', name: 'Bébé & Maman', icon: 'fas fa-baby', count: 0},
-            {id: 'cuisine_monde', name: 'Cuisine du Monde', icon: 'fas fa-globe-americas', count: 0},
-            {id: 'eaux', name: 'Eaux', icon: 'fas fa-wine-bottle', count: 0},
-            {id: 'fruits_legumes', name: 'Fruits & Légumes', icon: 'fas fa-apple-alt', count: 0},
-            {id: 'chocolats', name: 'Chocolats & Biscuits', icon: 'fas fa-cookie', count: 0}
+            {id: 'all', name: 'Tous les produits', icon: 'fas fa-th-large', count: 92},
+            {id: 'surgeles', name: 'Produits Surgelés', icon: 'fas fa-snowflake', count: 4},
+            {id: 'vipa', name: 'Vipa & Sélection', icon: 'fas fa-star', count: 16},
+            {id: 'animaux', name: 'Animaux', icon: 'fas fa-paw', count: 12},
+            {id: 'bebe', name: 'Bébé & Maman', icon: 'fas fa-baby', count: 15},
+            {id: 'fruits', name: 'Fruits Secs & Noix', icon: 'fas fa-seedling', count: 20},
+            {id: 'chips', name: 'Chips & Snack', icon: 'fas fa-cookie-bite', count: 25}
         ];
 
         // DONNÉES UTILISATEUR
@@ -1457,9 +1343,6 @@
         });
 
         function initApp() {
-            // Calculer les compteurs de catégories
-            updateCategoryCounts();
-            
             // Générer les catégories
             generateCategories();
             
@@ -1474,16 +1357,6 @@
             
             // Charger les données utilisateur sauvegardées
             loadUserData();
-        }
-
-        function updateCategoryCounts() {
-            categories.forEach(cat => {
-                if (cat.id === 'all') {
-                    cat.count = allProductsData.length;
-                } else {
-                    cat.count = allProductsData.filter(p => p.category === cat.id).length;
-                }
-            });
         }
 
         function generateCategories() {
@@ -1508,7 +1381,6 @@
                     li.classList.add('active');
                     
                     document.getElementById('productsTitle').textContent = cat.name;
-                    productsToShow = 12;
                     filterProducts();
                 });
                 
@@ -1545,14 +1417,6 @@
             
             displayedProducts = filtered;
             displayProducts(filtered.slice(0, productsToShow));
-            
-            // Gérer le bouton "Charger plus"
-            const loadMoreBtn = document.getElementById('loadMore');
-            if (productsToShow >= filtered.length) {
-                loadMoreBtn.style.display = 'none';
-            } else {
-                loadMoreBtn.style.display = 'block';
-            }
         }
 
         function displayProducts(products) {
@@ -1811,11 +1675,6 @@
                     document.getElementById('loadMore').style.display = 'none';
                 }
             });
-            
-            // Ajuster le prix max
-            const maxProductPrice = Math.max(...allProductsData.map(p => p.price));
-            document.getElementById('priceRange').max = Math.ceil(maxProductPrice);
-            document.getElementById('maxPrice').textContent = Math.ceil(maxProductPrice) + ' €';
         }
 
         function showForm(formId) {
@@ -2023,10 +1882,12 @@
             const product = allProductsData.find(p => p.id === productId);
             if (!product) return;
             
-            const category = categories.find(c => c.id === product.category);
-            const categoryName = category ? category.name : product.category;
-            
-            alert(`${product.name}\n\nCode: ${product.code}\nPrix: ${product.price.toFixed(2)} €\nStock: ${product.stock}\nUnité: ${product.unit}\nCatégorie: ${categoryName}`);
+            alert(`${product.name}\n\nCode: ${product.code}\nPrix: ${product.price.toFixed(2)} €\nStock: ${product.stock}\nUnité: ${product.unit}\n\n${getCategoryName(product.category)}`);
+        }
+
+        function getCategoryName(categoryId) {
+            const cat = categories.find(c => c.id === categoryId);
+            return cat ? cat.name : categoryId;
         }
 
         // Exporter les fonctions globales
