@@ -7,7 +7,7 @@
 
   <style>
     :root{
-      --bg0:#070f15;
+      --bg0:#071015;
       --bg1:#0b1620;
       --card:#0c1a22;
       --card2:#0f2230;
@@ -17,129 +17,158 @@
       --accent:#26d6c8;
       --accent2:#22c55e;
       --danger:#ff5b5b;
-      --pill:#0e2a34;
-      --shadow: 0 20px 60px rgba(0,0,0,.45);
-      --radius:18px;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --radius: 18px;
     }
 
-    *{box-sizing:border-box}
+    *{ box-sizing:border-box; }
     body{
       margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
       color:var(--text);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
       background:
-        radial-gradient(1200px 500px at 50% -10%, rgba(38,214,200,.18), transparent 55%),
-        radial-gradient(900px 420px at 10% 10%, rgba(34,197,94,.10), transparent 55%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
+        radial-gradient(1200px 800px at 20% 10%, rgba(38,214,200,.10), transparent 60%),
+        radial-gradient(1200px 800px at 80% 0%, rgba(34,197,94,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
       min-height:100vh;
-      padding:22px 14px 60px;
     }
 
     .wrap{
-      max-width:1200px;
-      margin:0 auto;
+      width:min(1200px, 96vw);
+      margin: 28px auto 40px;
     }
 
-    .topbar{
-      display:flex;
-      gap:12px;
-      align-items:center;
-      justify-content:space-between;
-      padding:14px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-      border-radius:22px;
+    /* ======= TOP BAR ======= */
+    .top{
+      background: rgba(12,26,34,.72);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: 22px;
+      padding: 14px 14px;
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
+    }
+
+    .topRow{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
     }
 
     .brand{
       display:flex;
       align-items:center;
       gap:12px;
-      min-width:240px;
+      min-width: 240px;
+      padding: 6px 10px;
+      border-radius: 16px;
     }
 
-    .logoMark{
-      width:44px;height:44px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      display:flex;align-items:center;justify-content:center;
+    .logo{
+      width: 56px; height: 56px;   /* plus grand */
+      border-radius: 14px;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      flex: 0 0 auto;
+    }
+    .logo img{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      display:block;
     }
 
-    .brandTxt{line-height:1.1}
-    .brandTxt .name{font-weight:900; letter-spacing:.3px}
-    .brandTxt .tag{color:var(--muted); font-size:12px; margin-top:2px}
+    .brandText b{
+      display:block;
+      font-size: 18px;     /* plus grand */
+      line-height: 1.1;
+      letter-spacing: .2px;
+    }
+    .brandText span{
+      display:block;
+      color:var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+    }
 
     .controls{
       display:flex;
-      gap:10px;
-      flex:1;
       align-items:center;
+      gap:10px;
+      flex: 1 1 420px;
+      min-width: 320px;
       justify-content:center;
-      flex-wrap:wrap;
     }
 
     .search{
-      flex:1;
-      min-width:260px;
-      max-width:520px;
       display:flex;
       gap:10px;
       align-items:center;
+      flex:1 1 520px;
+      min-width: 320px;
     }
 
-    input[type="text"], input[type="tel"]{
-      width:100%;
-      padding:12px 14px;
-      border-radius:999px;
+    .search input{
+      flex:1 1 auto;
+      min-width: 220px;
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 999px;
       border:1px solid rgba(255,255,255,.10);
-      background:rgba(0,0,0,.25);
-      color:var(--text);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
       outline:none;
     }
-    input[type="text"]::placeholder{color:rgba(232,241,246,.55)}
+    .search input::placeholder{ color: rgba(232,241,246,.55); }
 
     .btn{
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
       cursor:pointer;
-      border-radius:999px;
-      padding:10px 14px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.06);
-      color:var(--text);
-      font-weight:800;
-    }
-    .btn:hover{background:rgba(255,255,255,.10)}
-    .btn.green{
-      border-color: rgba(34,197,94,.35);
-      background: rgba(34,197,94,.15);
-    }
-    .btn.green:hover{background: rgba(34,197,94,.22)}
-
-    .pills{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-      justify-content:flex-end;
-      min-width:310px;
-    }
-    .pill{
-      display:flex; align-items:center; gap:8px;
-      padding:10px 12px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(0,0,0,.22);
-      color:var(--muted);
-      font-size:12px;
+      font-weight: 700;
       white-space:nowrap;
     }
+    .btn:hover{ background: rgba(255,255,255,.10); }
+    .btn.green{
+      background: rgba(34,197,94,.12);
+      border-color: rgba(34,197,94,.35);
+    }
+    .btn.green:hover{ background: rgba(34,197,94,.18); }
 
-    /* PANIER (en haut à droite) */
+    .pills{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin-left:auto;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .pill{
+      padding: 8px 12px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      font-size: 12px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    /* PANIER top right */
     .cartPill{
       cursor:pointer;
       border:1px solid rgba(255,255,255,.12);
       background:rgba(255,255,255,.06);
-      color:var(--text);
-      font-weight:900;
+      user-select:none;
     }
     .cartPill:hover{ background:rgba(255,255,255,.10); }
     #cartTopCount{
@@ -155,379 +184,510 @@
     }
 
     .noteBar{
-      margin-top:14px;
-      padding:12px 14px;
-      border-radius:16px;
-      border:1px dashed rgba(255,255,255,.14);
-      background: rgba(255,255,255,.03);
-      color:var(--muted);
-      font-size:13px;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(12,26,34,.55);
+      border:1px solid rgba(255,255,255,.08);
       display:flex;
-      align-items:center;
       gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      color: var(--muted);
+      font-size: 12px;
     }
+    .noteBar .ok{ color: var(--accent2); font-weight: 900; }
 
+    /* ======= MAIN GRID ======= */
     .grid{
-      margin-top:14px;
+      margin-top: 14px;
       display:grid;
       grid-template-columns: 320px 1fr;
-      gap:14px;
+      gap: 14px;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
     }
 
     .panel{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
+      background: rgba(12,26,34,.70);
+      border:1px solid rgba(255,255,255,.08);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       overflow:hidden;
     }
-
     .panelHeader{
-      padding:14px 14px 10px;
-      border-bottom:1px solid rgba(255,255,255,.07);
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
       display:flex;
-      align-items:center;
+      align-items:flex-end;
       justify-content:space-between;
       gap:10px;
     }
     .panelHeader h3{
       margin:0;
-      font-size:14px;
-      letter-spacing:.2px;
+      font-size: 14px;
+      letter-spacing: .3px;
     }
-    .sub{color:var(--muted); font-size:12px}
+    .sub{ color: var(--muted); font-size: 12px; }
 
     .cats{
-      padding:10px;
+      padding: 12px;
       display:flex;
       flex-direction:column;
-      gap:8px;
+      gap: 10px;
     }
+
     .catBtn{
-      cursor:pointer;
       width:100%;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.25);
-      padding:12px 12px;
+      text-align:left;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.05);
+      cursor:pointer;
+      color: var(--text);
       display:flex;
+      gap:10px;
       align-items:center;
       justify-content:space-between;
-      gap:10px;
-      text-align:left;
-      color:var(--text);
     }
-    .catBtn:hover{background: rgba(255,255,255,.06)}
+    .catBtn:hover{ background: rgba(255,255,255,.09); }
     .catBtn.active{
-      border-color: rgba(38,214,200,.35);
-      background: rgba(38,214,200,.10);
+      border-color: rgba(38,214,200,.45);
+      background: rgba(38,214,200,.08);
+      box-shadow: 0 0 0 2px rgba(38,214,200,.08) inset;
     }
-    .catMeta{
-      display:flex; flex-direction:column; gap:2px;
+    .catBtn .meta{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width: 0;
     }
-    .catMeta .t{font-weight:900; font-size:13px}
-    .catMeta .f{font-size:11px; color:var(--muted)}
-    .catCount{
-      font-size:12px;
-      color:var(--text);
-      padding:4px 10px;
-      border-radius:999px;
-      background: rgba(0,0,0,.35);
-      border:1px solid rgba(255,255,255,.12);
+    .catBtn .meta b{
+      font-size: 13px;
+      overflow:hidden;
+      text-overflow:ellipsis;
       white-space:nowrap;
     }
-
-    .rightPanelBody{ padding:12px; }
-
-    .titleRow{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:0 2px 10px;
+    .catBtn .meta span{
+      font-size: 11px;
+      color: var(--muted);
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
     }
-    .titleRow .h{
-      font-weight:900;
-      font-size:14px;
-    }
-    .pager{
-      display:flex; align-items:center; gap:10px;
-      color:var(--muted);
-      font-size:12px;
-    }
-    .iconBtn{
-      cursor:pointer;
-      width:34px;height:34px;
-      border-radius:999px;
+    .badge{
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(0,0,0,.25);
-      color:var(--text);
-      display:grid; place-items:center;
-      font-weight:900;
+      color: var(--muted);
+      flex:0 0 auto;
     }
-    .iconBtn:disabled{opacity:.35; cursor:not-allowed}
 
-    .cards{
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+    .main{
+      display:flex;
+      flex-direction:column;
+      min-height: 420px;
+    }
+
+    .mainTop{
+      padding: 14px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    .mainTitle b{ display:block; font-size: 14px; }
+    .mainTitle span{ display:block; color:var(--muted); font-size: 12px; }
+
+    .pager{
+      display:flex;
+      align-items:center;
       gap:10px;
+      color: var(--muted);
+      font-size: 12px;
     }
+    .pager .navBtn{
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      cursor:pointer;
+      color: var(--text);
+    }
+    .pager .navBtn:hover{ background: rgba(255,255,255,.10); }
 
-    @media (max-width: 980px){
-      .grid{grid-template-columns:1fr}
-      .cards{grid-template-columns: repeat(2, minmax(0, 1fr));}
-      .brand{min-width:auto}
-      .pills{min-width:auto}
+    .products{
+      padding: 14px;
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 12px;
+    }
+    @media (max-width: 1100px){
+      .products{ grid-template-columns: repeat(2, minmax(0,1fr)); }
     }
     @media (max-width: 560px){
-      .cards{grid-template-columns:1fr}
+      .products{ grid-template-columns: 1fr; }
     }
 
     .card{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.25);
-      border-radius:18px;
-      padding:12px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      min-height:110px;
-    }
-    .card .n{
-      font-weight:900;
-      font-size:13px;
-      line-height:1.25;
-      min-height:34px;
-    }
-    .card .meta{
-      color:var(--muted);
-      font-size:11px;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .price{
-      font-weight:1000;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:6px 10px;
-      border-radius:999px;
-      background: rgba(38,214,200,.12);
-      border:1px solid rgba(38,214,200,.20);
-      align-self:flex-start;
-    }
-
-    .qtyRow{
-      margin-top:auto;
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .qtyBox{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      border:1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.08);
       background: rgba(255,255,255,.04);
-      border-radius:999px;
-      padding:6px 10px;
-      min-width:118px;
-      justify-content:space-between;
-    }
-    .qBtn{
-      cursor:pointer;
-      width:28px;height:28px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.25);
-      color:var(--text);
-      font-weight:1000;
-      display:grid; place-items:center;
-    }
-    .qBtn:hover{background: rgba(255,255,255,.08)}
-    .qVal{font-weight:900; min-width:18px; text-align:center}
-    .addBtn{
-      cursor:pointer;
-      border-radius:999px;
-      padding:10px 12px;
-      border:1px solid rgba(34,197,94,.35);
-      background: rgba(34,197,94,.15);
-      color:var(--text);
-      font-weight:1000;
-      white-space:nowrap;
-    }
-    .addBtn:hover{background: rgba(34,197,94,.22)}
-
-    .empty{
-      padding:18px 12px;
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    /* DRAWER PANIER */
-    .drawerBg{
-      position:fixed; inset:0;
-      background: rgba(0,0,0,.55);
-      display:none;
-      z-index:50;
-    }
-    .drawer{
-      position:fixed;
-      top:0; right:0;
-      width:min(460px, 92vw);
-      height:100vh;
-      background: linear-gradient(180deg, rgba(12,26,34,.98), rgba(7,15,21,.98));
-      border-left:1px solid rgba(255,255,255,.10);
-      box-shadow: var(--shadow);
-      transform: translateX(100%);
-      transition: transform .22s ease;
-      z-index:60;
-      display:flex;
-      flex-direction:column;
-    }
-    .drawerBg.open{display:block}
-    .drawer.open{transform: translateX(0)}
-    .drawerHead{
-      padding:14px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      border-bottom:1px solid rgba(255,255,255,.07);
-    }
-    .drawerHead .t{font-weight:1000}
-    .drawerBody{
-      padding:12px 14px;
-      overflow:auto;
+      padding: 12px;
       display:flex;
       flex-direction:column;
       gap:10px;
-      flex:1;
+      min-height: 92px;
     }
-    .cartItem{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.22);
-      border-radius:16px;
-      padding:10px;
+    .cardTop{
       display:flex;
       gap:10px;
       align-items:flex-start;
       justify-content:space-between;
     }
-    .cartItem .l{flex:1}
-    .cartItem .l .n{font-weight:900; font-size:13px; line-height:1.25}
-    .cartItem .l .m{color:var(--muted); font-size:11px; margin-top:4px}
-    .cartItem .r{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      align-items:flex-end;
-      min-width:130px;
+    .pName{
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: .1px;
+      line-height: 1.1;
     }
-    .miniPrice{font-weight:1000}
-    .trash{
-      cursor:pointer;
+    .pSub{
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+    .price{
+      padding: 7px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(38,214,200,.25);
+      background: rgba(38,214,200,.08);
+      font-weight: 900;
+      white-space:nowrap;
+      align-self:flex-start;
+    }
+    .cardBottom{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      align-items:center;
+    }
+    .addBtn{
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.06);
-      color:var(--text);
-      padding:6px 10px;
-      border-radius:999px;
-      font-weight:900;
+      cursor:pointer;
+      font-weight: 900;
     }
-    .trash:hover{background: rgba(255,255,255,.10)}
-    .drawerFoot{
-      padding:12px 14px 16px;
-      border-top:1px solid rgba(255,255,255,.07);
+    .addBtn:hover{ background: rgba(255,255,255,.10); }
+    .empty{
+      color: var(--muted);
+      padding: 20px 14px;
+    }
+
+    /* ======= DRAWERS / MODALS ======= */
+    .overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:stretch;
+      justify-content:flex-end;
+      z-index: 999;
+    }
+    .overlay.show{ display:flex; }
+
+    .drawer{
+      width: min(460px, 92vw);
+      background: rgba(10,18,24,.98);
+      border-left: 1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      display:flex;
+      flex-direction:column;
+    }
+    .drawerHead{
+      padding: 14px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .drawerHead b{ font-size: 14px; }
+    .drawerClose{
+      width: 36px; height: 36px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      cursor:pointer;
+      color: var(--text);
+      font-weight: 900;
+    }
+    .drawerClose:hover{ background: rgba(255,255,255,.10); }
+
+    .drawerBody{
+      padding: 14px;
+      overflow:auto;
+      flex:1 1 auto;
+    }
+
+    .cartList{
       display:flex;
       flex-direction:column;
       gap:10px;
     }
-    .totalRow{
+    .cartItem{
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+      border-radius: 14px;
+      padding: 10px;
       display:flex;
-      align-items:center;
+      gap:10px;
+      align-items:flex-start;
       justify-content:space-between;
-      font-weight:1000;
     }
-    .form{
+    .cartItem .l{
+      min-width: 0;
+    }
+    .cartItem .l b{
+      display:block;
+      font-size: 13px;
+      line-height: 1.1;
+      margin-bottom: 3px;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .cartItem .l span{
+      display:block;
+      color: var(--muted);
+      font-size: 11px;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+
+    .qty{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex:0 0 auto;
+    }
+    .qty button{
+      width: 32px; height: 32px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      cursor:pointer;
+      color: var(--text);
+      font-weight: 900;
+    }
+    .qty button:hover{ background: rgba(255,255,255,.10); }
+    .qty .n{
+      min-width: 24px;
+      text-align:center;
+      font-weight: 900;
+    }
+
+    .summary{
+      margin-top: 12px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      padding-top: 12px;
       display:flex;
       flex-direction:column;
       gap:8px;
+      color: var(--muted);
+      font-size: 12px;
     }
-    textarea{
-      width:100%;
-      min-height:70px;
-      padding:10px 12px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.25);
-      color:var(--text);
-      outline:none;
-      resize:vertical;
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
     }
-    textarea::placeholder{color:rgba(232,241,246,.55)}
+    .row b{ color: var(--text); }
 
-    .dangerBtn{
-      cursor:pointer;
-      border-radius:999px;
-      padding:10px 12px;
-      border:1px solid rgba(255,91,91,.35);
-      background: rgba(255,91,91,.14);
-      color:var(--text);
-      font-weight:1000;
+    .warn{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,91,91,.30);
+      background: rgba(255,91,91,.10);
+      color: #ffd0d0;
+      font-size: 12px;
+      display:none;
     }
-    .dangerBtn:hover{background: rgba(255,91,91,.22)}
+    .warn.show{ display:block; }
+
+    .drawerFoot{
+      padding: 14px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .btnWide{
+      flex:1 1 220px;
+      display:flex;
+      gap:10px;
+    }
+    .btnWide .btn{ flex:1 1 auto; }
+
+    /* form client */
+    .form{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top: 12px;
+    }
+    .form label{
+      display:block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .form input, .form textarea{
+      width:100%;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 10px;
+      outline:none;
+    }
+    .form textarea{ min-height: 70px; resize: vertical; }
+    .form .full{ grid-column: 1 / -1; }
+
+    /* ADMIN modal (centre) */
+    .modalOverlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.60);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index: 1000;
+      padding: 18px;
+    }
+    .modalOverlay.show{ display:flex; }
+    .modal{
+      width: min(980px, 96vw);
+      background: rgba(10,18,24,.98);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modalHead{
+      padding: 14px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .modalBody{
+      padding: 14px;
+      max-height: 70vh;
+      overflow:auto;
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 900px){
+      .grid2{ grid-template-columns: 1fr; }
+    }
+    .box{
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .box h4{
+      margin:0 0 8px;
+      font-size: 13px;
+    }
+    table{
+      width:100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td{
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      padding: 8px 6px;
+      text-align:left;
+      vertical-align: top;
+      color: var(--muted);
+    }
+    th{ color: var(--text); font-weight: 900; }
+    .tiny{ font-size:11px; color: var(--muted); }
+
+    /* footer hint */
+    .hint{
+      margin-top: 10px;
+      text-align:center;
+      color: rgba(232,241,246,.35);
+      font-size: 11px;
+      user-select:none;
+    }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-
-    <!-- TOP BAR -->
-    <div class="topbar">
-      <div class="brand">
-        <div class="logoMark" aria-label="Logo M JDC M">
-          <!-- Logo M / JDC / M -->
-          <svg width="30" height="30" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
-            <rect x="6" y="6" width="88" height="88" rx="22" fill="rgba(38,214,200,.10)" stroke="rgba(38,214,200,.35)" stroke-width="2"/>
-            <text x="50" y="38" text-anchor="middle" font-size="34" font-weight="900" fill="#e8f1f6">M</text>
-            <text x="50" y="60" text-anchor="middle" font-size="18" font-weight="900" fill="#9db0bc">JDC</text>
-            <text x="50" y="86" text-anchor="middle" font-size="34" font-weight="900" fill="#e8f1f6">M</text>
-          </svg>
+    <div class="top">
+      <div class="topRow">
+        <div class="brand">
+          <div class="logo" title="MAXI JDC MARKET">
+            <!-- logo existant dans ton repo -->
+            <img src="logo-maxi-jdc-market.jpg" alt="MAXI JDC MARKET">
+          </div>
+          <div class="brandText">
+            <b>MAXI JDC MARKET</b>
+            <span>Des prix mini — Un MAXI choix</span>
+          </div>
         </div>
-        <div class="brandTxt">
-          <div class="name">MAXI JDC MARKET</div>
-          <div class="tag">Des prix mini — Un MAXI choix</div>
+
+        <div class="controls">
+          <div class="search">
+            <input id="q" type="text" placeholder="Rechercher un produit (nom, catégorie, code)..." />
+            <button class="btn" id="clearBtn" title="Effacer">Effacer</button>
+            <button class="btn green" id="globalBtn" title="Recherche sur toutes les catégories">Recherche globale</button>
+          </div>
         </div>
-      </div>
 
-      <div class="controls">
-        <div class="search">
-          <input id="q" type="text" placeholder="Rechercher un produit (nom, catégorie, code)..." />
-          <button class="btn" id="clearBtn">Effacer</button>
-          <button class="btn green" id="globalBtn">Recherche globale</button>
-        </div>
-      </div>
+        <div class="pills">
+          <div class="pill">📍 Jardins de Carthage, derrière mosquée Essalem</div>
+          <div class="pill">🕖 7h – 1h</div>
+          <div class="pill">💬 WhatsApp: <b id="waShow">00216 25 600 978</b></div>
 
-      <div class="pills">
-        <div class="pill">📍 Jardins de Carthage , derrière mosquée Essalem</div>
-        <div class="pill">⏱️ 7h – 1h</div>
-        <div class="pill">💬 WhatsApp: 00216 25 600 978</div>
-
-        <!-- Panier en haut à droite -->
-        <div class="pill cartPill" id="cartTopBtn" title="Ouvrir le panier">
-          🛒 Panier <span id="cartTopCount">0</span>
+          <!-- Panier en haut à droite -->
+          <div class="pill cartPill" id="cartTopBtn" title="Ouvrir le panier">
+            🛒 Panier <span id="cartTopCount">0</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="noteBar">
-      ✅ Données chargées depuis <b>/data/*.csv</b> — une catégorie = un fichier CSV (facile à mettre à jour).
-      <span style="margin-left:auto"></span>
-      <span class="sub">Conditions : minimum livraison 15 dt · Livraison gratuite si total ≥ 30 dt · Sinon frais 5 dt · Retrait magasin possible</span>
+      <div class="noteBar">
+        <span class="ok">✅</span>
+        <span>Données chargées depuis <b>/data/*.csv</b> — une catégorie = un fichier CSV.</span>
+        <span style="margin-left:auto;"></span>
+        <span class="sub">Conditions : minimum livraison <b>15 dt</b> · Livraison gratuite si total ≥ <b>30 dt</b> · Sinon frais <b>5 dt</b> · Retrait magasin possible</span>
+      </div>
     </div>
 
     <div class="grid">
-      <!-- LEFT: categories -->
+      <!-- LEFT -->
       <div class="panel">
         <div class="panelHeader">
           <h3>Catégories</h3>
@@ -536,90 +696,200 @@
         <div class="cats" id="cats"></div>
       </div>
 
-      <!-- RIGHT: products -->
-      <div class="panel">
-        <div class="panelHeader">
-          <div>
-            <h3 id="catTitle">Produits</h3>
-            <div class="sub" id="catSub">Sélectionne une catégorie.</div>
+      <!-- RIGHT -->
+      <div class="panel main">
+        <div class="mainTop">
+          <div class="mainTitle">
+            <b id="activeTitle">Produits</b>
+            <span id="activeSub">Sélectionne une catégorie.</span>
           </div>
-          <div class="sub" id="countTxt">0 article(s)</div>
+          <div class="pager">
+            <button class="navBtn" id="prevBtn" title="Page précédente">‹</button>
+            <span id="pageInfo">Page 1/1</span>
+            <button class="navBtn" id="nextBtn" title="Page suivante">›</button>
+          </div>
+        </div>
+        <div class="products" id="products">
+          <div class="empty">Sélectionne une catégorie à gauche.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hint">Astuce Admin : Ctrl + Shift + A (ou ajoute #admin à l’URL)</div>
+  </div>
+
+  <!-- ===== PANIER DRAWER ===== -->
+  <div class="overlay" id="cartOverlay" aria-hidden="true">
+    <div class="drawer" role="dialog" aria-label="Panier">
+      <div class="drawerHead">
+        <b>🛒 Panier</b>
+        <button class="drawerClose" id="cartCloseBtn">✕</button>
+      </div>
+
+      <div class="drawerBody">
+        <div class="cartList" id="cartList"></div>
+
+        <div class="warn" id="minWarn">Minimum commande <b>15 dt</b> pour valider la livraison.</div>
+
+        <div class="summary">
+          <div class="row"><span>Sous-total</span><b id="subTotal">0,00 dt</b></div>
+          <div class="row"><span>Frais livraison</span><b id="shipFee">—</b></div>
+          <div class="row"><span>Total</span><b id="cartTotal">0,00 dt</b></div>
         </div>
 
-        <div class="rightPanelBody">
-          <div class="titleRow">
-            <div class="h" id="listTitle">—</div>
-            <div class="pager">
-              <button class="iconBtn" id="prevBtn">‹</button>
-              <span id="pageInfo">Page 1/1</span>
-              <button class="iconBtn" id="nextBtn">›</button>
+        <div class="box" style="margin-top:12px;">
+          <h4>Fiche client</h4>
+          <div class="form">
+            <div>
+              <label>Nom</label>
+              <input id="cName" placeholder="Nom et prénom" />
+            </div>
+            <div>
+              <label>Téléphone</label>
+              <input id="cTel" placeholder="ex: 25xxxxxx" />
+            </div>
+            <div class="full">
+              <label>Adresse</label>
+              <input id="cAddr" placeholder="Adresse complète (quartier, rue…)" />
+            </div>
+            <div class="full">
+              <label>Note (optionnel)</label>
+              <textarea id="cNote" placeholder="Ex: sonnette, étage, repère…"></textarea>
+            </div>
+          </div>
+          <div class="tiny" style="margin-top:8px;">
+            ⚠️ L’historique client est enregistré sur ce navigateur (localStorage).
+          </div>
+        </div>
+      </div>
+
+      <div class="drawerFoot">
+        <button class="btn" id="clearCartBtn" title="Vider le panier">Vider</button>
+        <div class="btnWide">
+          <button class="btn green" id="sendWhatsAppBtn">Envoyer sur WhatsApp</button>
+          <button class="btn" id="saveOrderBtn" title="Enregistrer sans envoyer">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ADMIN MODAL ===== -->
+  <div class="modalOverlay" id="adminOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-label="Admin">
+      <div class="modalHead">
+        <b>🛠️ Admin — Historique & Clients</b>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn" id="exportBtn">Exporter JSON</button>
+          <button class="btn" id="clearHistoryBtn" style="border-color:rgba(255,91,91,.35); background:rgba(255,91,91,.10);">Vider l’historique</button>
+          <button class="drawerClose" id="adminCloseBtn">✕</button>
+        </div>
+      </div>
+
+      <div class="modalBody">
+        <div class="grid2">
+          <div class="box">
+            <h4>Paramètres</h4>
+            <div class="form" style="margin-top:8px;">
+              <div>
+                <label>WhatsApp (numéro)</label>
+                <input id="waNumber" placeholder="0021625600978" />
+              </div>
+              <div>
+                <label>Minimum commande (dt)</label>
+                <input id="minOrder" placeholder="15" />
+              </div>
+              <div>
+                <label>Livraison gratuite ≥ (dt)</label>
+                <input id="freeShip" placeholder="30" />
+              </div>
+              <div>
+                <label>Frais livraison (dt)</label>
+                <input id="shipFeeAdmin" placeholder="5" />
+              </div>
+              <div class="full" style="display:flex; gap:10px;">
+                <button class="btn green" id="saveSettingsBtn">Enregistrer</button>
+                <button class="btn" id="resetSettingsBtn">Valeurs par défaut</button>
+              </div>
+            </div>
+            <div class="tiny">Accès Admin: Ctrl+Shift+A ou #admin</div>
+          </div>
+
+          <div class="box">
+            <h4>Recherche client</h4>
+            <div class="search" style="margin-top:8px;">
+              <input id="adminSearch" placeholder="Recherche (nom, tel)..." />
+              <button class="btn" id="adminSearchClear">Effacer</button>
+            </div>
+            <div class="tiny" style="margin-top:6px;">Le tableau se met à jour automatiquement.</div>
+          </div>
+        </div>
+
+        <div class="grid2" style="margin-top:12px;">
+          <div class="box">
+            <h4>Clients (historique)</h4>
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Client</th>
+                    <th>Tél</th>
+                    <th>Nb commandes</th>
+                    <th>Total dépensé</th>
+                    <th>Dernière adresse</th>
+                  </tr>
+                </thead>
+                <tbody id="clientsTable"></tbody>
+              </table>
             </div>
           </div>
 
-          <div class="cards" id="cards"></div>
-          <div class="empty" id="empty" style="display:none">Aucun article trouvé.</div>
+          <div class="box">
+            <h4>Dernières commandes</h4>
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Client</th>
+                    <th>Total</th>
+                    <th>Résumé</th>
+                  </tr>
+                </thead>
+                <tbody id="ordersTable"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Drawer Panier -->
-  <div class="drawerBg" id="drawerBg"></div>
-  <div class="drawer" id="drawer">
-    <div class="drawerHead">
-      <div class="t">🛒 Ton panier</div>
-      <button class="btn" id="closeCart">Fermer</button>
-    </div>
-
-    <div class="drawerBody" id="cartList">
-      <!-- items -->
-    </div>
-
-    <div class="totalRow">
-  <div>Sous-total</div>
-  <div id="cartSubTotal">0.00 dt</div>
-</div>
-
-<div class="totalRow" style="font-weight:900;color:var(--muted)">
-  <div>Frais livraison</div>
-  <div id="cartDeliveryFee">0.00 dt</div>
-</div>
-
-<div class="totalRow" style="font-size:16px">
-  <div>Total à payer</div>
-  <div id="cartTotalPay">0.00 dt</div>
-</div>
-
-<div class="sub" id="cartRuleMsg" style="opacity:.95;margin-top:2px">
-  Minimum commande: 15 dt · Livraison gratuite si total ≥ 30 dt · Sinon frais 5 dt
-</div>
-
-
-      <div class="form">
-        <input id="cName" type="text" placeholder="Nom & prénom" />
-        <input id="cTel" type="tel" placeholder="Téléphone" />
-        <input id="cAddr" type="text" placeholder="Adresse (quartier, rue…)" />
-        <textarea id="cNote" placeholder="Note (ex: sans oignon, sonner 2 fois, étage 3…)"></textarea>
-      </div>
-
-      <button class="btn green" id="sendWA">Envoyer la commande sur WhatsApp</button>
-      <button class="dangerBtn" id="clearCart">Vider le panier</button>
-
-      <div class="sub" style="opacity:.9">
-        Astuce : tu peux ajouter les articles plus tard dans les CSV, le panier fonctionnera automatiquement.
       </div>
     </div>
   </div>
 
   <script>
-    /**********************
-     * CONFIG
-     **********************/
-    const WHATSAPP_NUMBER = "0021625600978"; // ton numéro
-    const PAGE_SIZE = 12;
+    /********************
+     * CONFIG + STATE
+     ********************/
+    const DEFAULT_SETTINGS = {
+      whatsapp: "0021625600978",
+      minOrder: 15,
+      freeShipping: 30,
+      shippingFee: 5,
+      pageSize: 12
+    };
 
-    // Tes catégories / fichiers (dans /data)
+    const STORAGE_SETTINGS = "maxi_settings_v1";
+    const STORAGE_CART = "maxi_cart_v1";
+    const STORAGE_ORDERS = "maxi_orders_v1";
+
+    const state = {
+      settings: loadSettings(),
+      cart: loadCart(),
+      dataByCat: new Map(),   // key => items
+      activeCat: null,
+      global: false,
+      page: 1,
+      q: ""
+    };
+
     const CATEGORIES = [
       { key:"fruits_legumes", label:"Fruits & Légumes", file:"data/fruits_legumes.csv" },
       { key:"lait_oeufs_produits_frais", label:"Lait, Œufs & Produits frais", file:"data/lait_oeufs_produits_frais.csv" },
@@ -631,44 +901,70 @@
       { key:"conserves", label:"Conserves", file:"data/conserves.csv" }
     ];
 
-    /**********************
-     * HELPERS
-     **********************/
-    const $ = (id) => document.getElementById(id);
-    const fmtDT = (n) => {
-      const x = Number(n);
-      if (!Number.isFinite(x)) return "—";
-      return x.toFixed(2).replace(/\.00$/,'').replace('.',',') + " dt";
-    };
-    const toNumber = (s) => {
-      // accepte "6,5" ou "6.5"
-      if (s == null) return null;
-      const n = Number(String(s).trim().replace(/\s/g,'').replace(',', '.'));
-      return Number.isFinite(n) ? n : null;
-    };
+    function $(id){ return document.getElementById(id); }
 
-    function normalize(h){
-      return String(h||"")
-        .trim()
-        .toLowerCase()
-        .replace(/[’']/g,"'")
-        .normalize("NFD").replace(/[\u0300-\u036f]/g,""); // enlève accents
+    function loadSettings(){
+      try{
+        const s = JSON.parse(localStorage.getItem(STORAGE_SETTINGS) || "null");
+        return Object.assign({}, DEFAULT_SETTINGS, s || {});
+      }catch(e){
+        return Object.assign({}, DEFAULT_SETTINGS);
+      }
+    }
+    function saveSettings(){
+      localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(state.settings));
+      $("waShow").textContent = formatWAShow(state.settings.whatsapp);
     }
 
-    // CSV parser : détecte ; ou , , accepte guillemets
-    function splitCSVLine(line, sep){
+    function loadCart(){
+      try{
+        const c = JSON.parse(localStorage.getItem(STORAGE_CART) || "{}");
+        return c && typeof c === "object" ? c : {};
+      }catch(e){ return {}; }
+    }
+    function saveCart(){
+      localStorage.setItem(STORAGE_CART, JSON.stringify(state.cart));
+    }
+
+    function fmtDT(n){
+      const v = Number(n || 0);
+      return v.toFixed(2).replace(".", ",") + " dt";
+    }
+
+    function formatWAShow(n){
+      const digits = String(n || "").replace(/\D/g,"");
+      if(digits.startsWith("00216")){
+        const rest = digits.slice(5);
+        return "00216 " + rest.replace(/(\d{2})(\d{3})(\d{3})/, "$1 $2 $3");
+      }
+      return n;
+    }
+
+    /********************
+     * CSV PARSER ( ; / , )
+     ********************/
+    function safeNumber(x){
+      if(x == null) return 0;
+      const s = String(x).trim().replace(/\s+/g,"");
+      // convert "6,5" => 6.5
+      const v = Number(s.replace(",", "."));
+      return Number.isFinite(v) ? v : 0;
+    }
+
+    function splitCSVLine(line){
+      // simple split that handles quotes
       const res = [];
       let cur = "";
       let inQ = false;
-      for (let i=0;i<line.length;i++){
+      for(let i=0;i<line.length;i++){
         const ch = line[i];
-        if (ch === '"'){
-          if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
+        if(ch === '"'){
+          if(inQ && line[i+1] === '"'){ cur += '"'; i++; }
           else inQ = !inQ;
-        } else if (ch === sep && !inQ){
+        }else if(ch === ";" && !inQ){
           res.push(cur);
           cur = "";
-        } else {
+        }else{
           cur += ch;
         }
       }
@@ -677,148 +973,87 @@
     }
 
     function parseCSV(text){
-      const lines = text.replace(/\r/g,'').split('\n').filter(l => l.trim().length);
-      if (!lines.length) return [];
-      // détecter séparateur par la 1ère ligne
-      const first = lines[0];
-      const sep = (first.includes(';') && !first.includes(','))
-        ? ';'
-        : (first.includes(';') && first.split(';').length >= first.split(',').length ? ';' : ',');
+      const lines = text.replace(/\r/g,"").split("\n").filter(l => l.trim() !== "");
+      if(!lines.length) return [];
+      const head = splitCSVLine(lines[0]).map(h => h.trim().toLowerCase());
 
-      const header = splitCSVLine(lines[0], sep).map(h => normalize(h).replace(/^\uFEFF/, '').trim());
-      const idxCode =
-        header.indexOf("code_article") !== -1 ? header.indexOf("code_article") :
-        header.indexOf("code") !== -1 ? header.indexOf("code") : -1;
-
-      const idxName =
-        header.indexOf("designation") !== -1 ? header.indexOf("designation") :
-        header.indexOf("name") !== -1 ? header.indexOf("name") :
-        header.indexOf("nom") !== -1 ? header.indexOf("nom") : -1;
-
-      const idxPrice =
-        header.indexOf("price") !== -1 ? header.indexOf("price") :
-        header.indexOf("pv_ttc") !== -1 ? header.indexOf("pv_ttc") :
-        header.indexOf("prix") !== -1 ? header.indexOf("prix") : -1;
+      const idxCode = head.findIndex(h => h.includes("code"));
+      const idxName = head.findIndex(h => h.includes("designation") || h.includes("désignation") || h.includes("name"));
+      const idxPrice = head.findIndex(h => h.includes("price") || h.includes("prix"));
 
       const out = [];
-      for (let i=1;i<lines.length;i++){
-        const cols = splitCSVLine(lines[i], sep);
-        const code = (idxCode !== -1 ? (cols[idxCode] ?? "") : "").trim();
-        const name = (idxName !== -1 ? (cols[idxName] ?? "") : "").trim();
-        const priceRaw = (idxPrice !== -1 ? (cols[idxPrice] ?? "") : "").trim();
-
-        // ignorer seulement si tout est vide
-        if (!code && !name) continue;
-
+      for(let i=1;i<lines.length;i++){
+        const cols = splitCSVLine(lines[i]);
+        const code = (cols[idxCode] ?? "").trim();
+        const name = (cols[idxName] ?? "").trim();
+        const price = safeNumber(cols[idxPrice] ?? "");
+        if(!code && !name) continue;
         out.push({
-          code: code,
-          name: name || "(Sans nom)",
-          price: toNumber(priceRaw),
+          code,
+          name,
+          designation: name,
+          price
         });
       }
       return out;
     }
 
-    /**********************
-     * STATE
-     **********************/
-    const state = {
-      activeCat: CATEGORIES[0].key,
-      dataByCat: new Map(), // key => array items
-      q: "",
-      global: false,
-      page: 1,
-      cart: loadCart()
-    };
-
-    function loadCart(){
-      try{
-        const raw = localStorage.getItem("maxi_cart_v1");
-        if (!raw) return {};
-        const obj = JSON.parse(raw);
-        return obj && typeof obj === "object" ? obj : {};
-      }catch(e){
-        return {};
-      }
-    }
-    function saveCart(){
-      localStorage.setItem("maxi_cart_v1", JSON.stringify(state.cart));
-    }
-
+    /********************
+     * SHIPPING RULES
+     ********************/
     function cartCount(){
       return Object.values(state.cart).reduce((a,b)=>a + (b.qty||0), 0);
     }
-   function toNum(v){
-  const s = String(v ?? "").trim().replace(/\s/g,"").replace(",",".");
-  const n = parseFloat(s);
-  return Number.isFinite(n) ? n : 0;
-function toNum(v){
-  const s = String(v ?? "")
-    .trim()
-    .replace(/\s/g, "")
-    .replace(",", ".");
-  const n = parseFloat(s);
-  return Number.isFinite(n) ? n : 0;
-}
+    function cartTotal(){
+      return Object.values(state.cart).reduce((a,it)=> a + (Number(it.price)||0) * (it.qty||0), 0);
+    }
+    function shippingFee(){
+      const total = cartTotal();
+      const MIN = Number(state.settings.minOrder)||15;
+      const FREE = Number(state.settings.freeShipping)||30;
+      const FEE = Number(state.settings.shippingFee)||5;
 
-function cartTotal(){
-  return Object.values(state.cart)
-    .reduce((a,it)=> a + toNum(it.price) * (it.qty || 0), 0);
-}
+      if(total < MIN) return null;
+      if(total >= FREE) return 0;
+      return FEE;
+    }
+    function grandTotal(){
+      const fee = shippingFee();
+      if(fee === null) return null;
+      return cartTotal() + fee;
+    }
 
-// ================================
-// FRAIS & EXIGENCES COMMANDE
-// ================================
-const MIN_ORDER = 15;        // minimum commande
-const FREE_SHIPPING = 30;   // livraison gratuite
-const SHIPPING_FEE = 5;     // frais livraison
-
-function shippingFee(){
-  const total = cartTotal();
-  if (total >= FREE_SHIPPING) return 0;
-  if (total >= MIN_ORDER) return SHIPPING_FEE;
-  return null; // commande non valide
-}
-
-function grandTotal(){
-  const fee = shippingFee();
-  if (fee === null) return null;
-  return cartTotal() + fee;
-}
-
-    /**********************
+    /********************
      * UI BUILD
-     **********************/
+     ********************/
     function buildCats(){
       const box = $("cats");
       box.innerHTML = "";
-      for (const c of CATEGORIES){
+      for(const c of CATEGORIES){
         const btn = document.createElement("button");
         btn.className = "catBtn" + (state.activeCat === c.key ? " active" : "");
         btn.onclick = () => {
           state.activeCat = c.key;
           state.global = false;
           state.page = 1;
+          $("globalBtn").classList.remove("green");
           buildCats();
           render();
         };
 
         const meta = document.createElement("div");
-        meta.className = "catMeta";
+        meta.className = "meta";
 
-        const t = document.createElement("div");
-        t.className = "t";
+        const t = document.createElement("b");
         t.textContent = c.label;
-
-        const f = document.createElement("div");
-        f.className = "f";
-        f.textContent = "CSV: " + c.file.replace("data/","");
+        const s = document.createElement("span");
+        s.textContent = "CSV: " + c.file.split("/").pop();
 
         meta.appendChild(t);
-        meta.appendChild(f);
+        meta.appendChild(s);
 
-        const count = document.createElement("div");
-        count.className = "catCount";
+        const count = document.createElement("span");
+        count.className = "badge";
         const arr = state.dataByCat.get(c.key) || [];
         count.textContent = arr.length + " article(s)";
 
@@ -828,157 +1063,153 @@ function grandTotal(){
       }
     }
 
-    function getActiveLabel(){
-      return CATEGORIES.find(x=>x.key===state.activeCat)?.label || "Produits";
+    function activeLabel(){
+      if(state.global) return "Recherche globale";
+      const c = CATEGORIES.find(x=>x.key===state.activeCat);
+      return c ? c.label : "Produits";
     }
-    function getActiveFile(){
-      return CATEGORIES.find(x=>x.key===state.activeCat)?.file || "";
+    function activeFile(){
+      const c = CATEGORIES.find(x=>x.key===state.activeCat);
+      return c ? c.file : "";
     }
 
-    function filterItems(items){
-      const q = state.q.trim().toLowerCase();
-      if (!q) return items;
-      return items.filter(p=>{
-        const s = (p.name+" "+p.code+" "+getActiveLabel()).toLowerCase();
-        return s.includes(q);
-      });
+    function getAllItems(){
+      if(state.global){
+        let all = [];
+        for(const c of CATEGORIES){
+          const arr = state.dataByCat.get(c.key) || [];
+          all = all.concat(arr.map(it => ({...it, catKey:c.key, catLabel:c.label})));
+        }
+        return all;
+      }
+      if(!state.activeCat) return [];
+      const c = CATEGORIES.find(x=>x.key===state.activeCat);
+      const arr = state.dataByCat.get(state.activeCat) || [];
+      return arr.map(it => ({...it, catKey: state.activeCat, catLabel: c ? c.label : ""}));
+    }
+
+    function matchQuery(it, q){
+      if(!q) return true;
+      const s = q.toLowerCase().trim();
+      const hay = [
+        it.name || "",
+        it.designation || "",
+        it.code || "",
+        it.catLabel || ""
+      ].join(" ").toLowerCase();
+      return hay.includes(s);
     }
 
     function render(){
-      const activeLabel = getActiveLabel();
-      $("catTitle").textContent = activeLabel;
-      $("catSub").textContent = "Source: /" + getActiveFile() + " · Mise à jour rapide (prix + nouveaux articles)";
-
-      let items = [];
-
-      if (state.global){
-        // recherche globale sur toutes catégories
-        for (const c of CATEGORIES){
-          const arr = state.dataByCat.get(c.key) || [];
-          items = items.concat(arr.map(x => ({...x, _catKey:c.key, _catLabel:c.label})));
-        }
-      } else {
-        const arr = state.dataByCat.get(state.activeCat) || [];
-        items = arr.map(x => ({...x, _catKey:state.activeCat, _catLabel:activeLabel}));
+      $("activeTitle").textContent = activeLabel();
+      if(state.global){
+        $("activeSub").textContent = "Recherche sur toutes les catégories.";
+      }else if(state.activeCat){
+        $("activeSub").textContent = "Source: /" + activeFile() + " · Mise à jour rapide (prix + nouveaux articles)";
+      }else{
+        $("activeSub").textContent = "Sélectionne une catégorie.";
       }
 
-      // filtrer
-      const filtered = state.q.trim()
-        ? items.filter(p=>{
-            const hay = (p.name+" "+p.code+" "+p._catLabel).toLowerCase();
-            return hay.includes(state.q.trim().toLowerCase());
-          })
-        : items;
+      const box = $("products");
+      const all = getAllItems().filter(it => matchQuery(it, state.q));
 
-      // pagination
-      const total = filtered.length;
-      $("countTxt").textContent = total + " article(s)";
-      $("listTitle").textContent = state.global ? "Recherche globale" : activeLabel;
+      const pageSize = Number(state.settings.pageSize)||12;
+      const totalPages = Math.max(1, Math.ceil(all.length / pageSize));
+      state.page = Math.min(state.page, totalPages);
 
-      const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-      state.page = Math.min(Math.max(1, state.page), totalPages);
+      const start = (state.page - 1) * pageSize;
+      const slice = all.slice(start, start + pageSize);
 
       $("pageInfo").textContent = `Page ${state.page}/${totalPages}`;
       $("prevBtn").disabled = state.page <= 1;
       $("nextBtn").disabled = state.page >= totalPages;
 
-      const start = (state.page - 1) * PAGE_SIZE;
-      const pageItems = filtered.slice(start, start + PAGE_SIZE);
+      box.innerHTML = "";
+      if(!state.activeCat && !state.global){
+        box.innerHTML = `<div class="empty">Sélectionne une catégorie à gauche.</div>`;
+        return;
+      }
+      if(!slice.length){
+        box.innerHTML = `<div class="empty">Aucun résultat.</div>`;
+        return;
+      }
 
-      const cards = $("cards");
-      cards.innerHTML = "";
-      $("empty").style.display = total ? "none" : "block";
-
-      for (const p of pageItems){
+      for(const p of slice){
         const card = document.createElement("div");
         card.className = "card";
 
-        const n = document.createElement("div");
-        n.className = "n";
-        n.textContent = p.name;
+        const top = document.createElement("div");
+        top.className = "cardTop";
 
-        const meta = document.createElement("div");
-        meta.className = "meta";
-        meta.innerHTML = `<span>Code: <b>${p.code || "—"}</b></span><span>${p._catLabel}</span>`;
+        const left = document.createElement("div");
+        left.style.minWidth = "0";
 
-        const pr = document.createElement("div");
-        pr.className = "price";
-        pr.textContent = fmtDT(p.price);
+        const name = document.createElement("div");
+        name.className = "pName";
+        name.textContent = (p.name || "").toUpperCase();
 
-        const qtyRow = document.createElement("div");
-        qtyRow.className = "qtyRow";
+        const sub = document.createElement("div");
+        sub.className = "pSub";
+        sub.textContent = `Code: ${p.code || "-"} · ${p.catLabel || ""}`;
 
-        const qtyBox = document.createElement("div");
-        qtyBox.className = "qtyBox";
+        left.appendChild(name);
+        left.appendChild(sub);
 
-        const key = p._catKey + "::" + (p.code || p.name);
-        const cur = state.cart[key]?.qty || 0;
+        const price = document.createElement("div");
+        price.className = "price";
+        price.textContent = fmtDT(p.price);
 
-        const minus = document.createElement("button");
-        minus.className = "qBtn";
-        minus.textContent = "−";
-        minus.onclick = () => addToCart(p, -1);
+        top.appendChild(left);
+        top.appendChild(price);
 
-        const qVal = document.createElement("div");
-        qVal.className = "qVal";
-        qVal.textContent = cur;
-
-        const plus = document.createElement("button");
-        plus.className = "qBtn";
-        plus.textContent = "+";
-        plus.onclick = () => addToCart(p, 1);
-
-        qtyBox.appendChild(minus);
-        qtyBox.appendChild(qVal);
-        qtyBox.appendChild(plus);
+        const bottom = document.createElement("div");
+        bottom.className = "cardBottom";
 
         const add = document.createElement("button");
         add.className = "addBtn";
-        add.textContent = "Ajouter";
-        add.onclick = () => addToCart(p, 1);
+        add.textContent = "+ Ajouter";
+        add.onclick = () => addToCart(p);
 
-        qtyRow.appendChild(qtyBox);
-        qtyRow.appendChild(add);
+        bottom.appendChild(add);
 
-        card.appendChild(n);
-        card.appendChild(meta);
-        card.appendChild(pr);
-        card.appendChild(qtyRow);
-
-        cards.appendChild(card);
+        card.appendChild(top);
+        card.appendChild(bottom);
+        box.appendChild(card);
       }
-
-      refreshCartUI();
     }
 
-    /**********************
+    /********************
      * CART
-     **********************/
-    function addToCart(p, delta){
-      const key = p._catKey + "::" + (p.code || p.name);
-      const existing = state.cart[key] || {
-        key,
-        cat: p._catLabel,
-        code: p.code || "",
-        name: p.name || "",
-        price: Number.isFinite(p.price) ? p.price : 0,
-        qty: 0
-      };
-      existing.qty = Math.max(0, (existing.qty || 0) + delta);
-      if (existing.qty === 0) delete state.cart[key];
-      else state.cart[key] = existing;
-
-      saveCart();
-      render(); // met à jour les quantités sur les cartes + compteur
-    }
-
-    function removeItem(key){
-      delete state.cart[key];
+     ********************/
+    function addToCart(p){
+      const key = String(p.code || p.name || Math.random());
+      if(!state.cart[key]){
+        state.cart[key] = {
+          code: p.code || "",
+          name: p.name || "",
+          price: Number(p.price)||0,
+          qty: 1
+        };
+      }else{
+        state.cart[key].qty = (state.cart[key].qty||0) + 1;
+      }
       saveCart();
       refreshCartUI();
-      render();
     }
 
+    function incItem(key){
+      if(!state.cart[key]) return;
+      state.cart[key].qty = (state.cart[key].qty||0) + 1;
+      saveCart();
+      refreshCartUI();
+    }
+    function decItem(key){
+      if(!state.cart[key]) return;
+      state.cart[key].qty = (state.cart[key].qty||0) - 1;
+      if(state.cart[key].qty <= 0) delete state.cart[key];
+      saveCart();
+      refreshCartUI();
+    }
     function clearCart(){
       state.cart = {};
       saveCart();
@@ -989,150 +1220,277 @@ function grandTotal(){
     function refreshCartUI(){
       $("cartTopCount").textContent = cartCount();
 
-const fee = shippingFee();
-const totalBox = $("cartTotal");
-
-if (fee === null) {
-  totalBox.textContent = "Minimum commande 15 dt";
-  totalBox.style.color = "#ff6b6b";
-} else {
-  const gTotal = grandTotal(); // total + livraison
-  totalBox.textContent = gTotal.toFixed(2).replace('.', ',') + " dt";
-  totalBox.style.color = "";
-}
-
       const list = $("cartList");
       list.innerHTML = "";
-      const keys = Object.keys(state.cart);
 
-      if (!keys.length){
-        const e = document.createElement("div");
-        e.className = "empty";
-        e.textContent = "Panier vide. Ajoute des articles 😊";
-        list.appendChild(e);
-        return;
+      const keys = Object.keys(state.cart);
+      if(!keys.length){
+        list.innerHTML = `<div class="empty">Panier vide. Ajoute des articles 😊</div>`;
+      }else{
+        for(const k of keys){
+          const it = state.cart[k];
+
+          const row = document.createElement("div");
+          row.className = "cartItem";
+
+          const l = document.createElement("div");
+          l.className = "l";
+          const b = document.createElement("b");
+          b.textContent = it.name || "";
+          const s = document.createElement("span");
+          s.textContent = `Code: ${it.code || "-"} · ${fmtDT(it.price)}`;
+          l.appendChild(b); l.appendChild(s);
+
+          const r = document.createElement("div");
+          r.className = "qty";
+
+          const m = document.createElement("button");
+          m.textContent = "−";
+          m.onclick = () => decItem(k);
+
+          const n = document.createElement("div");
+          n.className = "n";
+          n.textContent = String(it.qty || 0);
+
+          const p = document.createElement("button");
+          p.textContent = "+";
+          p.onclick = () => incItem(k);
+
+          r.appendChild(m); r.appendChild(n); r.appendChild(p);
+
+          row.appendChild(l);
+          row.appendChild(r);
+          list.appendChild(row);
+        }
       }
 
-      for (const k of keys){
+      // totals + rules
+      const sub = cartTotal();
+      $("subTotal").textContent = fmtDT(sub);
+
+      const fee = shippingFee();
+      const totalBox = $("cartTotal");
+
+      if(fee === null){
+        $("shipFee").textContent = "—";
+        totalBox.textContent = "Minimum commande 15 dt";
+        totalBox.style.color = "var(--danger)";
+        $("minWarn").classList.add("show");
+      }else{
+        $("shipFee").textContent = fmtDT(fee);
+        const g = grandTotal();
+        totalBox.textContent = fmtDT(g);
+        totalBox.style.color = "";
+        $("minWarn").classList.remove("show");
+      }
+    }
+
+    function openCart(){
+      $("cartOverlay").classList.add("show");
+      $("cartOverlay").setAttribute("aria-hidden","false");
+      refreshCartUI();
+    }
+    function closeCart(){
+      $("cartOverlay").classList.remove("show");
+      $("cartOverlay").setAttribute("aria-hidden","true");
+    }
+
+    /********************
+     * ORDERS + CLIENT HISTORY
+     ********************/
+    function loadOrders(){
+      try{
+        const arr = JSON.parse(localStorage.getItem(STORAGE_ORDERS) || "[]");
+        return Array.isArray(arr) ? arr : [];
+      }catch(e){ return []; }
+    }
+    function saveOrders(arr){
+      localStorage.setItem(STORAGE_ORDERS, JSON.stringify(arr));
+    }
+
+    function buildOrderPayload(){
+      const keys = Object.keys(state.cart);
+      if(!keys.length) return { ok:false, msg:"Panier vide." };
+
+      const fee = shippingFee();
+      if(fee === null) return { ok:false, msg:`Minimum commande ${state.settings.minOrder} dt.` };
+
+      const name = $("cName").value.trim();
+      const tel  = $("cTel").value.trim();
+      const addr = $("cAddr").value.trim();
+      const note = $("cNote").value.trim();
+
+      if(!name || !tel){
+        return { ok:false, msg:"Nom + Téléphone obligatoires." };
+      }
+
+      const items = keys.map(k => {
         const it = state.cart[k];
-        const row = document.createElement("div");
-        row.className = "cartItem";
+        return {
+          code: it.code || "",
+          name: it.name || "",
+          price: Number(it.price)||0,
+          qty: it.qty||0,
+          lineTotal: (Number(it.price)||0) * (it.qty||0)
+        };
+      });
 
-        const l = document.createElement("div");
-        l.className = "l";
-        l.innerHTML = `
-          <div class="n">${escapeHtml(it.name)}</div>
-          <div class="m">Code: <b>${escapeHtml(it.code || "—")}</b> · ${escapeHtml(it.cat)}</div>
+      const payload = {
+        id: "ORD-" + Date.now(),
+        createdAt: new Date().toISOString(),
+        customer: { name, tel, addr, note },
+        items,
+        subTotal: cartTotal(),
+        shippingFee: fee,
+        total: grandTotal()
+      };
+
+      return { ok:true, payload };
+    }
+
+    function saveOrderOnly(){
+      const r = buildOrderPayload();
+      if(!r.ok){ alert(r.msg); return; }
+      const orders = loadOrders();
+      orders.unshift(r.payload);
+      saveOrders(orders);
+      alert("✅ Commande enregistrée dans l’historique.");
+    }
+
+    function sendWhatsApp(){
+      const r = buildOrderPayload();
+      if(!r.ok){ alert(r.msg); return; }
+
+      const wa = String(state.settings.whatsapp || "").replace(/\D/g,"");
+      const o = r.payload;
+
+      let msg = `🛒 *Commande MAXI JDC MARKET*\n\n`;
+      msg += `👤 Nom: ${o.customer.name}\n`;
+      msg += `📞 Tel: ${o.customer.tel}\n`;
+      msg += `📍 Adresse: ${o.customer.addr || "-"}\n`;
+      if(o.customer.note) msg += `📝 Note: ${o.customer.note}\n`;
+
+      msg += `\n*Articles:*\n`;
+      for(const it of o.items){
+        msg += `• ${it.qty} × ${it.name}`;
+        if(it.code) msg += ` (Code: ${it.code})`;
+        msg += ` — ${fmtDT(it.lineTotal)}\n`;
+      }
+
+      msg += `\n➕ Sous-total: *${fmtDT(o.subTotal)}*`;
+      msg += `\n🚚 Livraison: *${fmtDT(o.shippingFee)}*`;
+      msg += `\n✅ *Total: ${fmtDT(o.total)}*`;
+
+      // Save to history automatically
+      const orders = loadOrders();
+      orders.unshift(o);
+      saveOrders(orders);
+
+      const url = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
+      window.open(url, "_blank");
+      alert("✅ Message WhatsApp prêt. La commande est enregistrée dans l’historique.");
+    }
+
+    /********************
+     * ADMIN
+     ********************/
+    function openAdmin(){
+      $("adminOverlay").classList.add("show");
+      $("adminOverlay").setAttribute("aria-hidden","false");
+      fillAdminSettings();
+      refreshAdminTables();
+    }
+    function closeAdmin(){
+      $("adminOverlay").classList.remove("show");
+      $("adminOverlay").setAttribute("aria-hidden","true");
+    }
+
+    function fillAdminSettings(){
+      $("waNumber").value = state.settings.whatsapp || "";
+      $("minOrder").value = String(state.settings.minOrder ?? 15);
+      $("freeShip").value = String(state.settings.freeShipping ?? 30);
+      $("shipFeeAdmin").value = String(state.settings.shippingFee ?? 5);
+    }
+
+    function refreshAdminTables(){
+      const q = ($("adminSearch").value || "").toLowerCase().trim();
+      const orders = loadOrders();
+
+      // orders table
+      const ot = $("ordersTable");
+      ot.innerHTML = "";
+      for(const o of orders.slice(0, 50)){
+        const name = o.customer?.name || "";
+        const tel = o.customer?.tel || "";
+        if(q && !(name.toLowerCase().includes(q) || tel.toLowerCase().includes(q))) continue;
+
+        const tr = document.createElement("tr");
+        const d = new Date(o.createdAt);
+        tr.innerHTML = `
+          <td>${isNaN(d.getTime()) ? "-" : d.toLocaleString()}</td>
+          <td>${escapeHtml(name)}<div class="tiny">${escapeHtml(tel)}</div></td>
+          <td><b style="color:var(--text)">${fmtDT(o.total)}</b></td>
+          <td class="tiny">${escapeHtml((o.items||[]).slice(0,3).map(x=>`${x.qty}×${x.name}`).join(" · "))}${(o.items||[]).length>3?" …":""}</td>
         `;
+        ot.appendChild(tr);
+      }
 
-        const r = document.createElement("div");
-        r.className = "r";
+      // clients aggregation
+      const map = new Map();
+      for(const o of orders){
+        const tel = (o.customer?.tel || "").trim();
+        if(!tel) continue;
+        const key = tel;
+        const prev = map.get(key) || { name:o.customer?.name||"", tel, count:0, total:0, addr:o.customer?.addr||"" };
+        prev.count += 1;
+        prev.total += Number(o.total)||0;
+        if(o.customer?.name) prev.name = o.customer.name;
+        if(o.customer?.addr) prev.addr = o.customer.addr;
+        map.set(key, prev);
+      }
 
-        const mini = document.createElement("div");
-        mini.className = "miniPrice";
-        const lineTotal = (Number(it.price)||0) * (it.qty||0);
-        mini.textContent = `${it.qty} × ${fmtDT(it.price)} = ${fmtDT(lineTotal)}`;
+      let clients = Array.from(map.values());
+      if(q){
+        clients = clients.filter(c =>
+          (c.name||"").toLowerCase().includes(q) ||
+          (c.tel||"").toLowerCase().includes(q)
+        );
+      }
+      clients.sort((a,b)=> (b.total - a.total));
 
-        const qb = document.createElement("div");
-        qb.className = "qtyBox";
-        qb.style.minWidth = "130px";
-
-        const m = document.createElement("button");
-        m.className = "qBtn";
-        m.textContent = "−";
-        m.onclick = () => {
-          const fakeP = { _catKey: it.key.split("::")[0], _catLabel: it.cat, code: it.code, name: it.name, price: it.price };
-          addToCart(fakeP, -1);
-        };
-
-        const v = document.createElement("div");
-        v.className = "qVal";
-        v.textContent = it.qty || 0;
-
-        const p = document.createElement("button");
-        p.className = "qBtn";
-        p.textContent = "+";
-        p.onclick = () => {
-          const fakeP = { _catKey: it.key.split("::")[0], _catLabel: it.cat, code: it.code, name: it.name, price: it.price };
-          addToCart(fakeP, 1);
-        };
-
-        qb.appendChild(m); qb.appendChild(v); qb.appendChild(p);
-
-        const tr = document.createElement("button");
-        tr.className = "trash";
-        tr.textContent = "Supprimer";
-        tr.onclick = () => removeItem(k);
-
-        r.appendChild(mini);
-        r.appendChild(qb);
-        r.appendChild(tr);
-
-        row.appendChild(l);
-        row.appendChild(r);
-
-        list.appendChild(row);
+      const ct = $("clientsTable");
+      ct.innerHTML = "";
+      for(const c of clients.slice(0, 200)){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="color:var(--text); font-weight:900;">${escapeHtml(c.name||"-")}</td>
+          <td>${escapeHtml(c.tel||"-")}</td>
+          <td>${c.count}</td>
+          <td><b style="color:var(--text)">${fmtDT(c.total)}</b></td>
+          <td class="tiny">${escapeHtml(c.addr||"-")}</td>
+        `;
+        ct.appendChild(tr);
       }
     }
 
     function escapeHtml(s){
-      return String(s||"").replace(/[&<>"']/g, m => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-      }[m]));
+      return String(s || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
     }
 
-    function openCart(){
-      $("drawerBg").classList.add("open");
-      $("drawer").classList.add("open");
-      refreshCartUI();
-    }
-    function closeCart(){
-      $("drawerBg").classList.remove("open");
-      $("drawer").classList.remove("open");
-    }
-
-    function sendWhatsApp(){
-      const keys = Object.keys(state.cart);
-      if (!keys.length){
-        alert("Panier vide.");
-        return;
-      }
-
-      const name = $("cName").value.trim();
-      const tel = $("cTel").value.trim();
-      const addr = $("cAddr").value.trim();
-      const note = $("cNote").value.trim();
-
-      let msg = `🛒 *Commande MAXI JDC MARKET*\n\n`;
-      msg += `👤 Nom: ${name || "-"}\n`;
-      msg += `📞 Tel: ${tel || "-"}\n`;
-      msg += `📍 Adresse: ${addr || "-"}\n`;
-      if (note) msg += `📝 Note: ${note}\n`;
-      msg += `\n*Articles:*\n`;
-
-      for (const k of keys){
-        const it = state.cart[k];
-        const lineTotal = (Number(it.price)||0) * (it.qty||0);
-        msg += `• ${it.qty} × ${it.name}`;
-        if (it.code) msg += ` (Code: ${it.code})`;
-        msg += ` — ${fmtDT(lineTotal)}\n`;
-      }
-
-      msg += `\n✅ *Total: ${cartTotal().toFixed(2).replace('.',',')} dt*`;
-
-      const url = `https://wa.me/${WHATSAPP_NUMBER.replace(/\D/g,'') }?text=${encodeURIComponent(msg)}`;
-      window.open(url, "_blank");
-    }
-
-    /**********************
+    /********************
      * LOAD DATA
-     **********************/
+     ********************/
     async function loadAll(){
       $("status").textContent = "Chargement…";
-      for (const c of CATEGORIES){
+      for(const c of CATEGORIES){
         try{
           const r = await fetch(c.file, { cache:"no-store" });
-          if (!r.ok) throw new Error("HTTP " + r.status);
+          if(!r.ok) throw new Error("HTTP " + r.status);
           const text = await r.text();
           const items = parseCSV(text).map(x => ({...x}));
           state.dataByCat.set(c.key, items);
@@ -1146,52 +1504,129 @@ if (fee === null) {
       render();
     }
 
-    /**********************
+    /********************
      * EVENTS
-     **********************/
-    $("q").addEventListener("input", (e)=>{
-      state.q = e.target.value;
-      state.page = 1;
-      render();
-    });
+     ********************/
+    function wire(){
+      // show whatsapp
+      $("waShow").textContent = formatWAShow(state.settings.whatsapp);
 
-    $("clearBtn").onclick = ()=>{
-      $("q").value = "";
-      state.q = "";
-      state.page = 1;
-      render();
-    };
+      // search
+      $("q").addEventListener("input", () => {
+        state.q = $("q").value;
+        state.page = 1;
+        render();
+      });
+      $("clearBtn").onclick = () => {
+        $("q").value = "";
+        state.q = "";
+        state.page = 1;
+        render();
+      };
 
-    $("globalBtn").onclick = ()=>{
-      state.global = !state.global;
-      state.page = 1;
-      $("globalBtn").textContent = state.global ? "Recherche: globale ✅" : "Recherche globale";
-      render();
-    };
+      // global
+      $("globalBtn").onclick = () => {
+        state.global = !state.global;
+        state.activeCat = state.global ? null : state.activeCat;
+        state.page = 1;
+        $("globalBtn").classList.toggle("green", state.global);
+        buildCats();
+        render();
+      };
 
-    $("prevBtn").onclick = ()=>{ state.page = Math.max(1, state.page-1); render(); };
-    $("nextBtn").onclick = ()=>{ state.page = state.page+1; render(); };
+      // pager
+      $("prevBtn").onclick = () => { state.page = Math.max(1, state.page - 1); render(); };
+      $("nextBtn").onclick = () => { state.page = state.page + 1; render(); };
 
-    $("cartTopBtn").onclick = openCart;
-    $("closeCart").onclick = closeCart;
-    $("drawerBg").onclick = closeCart;
+      // cart open/close
+      $("cartTopBtn").onclick = openCart;
+      $("cartCloseBtn").onclick = closeCart;
+      $("cartOverlay").addEventListener("click", (e) => {
+        if(e.target === $("cartOverlay")) closeCart();
+      });
 
-    $("clearCart").onclick = ()=>{
-      if (confirm("Vider le panier ?")) clearCart();
-    };
+      $("clearCartBtn").onclick = clearCart;
+      $("sendWhatsAppBtn").onclick = sendWhatsApp;
+      $("saveOrderBtn").onclick = saveOrderOnly;
 
-    $("sendWA").onclick = sendWhatsApp;
+      // admin open: Ctrl+Shift+A
+      document.addEventListener("keydown", (e) => {
+        if(e.ctrlKey && e.shiftKey && (e.key === "A" || e.key === "a")){
+          e.preventDefault();
+          openAdmin();
+        }
+        if(e.key === "Escape"){
+          closeCart();
+          closeAdmin();
+        }
+      });
 
-    // START
-    buildCats();
-    loadAll();
-    refreshCartUI();
+      // admin close
+      $("adminCloseBtn").onclick = closeAdmin;
+      $("adminOverlay").addEventListener("click", (e) => {
+        if(e.target === $("adminOverlay")) closeAdmin();
+      });
+
+      // admin search
+      $("adminSearch").addEventListener("input", refreshAdminTables);
+      $("adminSearchClear").onclick = () => { $("adminSearch").value=""; refreshAdminTables(); };
+
+      // admin settings save/reset
+      $("saveSettingsBtn").onclick = () => {
+        state.settings.whatsapp = $("waNumber").value.trim() || DEFAULT_SETTINGS.whatsapp;
+        state.settings.minOrder = Number(($("minOrder").value || "").replace(",",".")) || DEFAULT_SETTINGS.minOrder;
+        state.settings.freeShipping = Number(($("freeShip").value || "").replace(",",".")) || DEFAULT_SETTINGS.freeShipping;
+        state.settings.shippingFee = Number(($("shipFeeAdmin").value || "").replace(",",".")) || DEFAULT_SETTINGS.shippingFee;
+        saveSettings();
+        refreshCartUI();
+        refreshAdminTables();
+        alert("✅ Paramètres enregistrés.");
+      };
+
+      $("resetSettingsBtn").onclick = () => {
+        state.settings = Object.assign({}, DEFAULT_SETTINGS);
+        saveSettings();
+        fillAdminSettings();
+        refreshCartUI();
+        refreshAdminTables();
+      };
+
+      // export JSON
+      $("exportBtn").onclick = () => {
+        const orders = loadOrders();
+        const blob = new Blob([JSON.stringify(orders, null, 2)], { type:"application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "maxi-jdc-orders.json";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      };
+
+      // clear history
+      $("clearHistoryBtn").onclick = () => {
+        if(!confirm("Tu es sûr ? Cela va supprimer tout l’historique (clients + commandes) sur ce navigateur.")) return;
+        localStorage.removeItem(STORAGE_ORDERS);
+        refreshAdminTables();
+        alert("✅ Historique supprimé.");
+      };
+
+      // open admin by hash
+      if(location.hash && location.hash.toLowerCase() === "#admin"){
+        openAdmin();
+      }
+    }
+
+    /********************
+     * INIT
+     ********************/
+    function init(){
+      wire();
+      buildCats();
+      refreshCartUI();
+      loadAll();
+    }
+    init();
   </script>
 </body>
 </html>
-
-
-
-
-
-
