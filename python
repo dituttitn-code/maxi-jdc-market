@@ -1,1 +1,76 @@
+# generate_products.py
+import json
+import os
+import csv
 
+# Mapping des catégories
+category_mapping = {
+    'animaux_compagnie.csv': 'Animaux de Compagnie',
+    'cafe.csv': 'Café et Thé',
+    'chips_snacks.csv': 'Chips et Snacks',
+    'chocolats_biscuits.csv': 'Chocolats et Biscuits',
+    'hygiene_soins.csv': 'Hygiène et Soins',
+    'jus_boissons.csv': 'Jus et Boissons',
+    'lait_oeufs_produits_frais.csv': 'Lait, Œufs et Produits Frais',
+    'fruits_legumes.csv': 'Fruits et Légumes',
+    'epicerie_sucree.csv': 'Épicerie Sucrée',
+    'epicerie_salee.csv': 'Épicerie Salée',
+    'produits_surgeles.csv': 'Produits Surgelés',
+    'fromage_charcuterie.csv': 'Fromage et Charcuterie',
+    'fruits_secs_noix.csv': 'Fruits Secs et Noix',
+    'hygiene_entretien.csv': 'Hygiène et Entretien',
+    'bebe_maman.csv': 'Bébé et Maman',
+    'boulangerie_patisserie.csv': 'Boulangerie et Pâtisserie',
+    'conserves.csv': 'Conserves',
+    'cuisine_monde.csv': 'Cuisine du Monde',
+    'eaux.csv': 'Eaux',
+    'pates.csv': 'Pâtes et Riz',
+    'vipa_selections.csv': 'Sélections VIPA'
+}
+
+all_products = []
+categories = list(set(category_mapping.values()))
+
+# Lire tous les fichiers CSV
+data_folder = 'data'
+for csv_file, category_name in category_mapping.items():
+    csv_path = os.path.join(data_folder, csv_file)
+    
+    if os.path.exists(csv_path):
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f, delimiter='\t')  # ou ';' selon votre CSV
+            
+            # Sauter l'en-tête
+            next(reader, None)
+            
+            for row in reader:
+                if len(row) >= 3:
+                    product_id = int(row[0]) if row[0].isdigit() else 0
+                    product_name = row[1].strip()
+                    product_price = float(row[2].replace(',', '.'))
+                    
+                    product = {
+                        "id": product_id,
+                        "name": product_name,
+                        "category": csv_file.replace('.csv', ''),
+                        "categoryName": category_name,
+                        "price": product_price,
+                        "stock": True,
+                        "image": f"images/{product_id}.jpg",
+                        "description": product_name
+                    }
+                    all_products.append(product)
+
+# Créer l'objet final
+output_data = {
+    "total": len(all_products),
+    "lastUpdated": "2024-01-15T10:30:00.000Z",
+    "categories": sorted(categories),
+    "products": all_products
+}
+
+# Sauvegarder en JSON
+with open('products.json', 'w', encoding='utf-8') as f:
+    json.dump(output_data, f, ensure_ascii=False, indent=2)
+
+print(f"✅ Fichier products.json généré avec {len(all_products)} produits!")
