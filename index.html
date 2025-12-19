@@ -1041,29 +1041,29 @@ const MIN_ORDER = 15;
 const FREE_SHIPPING = 30;
 const SHIPPING_FEE = 5;
 
-/* TOUTES LES CATÉGORIES AVEC NOMS CORRIGÉS */
+/* TOUTES LES CATÉGORIES AVEC LES BONS NOMS DE FICHIERS */
 const CATEGORIES = [
-  { key:"hygiene_soins", label:"Hygiène & Soins", file:"data/hygiene_soins.csv" },
-  { key:"eaux", label:"Eaux", file:"data/eaux.csv" },
-  { key:"fruits_legumes", label:"Fruits & Légumes", file:"data/fruits_legumes.csv" },
-  { key:"lait_oeufs_produits_frais", label:"Lait, Œufs & Produits frais", file:"data/lait_oeufs_produits_frais.csv" },
-  { key:"fromage_charcuterie", label:"Fromage & Charcuterie", file:"data/fromage_charcuterie.csv" },
+  { key:"animaux_compagnie", label:"Animaux de Compagnie", file:"data/animaux_compagnie.csv" },
+  { key:"bebe_maman", label:"Bébé et Maman", file:"data/bebe_maman.csv" },
   { key:"boulangerie_patisserie", label:"Boulangerie & Pâtisserie", file:"data/boulangerie_patisserie.csv" },
+  { key:"cafe", label:"Café", file:"data/cafe.csv" },
+  { key:"chips_snacks", label:"Chips et Snacks", file:"data/chips_snacks.csv" },
+  { key:"chocolats_biscuits", label:"Chocolats et Biscuits", file:"data/chocolats_biscuits.csv" },
+  { key:"conserves", label:"Conserves", file:"data/conserves.csv" },
+  { key:"cuisine_monde", label:"Cuisine du Monde", file:"data/cuisine_monde.csv" },
+  { key:"eaux", label:"Eaux", file:"data/eaux.csv" },
   { key:"epicerie_salee", label:"Épicerie Salée", file:"data/epicerie_salee.csv" },
   { key:"epicerie_sucree", label:"Épicerie Sucrée", file:"data/epicerie_sucree.csv" },
-  { key:"pates", label:"Pâtes", file:"data/pates.csv" },
-  { key:"conserves", label:"Conserves", file:"data/conserves.csv" },
-  { key:"cafe_thes", label:"Café & Thés", file:"data/cafe.csv" },
-  { key:"chocolats_biscuits", label:"Chocolats & Biscuits", file:"data/chocolats_biscuits.csv" },
+  { key:"fromage_charcuterie", label:"Fromage & Charcuterie", file:"data/fromage_charcuterie.csv" },
+  { key:"fruits_legumes", label:"Fruits et Légumes", file:"data/fruits_legumes.csv" },
+  { key:"fruits_secs_noix", label:"Fruits Secs et Noix", file:"data/fruits_secs_noix.csv" },
+  { key:"hygiene_entretien", label:"Hygiène et Entretien", file:"data/hygiene_entretien.csv" },
+  { key:"hygiene_soins", label:"Hygiène & Soins", file:"data/hygiene_soins.csv" },
   { key:"jus_boissons", label:"Jus & Boissons", file:"data/jus_boissons.csv" },
-  { key:"chips_snacks", label:"Chips & Snacks", file:"data/chips.csv" },
-  { key:"fruits_secs_noix", label:"Fruits Secs & Noix", file:"data/fruits_secs.csv" },
-  { key:"vipa_selections", label:"Vipa & Sélections", file:"data/vipa.csv" },
-  { key:"hygiene_entretien", label:"Hygiène & Entretien", file:"data/hygiene_entretien.csv" },
-  { key:"bebe_maman", label:"Bébé & Maman", file:"data/bebe_maman.csv" },
-  { key:"cuisine_monde", label:"Cuisine du Monde", file:"data/cuisine_monde.csv" },
-  { key:"produits_surgeles", label:"Produits Surgelés", file:"data/surgele.csv" },
-  { key:"animaux_compagnie", label:"Animaux de Compagnie", file:"data/animaux.csv" }
+  { key:"lait_oeufs_produits_frais", label:"Lait, Œufs & Produits frais", file:"data/lait_oeufs_produits_frais.csv" },
+  { key:"pates", label:"Pâtes", file:"data/pates.csv" },
+  { key:"produits_surgeles", label:"Produits Surgelés", file:"data/produits_surgeles.csv" },
+  { key:"vipa_selections", label:"VIPA Sélections", file:"data/vipa_selections.csv" }
 ];
 
 /* HELPERS */
@@ -1084,7 +1084,7 @@ function dlText(filename, text){
 /* STATE */
 const state = {
   dataByCat: new Map(),
-  activeCat: "cafe_thes", // Par défaut sur Café & Thés pour tester
+  activeCat: "cafe", // Café par défaut
   global:false,
   q:"",
   page:1,
@@ -1105,7 +1105,7 @@ function saveClient(){ localStorage.setItem("maxi_client_v1", JSON.stringify(sta
 function loadHistory(){ try{ return JSON.parse(localStorage.getItem("maxi_orders_v1")||"[]"); }catch(e){ return []; } }
 function saveHistory(arr){ localStorage.setItem("maxi_orders_v1", JSON.stringify(arr||[])); }
 
-/* CSV PARSER SIMPLIFIÉ */
+/* CSV PARSER CORRIGÉ - GÈRE VOTRE FORMAT */
 function parseCSV(text){
   console.log("Parsing CSV...");
   const lines = String(text||"").split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
@@ -1115,14 +1115,14 @@ function parseCSV(text){
     const line = lines[i];
     
     // Skip header lines
-    if(line.includes("CODE_ARTICLE") && line.includes("DESIGNATION") && line.includes("PV_TTC")) continue;
-    if(line.includes("CODE_ARTICLE;DESIGNATION;Prix")) continue;
+    if(line.includes("CODE_ARTICLE") && line.includes("ARTICLES") && line.includes("PRIX")) continue;
     if(line.startsWith(";") || line.startsWith("//")) continue;
     
-    // Try different separators
-    let parts = line.split(";");
-    if(parts.length < 3) parts = line.split("\t");
-    if(parts.length < 3) parts = line.split(",");
+    // Votre format: CODE_ARTICLE\tARTICLES\tPRIX
+    let parts = line.split("\t");
+    
+    // Si pas de tabulation, essayer point-virgule
+    if(parts.length < 3) parts = line.split(";");
     
     // Clean parts
     parts = parts.map(p => String(p||"").trim()).filter(p => p !== "");
@@ -1132,17 +1132,9 @@ function parseCSV(text){
       const name = parts[1];
       let priceRaw = parts[2];
       
-      // Find price if not in position 2
-      if(!/[0-9]/.test(priceRaw)){
-        for(let j = 2; j < parts.length; j++){
-          if(/[0-9]/.test(parts[j])){
-            priceRaw = parts[j];
-            break;
-          }
-        }
-      }
-      
-      const price = Number(String(priceRaw).replace(",", ".").replace(/[^0-9.]/g,"")) || 0;
+      // Nettoyer le prix
+      priceRaw = priceRaw.replace(",", ".").replace(/[^0-9.]/g,"");
+      const price = Number(priceRaw) || 0;
       
       if(code && name && price > 0){
         rows.push({ 
@@ -1150,6 +1142,17 @@ function parseCSV(text){
           name: String(name).trim(), 
           price: price 
         });
+      }
+    } else if(parts.length === 2) {
+      // Format alternatif: CODE;NOM;PRIX peut être fusionné
+      const code = parts[0];
+      const namePrice = parts[1];
+      // Essayer d'extraire le prix du nom
+      const priceMatch = namePrice.match(/(\d+[\.,]\d+)/);
+      if(priceMatch){
+        const price = Number(priceMatch[1].replace(",", "."));
+        const name = namePrice.replace(priceMatch[0], "").trim();
+        rows.push({ code, name, price });
       }
     }
   }
@@ -1177,6 +1180,7 @@ function grandTotal(){
 function buildCats(){
   const box = $("cats");
   box.innerHTML = "";
+  
   for(const c of CATEGORIES){
     const btn = document.createElement("button");
     btn.className = "catBtn" + (state.activeCat===c.key ? " active" : "");
@@ -1203,21 +1207,27 @@ function buildCats(){
   }
 }
 
-function getActiveCat(){ return CATEGORIES.find(x=>x.key===state.activeCat) || CATEGORIES[0]; }
+function getActiveCat(){ 
+  return CATEGORIES.find(x=>x.key===state.activeCat) || CATEGORIES[0]; 
+}
 
 function getVisibleItems(){
   let items = [];
+  
   if(state.global){
+    // Recherche globale: tous les produits
     for(const c of CATEGORIES){
       const arr = state.dataByCat.get(c.key) || [];
       items.push(...arr.map(it=>({...it, catKey:c.key, catLabel:c.label})));
     }
-  }else{
+  } else {
+    // Catégorie active uniquement
     const c = getActiveCat();
     const arr = state.dataByCat.get(c.key) || [];
     items = arr.map(it=>({...it, catKey:c.key, catLabel:c.label}));
   }
 
+  // Filtre de recherche
   const q = String(state.q||"").trim().toLowerCase();
   if(q){
     items = items.filter(it =>
@@ -1226,6 +1236,8 @@ function getVisibleItems(){
       (it.catLabel||"").toLowerCase().includes(q)
     );
   }
+  
+  // Tri par nom
   items.sort((a,b)=>String(a.name).localeCompare(String(b.name), "fr"));
   return items;
 }
@@ -1407,10 +1419,12 @@ function refreshCartUI(maybeOpen){
   if(state.pinCart || maybeOpen) openDrawer();
 }
 
-/* LOAD DATA WITH DEBUG */
+/* LOAD DATA WITH DEBUG - VERSION CORRIGÉE */
 async function loadAll(){
   console.log("=== DÉBUT CHARGEMENT DES CATÉGORIES ===");
   $("status").textContent = "Chargement…";
+  
+  let totalProducts = 0;
   
   for(const c of CATEGORIES){
     console.log(`Chargement: ${c.label} -> ${c.file}`);
@@ -1426,15 +1440,14 @@ async function loadAll(){
       
       const text = await r.text();
       console.log(`  Taille: ${text.length} caractères`);
-      console.log(`  Preview: ${text.substring(0, 100)}...`);
       
       const items = parseCSV(text);
       console.log(`  ✅ ${items.length} articles chargés`);
       state.dataByCat.set(c.key, items);
+      totalProducts += items.length;
       
-      // Affiche les 3 premiers articles pour vérification
-      if(items.length > 0){
-        console.log(`  Exemples:`, items.slice(0, 3).map(i => `${i.code}: ${i.name} - ${i.price}dt`));
+      if(items.length === 0){
+        console.warn(`  ⚠️ ATTENTION: ${c.label} a 0 articles!`);
       }
       
     }catch(e){
@@ -1444,9 +1457,15 @@ async function loadAll(){
   }
   
   console.log("=== FIN CHARGEMENT ===");
-  console.log("Résumé:", [...state.dataByCat.entries()].map(([k,v]) => `${k}: ${v.length} articles`));
+  console.log(`Total produits chargés: ${totalProducts}`);
   
-  $("status").textContent = "✅ OK";
+  // Afficher le résumé
+  for(const c of CATEGORIES){
+    const items = state.dataByCat.get(c.key) || [];
+    console.log(`${c.label}: ${items.length} articles`);
+  }
+  
+  $("status").textContent = `✅ ${totalProducts} articles`;
   buildCats();
   render();
 }
@@ -1480,6 +1499,150 @@ $("pinCart").addEventListener("change", ()=>{
   localStorage.setItem("maxi_pin_cart", state.pinCart ? "1":"0");
   if(state.pinCart) openDrawer();
 });
+
+/* FONCTIONS MANQUANTES POUR LE PANIER */
+$("saveClientBtn").onclick = function(){
+  const name = $("cName").value.trim();
+  const tel = $("cTel").value.trim();
+  const addr = $("cAddr").value.trim();
+  const lat = $("cLat").value.trim();
+  const lng = $("cLng").value.trim();
+  
+  if(!name || !tel || !addr){
+    alert("Veuillez remplir au moins Nom, Téléphone et Adresse");
+    return;
+  }
+  
+  state.client = { name, tel, addr, lat, lng, savedAt: new Date().toISOString() };
+  saveClient();
+  alert("✅ Fiche client enregistrée !");
+};
+
+$("clearCartBtn").onclick = function(){
+  if(confirm("Vider tout le panier ?")){
+    state.cart = {};
+    saveCart();
+    refreshCartUI(false);
+  }
+};
+
+$("sendBtn").onclick = function(){
+  if(cartCount() === 0){
+    alert("Panier vide !");
+    return;
+  }
+  
+  if(!state.client){
+    alert("Veuillez d'abord enregistrer la fiche client");
+    return;
+  }
+  
+  const g = grandTotal();
+  if(g === null){
+    alert(`Minimum commande: ${MIN_ORDER} dt`);
+    return;
+  }
+  
+  // Créer le résumé
+  let summary = `=== COMMANDE MAXI JDC MARKET ===\n`;
+  summary += `Date: ${new Date().toLocaleString('fr-FR')}\n`;
+  summary += `Client: ${state.client.name}\n`;
+  summary += `Tél: ${state.client.tel}\n`;
+  summary += `Adresse: ${state.client.addr}\n`;
+  if(state.client.lat && state.client.lng){
+    summary += `GPS: ${state.client.lat}, ${state.client.lng}\n`;
+  }
+  summary += `\n=== ARTICLES ===\n`;
+  
+  Object.values(state.cart).forEach(item => {
+    summary += `• ${item.name} (x${item.qty}) = ${fmtDT(item.price * item.qty)}\n`;
+  });
+  
+  summary += `\n=== TOTAL ===\n`;
+  summary += `Sous-total: ${fmtDT(cartTotal())}\n`;
+  summary += `Livraison: ${shippingFee() === 0 ? 'GRATUITE' : fmtDT(shippingFee())}\n`;
+  summary += `TOTAL: ${fmtDT(g)}\n`;
+  
+  // Sauvegarder dans l'historique
+  const history = loadHistory();
+  history.unshift({
+    date: new Date().toISOString(),
+    client: state.client.name,
+    tel: state.client.tel,
+    total: g,
+    items: Object.values(state.cart).map(i => ({name: i.name, qty: i.qty, price: i.price}))
+  });
+  saveHistory(history);
+  
+  // Afficher le modal
+  $("orderText").value = summary;
+  $("modalBack").classList.add("open");
+  
+  // Ajouter l'animation de succès
+  $("sendBtn").classList.add("sent-animation");
+  setTimeout(() => $("sendBtn").classList.remove("sent-animation"), 2000);
+};
+
+$("closeModal").onclick = function(){
+  $("modalBack").classList.remove("open");
+};
+
+$("copyBtn").onclick = function(){
+  $("orderText").select();
+  document.execCommand("copy");
+  alert("✅ Commande copiée dans le presse-papier !");
+};
+
+$("downloadBtn").onclick = function(){
+  const text = $("orderText").value;
+  const date = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const filename = `commande_${state.client.name}_${date}.txt`;
+  dlText(filename, text);
+};
+
+$("whatsappBtn").onclick = function(){
+  const text = encodeURIComponent($("orderText").value);
+  window.open(`https://wa.me/21625600978?text=${text}`, '_blank');
+};
+
+/* GESTION HISTORIQUE */
+$("histToggleBtn").onclick = function(){
+  $("histBox").classList.toggle("open");
+  
+  if($("histBox").classList.contains("open")){
+    const history = loadHistory();
+    $("histCount").textContent = history.length;
+    
+    const tbody = $("histTbody");
+    tbody.innerHTML = "";
+    
+    if(history.length === 0){
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px;">Aucune commande historique</td></tr>`;
+    } else {
+      history.slice(0, 10).forEach(order => {
+        const tr = document.createElement("tr");
+        const date = new Date(order.date).toLocaleDateString('fr-FR');
+        const total = fmtDT(order.total);
+        const itemsCount = order.items.reduce((sum, item) => sum + item.qty, 0);
+        
+        tr.innerHTML = `
+          <td>${date}</td>
+          <td><strong>${total}</strong></td>
+          <td>${itemsCount} article(s)</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  }
+};
+
+$("clearMyHistoryBtn").onclick = function(){
+  if(confirm("Effacer tout l'historique de commandes ?")){
+    saveHistory([]);
+    $("histTbody").innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px;">Aucune commande historique</td></tr>`;
+    $("histCount").textContent = "0";
+  }
+};
 </script>
 </body>
 </html>
