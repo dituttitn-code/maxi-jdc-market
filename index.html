@@ -17,6 +17,7 @@
       --accent:#00ff88;
       --accent2:#00d4ff;
       --danger:#ff6b6b;
+      --warning:#ffcc00;
       --shadow: 0 10px 40px rgba(0,0,0,.5);
       --radius:12px;
     }
@@ -429,7 +430,7 @@
       margin-bottom:8px;
       font-weight:600;
     }
-    .field input, .field textarea{
+    .field input, .field textarea, .field select{
       width:100%;
       border-radius:8px;
       border:2px solid var(--line);
@@ -440,7 +441,7 @@
       font-size:13px;
       transition: all 0.3s ease;
     }
-    .field input:focus, .field textarea:focus{
+    .field input:focus, .field textarea:focus, .field select:focus{
       border-color: var(--accent);
       background: rgba(255,255,255,.12);
     }
@@ -490,6 +491,14 @@
     }
     .mini.danger:hover{ 
       background: rgba(255, 107, 107, 0.3);
+    }
+    .mini.warning{
+      background: rgba(255, 204, 0, 0.15);
+      border-color: var(--warning);
+      color:var(--warning);
+    }
+    .mini.warning:hover{ 
+      background: rgba(255, 204, 0, 0.3);
     }
     .pinRow{
       display:flex;
@@ -623,6 +632,11 @@
       border-color: rgba(0,255,136,.4);
       color:#b8ffd9;
       background: rgba(0,255,136,.1);
+    }
+    .warn.info{
+      border-color: rgba(0,212,255,.4);
+      color:#b8eaff;
+      background: rgba(0,212,255,.1);
     }
     .histToggle{
       width:100%;
@@ -891,6 +905,47 @@
       display: block;
     }
     
+    .upload-status {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+    
+    .upload-status.success {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+    }
+    
+    .upload-status.error {
+      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+    }
+    
+    .photo-exists {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      margin-left: 10px;
+    }
+    
+    .photo-exists.yes {
+      background: rgba(0, 255, 136, 0.1);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+    
+    .photo-exists.no {
+      background: rgba(255, 107, 107, 0.1);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+    
     @media (max-width: 1100px){
       .grid{ grid-template-columns:1fr }
       #products{ grid-template-columns:repeat(2, minmax(0, 1fr)) }
@@ -974,6 +1029,7 @@
       </div>
     </div>
   </div>
+  
   <aside class="drawer" id="drawer">
     <div class="drawerHeader">
       <h3>🛒 Panier & Fiche client</h3>
@@ -983,6 +1039,7 @@
       <div class="scroll-indicator" id="scrollIndicator">
         <span>▼ Défilez pour voir plus d'articles</span>
       </div>
+      
       <div class="section" id="clientBox">
         <h4><span>👤 Fiche client (1 seule fois)</span><span class="sub" id="clientLockTxt"></span></h4>
         <div class="row2">
@@ -1010,6 +1067,7 @@
           <span>💡 Pratique pour voir le total.</span>
         </div>
       </div>
+      
       <div class="section">
         <h4><span>🧺 Articles</span><span class="sub" id="cartMiniInfo">0 article(s)</span></h4>
         <div class="cartList" id="cartList"></div>
@@ -1035,55 +1093,85 @@
           </div>
         </div>
       </div>
-      <!-- SECTION PHOTO ADMIN AJOUTÉE -->
+      
+      <!-- SECTION UPLOAD PHOTOS - CORRIGÉE -->
       <div class="section photo-admin" id="photoAdmin" style="display:none">
-        <h4><span>📸 Gestion des photos</span><span class="sub">Admin uniquement</span></h4>
+        <h4><span>📸 Upload Photo d'Article</span><span class="sub">Conserve le nom de l'article</span></h4>
+        
+        <div class="field">
+          <label for="uploadCode">Code Article *</label>
+          <input type="text" id="uploadCode" placeholder="Ex: 2999">
+        </div>
+        
+        <div class="field">
+          <label for="uploadName">Nom de l'Article *</label>
+          <input type="text" id="uploadName" placeholder="Ex: Pizza 4 Fromages Surgelée">
+        </div>
         
         <div class="row2">
           <div class="field">
-            <label>Code article</label>
-            <input id="photoCode" placeholder="Ex: 12345">
-          </div>
-          <div class="field">
-            <label>Extension</label>
-            <select id="photoExt">
-              <option value="jpg">.jpg</option>
-              <option value="jpeg">.jpeg</option>
-              <option value="png">.png</option>
-              <option value="gif">.gif</option>
+            <label for="uploadCategory">Catégorie *</label>
+            <select id="uploadCategory">
+              <option value="">Sélectionner</option>
+              <option value="produits_surgeles" selected>Produits Surgelés</option>
+              <option value="cafe">Café</option>
+              <option value="jus_boissons">Jus & Boissons</option>
+              <option value="chips_snacks">Chips et Snacks</option>
+              <option value="chocolats_biscuits">Chocolats et Biscuits</option>
+              <option value="conserves">Conserves</option>
+              <option value="pates">Pâtes</option>
+              <option value="epicerie_salee">Épicerie Salée</option>
+              <option value="epicerie_sucree">Épicerie Sucrée</option>
+              <option value="hygiene_soins">Hygiène & Soins</option>
+              <option value="hygiene_entretien">Hygiène et Entretien</option>
+              <option value="lait_oeufs_produits_frais">Lait, Œufs & Produits frais</option>
+              <option value="fromage_charcuterie">Fromage & Charcuterie</option>
+              <option value="fruits_legumes">Fruits et Légumes</option>
+              <option value="fruits_secs_noix">Fruits Secs et Noix</option>
+              <option value="boulangerie_patisserie">Boulangerie & Pâtisserie</option>
+              <option value="cuisine_monde">Cuisine du Monde</option>
+              <option value="eaux">Eaux</option>
+              <option value="bebe_maman">Bébé et Maman</option>
+              <option value="animaux_compagnie">Animaux de Compagnie</option>
+              <option value="vipa_selections">VIPA Sélections</option>
             </select>
           </div>
-        </div>
-        
-        <div class="field">
-          <label>Nom article (auto)</label>
-          <input id="photoName" readonly style="background:rgba(255,255,255,.05)">
-        </div>
-        
-        <div class="field">
-          <label>Vérifier l'existence</label>
-          <div class="miniBtns">
-            <button class="mini" onclick="checkPhoto()">Vérifier photo</button>
-            <button class="mini green" onclick="addPhotoManually()">Marquer comme "photo existante"</button>
+          
+          <div class="field">
+            <label for="uploadPrice">Prix</label>
+            <input type="number" id="uploadPrice" step="0.01" placeholder="Ex: 12.50">
           </div>
-          <div id="photoCheckResult" class="hint"></div>
         </div>
         
-        <img id="photoPreview" class="photo-preview" alt="Aperçu">
+        <div class="field">
+          <label for="uploadFile">Photo *</label>
+          <input type="file" id="uploadFile" accept="image/*">
+          <img id="uploadPreview" class="photo-preview" alt="Aperçu">
+        </div>
         
-        <div class="hint" style="margin-top:15px">
-          Pour ajouter une photo manuellement :<br>
-          1. Nommez-la <strong>code.ext</strong> (ex: 12345.jpg)<br>
-          2. Placez-la dans <strong>images/products/</strong><br>
-          3. Cliquez sur "Marquer comme photo existante"
+        <div class="miniBtns">
+          <button class="mini" onclick="findArticleForUpload()">🔍 Chercher l'article</button>
+          <button class="mini green" onclick="uploadPhoto()">📤 Uploader la photo</button>
+        </div>
+        
+        <div id="uploadStatus" class="upload-status"></div>
+        
+        <div class="hint">
+          <strong>⚠️ IMPORTANT :</strong><br>
+          1. Le nom de l'article est conservé dans le CSV<br>
+          2. La photo est renommée automatiquement (code.jpg)<br>
+          3. Les données sont sauvegardées dans images/products/
         </div>
       </div>
     </div>
+    
     <div class="drawerFooter">
       <button class="mini danger" id="clearCartBtn">Vider panier</button>
+      <button class="mini warning" onclick="togglePhotoUpload()">📸 Upload Photo</button>
       <button class="mini green" id="sendBtn">🚀 Envoyer</button>
     </div>
   </aside>
+  
   <div class="modalBack" id="modalBack">
     <div class="modal">
       <div class="modalHead">
@@ -1098,6 +1186,7 @@
       </div>
     </div>
   </div>
+  
   <div class="admin" id="admin">
     <div class="adminBox">
       <div class="adminHead">
@@ -1108,7 +1197,7 @@
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
           <button class="mini" id="exportBtn">Exporter JSON</button>
           <button class="mini danger" id="clearAllBtn">Effacer tout l'historique</button>
-          <button class="mini green" onclick="togglePhotoAdmin()">📸 Gestion photos</button>
+          <button class="mini warning" onclick="togglePhotoUploadSection()">📸 Gestion photos</button>
         </div>
         <pre id="adminDump">—</pre>
       </div>
@@ -1121,7 +1210,7 @@ const MIN_ORDER = 15;
 const FREE_SHIPPING = 30;
 const SHIPPING_FEE = 5;
 
-/* TOUTES LES CATÉGORIES AVEC LES BONS NOMS DE FICHIERS */
+/* CATÉGORIES */
 const CATEGORIES = [
   { key:"animaux_compagnie", label:"Animaux de Compagnie", file:"data/animaux_compagnie.csv" },
   { key:"bebe_maman", label:"Bébé et Maman", file:"data/bebe_maman.csv" },
@@ -1150,10 +1239,12 @@ const CATEGORIES = [
 const $ = (id)=>document.getElementById(id);
 const fmtDT = (n)=>Number(n||0).toFixed(2).replace(".", ",") + " dt";
 const nowStr = ()=> new Date().toLocaleString("fr-FR");
+
+// CORRECTION : Ne pas supprimer les caractères importants du nom
 function safeKey(s){ 
-  // CORRECTION : Ne pas trop nettoyer le nom
   return String(s||"").trim().toLowerCase().replace(/\s+/g,"_").replace(/[^\w\-_]+/g,"");
 }
+
 function dlText(filename, text){
   const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
   const a = document.createElement("a");
@@ -1167,7 +1258,7 @@ function dlText(filename, text){
 /* STATE */
 const state = {
   dataByCat: new Map(),
-  activeCat: "cafe", // Café par défaut
+  activeCat: "cafe",
   global:false,
   q:"",
   page:1,
@@ -1176,23 +1267,19 @@ const state = {
   cart:{},
   client:null,
   pinCart:false,
-  // CORRECTION : Stockage des photos existantes
-  photosExist: JSON.parse(localStorage.getItem("maxi_photos_exist") || "{}")
 };
 
 function loadLocal(){
   try{ state.cart = JSON.parse(localStorage.getItem("maxi_cart_v1")||"{}") || {}; }catch(e){ state.cart = {}; }
   try{ const c = JSON.parse(localStorage.getItem("maxi_client_v1")||"null"); if(c) state.client = c; }catch(e){}
   try{ state.pinCart = localStorage.getItem("maxi_pin_cart")==="1"; }catch(e){}
-  try{ state.photosExist = JSON.parse(localStorage.getItem("maxi_photos_exist")||"{}"); }catch(e){ state.photosExist = {}; }
 }
 function saveCart(){ localStorage.setItem("maxi_cart_v1", JSON.stringify(state.cart)); }
 function saveClient(){ localStorage.setItem("maxi_client_v1", JSON.stringify(state.client||null)); }
-function savePhotosExist(){ localStorage.setItem("maxi_photos_exist", JSON.stringify(state.photosExist)); }
 function loadHistory(){ try{ return JSON.parse(localStorage.getItem("maxi_orders_v1")||"[]"); }catch(e){ return []; } }
 function saveHistory(arr){ localStorage.setItem("maxi_orders_v1", JSON.stringify(arr||[])); }
 
-/* CSV PARSER CORRIGÉ - GÈRE VOTRE FORMAT */
+/* CSV PARSER CORRIGÉ - CONSERVE LE NOM */
 function parseCSV(text){
   console.log("Parsing CSV...");
   const lines = String(text||"").split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
@@ -1201,32 +1288,30 @@ function parseCSV(text){
   for(let i = 0; i < lines.length; i++){
     const line = lines[i];
     
-    // Skip header lines
+    // Skip headers
     if(line.includes("CODE_ARTICLE") && line.includes("ARTICLES") && line.includes("PRIX")) continue;
     if(line.startsWith(";") || line.startsWith("//")) continue;
     
-    // Votre format: CODE_ARTICLE\tARTICLES\tPRIX
+    // Format: CODE\tNOM\tPRIX
     let parts = line.split("\t");
-    
-    // Si pas de tabulation, essayer point-virgule
     if(parts.length < 3) parts = line.split(";");
     
-    // Clean parts - CORRECTION : Ne pas trop nettoyer le nom
+    // CORRECTION : Conserver le nom original sans trop nettoyer
     parts = parts.map(p => String(p||"").trim());
     
     if(parts.length >= 3){
       const code = parts[0];
-      const name = parts[1];
+      const name = parts[1]; // CONSERVER LE NOM ORIGINAL
       let priceRaw = parts[2];
       
-      // Nettoyer le prix
+      // Nettoyer seulement le prix
       priceRaw = priceRaw.replace(",", ".").replace(/[^0-9.]/g,"");
       const price = Number(priceRaw) || 0;
       
       if(code && name && price > 0){
         rows.push({ 
-          code: String(code).trim(), 
-          name: String(name).trim(), // CONSERVER le nom original
+          code: code,
+          name: name, // NOM CONSERVÉ
           price: price 
         });
       }
@@ -1291,19 +1376,16 @@ function getVisibleItems(){
   let items = [];
   
   if(state.global){
-    // Recherche globale: tous les produits
     for(const c of CATEGORIES){
       const arr = state.dataByCat.get(c.key) || [];
       items.push(...arr.map(it=>({...it, catKey:c.key, catLabel:c.label})));
     }
   } else {
-    // Catégorie active uniquement
     const c = getActiveCat();
     const arr = state.dataByCat.get(c.key) || [];
     items = arr.map(it=>({...it, catKey:c.key, catLabel:c.label}));
   }
 
-  // Filtre de recherche
   const q = String(state.q||"").trim().toLowerCase();
   if(q){
     items = items.filter(it =>
@@ -1313,7 +1395,6 @@ function getVisibleItems(){
     );
   }
   
-  // Tri par nom
   items.sort((a,b)=>String(a.name).localeCompare(String(b.name), "fr"));
   return items;
 }
@@ -1350,24 +1431,15 @@ function render(){
       const card = document.createElement("div");
       card.className = "card";
 
-      // CORRECTION : Générer l'URL de l'image avec vérification
+      // Vérifier si la photo existe
       const imgExtensions = ['jpg', 'jpeg', 'png', 'gif'];
       let imgSrc = "";
       let imgFound = false;
       
-      // Vérifier si la photo existe (marquée manuellement ou physiquement)
-      if (state.photosExist[it.code]) {
-        // Utiliser l'extension enregistrée
-        imgSrc = `images/products/${it.code}.${state.photosExist[it.code]}`;
-        imgFound = true;
-      } else {
-        // Tester les extensions
-        for (const ext of imgExtensions) {
-          const testSrc = `images/products/${it.code}.${ext}`;
-          // On suppose qu'elle existe si on l'a marquée
-          imgSrc = testSrc;
-          break; // Prendre la première extension
-        }
+      for (const ext of imgExtensions) {
+        const testSrc = `images/products/${it.code}.${ext}`;
+        imgSrc = testSrc;
+        break;
       }
 
       card.innerHTML = `
@@ -1383,7 +1455,7 @@ function render(){
         <div class="meta2">
           <div>Code: ${it.code} • ${it.catLabel}</div>
           <div style="font-size:10px;color:${imgFound?'var(--accent)':'var(--muted)'}">
-            ${imgFound ? '✅ Photo disponible' : '📷 Pas de photo'}
+            ${imgFound ? '✅ Photo disponible' : '📷 Photo manquante'}
           </div>
         </div>
         <div class="qtyRow">
@@ -1405,7 +1477,7 @@ function render(){
         render();
       };
       
-      // CORRECTION : Bien sauvegarder le nom de l'article
+      // CORRECTION : BIEN CONSERVER LE NOM DANS LE PANIER
       card.querySelector(".addBtn").onclick = ()=>{
         const q = state.qtyPick[pid]||0;
         if(q<=0) return;
@@ -1413,10 +1485,10 @@ function render(){
         if(state.cart[pid]) {
           state.cart[pid].qty += q;
         } else {
-          // IMPORTANT : Bien sauvegarder toutes les informations
+          // IMPORTANT : Conserver toutes les informations, y compris le NOM
           state.cart[pid] = { 
             pid, 
-            name: it.name, // Nom original préservé
+            name: it.name, // NOM CONSERVÉ
             code: it.code, 
             price: it.price, 
             catLabel: it.catLabel, 
@@ -1538,7 +1610,7 @@ function refreshCartUI(maybeOpen){
   if(state.pinCart || maybeOpen) openDrawer();
 }
 
-/* LOAD DATA WITH DEBUG - VERSION CORRIGÉE */
+/* LOAD DATA */
 async function loadAll(){
   console.log("=== DÉBUT CHARGEMENT DES CATÉGORIES ===");
   $("status").textContent = "Chargement…";
@@ -1565,10 +1637,6 @@ async function loadAll(){
       state.dataByCat.set(c.key, items);
       totalProducts += items.length;
       
-      if(items.length === 0){
-        console.warn(`  ⚠️ ATTENTION: ${c.label} a 0 articles!`);
-      }
-      
     }catch(e){
       console.error(`  ❌ Exception: ${e.message}`);
       state.dataByCat.set(c.key, []);
@@ -1578,19 +1646,13 @@ async function loadAll(){
   console.log("=== FIN CHARGEMENT ===");
   console.log(`Total produits chargés: ${totalProducts}`);
   
-  // Afficher le résumé
-  for(const c of CATEGORIES){
-    const items = state.dataByCat.get(c.key) || [];
-    console.log(`${c.label}: ${items.length} articles`);
-  }
-  
   $("status").textContent = `✅ ${totalProducts} articles`;
   buildCats();
   render();
 }
 
-/* FONCTIONS POUR LA GESTION DES PHOTOS */
-function togglePhotoAdmin() {
+/* UPLOAD PHOTO FUNCTIONS - CORRIGÉES */
+function togglePhotoUpload() {
   const photoAdmin = $("photoAdmin");
   photoAdmin.style.display = photoAdmin.style.display === "none" ? "block" : "none";
   if (photoAdmin.style.display === "block") {
@@ -1598,94 +1660,122 @@ function togglePhotoAdmin() {
   }
 }
 
-function checkPhoto() {
-  const code = $("photoCode").value.trim();
-  if (!code) {
-    $("photoCheckResult").innerHTML = "❌ Veuillez entrer un code";
-    return;
-  }
-  
-  // Trouver l'article correspondant
-  let article = null;
-  for (const [catKey, items] of state.dataByCat.entries()) {
-    const found = items.find(it => it.code === code);
-    if (found) {
-      article = found;
-      break;
-    }
-  }
-  
-  if (!article) {
-    $("photoCheckResult").innerHTML = `❌ Aucun article avec le code ${code}`;
-    $("photoName").value = "";
-    $("photoPreview").classList.remove("show");
-    return;
-  }
-  
-  $("photoName").value = article.name;
-  
-  // Vérifier si une photo existe déjà (marquée)
-  if (state.photosExist[code]) {
-    const ext = state.photosExist[code];
-    $("photoCheckResult").innerHTML = `✅ Photo déjà marquée: ${code}.${ext}`;
-    $("photoExt").value = ext;
-    
-    // Afficher un aperçu
-    $("photoPreview").src = `images/products/${code}.${ext}`;
-    $("photoPreview").classList.add("show");
-    $("photoPreview").onerror = function() {
-      this.classList.remove("show");
-      $("photoCheckResult").innerHTML += `<br>⚠️ Le fichier n'existe pas physiquement`;
-    };
-  } else {
-    // Tester les extensions
-    const extensions = ['jpg', 'jpeg', 'png', 'gif'];
-    let foundExt = null;
-    
-    for (const ext of extensions) {
-      const testUrl = `images/products/${code}.${ext}`;
-      // On pourrait faire une vérification fetch, mais pour l'instant on suppose
-      $("photoCheckResult").innerHTML = `🔍 Aucune photo marquée pour ${code}`;
-    }
-    
-    $("photoPreview").classList.remove("show");
-  }
+function togglePhotoUploadSection() {
+  togglePhotoUpload();
+  $("admin").classList.remove("open");
 }
 
-function addPhotoManually() {
-  const code = $("photoCode").value.trim();
-  const ext = $("photoExt").value;
+// Aperçu de l'image uploadée
+$("uploadFile").addEventListener("change", function(e) {
+  const preview = $("uploadPreview");
+  const file = e.target.files[0];
   
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      preview.src = e.target.result;
+      preview.classList.add("show");
+    }
+    reader.readAsDataURL(file);
+  }
+});
+
+async function findArticleForUpload() {
+  const code = $("uploadCode").value.trim();
   if (!code) {
-    alert("Veuillez entrer un code");
+    showUploadStatus("error", "❌ Veuillez entrer un code article");
     return;
   }
   
-  // Vérifier que l'article existe
-  let articleExists = false;
+  // Chercher dans toutes les catégories
   for (const [catKey, items] of state.dataByCat.entries()) {
-    if (items.find(it => it.code === code)) {
-      articleExists = true;
-      break;
-    }
-  }
-  
-  if (!articleExists) {
-    if (!confirm(`Le code ${code} n'existe pas dans les CSV. Voulez-vous quand même marquer une photo?`)) {
+    const article = items.find(it => it.code === code);
+    if (article) {
+      $("uploadName").value = article.name;
+      
+      // Trouver la catégorie
+      const category = CATEGORIES.find(c => c.key === catKey);
+      if (category) {
+        $("uploadCategory").value = category.key;
+      }
+      
+      $("uploadPrice").value = article.price;
+      showUploadStatus("success", `✅ Article trouvé: ${article.name}`);
       return;
     }
   }
   
-  // Marquer la photo comme existante
-  state.photosExist[code] = ext;
-  savePhotosExist();
+  showUploadStatus("info", "ℹ️ Article non trouvé. Vous pouvez le créer.");
+}
+
+async function uploadPhoto() {
+  const code = $("uploadCode").value.trim();
+  const name = $("uploadName").value.trim();
+  const category = $("uploadCategory").value;
+  const price = $("uploadPrice").value;
+  const fileInput = $("uploadFile");
   
-  $("photoCheckResult").innerHTML = `✅ Photo marquée: ${code}.${ext}`;
+  // Validation
+  if (!code || !name || !category || !fileInput.files[0]) {
+    showUploadStatus("error", "❌ Tous les champs sont obligatoires (code, nom, catégorie, photo)");
+    return;
+  }
   
-  // Recharger l'affichage
-  render();
+  const file = fileInput.files[0];
   
-  alert(`Photo ${code}.${ext} marquée comme existante!`);
+  // Créer FormData avec TOUTES les données
+  const formData = new FormData();
+  formData.append('article_code', code);
+  formData.append('article_name', name); // NOM CONSERVÉ
+  formData.append('category', category);
+  if (price) formData.append('price', price);
+  formData.append('photo', file);
+  
+  showUploadStatus("info", "⏳ Upload en cours...");
+  
+  try {
+    const response = await fetch('upload-article-photo.php', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      showUploadStatus("success", 
+        `✅ ${result.message}<br>
+         📸 Photo: ${result.filename}<br>
+         📦 Article: ${result.article_name}<br>
+         🔢 Code: ${result.article_code}<br>
+         📁 Catégorie: ${result.category}`);
+      
+      // Réinitialiser le formulaire
+      $("uploadCode").value = "";
+      $("uploadName").value = "";
+      $("uploadPrice").value = "";
+      $("uploadFile").value = "";
+      $("uploadPreview").classList.remove("show");
+      
+      // Recharger les données
+      setTimeout(() => {
+        loadAll().then(() => {
+          showUploadStatus("success", "✅ Données rechargées avec la nouvelle photo!");
+        });
+      }, 1000);
+      
+    } else {
+      showUploadStatus("error", `❌ ${result.message}`);
+    }
+  } catch (error) {
+    showUploadStatus("error", `❌ Erreur réseau: ${error.message}`);
+  }
+}
+
+function showUploadStatus(type, message) {
+  const status = $("uploadStatus");
+  status.className = `upload-status ${type}`;
+  status.innerHTML = message;
+  status.style.display = "block";
 }
 
 /* INIT */
@@ -1718,7 +1808,7 @@ $("pinCart").addEventListener("change", ()=>{
   if(state.pinCart) openDrawer();
 });
 
-/* FONCTIONS MANQUANTES POUR LE PANIER */
+/* FONCTIONS CLIENT */
 $("saveClientBtn").onclick = function(){
   const name = $("cName").value.trim();
   const tel = $("cTel").value.trim();
@@ -1796,7 +1886,7 @@ $("sendBtn").onclick = function(){
   $("orderText").value = summary;
   $("modalBack").classList.add("open");
   
-  // Ajouter l'animation de succès
+  // Ajouter l'animation
   $("sendBtn").classList.add("sent-animation");
   setTimeout(() => $("sendBtn").classList.remove("sent-animation"), 2000);
 };
@@ -1862,21 +1952,18 @@ $("clearMyHistoryBtn").onclick = function(){
   }
 };
 
-/* SHORTCUT ADMIN */
+/* ADMIN */
 document.addEventListener('keydown', function(e) {
-  // Ctrl + Shift + A pour admin
   if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
     e.preventDefault();
     $("admin").classList.toggle("open");
   }
 });
 
-// Vérifier l'URL pour #admin
 if (window.location.hash === '#admin') {
   $("admin").classList.add("open");
 }
 
-/* ADMIN FUNCTIONS */
 $("closeAdmin").onclick = function(){
   $("admin").classList.remove("open");
 };
@@ -1900,14 +1987,155 @@ $("clearAllBtn").onclick = function(){
   }
 };
 
-// Afficher l'historique dans l'admin
 function updateAdminDump() {
   const history = loadHistory();
   $("adminDump").textContent = JSON.stringify(history, null, 2);
 }
 
-// Initialiser l'affichage admin
 updateAdminDump();
+</script>
+
+<!-- FICHIER PHP D'UPLOAD À CRÉER (upload-article-photo.php) -->
+<script>
+// Contenu du fichier PHP à créer séparément
+const phpUploadCode = `<?php
+// upload-article-photo.php - CORRIGÉ pour conserver le nom de l'article
+header('Content-Type: application/json');
+
+// Dossier des photos
+$uploadDir = 'images/products/';
+
+// Créer le dossier s'il n'existe pas
+if (!file_exists($uploadDir)) {
+    mkdir($uploadDir, 0777, true);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // RÉCUPÉRER TOUTES LES DONNÉES
+    $article_code = $_POST['article_code'] ?? '';
+    $article_name = $_POST['article_name'] ?? ''; // NOM DE L'ARTICLE
+    $category = $_POST['category'] ?? '';
+    $price = $_POST['price'] ?? '0.00';
+    
+    // VALIDATION IMPORTANTE
+    if (empty($article_code) || empty($article_name) || empty($category)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'ERREUR: Code, nom ou catégorie manquant!'
+        ]);
+        exit;
+    }
+    
+    // Vérifier le fichier
+    if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'ERREUR: Aucun fichier uploadé.'
+        ]);
+        exit;
+    }
+    
+    $file = $_FILES['photo'];
+    
+    // Vérifier le type
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
+    if (!in_array($file['type'], $allowedTypes)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'ERREUR: Type non autorisé. Utilisez JPG, PNG ou GIF.'
+        ]);
+        exit;
+    }
+    
+    // Déterminer l'extension
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $validExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+    
+    if (!in_array($extension, $validExtensions)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'ERREUR: Extension non valide.'
+        ]);
+        exit;
+    }
+    
+    // NOUVEAU NOM (code + extension)
+    $newFilename = $article_code . '.' . $extension;
+    $destination = $uploadDir . $newFilename;
+    
+    // 1. METTRE À JOUR LE CSV (CONSERVER LE NOM)
+    updateCSV($article_code, $article_name, $price, $category);
+    
+    // 2. DÉPLACER LE FICHIER
+    if (move_uploaded_file($file['tmp_name'], $destination)) {
+        echo json_encode([
+            'success' => true,
+            'message' => '✅ Photo uploadée avec succès!',
+            'filename' => $newFilename,
+            'article_name' => $article_name, // NOM RETOURNÉ
+            'article_code' => $article_code,
+            'category' => $category
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'ERREUR: Impossible de déplacer le fichier.'
+        ]);
+    }
+}
+
+// FONCTION POUR METTRE À JOUR LE CSV
+function updateCSV($code, $name, $price, $category) {
+    $csvFile = "data/" . $category . ".csv";
+    
+    if (!file_exists($csvFile)) {
+        // Créer le fichier s'il n'existe pas
+        file_put_contents($csvFile, "CODE_ARTICLE\\tARTICLES\\tPRIX\\n");
+    }
+    
+    $lines = file($csvFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    $updatedLines = [];
+    $found = false;
+    
+    foreach ($lines as $line) {
+        // Skip header
+        if (strpos($line, "CODE_ARTICLE") !== false) {
+            $updatedLines[] = $line;
+            continue;
+        }
+        
+        $parts = explode("\\t", $line);
+        
+        if (count($parts) >= 2) {
+            $currentCode = trim($parts[0]);
+            
+            if ($currentCode == $code) {
+                // METTRE À JOUR LA LIGNE EXISTANTE
+                $parts[1] = $name; // CONSERVER LE NOM
+                if (count($parts) >= 3) {
+                    $parts[2] = $price;
+                }
+                $found = true;
+            }
+            
+            $updatedLines[] = implode("\\t", $parts);
+        }
+    }
+    
+    // Si non trouvé, ajouter une nouvelle ligne
+    if (!$found) {
+        $updatedLines[] = $code . "\\t" . $name . "\\t" . $price;
+    }
+    
+    // Sauvegarder
+    file_put_contents($csvFile, implode("\\n", $updatedLines));
+    
+    return true;
+}
+?>`;
+
+// Pour créer le fichier PHP, décommentez la ligne suivante:
+// console.log("Copiez ce code dans upload-article-photo.php:\n\n" + phpUploadCode);
 </script>
 </body>
 </html>
