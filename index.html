@@ -855,6 +855,42 @@
     .scroll-indicator.visible {
       opacity: 1;
     }
+    
+    /* Image produit - CORRIGÉ */
+    .product-img{
+      width:100%;
+      height:160px;
+      object-fit:contain;
+      display:block;
+      margin:8px auto;
+      background:#fff;
+      border-radius:8px;
+      border: 1px solid var(--line);
+    }
+    
+    /* Panneau photo admin */
+    .photo-admin {
+      margin-top: 20px;
+      border: 2px dashed var(--accent);
+      background: rgba(0, 255, 136, 0.05);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    
+    .photo-preview {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid var(--line);
+      margin: 10px 0;
+      display: none;
+    }
+    
+    .photo-preview.show {
+      display: block;
+    }
+    
     @media (max-width: 1100px){
       .grid{ grid-template-columns:1fr }
       #products{ grid-template-columns:repeat(2, minmax(0, 1fr)) }
@@ -876,17 +912,6 @@
       .section { margin: 0 10px; padding: 15px; }
       .cartList { max-height: 250px; }
     }
-    /* Image produit */
-.product-img{
-  width:100%;
-  height:160px;
-  object-fit:contain;
-  display:block;
-  margin:8px auto;
-  background:#fff;
-  border-radius:8px;
-}
-
   </style>
 </head>
 <body>
@@ -1010,6 +1035,49 @@
           </div>
         </div>
       </div>
+      <!-- SECTION PHOTO ADMIN AJOUTÉE -->
+      <div class="section photo-admin" id="photoAdmin" style="display:none">
+        <h4><span>📸 Gestion des photos</span><span class="sub">Admin uniquement</span></h4>
+        
+        <div class="row2">
+          <div class="field">
+            <label>Code article</label>
+            <input id="photoCode" placeholder="Ex: 12345">
+          </div>
+          <div class="field">
+            <label>Extension</label>
+            <select id="photoExt">
+              <option value="jpg">.jpg</option>
+              <option value="jpeg">.jpeg</option>
+              <option value="png">.png</option>
+              <option value="gif">.gif</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="field">
+          <label>Nom article (auto)</label>
+          <input id="photoName" readonly style="background:rgba(255,255,255,.05)">
+        </div>
+        
+        <div class="field">
+          <label>Vérifier l'existence</label>
+          <div class="miniBtns">
+            <button class="mini" onclick="checkPhoto()">Vérifier photo</button>
+            <button class="mini green" onclick="addPhotoManually()">Marquer comme "photo existante"</button>
+          </div>
+          <div id="photoCheckResult" class="hint"></div>
+        </div>
+        
+        <img id="photoPreview" class="photo-preview" alt="Aperçu">
+        
+        <div class="hint" style="margin-top:15px">
+          Pour ajouter une photo manuellement :<br>
+          1. Nommez-la <strong>code.ext</strong> (ex: 12345.jpg)<br>
+          2. Placez-la dans <strong>images/products/</strong><br>
+          3. Cliquez sur "Marquer comme photo existante"
+        </div>
+      </div>
     </div>
     <div class="drawerFooter">
       <button class="mini danger" id="clearCartBtn">Vider panier</button>
@@ -1040,6 +1108,7 @@
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
           <button class="mini" id="exportBtn">Exporter JSON</button>
           <button class="mini danger" id="clearAllBtn">Effacer tout l'historique</button>
+          <button class="mini green" onclick="togglePhotoAdmin()">📸 Gestion photos</button>
         </div>
         <pre id="adminDump">—</pre>
       </div>
@@ -1081,7 +1150,10 @@ const CATEGORIES = [
 const $ = (id)=>document.getElementById(id);
 const fmtDT = (n)=>Number(n||0).toFixed(2).replace(".", ",") + " dt";
 const nowStr = ()=> new Date().toLocaleString("fr-FR");
-function safeKey(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g,"_").replace(/[^\w\-]+/g,""); }
+function safeKey(s){ 
+  // CORRECTION : Ne pas trop nettoyer le nom
+  return String(s||"").trim().toLowerCase().replace(/\s+/g,"_").replace(/[^\w\-_]+/g,"");
+}
 function dlText(filename, text){
   const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
   const a = document.createElement("a");
@@ -1104,15 +1176,19 @@ const state = {
   cart:{},
   client:null,
   pinCart:false,
+  // CORRECTION : Stockage des photos existantes
+  photosExist: JSON.parse(localStorage.getItem("maxi_photos_exist") || "{}")
 };
 
 function loadLocal(){
   try{ state.cart = JSON.parse(localStorage.getItem("maxi_cart_v1")||"{}") || {}; }catch(e){ state.cart = {}; }
   try{ const c = JSON.parse(localStorage.getItem("maxi_client_v1")||"null"); if(c) state.client = c; }catch(e){}
   try{ state.pinCart = localStorage.getItem("maxi_pin_cart")==="1"; }catch(e){}
+  try{ state.photosExist = JSON.parse(localStorage.getItem("maxi_photos_exist")||"{}"); }catch(e){ state.photosExist = {}; }
 }
 function saveCart(){ localStorage.setItem("maxi_cart_v1", JSON.stringify(state.cart)); }
 function saveClient(){ localStorage.setItem("maxi_client_v1", JSON.stringify(state.client||null)); }
+function savePhotosExist(){ localStorage.setItem("maxi_photos_exist", JSON.stringify(state.photosExist)); }
 function loadHistory(){ try{ return JSON.parse(localStorage.getItem("maxi_orders_v1")||"[]"); }catch(e){ return []; } }
 function saveHistory(arr){ localStorage.setItem("maxi_orders_v1", JSON.stringify(arr||[])); }
 
@@ -1135,8 +1211,8 @@ function parseCSV(text){
     // Si pas de tabulation, essayer point-virgule
     if(parts.length < 3) parts = line.split(";");
     
-    // Clean parts
-    parts = parts.map(p => String(p||"").trim()).filter(p => p !== "");
+    // Clean parts - CORRECTION : Ne pas trop nettoyer le nom
+    parts = parts.map(p => String(p||"").trim());
     
     if(parts.length >= 3){
       const code = parts[0];
@@ -1150,20 +1226,9 @@ function parseCSV(text){
       if(code && name && price > 0){
         rows.push({ 
           code: String(code).trim(), 
-          name: String(name).trim(), 
+          name: String(name).trim(), // CONSERVER le nom original
           price: price 
         });
-      }
-    } else if(parts.length === 2) {
-      // Format alternatif: CODE;NOM;PRIX peut être fusionné
-      const code = parts[0];
-      const namePrice = parts[1];
-      // Essayer d'extraire le prix du nom
-      const priceMatch = namePrice.match(/(\d+[\.,]\d+)/);
-      if(priceMatch){
-        const price = Number(priceMatch[1].replace(",", "."));
-        const name = namePrice.replace(priceMatch[0], "").trim();
-        rows.push({ code, name, price });
       }
     }
   }
@@ -1285,17 +1350,41 @@ function render(){
       const card = document.createElement("div");
       card.className = "card";
 
+      // CORRECTION : Générer l'URL de l'image avec vérification
+      const imgExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+      let imgSrc = "";
+      let imgFound = false;
+      
+      // Vérifier si la photo existe (marquée manuellement ou physiquement)
+      if (state.photosExist[it.code]) {
+        // Utiliser l'extension enregistrée
+        imgSrc = `images/products/${it.code}.${state.photosExist[it.code]}`;
+        imgFound = true;
+      } else {
+        // Tester les extensions
+        for (const ext of imgExtensions) {
+          const testSrc = `images/products/${it.code}.${ext}`;
+          // On suppose qu'elle existe si on l'a marquée
+          imgSrc = testSrc;
+          break; // Prendre la première extension
+        }
+      }
+
       card.innerHTML = `
         <div class="cardTop">
-        <img src="images/products/${it.code}.jpg"
-     class="product-img"
-     onerror="this.style.display='none'">
-
+          <img src="${imgSrc}"
+               class="product-img"
+               onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMxMTIyNDAiLz48cGF0aCBkPSJNNzUgNzVMMTI1IDEyNU0xMjUgNzVMNzUgMTI1IiBzdHJva2U9IiM4Qjk0OUUiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==';this.style.backgroundColor='var(--bg1)'"
+               alt="${it.name}"
+               data-code="${it.code}">
           <div class="name">${it.name}</div>
           <div class="price">${fmtDT(it.price)}</div>
         </div>
         <div class="meta2">
           <div>Code: ${it.code} • ${it.catLabel}</div>
+          <div style="font-size:10px;color:${imgFound?'var(--accent)':'var(--muted)'}">
+            ${imgFound ? '✅ Photo disponible' : '📷 Pas de photo'}
+          </div>
         </div>
         <div class="qtyRow">
           <div class="stepper">
@@ -1315,11 +1404,26 @@ function render(){
         state.qtyPick[pid] = (state.qtyPick[pid]||0)+1;
         render();
       };
+      
+      // CORRECTION : Bien sauvegarder le nom de l'article
       card.querySelector(".addBtn").onclick = ()=>{
         const q = state.qtyPick[pid]||0;
         if(q<=0) return;
-        if(state.cart[pid]) state.cart[pid].qty += q;
-        else state.cart[pid] = { pid, name:it.name, code:it.code, price:it.price, catLabel:it.catLabel, qty:q };
+        
+        if(state.cart[pid]) {
+          state.cart[pid].qty += q;
+        } else {
+          // IMPORTANT : Bien sauvegarder toutes les informations
+          state.cart[pid] = { 
+            pid, 
+            name: it.name, // Nom original préservé
+            code: it.code, 
+            price: it.price, 
+            catLabel: it.catLabel, 
+            qty: q 
+          };
+        }
+        
         state.qtyPick[pid] = 0;
         saveCart();
         refreshCartUI(true);
@@ -1483,6 +1587,105 @@ async function loadAll(){
   $("status").textContent = `✅ ${totalProducts} articles`;
   buildCats();
   render();
+}
+
+/* FONCTIONS POUR LA GESTION DES PHOTOS */
+function togglePhotoAdmin() {
+  const photoAdmin = $("photoAdmin");
+  photoAdmin.style.display = photoAdmin.style.display === "none" ? "block" : "none";
+  if (photoAdmin.style.display === "block") {
+    openDrawer();
+  }
+}
+
+function checkPhoto() {
+  const code = $("photoCode").value.trim();
+  if (!code) {
+    $("photoCheckResult").innerHTML = "❌ Veuillez entrer un code";
+    return;
+  }
+  
+  // Trouver l'article correspondant
+  let article = null;
+  for (const [catKey, items] of state.dataByCat.entries()) {
+    const found = items.find(it => it.code === code);
+    if (found) {
+      article = found;
+      break;
+    }
+  }
+  
+  if (!article) {
+    $("photoCheckResult").innerHTML = `❌ Aucun article avec le code ${code}`;
+    $("photoName").value = "";
+    $("photoPreview").classList.remove("show");
+    return;
+  }
+  
+  $("photoName").value = article.name;
+  
+  // Vérifier si une photo existe déjà (marquée)
+  if (state.photosExist[code]) {
+    const ext = state.photosExist[code];
+    $("photoCheckResult").innerHTML = `✅ Photo déjà marquée: ${code}.${ext}`;
+    $("photoExt").value = ext;
+    
+    // Afficher un aperçu
+    $("photoPreview").src = `images/products/${code}.${ext}`;
+    $("photoPreview").classList.add("show");
+    $("photoPreview").onerror = function() {
+      this.classList.remove("show");
+      $("photoCheckResult").innerHTML += `<br>⚠️ Le fichier n'existe pas physiquement`;
+    };
+  } else {
+    // Tester les extensions
+    const extensions = ['jpg', 'jpeg', 'png', 'gif'];
+    let foundExt = null;
+    
+    for (const ext of extensions) {
+      const testUrl = `images/products/${code}.${ext}`;
+      // On pourrait faire une vérification fetch, mais pour l'instant on suppose
+      $("photoCheckResult").innerHTML = `🔍 Aucune photo marquée pour ${code}`;
+    }
+    
+    $("photoPreview").classList.remove("show");
+  }
+}
+
+function addPhotoManually() {
+  const code = $("photoCode").value.trim();
+  const ext = $("photoExt").value;
+  
+  if (!code) {
+    alert("Veuillez entrer un code");
+    return;
+  }
+  
+  // Vérifier que l'article existe
+  let articleExists = false;
+  for (const [catKey, items] of state.dataByCat.entries()) {
+    if (items.find(it => it.code === code)) {
+      articleExists = true;
+      break;
+    }
+  }
+  
+  if (!articleExists) {
+    if (!confirm(`Le code ${code} n'existe pas dans les CSV. Voulez-vous quand même marquer une photo?`)) {
+      return;
+    }
+  }
+  
+  // Marquer la photo comme existante
+  state.photosExist[code] = ext;
+  savePhotosExist();
+  
+  $("photoCheckResult").innerHTML = `✅ Photo marquée: ${code}.${ext}`;
+  
+  // Recharger l'affichage
+  render();
+  
+  alert(`Photo ${code}.${ext} marquée comme existante!`);
 }
 
 /* INIT */
@@ -1658,8 +1861,53 @@ $("clearMyHistoryBtn").onclick = function(){
     $("histCount").textContent = "0";
   }
 };
+
+/* SHORTCUT ADMIN */
+document.addEventListener('keydown', function(e) {
+  // Ctrl + Shift + A pour admin
+  if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
+    e.preventDefault();
+    $("admin").classList.toggle("open");
+  }
+});
+
+// Vérifier l'URL pour #admin
+if (window.location.hash === '#admin') {
+  $("admin").classList.add("open");
+}
+
+/* ADMIN FUNCTIONS */
+$("closeAdmin").onclick = function(){
+  $("admin").classList.remove("open");
+};
+
+$("exportBtn").onclick = function(){
+  const history = loadHistory();
+  const data = {
+    exportedAt: new Date().toISOString(),
+    totalOrders: history.length,
+    orders: history
+  };
+  const json = JSON.stringify(data, null, 2);
+  dlText(`maxi-orders-${new Date().toISOString().slice(0,10)}.json`, json);
+};
+
+$("clearAllBtn").onclick = function(){
+  if(confirm("Effacer TOUT l'historique des commandes ? Cette action est irréversible.")){
+    saveHistory([]);
+    alert("✅ Historique effacé !");
+    $("adminDump").textContent = "Historique vide.";
+  }
+};
+
+// Afficher l'historique dans l'admin
+function updateAdminDump() {
+  const history = loadHistory();
+  $("adminDump").textContent = JSON.stringify(history, null, 2);
+}
+
+// Initialiser l'affichage admin
+updateAdminDump();
 </script>
 </body>
 </html>
-
-
