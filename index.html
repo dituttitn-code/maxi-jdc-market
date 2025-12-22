@@ -97,10 +97,15 @@
       font-size:9px;
     }
 
-    /* RECHERCHE COMPACTE */
+    /* RECHERCHE + PANIER CÔTE À CÔTE */
+    .search-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      width: 100%;
+    }
     .search{
-      flex:1 1 auto;
-      width:100%;
+      flex: 1 1 auto;
       display:flex;
       gap:3px;
       align-items:center;
@@ -141,23 +146,38 @@
     .btn.green{ background: rgba(0, 255, 136, 0.15); border-color: var(--accent); color: var(--accent); }
     .btn.green:hover{ background: rgba(0, 255, 136, 0.25); }
 
-    /* Bouton panier dans la section recherche */
-    #cartTopBtnCompact {
-      min-width: 50px;
+    /* Bouton panier dans la ligne recherche */
+    #cartTopBtn {
       height: 32px;
-      padding: 0 6px;
-      font-size: 10px;
+      padding: 0 12px;
+      border-radius:6px;
+      border:1px solid var(--accent);
+      background: rgba(0, 255, 136, 0.1);
+      color: var(--accent);
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 11px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 2px;
+      gap: 5px;
+      min-width: 85px;
+      flex-shrink: 0;
     }
-    
-    #cartTopCountCompact {
+    #cartTopBtn:hover {
+      background: rgba(0, 255, 136, 0.2);
+    }
+    #cartTopCount {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
       font-weight: 900;
-      color: var(--accent);
-      font-size: 9px;
-      margin-left: 1px;
     }
 
     .pills{
@@ -184,29 +204,9 @@
       flex-shrink: 0;
     }
     .pill strong{font-weight:800; color:var(--accent);}
-    .cartPill{
-      margin-left:auto;
-      cursor:pointer;
-      border:1px solid var(--accent);
-      background:rgba(0, 255, 136, 0.1);
-      color:var(--accent);
-      font-weight:800;
-      flex-shrink: 0;
-    }
-    #cartTopCount{
-      margin-left:3px;
-      display:inline-grid;
-      place-items:center;
-      min-width:16px;
-      height:16px;
-      padding:0 3px;
-      border-radius:999px;
-      background:rgba(0,0,0,.5);
-      border:1px solid var(--accent);
-      font-weight:900;
-      color:var(--accent);
-      font-size:8px;
-    }
+    
+    /* SUPPRIMÉ: .cartPill - car maintenant intégré dans search-row */
+    
     .qrPill{
       margin-left:auto;
       border:1px solid var(--accent2);
@@ -218,31 +218,6 @@
       gap:3px;
       flex-shrink: 0;
     }
-
-    /* NOTE BAR SIMPLIFIÉE - SUPPRIMÉE */
-    /* .noteBar{
-      margin-top:6px;
-      padding:6px;
-      border-radius:var(--radius);
-      border:1px solid rgba(0, 255, 136, 0.3);
-      background: rgba(0, 255, 136, 0.05);
-      color:var(--text);
-      font-size:9px;
-      display:flex;
-      flex-direction: column;
-      gap:3px;
-    }
-    .noteBar .ok{
-      color:var(--accent);
-      font-weight:700;
-      display:inline-flex;
-      gap:3px;
-      align-items:center;
-    }
-    .noteBar .sub{
-      color:var(--muted);
-      font-size:8px;
-    } */
 
     /* CATÉGORIES HORIZONTALES */
     .catsHorizontal {
@@ -447,10 +422,10 @@
     }
     .card:hover{ border-color: var(--accent2); transform: translateY(-2px); }
 
-    /* PHOTO AUGMENTÉE */
+    /* PHOTO AJUSTÉE - TAILLE RÉDUITE POUR MIEUX S'ADAPTER */
     .imgWrap{
       width:100%;
-      height:140px; /* Légèrement réduit pour uniformité */
+      height:120px; /* Réduit de 140px à 120px */
       border-radius:8px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.06);
@@ -462,9 +437,9 @@
     .product-img{
       width:100%;
       height:100%;
-      object-fit:contain; /* Garde contain pour voir tout le produit */
+      object-fit:contain;
       display:block;
-      background:#f8f8f8; /* Fond plus clair pour mieux voir les produits */
+      background:#f8f8f8;
       padding: 2px;
     }
     .noPhoto{
@@ -526,7 +501,7 @@
       width:100%;
     }
     
-    /* STEpper TRÈS PETIT - DÉPLACÉ À GAUCHE */
+    /* STEPPER TRÈS PETIT */
     .stepper{
       display:flex;
       align-items:center;
@@ -537,12 +512,12 @@
       border:1px solid var(--line);
       background: rgba(0,0,0,.2);
       min-width: 0;
-      width: 70px; /* Largeur fixe réduite */
+      width: 70px;
       flex-shrink: 0;
     }
     .stepper button{
-      width:18px; /* Très réduit */
-      height:18px; /* Très réduit */
+      width:18px;
+      height:18px;
       border-radius:999px;
       border:1px solid var(--line);
       background: rgba(255,255,255,.1);
@@ -558,14 +533,14 @@
     }
     .stepper button:hover{ border-color: var(--accent); background: rgba(255,255,255,.2); }
     .stepper span{ 
-      min-width:12px; /* Réduit */
+      min-width:12px;
       text-align:center; 
       font-weight:900; 
       color:var(--text); 
       font-size:10px; 
     }
 
-    /* BOUTON STOCK - PLACÉ AU MILIEU */
+    /* BOUTON STOCK */
     .stockBtn{
       height:24px;
       border-radius:4px;
@@ -600,7 +575,7 @@
     .stockTag.ok{ border-color: rgba(0,255,136,.3); color: var(--accent); background: rgba(0,255,136,.08); }
     .stockTag.no{ border-color: rgba(255,107,107,.4); color: var(--danger); background: rgba(255,107,107,.08); }
 
-    /* BOUTON AJOUTER - À DROITE */
+    /* BOUTON AJOUTER */
     .addBtn{
       height:24px;
       padding:0 8px;
@@ -1049,13 +1024,15 @@
 
     /* BOUTONS FLOATING POUR MOBILE */
     .mobile-fab {
-      display: none; /* Cacher sur tous les appareils */
+      display: none;
     }
 
     /* RESPONSIVE */
     @media (min-width: 480px){
       .wrap{padding:8px 8px 70px;}
       .top{padding: 10px;}
+      .topRow{flex-direction: row; align-items: center;}
+      .search-row{flex: 1;}
       #products{grid-template-columns:repeat(2, 1fr);}
       .row2{grid-template-columns:1fr 1fr;}
       .drawer{width: 90vw;}
@@ -1074,7 +1051,8 @@
         transform: none;
       }
       .topRow{flex-direction: row; align-items: center;}
-      .search{flex: 1 1 320px;}
+      .search-row{flex: 1;}
+      .search input{min-width: 200px;}
       .pills{flex-wrap: nowrap;}
       .pill{font-size: 10px;}
       #products{grid-template-columns:repeat(3, 1fr);}
@@ -1103,13 +1081,16 @@
           </div>
         </div>
 
-        <div class="search">
-          <input id="q" type="text" placeholder="🔍 Rechercher..." />
-          <button class="btn" id="clearBtn">Effacer</button>
-          <button class="btn green" id="globalBtn">Tous</button>
-          <!-- Bouton panier ajouté ici -->
-          <button class="btn" id="cartTopBtnCompact" title="Panier">
-            🛒 <span id="cartTopCountCompact">0</span>
+        <!-- Ligne avec recherche + panier -->
+        <div class="search-row">
+          <div class="search">
+            <input id="q" type="text" placeholder="🔍 Rechercher..." />
+            <button class="btn" id="clearBtn">Effacer</button>
+            <button class="btn green" id="globalBtn">Tous</button>
+          </div>
+          <!-- Bouton panier unique -->
+          <button class="btn" id="cartTopBtn" title="Panier">
+            🛒 Panier <span id="cartTopCount">0</span>
           </button>
         </div>
       </div>
@@ -1122,19 +1103,11 @@
         <div class="pill qrPill" id="qrBtn" title="Scanner le QR Code">
           📱 QR Code
         </div>
-        
-        <div class="pill cartPill" id="cartTopBtn" title="Ouvrir le panier">
-          🛒 Panier <span id="cartTopCount">0</span>
-        </div>
+        <!-- SUPPRIMÉ: Le panier redondant dans les pills -->
       </div>
 
       <!-- CATÉGORIES HORIZONTALES -->
       <div class="catsHorizontal" id="catsHorizontal"></div>
-
-      <!-- NOTE BAR SIMPLIFIÉE - SUPPRIMÉE -->
-      <!-- <div class="noteBar">
-        <span class="sub">Livraison gratuite à partir de <b>30 dt</b> • Minimum commande: <b>15 dt</b> • Frais de livraison: <b>3 dt</b></span>
-      </div> -->
     </div>
 
     <div class="grid">
@@ -1171,16 +1144,6 @@
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- BOUTONS FLOATING POUR MOBILE - CACHÉS -->
-  <div class="mobile-fab">
-    <button class="fab-btn secondary" id="fabSearch" title="Recherche">
-      🔍
-    </button>
-    <button class="fab-btn" id="fabCart" title="Panier">
-      🛒
-    </button>
   </div>
 
   <!-- Backdrop -->
@@ -1385,7 +1348,7 @@ const state = {
   client:null,
   pinCart:false,
   stockByCode:{},
-  autoOpenOnAdd: false, // Désactivé - panier s'ouvre uniquement au clic
+  autoOpenOnAdd: false,
 };
 
 /* ===================== STORAGE ===================== */
@@ -1718,7 +1681,7 @@ function render(){
 
         state.qtyPick[pid] = 0;
         saveCart();
-        refreshCartUI({ openAfterAdd: false }); // Ne pas ouvrir automatiquement
+        refreshCartUI({ openAfterAdd: false });
         pulseCart();
       };
 
@@ -1746,7 +1709,6 @@ function pulseCart(){
 function refreshCartUI({ openAfterAdd }){
   const cartCountValue = cartCount();
   $("cartTopCount").textContent = cartCountValue;
-  $("cartTopCountCompact").textContent = cartCountValue;
   $("cartMiniInfo").textContent = cartCountValue + " article(s)";
 
   const list = $("cartList");
@@ -1861,7 +1823,6 @@ function refreshCartUI({ openAfterAdd }){
   }
 
   if(state.pinCart) openDrawer();
-  // Ne pas ouvrir automatiquement après ajout
 }
 
 /* ===================== CLIENT ===================== */
@@ -2035,7 +1996,6 @@ $("nextBottomBtn").onclick = ()=>{
 
 /* Panier: ouverture manuelle */
 $("cartTopBtn").onclick = ()=> openDrawer();
-$("cartTopBtnCompact").onclick = ()=> openDrawer();
 $("closeDrawer").onclick = ()=> closeDrawer(false);
 $("backdrop").onclick = ()=> closeDrawer(false);
 
