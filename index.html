@@ -422,27 +422,27 @@
     }
     .card:hover{ border-color: var(--accent2); transform: translateY(-2px); }
 
-    /* PHOTO AJUSTÉE - SOLUTION AMÉLIORÉE */
+    /* PHOTO DIVISÉE EN 2 PARTIES - ESPACE OPTIMISÉ */
     .imgWrap{
       width:100%;
-      height:120px;
+      height:90px; /* Réduit considérablement */
       border-radius:8px;
       border:1px solid rgba(255,255,255,.12);
-      background: #ffffff; /* Fond blanc pur */
+      background: #ffffff;
       display:flex;
       align-items:center;
       justify-content:center;
       overflow:hidden;
       position:relative;
+      padding: 3px; /* Padding réduit */
     }
     .product-img{
-      max-width:100%;
-      max-height:100%;
+      max-width:90%;
+      max-height:90%;
       width:auto;
       height:auto;
       object-fit:contain;
       display:block;
-      padding: 5px;
     }
     .noPhoto{
       position:absolute;
@@ -452,10 +452,29 @@
       justify-content:center;
       color:#666666;
       font-weight:800;
-      font-size:9px;
+      font-size:8px; /* Réduit */
       background: #f8f8f8;
       text-align:center;
-      padding:5px;
+      padding:3px; /* Réduit */
+    }
+
+    /* DIVISION DU CONTENU DE LA CARTE EN 2 PARTIES */
+    .card-content {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+    
+    .card-top {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .card-bottom {
+      margin-top: auto;
     }
 
     .namePrice{
@@ -495,16 +514,17 @@
       gap:1px;
     }
 
-    /* ACTIONS: NOUVELLE DISPOSITION */
+    /* ACTIONS: DISPOSITION PLUS COMPACTE */
     .actions{
-      margin-top:auto;
+      margin-top:4px;
       display:flex;
       align-items:center;
       gap:4px;
       width:100%;
+      min-height: 26px;
     }
     
-    /* STEPPER TRÈS PETIT */
+    /* STEPPER PLUS PETIT */
     .stepper{
       display:flex;
       align-items:center;
@@ -515,19 +535,19 @@
       border:1px solid var(--line);
       background: rgba(0,0,0,.2);
       min-width: 0;
-      width: 70px;
+      width: 65px; /* Réduit */
       flex-shrink: 0;
     }
     .stepper button{
-      width:18px;
-      height:18px;
+      width:16px; /* Réduit */
+      height:16px; /* Réduit */
       border-radius:999px;
       border:1px solid var(--line);
       background: rgba(255,255,255,.1);
       color:var(--text);
       cursor:pointer;
       font-weight:900;
-      font-size:9px;
+      font-size:8px; /* Réduit */
       display:flex;
       align-items:center;
       justify-content:center;
@@ -540,55 +560,55 @@
       text-align:center; 
       font-weight:900; 
       color:var(--text); 
-      font-size:10px; 
+      font-size:9px; /* Réduit */
     }
 
-    /* BOUTON STOCK */
+    /* BOUTON STOCK PLUS PETIT */
     .stockBtn{
-      height:24px;
+      height:22px; /* Réduit */
       border-radius:4px;
       border:1px solid var(--line);
       background: rgba(255,255,255,.03);
       color: var(--text);
       cursor:pointer;
       font-weight:700;
-      font-size:8px;
+      font-size:7px; /* Réduit */
       display:flex;
       align-items:center;
       justify-content:center;
       gap:2px;
       transition: all .15s ease;
-      padding: 0 6px;
+      padding: 0 5px; /* Réduit */
       flex: 1;
       min-width: 0;
-      max-width: 80px;
+      max-width: 75px; /* Réduit */
     }
     .stockBtn:hover{ border-color: var(--accent2); background: rgba(255,255,255,.05); }
     .stockTag{
       padding:1px 3px;
       border-radius:999px;
-      font-size:7px;
+      font-size:6px; /* Réduit */
       border:1px solid rgba(255,255,255,.1);
       background: rgba(0,0,0,.15);
       color: rgba(255,255,255,.9);
       font-weight:700;
-      min-width: 35px;
+      min-width: 32px; /* Réduit */
       text-align: center;
     }
     .stockTag.ok{ border-color: rgba(0,255,136,.3); color: var(--accent); background: rgba(0,255,136,.08); }
     .stockTag.no{ border-color: rgba(255,107,107,.4); color: var(--danger); background: rgba(255,107,107,.08); }
 
-    /* BOUTON AJOUTER */
+    /* BOUTON AJOUTER PLUS PETIT */
     .addBtn{
-      height:24px;
-      padding:0 8px;
+      height:22px; /* Réduit */
+      padding:0 7px; /* Réduit */
       border-radius:999px;
       border:1px solid var(--accent);
       background: rgba(0, 255, 136, 0.1);
       color:var(--accent);
       cursor:pointer;
       font-weight:900;
-      font-size:9px;
+      font-size:8px; /* Réduit */
       display:flex;
       align-items:center;
       justify-content:center;
@@ -1030,14 +1050,14 @@
       display: none;
     }
 
-    /* RESPONSIVE - Images plus grandes sur desktop */
+    /* RESPONSIVE - Images légèrement plus grandes sur desktop */
     @media (min-width: 480px){
       .wrap{padding:8px 8px 70px;}
       .top{padding: 10px;}
       .topRow{flex-direction: row; align-items: center;}
       .search-row{flex: 1;}
       #products{grid-template-columns:repeat(2, 1fr);}
-      .imgWrap{height: 140px;} /* Plus grand sur tablette */
+      .imgWrap{height: 100px;} /* Légèrement plus grand sur tablette */
       .row2{grid-template-columns:1fr 1fr;}
       .drawer{width: 90vw;}
       body.drawer-open .wrap{transform: translateX(-10vw);}
@@ -1060,7 +1080,7 @@
       .pills{flex-wrap: nowrap;}
       .pill{font-size: 10px;}
       #products{grid-template-columns:repeat(3, 1fr);}
-      .imgWrap{height: 150px;} /* Plus grand sur desktop */
+      .imgWrap{height: 110px;} /* Légèrement plus grand sur desktop */
       .drawer{width: var(--drawerW);}
       .drawer.open{transform: translateX(0);}
     }
@@ -1632,30 +1652,35 @@ function render(){
           <div class="noPhoto" style="display:none;">Aucune photo</div>
         </div>
 
-        <div class="namePrice">
-          <div class="name">${it.name}</div>
-          <div class="price">${fmtDT(it.price)}</div>
-        </div>
-
-        <div class="meta2">
-          <div>Code: ${it.code} • ${it.catLabel}</div>
-        </div>
-
-        <div class="actions">
-          <div class="stepper">
-            <button data-act="minus" title="Moins">−</button>
-            <span class="qv">${state.qtyPick[pid]||0}</span>
-            <button data-act="plus" title="Plus">+</button>
+        <div class="card-content">
+          <div class="card-top">
+            <div class="namePrice">
+              <div class="name">${it.name}</div>
+              <div class="price">${fmtDT(it.price)}</div>
+            </div>
+            <div class="meta2">
+              <div>Code: ${it.code} • ${it.catLabel}</div>
+            </div>
           </div>
+          
+          <div class="card-bottom">
+            <div class="actions">
+              <div class="stepper">
+                <button data-act="minus" title="Moins">−</button>
+                <span class="qv">${state.qtyPick[pid]||0}</span>
+                <button data-act="plus" title="Plus">+</button>
+              </div>
 
-          <button class="stockBtn" data-stock="1">
-            📦 Stock:
-            <span class="stockTag ${stockOk ? "ok" : "no"}">${stockOk ? "En stock" : "Rupture"}</span>
-          </button>
+              <button class="stockBtn" data-stock="1">
+                📦 Stock:
+                <span class="stockTag ${stockOk ? "ok" : "no"}">${stockOk ? "En stock" : "Rupture"}</span>
+              </button>
 
-          <button class="addBtn" ${stockOk ? "" : "disabled"} title="${stockOk ? "Ajouter au panier" : "Rupture de stock"}">
-            🧺 Ajouter
-          </button>
+              <button class="addBtn" ${stockOk ? "" : "disabled"} title="${stockOk ? "Ajouter au panier" : "Rupture de stock"}">
+                🧺 Ajouter
+              </button>
+            </div>
+          </div>
         </div>
       `;
 
