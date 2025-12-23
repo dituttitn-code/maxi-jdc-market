@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
-  <title>MAXI JDC MARKET — Commande Rapide</title>
+  <title>MAXI JDC MARKET — Commande</title>
 
   <style>
     :root{
@@ -18,7 +18,7 @@
       --accent2:#00d4ff;
       --danger:#ff6b6b;
       --shadow: 0 10px 40px rgba(0,0,0,.5);
-      --radius:16px; /* Augmenté pour plus de douceur */
+      --radius:12px;
       --drawerW: 100vw;
     }
     *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent;}
@@ -34,47 +34,46 @@
     .wrap{
       max-width:100%;
       margin:0 auto;
-      padding:12px 12px 80px; /* Plus d'espace */
+      padding:8px 8px 70px;
       transition: transform .3s ease;
     }
     body.drawer-open .wrap{ transform: translateX(-20vw); }
 
-    /* HEADER AMÉLIORÉ */
     .top{
-      background: rgba(10, 25, 47, 0.97);
+      background: rgba(10, 25, 47, 0.95);
       border:1px solid var(--line);
       border-radius: var(--radius);
-      padding: 16px; /* Plus d'espace */
+      padding: 8px;
       box-shadow: var(--shadow);
       position: sticky;
-      top: 8px; /* Un peu plus bas */
+      top: 5px;
       z-index: 100;
-      backdrop-filter: blur(15px); /* Plus de flou */
-      margin-bottom: 16px;
+      backdrop-filter: blur(10px);
+      margin-bottom: 8px;
     }
     .topRow{
       display:flex;
       flex-direction: column;
-      gap:12px; /* Plus d'espace */
+      gap:8px;
       align-items:stretch;
     }
     .brand{
       display:flex;
-      gap:10px; /* Plus d'espace */
+      gap:6px;
       align-items:center;
       min-width:0;
     }
     .logo{
-      width:48px; /* Plus grand */
-      height:48px; /* Plus grand */
-      border-radius:10px; /* Plus arrondi */
+      width:36px;
+      height:36px;
+      border-radius:6px;
       border:2px solid var(--accent);
       overflow:hidden;
       flex:0 0 auto;
       display:grid;
       place-items:center;
       background:#0a1929;
-      padding: 3px; /* Plus d'espace */
+      padding: 1px;
     }
     .logo img{
       width:100%;
@@ -84,8 +83,8 @@
     }
     .brandText h1{
       margin:0;
-      font-size:18px; /* Plus grand */
-      font-weight:800; /* Plus gras */
+      font-size:14px;
+      font-weight:700;
       background: linear-gradient(90deg, var(--accent), var(--accent2));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -93,179 +92,142 @@
       line-height: 1.2;
     }
     .brandText p{
-      margin:4px 0 0;
+      margin:2px 0 0;
       color:var(--muted);
-      font-size:12px; /* Plus grand */
+      font-size:9px;
     }
 
-    /* RECHERCHE + PANIER PRO */
+    /* RECHERCHE + PANIER CÔTE À CÔTE */
     .search-row {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
       width: 100%;
     }
     .search{
       flex: 1 1 auto;
       display:flex;
-      gap:6px; /* Plus d'espace */
+      gap:3px;
       align-items:center;
       min-width: 0;
     }
     .search input{
       flex:1;
-      height:44px; /* Plus grand */
-      border-radius:10px; /* Plus arrondi */
-      border:2px solid var(--line); /* Plus épais */
-      background: rgba(255,255,255,.1);
+      height:32px;
+      border-radius:6px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.08);
       color: var(--text);
-      padding:0 16px; /* Plus d'espace */
+      padding:0 8px;
       outline:none;
-      font-size:15px; /* Plus grand */
+      font-size:12px;
       min-width: 0;
       width: 100%;
-      font-weight:500;
     }
-    .search input:focus{ 
-      border-color: var(--accent); 
-      background: rgba(255,255,255,.15); 
-      box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.2);
-    }
+    .search input:focus{ border-color: var(--accent); background: rgba(255,255,255,.12); }
     .btn{
-      height:44px; /* Plus grand */
-      padding:0 16px; /* Plus d'espace */
-      border-radius:10px; /* Plus arrondi */
-      border:2px solid var(--line); /* Plus épais */
-      background: rgba(255,255,255,.12);
+      height:32px;
+      padding:0 8px;
+      border-radius:6px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.1);
       color: var(--text);
       cursor:pointer;
       font-weight:700;
-      font-size:13px; /* Plus grand */
+      font-size:10px;
       transition: all 0.2s ease;
       white-space:nowrap;
-      min-width: 70px;
+      min-width: 55px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .btn:hover{ background: rgba(255,255,255,.18); border-color: var(--accent); }
-    .btn.green{ 
-      background: rgba(0, 255, 136, 0.15); 
-      border-color: var(--accent); 
-      color: var(--accent);
-      font-weight: 800;
-    }
+    .btn:hover{ background: rgba(255,255,255,.15); border-color: var(--accent); }
+    .btn.green{ background: rgba(0, 255, 136, 0.15); border-color: var(--accent); color: var(--accent); }
     .btn.green:hover{ background: rgba(0, 255, 136, 0.25); }
 
-    /* Bouton panier PRO */
+    /* Bouton panier dans la ligne recherche */
     #cartTopBtn {
-      height: 44px;
-      padding: 0 20px;
-      border-radius: 10px;
-      border: 2px solid var(--accent);
-      background: rgba(0, 255, 136, 0.15);
+      height: 32px;
+      padding: 0 12px;
+      border-radius:6px;
+      border:1px solid var(--accent);
+      background: rgba(0, 255, 136, 0.1);
       color: var(--accent);
       cursor: pointer;
       font-weight: 900;
-      font-size: 14px;
+      font-size: 11px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      min-width: 120px;
+      gap: 5px;
+      min-width: 85px;
       flex-shrink: 0;
-      transition: all 0.2s ease;
     }
     #cartTopBtn:hover {
-      background: rgba(0, 255, 136, 0.25);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 255, 136, 0.2);
+      background: rgba(0, 255, 136, 0.2);
     }
     #cartTopCount {
       background: rgba(0, 0, 0, 0.3);
-      border: 2px solid var(--accent);
+      border: 1px solid var(--accent);
       border-radius: 50%;
-      width: 26px;
-      height: 26px;
+      width: 20px;
+      height: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 900;
     }
 
-    /* BARRE D'INFORMATIONS PRO */
-    .infoBar{
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(0, 255, 136, 0.2);
-      background: rgba(0, 255, 136, 0.05);
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      font-size: 12px;
-      color: var(--text);
-    }
-    .infoItem{
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .infoItem strong{
-      color: var(--accent);
-      font-weight: 800;
-    }
-
     .pills{
-      margin-top:8px;
+      margin-top:6px;
       display:flex;
-      gap:6px;
+      gap:3px;
       align-items:center;
       flex-wrap:wrap;
-      padding:6px 0;
+      padding:4px 0;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
     .pill{
       display:inline-flex;
-      gap:4px;
+      gap:3px;
       align-items:center;
-      padding:6px 10px;
-      border-radius:12px;
+      padding:3px 6px;
+      border-radius:10px;
       border:1px solid var(--line);
       background: rgba(255,255,255,.08);
       color: var(--text);
-      font-size:11px; /* Plus grand */
+      font-size:8px;
       white-space:nowrap;
       flex-shrink: 0;
-      font-weight:500;
     }
     .pill strong{font-weight:800; color:var(--accent);}
     
     .qrPill{
       margin-left:auto;
       border:1px solid var(--accent2);
-      background:rgba(0, 212, 255, 0.12);
+      background:rgba(0, 212, 255, 0.1);
       color:var(--accent2);
       font-weight:800;
       display:flex;
       align-items:center;
-      gap:4px;
+      gap:3px;
       flex-shrink: 0;
     }
 
-    /* CATÉGORIES HORIZONTALES PRO */
+    /* CATÉGORIES HORIZONTALES */
     .catsHorizontal {
-      margin-top: 16px;
-      padding: 10px;
+      margin-top: 8px;
+      padding: 6px;
       border-radius: var(--radius);
       border: 1px solid var(--line);
       background: var(--card);
       box-shadow: var(--shadow);
       overflow-x: auto;
       display: flex;
-      gap: 6px;
+      gap: 4px;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }
@@ -273,41 +235,40 @@
     
     .catBtnHoriz {
       flex: 0 0 auto;
-      padding: 10px 16px;
-      border-radius: 12px;
-      border: 2px solid var(--line);
-      background: rgba(255,255,255,.08);
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
       color: var(--text);
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
-      gap: 6px;
-      min-height: 40px;
+      gap: 3px;
+      min-height: 28px;
     }
-    .catBtnHoriz:hover { background: rgba(255,255,255,.12); border-color: var(--accent2); }
+    .catBtnHoriz:hover { background: rgba(255,255,255,.1); border-color: var(--accent2); }
     .catBtnHoriz.active {
       border-color: var(--accent);
       background: rgba(0, 255, 136, 0.15);
       color: var(--accent);
-      box-shadow: 0 4px 12px rgba(0, 255, 136, 0.2);
     }
     .catCountHoriz {
-      font-size: 10px;
-      padding: 2px 6px;
+      font-size: 8px;
+      padding: 1px 3px;
       border-radius: 999px;
-      background: rgba(0,0,0,.4);
-      border: 1px solid rgba(255,255,255,.15);
+      background: rgba(0,0,0,.3);
+      border: 1px solid rgba(255,255,255,.1);
     }
 
     .grid{
-      margin-top:16px;
+      margin-top:8px;
       display:grid;
       grid-template-columns:1fr;
-      gap:12px;
+      gap:8px;
       align-items:start;
     }
     .panel{
@@ -318,74 +279,55 @@
       overflow:hidden;
     }
     .panelHeader{
-      padding:16px;
+      padding:8px 10px;
       border-bottom:1px solid var(--line);
-      background: rgba(255,255,255,.08);
+      background: rgba(255,255,255,.05);
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:8px;
+      gap:4px;
       flex-wrap: wrap;
     }
-    .panelHeader h3{ 
-      margin:0; 
-      font-size:16px; /* Plus grand */
-      font-weight:900; 
-      color:var(--accent); 
-    }
+    .panelHeader h3{ margin:0; font-size:12px; font-weight:800; color:var(--accent); }
     .panelHeader .sub{
       color:var(--muted);
-      font-size:12px; /* Plus grand */
-      background: rgba(255,255,255,.08);
-      padding: 4px 8px;
+      font-size:8px;
+      background: rgba(255,255,255,.05);
+      padding: 1px 4px;
       border-radius: 999px;
       white-space: nowrap;
     }
 
     #cats{ display:none; }
 
-    .content{padding:16px;}
+    .content{padding:10px;}
     .contentHeader{
       display:flex;
       flex-direction: column;
-      gap: 10px;
-      padding:0 0 16px 0;
+      gap: 6px;
+      padding:0 0 8px 0;
       border-bottom: 1px solid var(--line);
-      margin-bottom: 20px;
+      margin-bottom: 8px;
     }
-    .contentHeader h2{ 
-      margin:0; 
-      font-size:22px; /* Plus grand */
-      font-weight:900; 
-      color:var(--text);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .contentHeader .meta{ 
-      margin:6px 0 0; 
-      color:var(--muted); 
-      font-size:14px; /* Plus grand */
-      font-weight:500;
-    }
+    .contentHeader h2{ margin:0; font-size:14px; font-weight:900; }
+    .contentHeader .meta{ margin:2px 0 0; color:var(--muted); font-size:9px; }
     
-    /* PAGER EN HAUT PRO */
+    /* PAGER EN HAUT */
     .pager{
       display:flex;
-      gap:8px;
+      gap:4px;
       align-items:center;
       justify-content:space-between;
       color:var(--muted);
-      font-size:14px; /* Plus grand */
+      font-size:9px;
       white-space:nowrap;
-      font-weight:600;
     }
     .iconBtn{
-      width:40px;
-      height:40px;
-      border-radius:10px;
-      border:2px solid var(--line);
-      background: rgba(255,255,255,.1);
+      width:28px;
+      height:28px;
+      border-radius:6px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.08);
       cursor:pointer;
       color:var(--text);
       font-weight:900;
@@ -394,57 +336,109 @@
       justify-content:center;
       transition: all 0.2s ease;
       flex-shrink: 0;
-      font-size:18px;
     }
-    .iconBtn:hover{ 
-      background: rgba(255,255,255,.15); 
-      border-color: var(--accent); 
-      transform: translateY(-2px);
+    .iconBtn:hover{ background: rgba(255,255,255,.15); border-color: var(--accent); }
+
+    /* PAGINATION EN BAS */
+    .pagination-bottom {
+      margin-top: 12px;
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      justify-content: center;
+    }
+    .page-numbers {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 100%;
+      overflow-x: auto;
+      padding: 3px;
+    }
+    .page-btn {
+      min-width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .page-btn:hover:not(.active) {
+      background: rgba(255,255,255,.12);
+      border-color: var(--accent2);
+    }
+    .page-btn.active {
+      background: rgba(0, 255, 136, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .page-btn.dots {
+      background: transparent;
+      border-color: transparent;
+      cursor: default;
+    }
+    .page-info-bottom {
+      color: var(--muted);
+      font-size: 10px;
+      text-align: center;
     }
 
-    /* ==== MODIFICATIONS IMPORTANTES : 1 COLONNE SUR MOBILE ==== */
-    /* PRODUITS - 1 COLONNE SUR MOBILE, 2 SUR TABLETTE, 3 SUR DESKTOP */
+    /* ==== MODIFICATIONS IMPORTANTES ==== */
+    /* PRODUITS - 2 COLONNES SUR MOBILE, 3 SUR TABLETTE, 4 SUR DESKTOP */
     #products{
       display:grid;
-      grid-template-columns:1fr; /* 1 seule colonne sur mobile */
-      gap:16px; /* Plus d'espace */
+      grid-template-columns:repeat(2, 1fr); /* 2 colonnes sur mobile */
+      gap:8px;
     }
 
     .card{
-      border-radius:var(--radius);
-      border:2px solid var(--line); /* Plus épais */
+      border-radius:8px;
+      border:1px solid var(--line);
       background: var(--card2);
-      padding:16px; /* Plus d'espace */
-      box-shadow:var(--shadow);
-      transition: all 0.3s ease;
+      padding:6px; /* Réduit de 8px */
+      box-shadow:0 3px 10px rgba(0,0,0,.25);
+      transition: all 0.2s ease;
       display:flex;
       flex-direction:column;
-      gap:12px; /* Plus d'espace */
+      gap:5px; /* Réduit de 6px */
       height: 100%;
     }
-    .card:hover{ 
-      border-color: var(--accent); 
-      transform: translateY(-4px); 
-      box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-    }
+    .card:hover{ border-color: var(--accent2); transform: translateY(-2px); }
 
-    /* PHOTO GRANDE ET BIEN AJUSTÉE */
+    /* PHOTO PLUS PETITE POUR OPTIMISER L'ESPACE */
     .imgWrap{
       width:100%;
-      height:200px; /* Grande photo pour mobile */
-      border-radius:12px;
-      border:2px solid rgba(255,255,255,.2);
+      height:70px; /* Réduit de 90px à 70px */
+      border-radius:6px;
+      border:1px solid rgba(255,255,255,.12);
       background: #ffffff;
       display:flex;
       align-items:center;
       justify-content:center;
       overflow:hidden;
       position:relative;
-      padding: 10px;
+      padding: 2px;
     }
     .product-img{
-      max-width:100%;
-      max-height:100%;
+      max-width:95%;
+      max-height:95%;
       width:auto;
       height:auto;
       object-fit:contain;
@@ -458,17 +452,17 @@
       justify-content:center;
       color:#666666;
       font-weight:800;
-      font-size:14px; /* Plus grand */
+      font-size:7px; /* Réduit */
       background: #f8f8f8;
       text-align:center;
-      padding:20px;
+      padding:2px;
     }
 
-    /* CONTENU DE LA CARTE - TEXTE PLUS GRAND */
+    /* CONTENU DE LA CARTE OPTIMISÉ */
     .card-content {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 4px;
       flex: 1;
       min-height: 0;
     }
@@ -477,7 +471,7 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 3px;
       min-height: 0;
     }
     
@@ -489,204 +483,170 @@
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
-      gap:12px;
+      gap:3px;
       min-width:0;
     }
     .name{
       font-weight:900;
-      font-size:18px; /* Beaucoup plus grand */
-      line-height:1.4;
+      font-size:10px; /* Réduit de 11px */
+      line-height:1.2;
       min-width:0;
       display:-webkit-box;
-      -webkit-line-clamp:3; /* Plus de lignes */
+      -webkit-line-clamp:2;
       -webkit-box-orient:vertical;
       overflow:hidden;
       flex: 1;
-      color:var(--text);
     }
     .price{
       flex:0 0 auto;
       font-weight:900;
-      padding:8px 14px;
-      border-radius:12px;
-      border:2px solid var(--accent);
-      background: rgba(0, 255, 136, 0.12);
+      padding:2px 4px; /* Réduit */
+      border-radius:999px;
+      border:1px solid var(--accent);
+      background: rgba(0, 255, 136, 0.1);
       color:var(--accent);
-      font-size:18px; /* Plus grand */
+      font-size:8px; /* Réduit de 9px */
       white-space:nowrap;
-      min-width: 100px;
-      text-align: center;
     }
     .meta2{
       color:var(--muted);
-      font-size:14px; /* Plus grand */
+      font-size:7px; /* Réduit de 8px */
       display:flex;
       flex-direction:column;
-      gap:6px;
-      font-weight:500;
-    }
-    .meta2 div {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      gap:1px;
     }
 
-    /* ACTIONS: GRANDES ET FACILES À TAPER */
+    /* ACTIONS: DISPOSITION COMPACTE */
     .actions{
-      margin-top:12px;
+      margin-top:2px; /* Réduit */
       display:flex;
       align-items:center;
-      gap:10px;
+      gap:3px; /* Réduit de 4px */
       width:100%;
-      min-height: 50px;
+      min-height: 22px; /* Réduit de 26px */
     }
     
-    /* STEPPER GRAND POUR TOUCHER FACILE */
+    /* STEPPER PLUS PETIT */
     .stepper{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:6px;
-      padding:8px 10px;
-      border-radius:12px;
-      border:2px solid var(--line);
-      background: rgba(0,0,0,.3);
+      gap:2px;
+      padding:1px 2px; /* Réduit */
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.2);
       min-width: 0;
-      width: 140px; /* Large pour mobile */
+      width: 60px; /* Réduit de 65px */
       flex-shrink: 0;
     }
     .stepper button{
-      width:42px;
-      height:42px;
-      border-radius:50%;
-      border:2px solid var(--line);
-      background: rgba(255,255,255,.15);
+      width:16px;
+      height:16px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.1);
       color:var(--text);
       cursor:pointer;
       font-weight:900;
-      font-size:22px;
+      font-size:8px;
       display:flex;
       align-items:center;
       justify-content:center;
       transition: all 0.15s ease;
       flex:0 0 auto;
     }
-    .stepper button:hover{ 
-      border-color: var(--accent); 
-      background: rgba(255,255,255,.25); 
-      transform: scale(1.1);
-    }
+    .stepper button:hover{ border-color: var(--accent); background: rgba(255,255,255,.2); }
     .stepper span{ 
-      min-width:40px;
+      min-width:12px;
       text-align:center; 
       font-weight:900; 
       color:var(--text); 
-      font-size:22px;
+      font-size:9px;
     }
 
-    /* BOUTON STOCK GRAND */
+    /* BOUTON STOCK PLUS PETIT */
     .stockBtn{
-      height:46px;
-      border-radius:10px;
-      border:2px solid var(--line);
-      background: rgba(255,255,255,.08);
+      height:20px; /* Réduit de 22px */
+      border-radius:4px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
       color: var(--text);
       cursor:pointer;
       font-weight:700;
-      font-size:13px;
+      font-size:6px; /* Réduit de 7px */
       display:flex;
       align-items:center;
       justify-content:center;
-      gap:8px;
+      gap:2px;
       transition: all .15s ease;
-      padding: 0 12px;
+      padding: 0 4px; /* Réduit */
       flex: 1;
       min-width: 0;
-      max-width: 140px;
+      max-width: 65px; /* Réduit de 75px */
     }
-    .stockBtn:hover{ 
-      border-color: var(--accent2); 
-      background: rgba(255,255,255,.12);
-      transform: translateY(-2px);
-    }
+    .stockBtn:hover{ border-color: var(--accent2); background: rgba(255,255,255,.05); }
     .stockTag{
-      padding:6px 10px;
+      padding:1px 3px;
       border-radius:999px;
-      font-size:12px;
-      border:2px solid rgba(255,255,255,.2);
-      background: rgba(0,0,0,.4);
+      font-size:6px;
+      border:1px solid rgba(255,255,255,.1);
+      background: rgba(0,0,0,.15);
       color: rgba(255,255,255,.9);
-      font-weight:800;
-      min-width: 80px;
+      font-weight:700;
+      min-width: 30px; /* Réduit de 32px */
       text-align: center;
     }
-    .stockTag.ok{ 
-      border-color: rgba(0,255,136,.4); 
-      color: var(--accent); 
-      background: rgba(0,255,136,.15); 
-    }
-    .stockTag.no{ 
-      border-color: rgba(255,107,107,.4); 
-      color: var(--danger); 
-      background: rgba(255,107,107,.15); 
-    }
+    .stockTag.ok{ border-color: rgba(0,255,136,.3); color: var(--accent); background: rgba(0,255,136,.08); }
+    .stockTag.no{ border-color: rgba(255,107,107,.4); color: var(--danger); background: rgba(255,107,107,.08); }
 
-    /* BOUTON AJOUTER GRAND ET VISIBLE */
+    /* BOUTON AJOUTER PLUS PETIT */
     .addBtn{
-      height:46px;
-      padding:0 20px;
-      border-radius:12px;
-      border:2px solid var(--accent);
-      background: rgba(0, 255, 136, 0.15);
+      height:20px; /* Réduit de 22px */
+      padding:0 6px; /* Réduit de 7px */
+      border-radius:999px;
+      border:1px solid var(--accent);
+      background: rgba(0, 255, 136, 0.1);
       color:var(--accent);
       cursor:pointer;
       font-weight:900;
-      font-size:16px;
+      font-size:7px; /* Réduit de 8px */
       display:flex;
       align-items:center;
       justify-content:center;
-      gap:10px;
+      gap:2px; /* Réduit */
       white-space:nowrap;
       transition: all 0.15s ease;
       min-width: 0;
       flex-shrink: 0;
-      flex: 2;
     }
-    .addBtn:hover{ 
-      background: rgba(0, 255, 136, 0.25); 
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(0, 255, 136, 0.25);
-    }
+    .addBtn:hover{ background: rgba(0, 255, 136, 0.22); }
     .addBtn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       border-color: var(--muted);
-      transform: none !important;
-      box-shadow: none !important;
     }
 
     .hintAdmin{
-      margin-top:16px;
-      padding:12px;
-      border-radius:10px;
-      border:1px solid rgba(0, 255, 136, 0.3);
-      background: rgba(0, 255, 136, 0.08);
-      color: var(--text);
-      font-size:14px;
+      margin-top:6px;
+      padding:5px;
+      border-radius:4px;
+      border:1px solid rgba(0,255,136,0.2);
+      background: rgba(0,255,136,0.05);
+      color: var(--muted);
+      font-size:8px;
       text-align:center;
-      font-weight:500;
-      line-height: 1.6;
     }
 
-    /* DRAWER + BACKDROP PRO */
+    /* DRAWER + BACKDROP */
     .backdrop{
       position:fixed;
       inset:0;
-      background: rgba(0,0,0,.85);
+      background: rgba(0,0,0,.7);
       opacity:0;
       pointer-events:none;
       transition: opacity .3s ease;
-      z-index:100;
+      z-index:19;
     }
     .backdrop.open{ opacity:1; pointer-events:auto; }
 
@@ -698,34 +658,34 @@
       width:100vw;
       max-width:100vw;
       background: rgba(10, 25, 47, 0.98);
-      border-left:3px solid var(--accent);
-      box-shadow:-20px 0 60px rgba(0,0,0,.8);
+      border-left:2px solid var(--accent);
+      box-shadow:-20px 0 60px rgba(0,0,0,.7);
       transform: translateX(100%);
       transition: transform .3s ease;
-      z-index:101;
+      z-index:20;
       display:flex;
       flex-direction:column;
-      backdrop-filter: blur(20px);
+      backdrop-filter: blur(18px);
       overflow: hidden;
     }
     .drawer.open{ transform: translateX(0); }
 
     .drawerHeader{
-      padding:20px;
-      border-bottom:3px solid var(--accent);
-      background: rgba(0, 255, 136, 0.1);
+      padding:10px;
+      border-bottom:2px solid var(--accent);
+      background: rgba(0, 255, 136, 0.05);
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:8px;
+      gap:5px;
       flex-shrink: 0;
     }
     .drawerHeader h3{
       margin:0;
-      font-size:20px;
+      font-size:14px;
       color: var(--accent);
       display:flex;
-      gap:10px;
+      gap:4px;
       align-items:center;
       font-weight:900;
     }
@@ -733,79 +693,70 @@
     .drawerBody{
       flex:1;
       overflow-y:auto;
-      padding:20px;
+      padding:10px;
       display:flex;
       flex-direction:column;
-      gap:16px;
+      gap:6px;
       -webkit-overflow-scrolling: touch;
     }
     .section{
       border:1px solid var(--line);
       background: var(--card2);
-      border-radius:12px;
-      padding:20px;
+      border-radius:8px;
+      padding:8px;
     }
     .section h4{
-      margin:0 0 16px;
-      font-size:18px;
+      margin:0 0 5px;
+      font-size:11px;
       color:var(--accent);
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:8px;
+      gap:4px;
       font-weight:900;
     }
     .row2{
       display:grid;
       grid-template-columns:1fr;
-      gap:12px;
+      gap:6px;
     }
     .field label{
       display:block;
-      font-size:14px;
+      font-size:8px;
       color:var(--muted);
-      margin-bottom:8px;
+      margin-bottom:3px;
       font-weight:800;
     }
     .field input, .field textarea{
       width:100%;
-      border-radius:10px;
-      border:2px solid var(--line);
-      background: rgba(255,255,255,.1);
+      border-radius:6px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.08);
       color: var(--text);
-      padding:12px 16px;
+      padding:6px;
       outline:none;
-      font-size:16px;
+      font-size:11px;
       transition: all 0.15s ease;
-      font-weight:500;
     }
-    .field input:focus, .field textarea:focus{ 
-      border-color: var(--accent); 
-      background: rgba(255,255,255,.15); 
-      box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.2);
-    }
-    .field textarea{ 
-      min-height:80px; 
-      resize:vertical; 
-      line-height: 1.6;
-    }
+    .field input:focus, .field textarea:focus{ border-color: var(--accent); background: rgba(255,255,255,.12); }
+    .field textarea{ min-height:45px; resize:vertical; }
     .miniBtns{
       display:flex;
-      gap:8px;
+      gap:4px;
       flex-wrap:wrap;
-      margin-top:16px;
+      margin-top:5px;
       align-items:center;
     }
     .mini{
-      height:48px;
-      padding:0 20px;
-      border-radius:12px;
-      border:2px solid var(--line);
-      background: rgba(255,255,255,.12);
+      height:30px;
+      padding:0 8px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.1);
       color: var(--text);
       cursor:pointer;
       font-weight:900;
-      font-size:14px;
+      font-size:9px;
       transition: all 0.15s ease;
       display:inline-flex;
       align-items:center;
@@ -813,64 +764,330 @@
       flex: 1;
       min-width: 0;
     }
-    .mini:hover{ 
-      background: rgba(255,255,255,.2); 
-      transform: translateY(-2px);
+    .mini:hover{ background: rgba(255,255,255,.2); }
+    .mini.green{ background: rgba(0, 255, 136, 0.15); border-color: var(--accent); color:var(--accent); }
+    .mini.green:hover{ background: rgba(0, 255, 136, 0.28); }
+    .mini.danger{ background: rgba(255, 107, 107, 0.15); border-color: var(--danger); color:var(--danger); }
+    .mini.danger:hover{ background: rgba(255, 107, 107, 0.28); }
+
+    .pinRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:4px;
+      margin-top:5px;
+      padding-top:5px;
+      border-top:1px dashed var(--line);
+      color:var(--muted);
+      font-size:8px;
     }
-    .mini.green{ 
-      background: rgba(0, 255, 136, 0.15); 
-      border-color: var(--accent); 
-      color:var(--accent); 
-    }
-    .mini.green:hover{ 
-      background: rgba(0, 255, 136, 0.25); 
-    }
-    .mini.danger{ 
-      background: rgba(255, 107, 107, 0.15); 
-      border-color: var(--danger); 
-      color:var(--danger); 
-    }
-    .mini.danger:hover{ 
-      background: rgba(255, 107, 107, 0.25); 
+    .pinRow label{
+      display:flex;
+      gap:3px;
+      align-items:center;
+      cursor:pointer;
+      flex: 1;
     }
 
-    /* ... Le reste du CSS reste identique mais plus grand ... */
+    .cartList{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      margin-top:4px;
+    }
+    .cartItem{
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.2);
+      border-radius:8px;
+      padding:5px;
+      display:flex;
+      gap:5px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .cartItem .left{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:1px;
+      flex:1;
+    }
+    .cartItem .left .t{
+      font-weight:900;
+      font-size:9px;
+      line-height:1.2;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+    .cartItem .left .s{
+      color:var(--muted);
+      font-size:7px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .cartItem .right{
+      display:flex;
+      align-items:center;
+      gap:4px;
+      flex:0 0 auto;
+    }
+    .lineTotal{
+      font-weight:900;
+      white-space:nowrap;
+      font-size:9px;
+      color:var(--accent);
+      min-width: 50px;
+      text-align:right;
+    }
 
-    /* ==== RESPONSIVE ==== */
-    @media (min-width: 640px){
-      #products{grid-template-columns:repeat(2, 1fr);} /* 2 colonnes sur tablette */
-      .imgWrap{height: 180px;} /* Un peu plus petit sur tablette */
+    .totals{
+      margin-top:5px;
+      border-top:1px solid var(--line);
+      padding-top:5px;
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      font-size:10px;
+    }
+    .totals .trow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:4px;
+    }
+    .totals .trow span{
+      color:var(--muted);
+    }
+    .totals .trow strong{
+      font-weight:900;
+      color:var(--text);
+    }
+
+    .warn{
+      margin-top:4px;
+      padding:5px;
+      border-radius:4px;
+      border:1px dashed var(--line);
+      background: rgba(0,0,0,.2);
+      color:var(--muted);
+      font-size:8px;
+      line-height:1.3;
+    }
+    .warn.bad{
+      border-color: rgba(255,107,107,.45);
+      color:#ffb8b8;
+      background: rgba(255,107,107,.12);
+    }
+    .warn.good{
+      border-color: rgba(0,255,136,.45);
+      color:#b8ffd9;
+      background: rgba(0,255,136,.10);
+    }
+
+    .drawerFooter{
+      padding:8px 10px;
+      border-top:1px solid var(--line);
+      display:flex;
+      gap:4px;
+      align-items:center;
+      justify-content:space-between;
+      background: var(--card);
+      flex-shrink:0;
+    }
+
+    /* Historique */
+    .histToggle{
+      width:100%;
+      height:32px;
+      border-radius:6px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      cursor:pointer;
+      font-weight:900;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 6px;
+      transition: all 0.15s ease;
+      margin-top:4px;
+      font-size:10px;
+    }
+    .histToggle:hover{ background: rgba(255,255,255,.14); }
+    .histBox{
+      margin-top:4px;
+      display:none;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.2);
+      border-radius:8px;
+      padding:5px;
+      max-height: 140px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .histBox.open{ display:block; }
+    table{ width:100%; border-collapse:collapse; font-size:8px; }
+    th,td{ padding:3px 2px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; }
+    th{ color:var(--muted); font-weight:900; font-size:7px; }
+    td strong{ font-weight:900; color:var(--accent); }
+
+    /* Modal */
+    .modalBack{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.8);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:30;
+      padding:10px;
+    }
+    .modalBack.open{ display:flex; }
+    .modal{
+      width:100%;
+      max-width:95vw;
+      border-radius:var(--radius);
+      border:1px solid var(--accent);
+      background: rgba(10, 25, 47, 0.98);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .modalHead{
+      padding:8px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:4px;
+      border-bottom:1px solid var(--accent);
+      background: rgba(0, 255, 136, 0.05);
+      flex-shrink: 0;
+    }
+    .modalHead h3{
+      margin:0;
+      font-size:12px;
+      color:var(--accent);
+      font-weight:900;
+    }
+    .modalBody{
+      padding:8px;
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .modalBody textarea{
+      width:100%;
+      min-height:140px;
+      border-radius:6px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      padding:6px;
+      outline:none;
+      font-size:10px;
+      line-height:1.5;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      resize: vertical;
+    }
+    .modalFoot{
+      padding:8px;
+      border-top:1px solid var(--line);
+      display:flex;
+      gap:4px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+      flex-shrink: 0;
+    }
+
+    /* QR Code Modal */
+    .qrModal{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.8);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:30;
+      padding:10px;
+    }
+    .qrModal.open{ display:flex; }
+    .qrBox{
+      background: var(--card);
+      border-radius:var(--radius);
+      border:1px solid var(--accent);
+      padding:12px;
+      max-width:300px;
+      width:90vw;
+      text-align:center;
+      box-shadow: var(--shadow);
+    }
+    .qrBox h3{
+      margin:0 0 6px;
+      color:var(--accent);
+      font-size:14px;
+      font-weight:900;
+    }
+    .qrImage{
+      width:100%;
+      max-width:180px;
+      border-radius:8px;
+      border:1px solid var(--accent2);
+      margin:0 auto 6px;
+      display:block;
+    }
+    .qrInfo{
+      color:var(--muted);
+      font-size:10px;
+      margin:6px 0;
+      line-height:1.5;
+    }
+
+    /* ==== RESPONSIVE - Plus de colonnes sur écrans plus grands ==== */
+    @media (min-width: 480px){
+      .wrap{padding:8px 8px 70px;}
+      .top{padding: 10px;}
+      .topRow{flex-direction: row; align-items: center;}
+      .search-row{flex: 1;}
+      #products{grid-template-columns:repeat(3, 1fr);} /* 3 colonnes sur tablette */
+      .imgWrap{height: 75px;} /* Légèrement plus grand */
       .row2{grid-template-columns:1fr 1fr;}
-      .infoBar{
-        grid-template-columns: repeat(4, 1fr);
-      }
+      .drawer{width: 90vw;}
+      body.drawer-open .wrap{transform: translateX(-10vw);}
     }
     
     @media (min-width: 768px){
-      html{font-size:16px;}
+      html{font-size:13px;}
       .wrap{
-        max-width: 1200px;
-        padding: 20px 20px 60px;
+        max-width: 1240px;
+        padding: 12px 12px 40px;
+        transition: padding-right .25s ease;
       }
-      .top{padding: 20px;}
-      .topRow{flex-direction: row; align-items: center;}
-      .search-row{flex: 1;}
-      .search input{min-width: 250px;}
-      .pills{flex-wrap: nowrap;}
-      .pill{font-size: 12px;}
-      #products{grid-template-columns:repeat(3, 1fr);} /* 3 colonnes sur desktop */
-      .imgWrap{height: 160px;}
-      .drawer{width: 500px;}
-      .drawer.open{transform: translateX(0);}
       body.drawer-open .wrap{
-        padding-right: calc(500px + 20px);
+        padding-right: calc(380px + 12px);
         transform: none;
       }
+      .topRow{flex-direction: row; align-items: center;}
+      .search-row{flex: 1;}
+      .search input{min-width: 200px;}
+      .pills{flex-wrap: nowrap;}
+      .pill{font-size: 10px;}
+      #products{grid-template-columns:repeat(4, 1fr);} /* 4 colonnes sur desktop */
+      .imgWrap{height: 85px;}
+      .card{padding:8px;} /* Un peu plus d'espace sur desktop */
+      .name{font-size:11px;} /* Texte légèrement plus grand */
+      .price{font-size:9px;}
+      .drawer{width: var(--drawerW);}
+      .drawer.open{transform: translateX(0);}
     }
-    
+
     @media (min-width: 1024px){
-      #products{grid-template-columns:repeat(4, 1fr);} /* 4 colonnes sur grand écran */
-      .imgWrap{height: 150px;}
+      #products{grid-template-columns:repeat(5, 1fr);} /* 5 colonnes sur grand écran */
+      .imgWrap{height: 90px;}
     }
 
     /* Pour iOS: éviter le zoom sur les inputs */
@@ -890,39 +1107,35 @@
           </div>
           <div class="brandText">
             <h1>MAXI JDC MARKET</h1>
-            <p>Livraison rapide • Prix compétitifs • Large choix</p>
+            <p>Des prix mini — Un MAXI choix</p>
           </div>
         </div>
 
         <!-- Ligne avec recherche + panier -->
         <div class="search-row">
           <div class="search">
-            <input id="q" type="text" placeholder="🔍 Rechercher un produit..." />
+            <input id="q" type="text" placeholder="🔍 Rechercher..." />
             <button class="btn" id="clearBtn">Effacer</button>
             <button class="btn green" id="globalBtn">Tous</button>
           </div>
-          <!-- Bouton panier unique et pro -->
-          <button class="btn" id="cartTopBtn" title="Voir le panier">
+          <!-- Bouton panier unique -->
+          <button class="btn" id="cartTopBtn" title="Panier">
             🛒 Panier <span id="cartTopCount">0</span>
           </button>
         </div>
       </div>
 
-      <!-- BARRE D'INFORMATIONS PRO -->
-      <div class="infoBar">
-        <div class="infoItem">📍 <strong>Zone:</strong> Jardins de Carthage</div>
-        <div class="infoItem">🕒 <strong>Horaires:</strong> 7h - 1h</div>
-        <div class="infoItem">📞 <strong>WhatsApp:</strong> 25 600 978</div>
-        <div class="infoItem">🚚 <strong>Livraison:</strong> 30-60 min</div>
-      </div>
-
       <div class="pills">
+        <div class="pill">📍 Jardins de Carthage</div>
+        <div class="pill">🕒 7h – 1h</div>
+        <div class="pill"><strong>WhatsApp:</strong> 00216 25 600 978</div>
+        
         <div class="pill qrPill" id="qrBtn" title="Scanner le QR Code">
-          📱 QR Code du site
+          📱 QR Code
         </div>
       </div>
 
-      <!-- CATÉGORIES HORIZONTALES PRO -->
+      <!-- CATÉGORIES HORIZONTALES -->
       <div class="catsHorizontal" id="catsHorizontal"></div>
     </div>
 
@@ -931,8 +1144,8 @@
         <div class="content">
           <div class="contentHeader">
             <div class="titleWrap">
-              <h2 id="activeLabel">🎯 Nos Produits</h2>
-              <div class="meta" id="activeMeta">Choisissez vos articles pour la livraison</div>
+              <h2 id="activeLabel">Produits</h2>
+              <div class="meta" id="activeMeta">Sélectionne une catégorie</div>
             </div>
 
             <!-- PAGINATION EN HAUT -->
@@ -946,10 +1159,17 @@
 
           <div id="products"></div>
 
-          <div class="hintAdmin">
-            💡 <strong>Astuce :</strong> Les produits s'affichent en une seule colonne pour une meilleure lisibilité sur mobile. 
-            Ajoutez vos articles au panier puis cliquez sur le bouton Panier en haut pour finaliser votre commande.
+          <!-- PAGINATION EN BAS -->
+          <div class="pagination-bottom" id="paginationBottom" style="display: none;">
+            <div class="page-info-bottom" id="pageInfoBottom">Page 1 sur 1</div>
+            <div class="pagination-controls">
+              <button class="page-btn" id="prevBottomBtn" title="Page précédente">‹ Précédent</button>
+              <div class="page-numbers" id="pageNumbers"></div>
+              <button class="page-btn" id="nextBottomBtn" title="Page suivante">Suivant ›</button>
+            </div>
           </div>
+
+          <div class="hintAdmin">Astuce : cliquez sur le panier pour l'ouvrir.</div>
         </div>
       </div>
     </div>
@@ -961,7 +1181,7 @@
   <!-- Drawer -->
   <aside class="drawer" id="drawer" aria-label="Panier">
     <div class="drawerHeader">
-      <h3>📋 Commande & Livraison</h3>
+      <h3>🛒 Panier & Fiche client</h3>
       <button class="btn" id="closeDrawer">Fermer</button>
     </div>
 
@@ -969,39 +1189,39 @@
       <!-- Fiche client -->
       <div class="section" id="clientBox">
         <h4>
-          <span>👤 Informations de livraison</span>
+          <span>👤 Fiche client (1 seule fois)</span>
           <span class="sub" id="clientLockTxt"></span>
         </h4>
 
         <div class="row2">
-          <div class="field"><label>Nom complet</label><input id="cName" placeholder="Ex: Mohamed Ali" /></div>
-          <div class="field"><label>Téléphone</label><input id="cTel" placeholder="Ex: 55 123 456" type="tel" /></div>
+          <div class="field"><label>Nom</label><input id="cName" placeholder="Ex: Lotfi" /></div>
+          <div class="field"><label>Téléphone</label><input id="cTel" placeholder="Ex: 55xxxxxx" /></div>
         </div>
 
-        <div class="field" style="margin-top:12px">
-          <label>Adresse de livraison</label>
-          <textarea id="cAddr" placeholder="N° rue, immeuble, étage, quartier, repère…"></textarea>
+        <div class="field" style="margin-top:6px">
+          <label>Adresse</label>
+          <textarea id="cAddr" placeholder="Quartier, rue, repère…"></textarea>
         </div>
 
-        <div class="row2" style="margin-top:12px">
-          <div class="field"><label>Coordonnées GPS (lat)</label><input id="cLat" placeholder="ex: 36.85" /></div>
-          <div class="field"><label>Coordonnées GPS (lng)</label><input id="cLng" placeholder="ex: 10.30" /></div>
+        <div class="row2" style="margin-top:6px">
+          <div class="field"><label>GPS (lat)</label><input id="cLat" placeholder="ex: 36.85" /></div>
+          <div class="field"><label>GPS (lng)</label><input id="cLng" placeholder="ex: 10.30" /></div>
         </div>
 
         <div class="miniBtns">
-          <button class="mini" id="gpsBtn">📍 Localisation GPS</button>
-          <button class="mini green" id="saveClientBtn">✅ Enregistrer</button>
-          <button class="mini" id="editClientBtn">✏️ Modifier</button>
+          <button class="mini" id="gpsBtn">📍 Obtenir adresse GPS</button>
+          <button class="mini green" id="saveClientBtn">Enregistrer</button>
+          <button class="mini" id="editClientBtn">Modifier</button>
         </div>
 
-        <div class="warn" style="margin-top:16px; padding: 12px; font-size: 13px;">
-          ✅ Vos informations sont sauvegardées sur cet appareil.<br/>
-          🔁 Utilisez "Code client" pour les récupérer sur un autre appareil.
+        <div class="warn" style="margin-top:8px">
+          ✅ La fiche est enregistrée sur <b>cet appareil</b>.<br/>
+          🔁 Pour l'utiliser sur un autre appareil, utilisez "Code client".
         </div>
 
-        <div class="field" style="margin-top:16px">
-          <label>Code client (pour synchronisation)</label>
-          <input id="clientCode" placeholder="(généré automatiquement)" readonly />
+        <div class="field" style="margin-top:6px">
+          <label>Code client (pour ouvrir sur un autre appareil)</label>
+          <input id="clientCode" placeholder="(généré après Enregistrer)" readonly />
         </div>
 
         <div class="miniBtns">
@@ -1010,46 +1230,45 @@
         </div>
 
         <div class="pinRow">
-          <label style="display:flex;gap:8px;align-items:center;cursor:pointer; font-size: 14px;">
-            <input type="checkbox" id="pinCart" style="transform: scale(1.3);"> Garder le panier visible
+          <label style="display:flex;gap:4px;align-items:center;cursor:pointer">
+            <input type="checkbox" id="pinCart"> Épingler le panier (laisser ouvert)
           </label>
-          <span style="font-size: 12px;">💡 Pratique pour suivre votre commande</span>
+          <span>💡 Pratique pour voir le total.</span>
         </div>
       </div>
 
       <!-- Panier -->
       <div class="section">
-        <h4><span>🛍️ Votre Panier</span><span class="sub" id="cartMiniInfo">0 article(s)</span></h4>
+        <h4><span>🧺 Articles</span><span class="sub" id="cartMiniInfo">0 article(s)</span></h4>
         <div class="cartList" id="cartList"></div>
 
-        <div class="totals" style="font-size: 16px;">
+        <div class="totals">
           <div class="trow"><span>Sous-total</span><strong id="subTotal">0,00 dt</strong></div>
-          <div class="trow"><span>Frais de livraison</span><strong id="shipFee">0,00 dt</strong></div>
-          <div class="trow" style="font-size: 18px;"><span>Total à payer</span><strong id="cartTotal">0,00 dt</strong></div>
+          <div class="trow"><span>Frais livraison</span><strong id="shipFee">0,00 dt</strong></div>
+          <div class="trow"><span>Total</span><strong id="cartTotal">0,00 dt</strong></div>
         </div>
 
-        <!-- Conditions de livraison -->
-        <div class="warn" id="ruleBox" style="margin-top:16px; padding: 12px; font-size: 14px;">
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <div><strong>📦 Conditions de livraison :</strong></div>
+        <!-- Informations mises à jour -->
+        <div class="warn" id="ruleBox" style="margin-top:6px">
+          <div style="display:flex; flex-direction:column; gap:3px;">
+            <div><strong>📋 Conditions de livraison :</strong></div>
             <div>• Minimum commande: <strong>15 dt</strong></div>
             <div>• Frais de livraison: <strong>3 dt</strong></div>
             <div>• Livraison gratuite à partir de <strong>30 dt</strong></div>
-            <div>• Délai de livraison: <strong>30-60 minutes</strong></div>
           </div>
         </div>
 
-        <button class="histToggle" id="histToggleBtn" style="height: 48px; font-size: 14px;">
-          <span>📜 Historique des commandes</span><span id="histCount">0</span>
+        <button class="histToggle" id="histToggleBtn">
+          <span>🧾 Historique client</span><span id="histCount">0</span>
         </button>
 
-        <div class="histBox" id="histBox" style="max-height: 200px; font-size: 13px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
-            <div style="color:var(--muted);font-size:13px">Vos dernières commandes</div>
+        <div class="histBox" id="histBox">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px">
+            <div style="color:var(--muted);font-size:10px">Dernières commandes (sur cet appareil)</div>
             <button class="mini danger" id="clearMyHistoryBtn">Effacer</button>
           </div>
           <div style="overflow:auto">
-            <table style="font-size: 12px;">
+            <table>
               <thead><tr><th>Date</th><th>Total</th><th>Articles</th></tr></thead>
               <tbody id="histTbody"></tbody>
             </table>
@@ -1058,22 +1277,38 @@
       </div>
     </div>
 
-    <div class="drawerFooter" style="padding: 16px 20px;">
-      <button class="mini danger" id="clearCartBtn" style="height: 48px; font-size: 14px;">🗑️ Vider panier</button>
-      <button class="mini green" id="sendBtn" style="height: 48px; font-size: 16px; font-weight: 900;">🚀 Commander</button>
+    <div class="drawerFooter">
+      <button class="mini danger" id="clearCartBtn">Vider panier</button>
+      <button class="mini green" id="sendBtn">🚀 Envoyer</button>
     </div>
   </aside>
 
+  <!-- Modal Résumé Commande -->
+  <div class="modalBack" id="modalBack">
+    <div class="modal">
+      <div class="modalHead">
+        <h3>✅ Commande — Résumé</h3>
+        <button class="btn" id="closeModal">Fermer</button>
+      </div>
+      <div class="modalBody"><textarea id="orderText" readonly></textarea></div>
+      <div class="modalFoot">
+        <button class="mini" id="copyBtn">📋 Copier</button>
+        <button class="mini" id="downloadBtn">💾 Télécharger (.txt)</button>
+        <button class="mini green" id="whatsappBtn">📱 WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal QR Code -->
   <div class="qrModal" id="qrModal">
-    <div class="qrBox" style="padding: 20px;">
-      <h3 style="font-size: 20px;">📱 QR Code du Site</h3>
+    <div class="qrBox">
+      <h3>📱 QR Code du Site</h3>
       <img src="qr-maxi-jdc-site.jpg" alt="QR Code MAXI JDC MARKET" class="qrImage" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x300/0a1929/00ff88?text=QR+Code+Non+Trouvé'">
-      <div class="qrInfo" style="font-size: 14px;">
+      <div class="qrInfo">
         Scannez ce QR Code pour accéder au site MAXI JDC MARKET sur votre téléphone.<br>
         Partagez-le avec vos clients pour faciliter les commandes !
       </div>
-      <button class="btn green" id="closeQrBtn" style="height: 48px; font-size: 16px;">Fermer</button>
+      <button class="btn green" id="closeQrBtn">Fermer</button>
     </div>
   </div>
 
@@ -1136,7 +1371,7 @@ const state = {
   global:false,
   q:"",
   page:1,
-  perPage:12, // Adapté pour 1 colonne
+  perPage:24, // Augmenté car plus de produits visibles avec 2 colonnes
   qtyPick:{},
   cart:{},
   client:null,
@@ -1147,18 +1382,18 @@ const state = {
 
 /* ===================== STORAGE ===================== */
 function loadLocal(){
-  try{ state.cart = JSON.parse(localStorage.getItem("maxi_cart_v3")||"{}") || {}; }catch(e){ state.cart = {}; }
-  try{ const c = JSON.parse(localStorage.getItem("maxi_client_v3")||"null"); if(c) state.client = c; }catch(e){}
-  try{ state.pinCart = localStorage.getItem("maxi_pin_cart_v3")==="1"; }catch(e){}
-  try{ state.stockByCode = JSON.parse(localStorage.getItem("maxi_stock_v3")||"{}") || {}; }catch(e){ state.stockByCode = {}; }
+  try{ state.cart = JSON.parse(localStorage.getItem("maxi_cart_v2")||"{}") || {}; }catch(e){ state.cart = {}; }
+  try{ const c = JSON.parse(localStorage.getItem("maxi_client_v2")||"null"); if(c) state.client = c; }catch(e){}
+  try{ state.pinCart = localStorage.getItem("maxi_pin_cart_v2")==="1"; }catch(e){}
+  try{ state.stockByCode = JSON.parse(localStorage.getItem("maxi_stock_v2")||"{}") || {}; }catch(e){ state.stockByCode = {}; }
 }
-function saveCart(){ localStorage.setItem("maxi_cart_v3", JSON.stringify(state.cart)); }
-function saveClient(){ localStorage.setItem("maxi_client_v3", JSON.stringify(state.client||null)); }
-function savePin(){ localStorage.setItem("maxi_pin_cart_v3", state.pinCart ? "1":"0"); }
-function saveStock(){ localStorage.setItem("maxi_stock_v3", JSON.stringify(state.stockByCode||{})); }
+function saveCart(){ localStorage.setItem("maxi_cart_v2", JSON.stringify(state.cart)); }
+function saveClient(){ localStorage.setItem("maxi_client_v2", JSON.stringify(state.client||null)); }
+function savePin(){ localStorage.setItem("maxi_pin_cart_v2", state.pinCart ? "1":"0"); }
+function saveStock(){ localStorage.setItem("maxi_stock_v2", JSON.stringify(state.stockByCode||{})); }
 
-function loadHistory(){ try{ return JSON.parse(localStorage.getItem("maxi_orders_v3")||"[]"); }catch(e){ return []; } }
-function saveHistory(arr){ localStorage.setItem("maxi_orders_v3", JSON.stringify(arr||[])); }
+function loadHistory(){ try{ return JSON.parse(localStorage.getItem("maxi_orders_v2")||"[]"); }catch(e){ return []; } }
+function saveHistory(arr){ localStorage.setItem("maxi_orders_v2", JSON.stringify(arr||[])); }
 
 /* ===================== CSV PARSER ===================== */
 function parseCSV(text){
@@ -1290,6 +1525,92 @@ function toggleStock(code){
   render();
 }
 
+/* ===================== PAGINATION ===================== */
+function renderPagination(totalItems) {
+  const totalPages = Math.max(1, Math.ceil(totalItems / state.perPage));
+  
+  // Mettre à jour la pagination en haut
+  $("pageInfo").textContent = `Page ${state.page}/${totalPages}`;
+  
+  // Mettre à jour la pagination en bas
+  const paginationBottom = $("paginationBottom");
+  if (totalPages > 1) {
+    paginationBottom.style.display = "block";
+    $("pageInfoBottom").textContent = `Page ${state.page} sur ${totalPages} (${totalItems} articles)`;
+    
+    // Boutons Précédent/Suivant
+    $("prevBottomBtn").disabled = (state.page === 1);
+    $("nextBottomBtn").disabled = (state.page === totalPages);
+    
+    // Générer les numéros de page
+    const pageNumbers = $("pageNumbers");
+    pageNumbers.innerHTML = "";
+    
+    const maxVisible = 5;
+    let startPage = Math.max(1, state.page - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    
+    if (endPage - startPage + 1 < maxVisible) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    
+    // Bouton première page
+    if (startPage > 1) {
+      const firstBtn = document.createElement("button");
+      firstBtn.className = "page-btn";
+      firstBtn.textContent = "1";
+      firstBtn.onclick = () => {
+        state.page = 1;
+        render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+      pageNumbers.appendChild(firstBtn);
+      
+      if (startPage > 2) {
+        const dots = document.createElement("span");
+        dots.className = "page-btn dots";
+        dots.textContent = "...";
+        pageNumbers.appendChild(dots);
+      }
+    }
+    
+    // Pages visibles
+    for (let i = startPage; i <= endPage; i++) {
+      const pageBtn = document.createElement("button");
+      pageBtn.className = "page-btn" + (i === state.page ? " active" : "");
+      pageBtn.textContent = i;
+      pageBtn.onclick = () => {
+        state.page = i;
+        render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+      pageNumbers.appendChild(pageBtn);
+    }
+    
+    // Bouton dernière page
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const dots = document.createElement("span");
+        dots.className = "page-btn dots";
+        dots.textContent = "...";
+        pageNumbers.appendChild(dots);
+      }
+      
+      const lastBtn = document.createElement("button");
+      lastBtn.className = "page-btn";
+      lastBtn.textContent = totalPages;
+      lastBtn.onclick = () => {
+        state.page = totalPages;
+        render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+      pageNumbers.appendChild(lastBtn);
+    }
+  } else {
+    paginationBottom.style.display = "none";
+  }
+}
+
 /* ===================== RENDER ===================== */
 function render(){
   const active = getActiveCat();
@@ -1306,12 +1627,15 @@ function render(){
   $("pageInfo").textContent = `Page ${state.page}/${totalPages}`;
   $("countInfo").textContent = `${items.length} article(s)`;
 
+  // Mettre à jour la pagination
+  renderPagination(items.length);
+
   const box = $("products");
   box.innerHTML = "";
 
   if(pageItems.length === 0){
-    box.innerHTML = `<div class="warn" style="grid-column:1/-1;text-align:center;padding:40px 20px;font-size:16px;">
-      ${items.length === 0 ? '🔍 Aucun article trouvé' : '📄 Aucun article sur cette page'}
+    box.innerHTML = `<div class="warn" style="grid-column:1/-1;text-align:center;padding:30px;">
+      ${items.length === 0 ? 'Aucun article trouvé' : 'Aucun article sur cette page'}
     </div>`;
   } else {
     for(const it of pageItems){
@@ -1327,9 +1651,9 @@ function render(){
       card.innerHTML = `
         <div class="imgWrap">
           <img src="${imgSrc}" class="product-img" alt="${it.name}"
-               onload="this.classList.add('loaded'); this.parentElement.querySelector('.noPhoto')?.remove()"
+               onload="this.parentElement.querySelector('.noPhoto')?.remove()"
                onerror="this.style.display='none'; this.parentElement.querySelector('.noPhoto').style.display='flex';" />
-          <div class="noPhoto" style="display:none;">Image non disponible</div>
+          <div class="noPhoto" style="display:none;">Aucune photo</div>
         </div>
 
         <div class="card-content">
@@ -1339,25 +1663,24 @@ function render(){
               <div class="price">${fmtDT(it.price)}</div>
             </div>
             <div class="meta2">
-              <div>Code: ${it.code} • ${it.catLabel}</div>
+              <div>Code: ${it.code}</div>
             </div>
           </div>
           
           <div class="card-bottom">
             <div class="actions">
               <div class="stepper">
-                <button data-act="minus" title="Réduire quantité">−</button>
+                <button data-act="minus" title="Moins">−</button>
                 <span class="qv">${state.qtyPick[pid]||0}</span>
-                <button data-act="plus" title="Augmenter quantité">+</button>
+                <button data-act="plus" title="Plus">+</button>
               </div>
 
               <button class="stockBtn" data-stock="1">
-                📦 Stock:
-                <span class="stockTag ${stockOk ? "ok" : "no"}">${stockOk ? "Disponible" : "Rupture"}</span>
+                📦 <span class="stockTag ${stockOk ? "ok" : "no"}">${stockOk ? "En stock" : "Rupture"}</span>
               </button>
 
-              <button class="addBtn" ${stockOk ? "" : "disabled"} title="${stockOk ? "Ajouter au panier" : "Produit indisponible"}">
-                🛒 Ajouter
+              <button class="addBtn" ${stockOk ? "" : "disabled"} title="${stockOk ? "Ajouter au panier" : "Rupture de stock"}">
+                🧺
               </button>
             </div>
           </div>
@@ -1411,8 +1734,8 @@ function render(){
 function pulseCart(){
   const cartBtn = $("cartTopBtn");
   cartBtn.animate(
-    [{ transform:"scale(1)" }, { transform:"scale(1.1)" }, { transform:"scale(1)" }],
-    { duration: 300, easing: "ease-out" }
+    [{ transform:"scale(1)" }, { transform:"scale(1.06)" }, { transform:"scale(1)" }],
+    { duration: 260, easing: "ease-out" }
   );
 }
 
@@ -1428,7 +1751,7 @@ function refreshCartUI({ openAfterAdd }){
   if(!keys.length){
     const e = document.createElement("div");
     e.className = "warn";
-    e.innerHTML = "🛒 Votre panier est vide<br>Ajoutez des articles pour commencer votre commande";
+    e.textContent = "Panier vide. Ajoute des articles 🙂";
     list.appendChild(e);
   } else {
     for(const pid of keys){
@@ -1488,7 +1811,7 @@ function refreshCartUI({ openAfterAdd }){
 
   const g = grandTotal();
   if(g===null){
-    $("cartTotal").textContent = "Minimum 15 dt pour livraison";
+    $("cartTotal").textContent = "Minimum commande 15 dt";
     $("cartTotal").style.color = "var(--danger)";
   } else {
     $("cartTotal").textContent = fmtDT(g);
@@ -1498,16 +1821,15 @@ function refreshCartUI({ openAfterAdd }){
   const rule = $("ruleBox");
   const t = cartTotal();
   if(t <= 0){
-    rule.innerHTML = `<div style="display:flex; flex-direction:column; gap:8px;">
-      <div><strong>📦 Conditions de livraison :</strong></div>
+    rule.innerHTML = `<div style="display:flex; flex-direction:column; gap:3px;">
+      <div><strong>📋 Conditions de livraison :</strong></div>
       <div>• Minimum commande: <strong>15 dt</strong></div>
       <div>• Frais de livraison: <strong>3 dt</strong></div>
       <div>• Livraison gratuite à partir de <strong>30 dt</strong></div>
-      <div>• Délai: <strong>30-60 minutes</strong></div>
     </div>`;
     rule.className = "warn";
   } else if(t < MIN_ORDER){
-    rule.innerHTML = `<div style="display:flex; flex-direction:column; gap:8px;">
+    rule.innerHTML = `<div style="display:flex; flex-direction:column; gap:3px;">
       <div><strong>⚠️ Minimum commande non atteint</strong></div>
       <div>• Minimum requis: <strong>15 dt</strong></div>
       <div>• Il manque: <strong>${fmtDT(MIN_ORDER - t)}</strong></div>
@@ -1516,15 +1838,14 @@ function refreshCartUI({ openAfterAdd }){
     </div>`;
     rule.className = "warn bad";
   } else if(t >= FREE_SHIPPING){
-    rule.innerHTML = `<div style="display:flex; flex-direction:column; gap:8px;">
+    rule.innerHTML = `<div style="display:flex; flex-direction:column; gap:3px;">
       <div><strong>✅ Livraison gratuite !</strong></div>
       <div>• Total: <strong>${fmtDT(t)}</strong> (≥ ${FREE_SHIPPING} dt)</div>
       <div>• Frais livraison: <strong>GRATUIT</strong></div>
-      <div>• Délai estimé: <strong>30-60 minutes</strong></div>
     </div>`;
     rule.className = "warn good";
   } else {
-    rule.innerHTML = `<div style="display:flex; flex-direction:column; gap:8px;">
+    rule.innerHTML = `<div style="display:flex; flex-direction:column; gap:3px;">
       <div><strong>📦 Conditions de livraison</strong></div>
       <div>• Total: <strong>${fmtDT(t)}</strong></div>
       <div>• Frais livraison: <strong>3 dt</strong></div>
@@ -1543,7 +1864,7 @@ function lockClientUI(locked){
   fields.forEach(id => $(id).disabled = !!locked);
   $("saveClientBtn").disabled = !!locked;
   $("gpsBtn").disabled = !!locked;
-  $("clientLockTxt").textContent = locked ? "🔒 VERROUILLÉ" : "";
+  $("clientLockTxt").textContent = locked ? "VERROUILLÉ" : "";
   $("editClientBtn").style.opacity = locked ? "1" : "1";
 }
 
@@ -1595,9 +1916,9 @@ function importClientCode(code){
     };
     saveClient();
     fillClientUI();
-    alert("✅ Client importé avec succès !");
+    alert("✅ Client importé !");
   }catch(e){
-    alert("❌ Code client invalide ou corrompu.");
+    alert("❌ Code client invalide.");
   }
 }
 
@@ -1636,20 +1957,15 @@ function renderHistory(){
   tbody.innerHTML = "";
 
   if(history.length === 0){
-    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px;">Aucune commande enregistrée</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:16px;">Aucune commande</td></tr>`;
     return;
   }
 
-  history.slice(0, 10).forEach(order=>{
+  history.slice(0, 12).forEach(order=>{
     const tr = document.createElement("tr");
-    const d = new Date(order.date).toLocaleString("fr-FR", {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    const d = new Date(order.date).toLocaleString("fr-FR");
     const itemsCount = (order.items||[]).reduce((s,x)=>s+(x.qty||0),0);
-    tr.innerHTML = `<td>${d}</td><td><strong>${fmtDT(order.total)}</strong></td><td>${itemsCount} article(s)</td>`;
+    tr.innerHTML = `<td>${d}</td><td><strong>${fmtDT(order.total)}</strong></td><td>${itemsCount}</td>`;
     tbody.appendChild(tr);
   });
 }
@@ -1697,6 +2013,20 @@ $("nextBtn").onclick = ()=>{
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
+// Pagination en bas
+$("prevBottomBtn").onclick = ()=>{ 
+  state.page=Math.max(1,state.page-1); 
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+$("nextBottomBtn").onclick = ()=>{
+  const total = getVisibleItems().length;
+  const totalPages = Math.max(1, Math.ceil(total/state.perPage));
+  state.page=Math.min(totalPages,state.page+1);
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 /* Panier: ouverture manuelle */
 $("cartTopBtn").onclick = ()=> openDrawer();
 $("closeDrawer").onclick = ()=> closeDrawer(false);
@@ -1723,36 +2053,40 @@ $("gpsBtn").onclick = async ()=>{
     return;
   }
   
+  // Afficher un message d'attente
   $("gpsBtn").disabled = true;
-  $("gpsBtn").innerHTML = "📍 Localisation en cours...";
+  $("gpsBtn").innerHTML = "📍 Récupération...";
   
   navigator.geolocation.getCurrentPosition(
     async (pos)=>{
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
       
+      // Mettre à jour les coordonnées
       $("cLat").value = lat.toFixed(6);
       $("cLng").value = lng.toFixed(6);
       
+      // Essayer de récupérer l'adresse
       try {
         const address = await getAddressFromCoords(lat, lng);
         if (address) {
           $("cAddr").value = address;
           alert(`✅ Adresse détectée: ${address}`);
         } else {
-          alert("✅ Coordonnées GPS enregistrées. Complétez l'adresse manuellement.");
+          alert("✅ Coordonnées GPS enregistrées. Vous pouvez compléter l'adresse manuellement.");
         }
       } catch (error) {
-        alert("✅ Coordonnées GPS enregistrées. Complétez l'adresse manuellement.");
+        alert("✅ Coordonnées GPS enregistrées. Vous pouvez compléter l'adresse manuellement.");
       }
       
+      // Réinitialiser le bouton
       $("gpsBtn").disabled = false;
-      $("gpsBtn").innerHTML = "📍 Localisation GPS";
+      $("gpsBtn").innerHTML = "📍 Obtenir adresse GPS";
     },
     (err)=>{
       alert("Impossible d'obtenir la position (autorisation refusée ou GPS désactivé).");
       $("gpsBtn").disabled = false;
-      $("gpsBtn").innerHTML = "📍 Localisation GPS";
+      $("gpsBtn").innerHTML = "📍 Obtenir adresse GPS";
     },
     { enableHighAccuracy:true, timeout:15000, maximumAge:0 }
   );
@@ -1781,16 +2115,16 @@ $("saveClientBtn").onclick = ()=>{
   };
   saveClient();
   fillClientUI();
-  alert("✅ Informations enregistrées avec succès !");
+  alert("✅ Fiche client enregistrée !");
 };
 
 /* Edit client */
 $("editClientBtn").onclick = ()=>{
   if(!state.client){
-    alert("Aucune information client enregistrée.");
+    alert("Aucun client enregistré.");
     return;
   }
-  const ok = confirm("Modifier les informations de livraison ?");
+  const ok = confirm("Modifier la fiche client ? (Vous pourrez ré-enregistrer)");
   if(!ok) return;
   lockClientUI(false);
 };
@@ -1798,7 +2132,7 @@ $("editClientBtn").onclick = ()=>{
 /* Générer code client */
 $("genCodeBtn").onclick = ()=>{
   if(!state.client){
-    alert("Enregistrez d'abord vos informations de livraison.");
+    alert("Enregistre d'abord la fiche client.");
     return;
   }
   const code = buildClientCodeFromClient(state.client);
@@ -1807,19 +2141,19 @@ $("genCodeBtn").onclick = ()=>{
   $("clientCode").value = code;
   $("clientCode").select();
   document.execCommand("copy");
-  alert("✅ Code client copié ! Collez-le sur un autre appareil via 'Importer code'.");
+  alert("✅ Code client copié ! (Colle-le sur l'autre appareil via Importer)");
 };
 
 /* Importer code client */
 $("importCodeBtn").onclick = ()=>{
-  const code = prompt("Collez ici le Code client :");
+  const code = prompt("Colle ici le Code client :");
   if(!code) return;
   importClientCode(code);
 };
 
 /* Panier */
 $("clearCartBtn").onclick = ()=>{
-  if(confirm("Vider tout le panier ? Cette action est irréversible.")){
+  if(confirm("Vider tout le panier ?")){
     state.cart = {};
     saveCart();
     refreshCartUI({ openAfterAdd:false });
@@ -1828,34 +2162,30 @@ $("clearCartBtn").onclick = ()=>{
 
 /* Envoyer (AVEC VIDAGE AUTOMATIQUE DU PANIER) */
 $("sendBtn").onclick = ()=>{
-  if(cartCount() === 0){ alert("🛒 Votre panier est vide !"); return; }
-  if(!state.client){ alert("📝 Veuillez d'abord enregistrer vos informations de livraison."); return; }
+  if(cartCount() === 0){ alert("Panier vide !"); return; }
+  if(!state.client){ alert("Veuillez d'abord enregistrer la fiche client."); return; }
   const g = grandTotal();
-  if(g === null){ alert(`⚠️ Minimum commande: ${MIN_ORDER} dt`); return; }
+  if(g === null){ alert(`Minimum commande: ${MIN_ORDER} dt`); return; }
 
-  let summary = `========== COMMANDE MAXI JDC MARKET ==========\n`;
-  summary += `📅 Date: ${new Date().toLocaleString('fr-FR')}\n`;
-  summary += `👤 Client: ${state.client.name}\n`;
-  summary += `📞 Tél: ${state.client.tel}\n`;
-  summary += `📍 Adresse: ${state.client.addr}\n`;
+  let summary = `=== COMMANDE MAXI JDC MARKET ===\n`;
+  summary += `Date: ${new Date().toLocaleString('fr-FR')}\n`;
+  summary += `Client: ${state.client.name}\n`;
+  summary += `Tél: ${state.client.tel}\n`;
+  summary += `Adresse: ${state.client.addr}\n`;
   if(state.client.lat && state.client.lng){
-    summary += `🗺️ GPS: ${state.client.lat}, ${state.client.lng}\n`;
+    summary += `GPS: ${state.client.lat}, ${state.client.lng}\n`;
   }
-  summary += `\n========== ARTICLES COMMANDÉS ==========\n`;
+  summary += `\n=== ARTICLES ===\n`;
 
   Object.values(state.cart).forEach(item=>{
     summary += `• ${item.name} (x${item.qty}) = ${fmtDT(item.price * item.qty)}\n`;
   });
 
-  summary += `\n========== TOTAL ==========\n`;
+  summary += `\n=== TOTAL ===\n`;
   summary += `Sous-total: ${fmtDT(cartTotal())}\n`;
   const fee = shippingFee();
   summary += `Livraison: ${fee === 0 ? 'GRATUITE' : fmtDT(fee)}\n`;
-  summary += `TOTAL À PAYER: ${fmtDT(g)}\n`;
-  summary += `\n========== INFORMATIONS SUPPLEMENTAIRES ==========\n`;
-  summary += `• Livraison express (30-60 minutes)\n`;
-  summary += `• Paiement à la livraison\n`;
-  summary += `• Merci pour votre confiance !\n`;
+  summary += `TOTAL: ${fmtDT(g)}\n`;
 
   // Save history (local)
   const history = loadHistory();
@@ -1867,14 +2197,29 @@ $("sendBtn").onclick = ()=>{
   });
   saveHistory(history);
 
-  // Afficher le résumé et envoyer sur WhatsApp
-  const whatsappText = encodeURIComponent(summary);
-  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappText}`, '_blank');
-  
+  $("orderText").value = summary;
+  $("modalBack").classList.add("open");
   renderHistory();
   
   // VIDER LE PANIER APRÈS ENVOI
   setTimeout(clearCartAfterSend, 100);
+};
+
+$("closeModal").onclick = ()=> $("modalBack").classList.remove("open");
+$("copyBtn").onclick = ()=>{
+  $("orderText").select();
+  document.execCommand("copy");
+  alert("✅ Copié !");
+};
+$("downloadBtn").onclick = ()=>{
+  const text = $("orderText").value;
+  const date = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const filename = `commande_${(state.client?.name||"client")}_${date}.txt`;
+  dlText(filename, text);
+};
+$("whatsappBtn").onclick = ()=>{
+  const text = encodeURIComponent($("orderText").value);
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, '_blank');
 };
 
 /* Historique */
@@ -1883,7 +2228,7 @@ $("histToggleBtn").onclick = ()=>{
   if($("histBox").classList.contains("open")) renderHistory();
 };
 $("clearMyHistoryBtn").onclick = ()=>{
-  if(confirm("Effacer tout l'historique de commandes ? Cette action est irréversible.")){
+  if(confirm("Effacer tout l'historique de commandes (cet appareil) ?")){
     saveHistory([]);
     renderHistory();
   }
