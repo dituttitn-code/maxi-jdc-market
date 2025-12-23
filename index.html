@@ -1032,11 +1032,11 @@
       flex-shrink: 0;
     }
 
-    /* QR Code Modal */
+    /* QR Code Modal - CORRIGÉ */
     .qrModal{
       position:fixed;
       inset:0;
-      background: rgba(0,0,0,.9);
+      background: rgba(0,0,0,.95);
       display:none;
       align-items:center;
       justify-content:center;
@@ -1061,6 +1061,30 @@
       font-size:22px;
       font-weight:900;
     }
+    
+    /* Conteneur pour l'image QR */
+    .qrImageContainer {
+      width: 280px;
+      height: 280px;
+      margin: 0 auto 15px;
+      border-radius: 12px;
+      border: 3px solid var(--accent2);
+      background: white;
+      padding: 12px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    .qrImageContainer img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    
+    /* Canvas pour le QR Code généré (alternatif) */
     #qrCanvas{
       width:100%;
       max-width:280px;
@@ -1068,11 +1092,12 @@
       border-radius:12px;
       border:3px solid var(--accent2);
       margin:0 auto 15px;
-      display:block;
+      display:none; /* Masqué par défaut */
       background: white;
       padding: 12px;
       box-sizing: border-box;
     }
+    
     .qrInfo{
       color:var(--text);
       font-size:16px;
@@ -1395,7 +1420,7 @@
         margin-bottom: 12px;
       }
       
-      #qrCanvas {
+      .qrImageContainer, #qrCanvas {
         max-width: 220px;
         height: 220px;
         padding: 10px;
@@ -1469,7 +1494,7 @@
       .qrBox h3 {
         font-size: 24px;
       }
-      #qrCanvas {
+      .qrImageContainer, #qrCanvas {
         max-width: 300px;
         height: 300px;
       }
@@ -1695,11 +1720,23 @@
     </div>
   </div>
 
-  <!-- Modal QR Code - SPÉCIAL MAXI JC MARKET -->
+  <!-- Modal QR Code - SPÉCIAL MAXI JC MARKET - CORRIGÉ -->
   <div class="qrModal" id="qrModal">
     <div class="qrBox">
       <h3>📱 QR Code MAXI JC MARKET</h3>
+      
+      <!-- Conteneur pour l'image QR Code existante -->
+      <div class="qrImageContainer" id="qrImageContainer">
+        <img src="maxi-jdc-delivery/tools/image-qr.jpg" alt="QR Code MAXI JC MARKET" id="qrStaticImage">
+        <!-- Texte de secours si l'image ne se charge pas -->
+        <div style="display:none; text-align:center; color:#666; font-size:14px;" id="qrFallbackText">
+          QR Code non disponible
+        </div>
+      </div>
+      
+      <!-- Canvas pour génération dynamique (alternative) -->
       <canvas id="qrCanvas"></canvas>
+      
       <div class="qrInfo">
         <b>MAXI JC MARKET</b>
         Scannez ce QR Code pour accéder au site de commande.<br>
@@ -2046,77 +2083,77 @@ function renderPagination(totalItems) {
   }
 }
 
-/* ===================== QR CODE GÉNÉRATION POUR MAXI JC MARKET ===================== */
-function generateQRCode() {
-  const canvas = document.getElementById('qrCanvas');
-  const currentUrl = window.location.href;
+/* ===================== QR CODE - CORRIGÉ POUR UTILISER L'IMAGE EXISTANTE ===================== */
+function showQRCode() {
+  // Vérifier si l'image QR existe
+  const qrImage = $("qrStaticImage");
+  const qrFallback = $("qrFallbackText");
+  const qrCanvas = $("qrCanvas");
+  const qrImageContainer = $("qrImageContainer");
   
-  // Effacer le canvas
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Essayer de charger l'image QR existante
+  const qrImagePath = "maxi-jdc-delivery/tools/image-qr.jpg";
   
-  // Options pour le QR Code
-  const qrOptions = {
-    width: canvas.width,
-    height: canvas.height,
-    margin: 2,
-    color: {
-      dark: '#0A1929', // Couleur des modules (bleu foncé)
-      light: '#FFFFFF' // Couleur de fond (blanc)
-    }
+  // Créer une image pour vérifier si elle existe
+  const testImage = new Image();
+  testImage.onload = function() {
+    // L'image existe - afficher l'image
+    qrImage.style.display = "block";
+    qrFallback.style.display = "none";
+    qrCanvas.style.display = "none";
+    qrImageContainer.style.display = "flex";
+    console.log("QR Code image chargée avec succès:", qrImagePath);
   };
   
+  testImage.onerror = function() {
+    // L'image n'existe pas - générer un QR Code dynamique
+    console.warn("L'image QR n'existe pas, génération d'un QR Code dynamique");
+    qrImage.style.display = "none";
+    qrFallback.style.display = "flex";
+    qrCanvas.style.display = "block";
+    qrImageContainer.style.display = "none";
+    
+    // Générer un QR Code dynamique
+    generateDynamicQRCode();
+  };
+  
+  testImage.src = qrImagePath;
+  
+  // Ouvrir le modal
+  $("qrModal").classList.add("open");
+}
+
+function generateDynamicQRCode() {
   try {
-    // Générer le QR Code avec la bibliothèque
-    QRCode.toCanvas(canvas, currentUrl, qrOptions, function(error) {
+    // URL à encoder dans le QR Code
+    const currentUrl = window.location.href;
+    
+    // Options pour le QR Code
+    const qrOptions = {
+      width: 280,
+      height: 280,
+      margin: 2,
+      color: {
+        dark: '#0A1929',
+        light: '#FFFFFF'
+      }
+    };
+    
+    // Générer le QR Code
+    QRCode.toCanvas($("qrCanvas"), currentUrl, qrOptions, function(error) {
       if (error) {
         console.error('Erreur génération QR Code:', error);
-        // Fallback manuel
-        generateManualQRCode(ctx, canvas.width, canvas.height);
+        // Fallback
+        $("qrCanvas").style.display = "none";
+        $("qrFallbackText").style.display = "flex";
+        $("qrFallbackText").textContent = "Erreur génération QR Code";
       } else {
-        console.log('QR Code MAXI JC MARKET généré avec succès!');
-        // Ajouter une bordure colorée
-        ctx.strokeStyle = '#00FF88';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(0, 0, canvas.width, canvas.height);
-        
-        // Ajouter le texte MAXI JC MARKET en dessous du QR Code (dans l'image)
-        ctx.fillStyle = '#0A1929';
-        ctx.font = 'bold 18px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.fillText('MAXI JC MARKET', canvas.width/2, canvas.height + 5);
+        console.log('QR Code dynamique généré avec succès!');
       }
     });
   } catch (error) {
-    console.error('Erreur lors de la génération QR Code:', error);
-    generateManualQRCode(ctx, canvas.width, canvas.height);
+    console.error('Erreur lors de la génération du QR Code:', error);
   }
-}
-
-// Fallback si la bibliothèque échoue
-function generateManualQRCode(ctx, width, height) {
-  // Fond blanc
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, width, height);
-  
-  // Texte MAXI JC MARKET au centre
-  ctx.fillStyle = '#0A1929';
-  ctx.font = 'bold 24px Arial';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('MAXI', width/2, height/2 - 25);
-  ctx.fillText('JC MARKET', width/2, height/2);
-  ctx.font = '16px Arial';
-  ctx.fillText('QR Code', width/2, height/2 + 25);
-  
-  // Bordure verte
-  ctx.strokeStyle = '#00FF88';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(0, 0, width, height);
-  
-  // Ajouter le texte en dessous
-  ctx.fillText('Scan pour commander', width/2, height + 20);
 }
 
 /* ===================== MODAL ARTICLE - NAVIGATION ===================== */
@@ -2663,10 +2700,9 @@ $("cartTopBtn").onclick = ()=> openDrawer();
 $("closeDrawer").onclick = ()=> closeDrawer(false);
 $("backdrop").onclick = ()=> closeDrawer(false);
 
-/* QR Code - GÉNÉRATION DYNAMIQUE */
+/* QR Code - CORRIGÉ */
 $("qrBtn").onclick = ()=> {
-  generateQRCode();
-  $("qrModal").classList.add("open");
+  showQRCode();
 };
 $("closeQrBtn").onclick = ()=> $("qrModal").classList.remove("open");
 $("qrModal").onclick = (e)=> {
@@ -2988,8 +3024,9 @@ loadAll().then(() => {
     importClientCode(clientCode);
   }
   
-  // Générer le QR Code au chargement
-  setTimeout(generateQRCode, 500);
+  // Précharger l'image QR Code
+  const qrImage = new Image();
+  qrImage.src = "maxi-jdc-delivery/tools/image-qr.jpg";
 }).catch(err => {
   console.error("Erreur lors du chargement des données:", err);
   $("products").innerHTML = `<div class="warn" style="grid-column:1/-1;text-align:center;padding:30px;">
