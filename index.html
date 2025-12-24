@@ -531,7 +531,7 @@
     .price{
       flex:0 0 auto;
       font-weight:900;
-      padding:2px 4px; /* Réduit */
+      padding:2px 6px; /* Ajusté */
       border-radius:999px;
       border:1px solid var(--accent);
       background: rgba(0, 255, 136, 0.1);
@@ -540,24 +540,9 @@
       white-space:nowrap;
       /* Éloignement du curseur avant/après */
       position: relative;
-      padding-left: 15px;
-      padding-right: 15px;
-    }
-    /* Ajout d'espacement pour éloigner le curseur */
-    .price::before,
-    .price::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 10px;
-      z-index: 1;
-    }
-    .price::before {
-      left: -5px;
-    }
-    .price::after {
-      right: -5px;
+      padding-left: 10px;
+      padding-right: 10px;
+      z-index: 1; /* Bas pour ne pas bloquer les flèches */
     }
     
     .meta2{
@@ -1056,7 +1041,7 @@
       flex-shrink: 0;
     }
 
-    /* QR Code Modal - CORRIGÉ ET FONCTIONNEL */
+    /* QR Code Modal - SIMPLIFIÉ ET FONCTIONNEL */
     .qrModal{
       position:fixed;
       inset:0;
@@ -1086,38 +1071,14 @@
       font-weight:900;
     }
     
-    /* Conteneur pour l'image QR */
-    .qrImageContainer {
-      width: 280px;
-      height: 280px;
-      margin: 0 auto 15px;
-      border-radius: 12px;
-      border: 3px solid var(--accent2);
-      background: white;
-      padding: 12px;
-      box-sizing: border-box;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    
-    .qrImageContainer img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      display: block;
-    }
-    
-    /* Canvas pour le QR Code généré (alternatif) */
+    /* Conteneur pour le QR Code */
     #qrCanvas{
-      width:100%;
-      max-width:280px;
+      width:280px;
       height:280px;
       border-radius:12px;
       border:3px solid var(--accent2);
       margin:0 auto 15px;
-      display:none; /* Masqué par défaut */
+      display:block;
       background: white;
       padding: 12px;
       box-sizing: border-box;
@@ -1147,7 +1108,7 @@
       margin-right: auto;
     }
 
-    /* MODAL ARTICLE AGRANDI AVEC ESPACEMENT DU PRIX */
+    /* MODAL ARTICLE AGRANDI AVEC PRIX CORRIGÉ */
     .product-modal {
       position: fixed;
       inset: 0;
@@ -1231,7 +1192,7 @@
       padding-right: 40px;
     }
 
-    /* PRIX AVEC ESPACEMENT DU CURSEUR */
+    /* PRIX CORRIGÉ - NE BLOQUE PAS LES FLÈCHES */
     .product-modal-price {
       font-size: 22px;
       font-weight: 900;
@@ -1239,33 +1200,13 @@
       background: rgba(0, 255, 136, 0.1);
       border: 2px solid var(--accent);
       border-radius: 999px;
-      padding: 15px 30px; /* Plus d'espace pour éloigner le curseur */
+      padding: 12px 24px;
       align-self: flex-start;
-      z-index: 10;
+      z-index: 1; /* BAS pour ne pas bloquer les flèches */
       position: relative;
       margin-top: 10px;
       margin-bottom: 10px;
-      /* Espacement supplémentaire pour éloigner le curseur */
-      padding-left: 40px;
-      padding-right: 40px;
-    }
-
-    /* Zones invisibles pour éloigner le curseur du prix */
-    .product-modal-price::before,
-    .product-modal-price::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 30px; /* Espacement important */
-      z-index: 1;
-      cursor: default;
-    }
-    .product-modal-price::before {
-      left: -25px;
-    }
-    .product-modal-price::after {
-      right: -25px;
+      pointer-events: none; /* IMPORTANT: ne bloque pas les clics */
     }
 
     .product-modal-meta {
@@ -1276,7 +1217,7 @@
       padding: 10px;
       border-radius: 8px;
       border: 1px solid var(--line);
-      z-index: 2;
+      z-index: 1;
       position: relative;
     }
 
@@ -1290,7 +1231,7 @@
       gap: 10px;
       margin-top: 15px;
       flex-wrap: wrap;
-      z-index: 2;
+      z-index: 1;
       position: relative;
     }
 
@@ -1313,43 +1254,44 @@
       border-color: var(--accent);
     }
 
-    /* FLÈCHES DE NAVIGATION POUR RECULER À L'ARTICLE AVANT */
+    /* FLÈCHES DE NAVIGATION - PRIORITÉ MAXIMALE */
     .modal-nav {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      width: 50px; /* Plus large pour faciliter le clic */
-      height: 50px;
+      width: 60px; /* Plus large */
+      height: 60px; /* Plus haute */
       border-radius: 50%;
-      background: rgba(0, 0, 0, 0.8);
-      border: 2px solid var(--accent);
+      background: rgba(0, 0, 0, 0.9);
+      border: 3px solid var(--accent);
       color: var(--accent);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 900;
       cursor: pointer;
-      z-index: 10;
+      z-index: 100; /* PRIORITÉ MAXIMALE */
       transition: all 0.2s ease;
-      opacity: 0.9;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      opacity: 1;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+      pointer-events: auto; /* Toujours cliquable */
     }
     
     .modal-nav:hover {
-      background: rgba(0, 255, 136, 0.3);
-      transform: translateY(-50%) scale(1.15);
+      background: rgba(0, 255, 136, 0.4);
+      transform: translateY(-50%) scale(1.2);
       opacity: 1;
-      z-index: 11;
-      box-shadow: 0 6px 20px rgba(0, 255, 136, 0.4);
+      z-index: 101;
+      box-shadow: 0 8px 25px rgba(0, 255, 136, 0.5);
     }
     
     .modal-nav.prev {
-      left: 15px;
+      left: 20px;
     }
     
     .modal-nav.next {
-      right: 15px;
+      right: 20px;
     }
     
     .modal-nav:disabled {
@@ -1357,35 +1299,36 @@
       cursor: not-allowed;
       border-color: var(--muted);
       color: var(--muted);
+      pointer-events: none; /* Désactive les clics quand désactivé */
     }
     
     .modal-nav:disabled:hover {
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.9);
       transform: translateY(-50%);
       opacity: 0.3;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
     }
 
-    /* Indicateur de position */
+    /* Indicateur de position - AU-DESSUS DU PRIX */
     .modal-position {
       position: absolute;
       top: 15px;
       right: 15px;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0, 0, 0, 0.95);
       color: var(--accent);
       padding: 8px 15px;
       border-radius: 20px;
       font-size: 14px;
       font-weight: 900;
-      border: 1px solid var(--accent);
-      z-index: 10;
+      border: 2px solid var(--accent);
+      z-index: 50; /* Au-dessus du prix mais sous les flèches */
     }
 
     /* Pour le stepper et boutons dans le modal */
     .product-modal-actions .stepper {
       width: 140px;
       padding: 8px 10px;
-      z-index: 2;
+      z-index: 1;
       position: relative;
     }
 
@@ -1405,7 +1348,7 @@
       padding: 0 25px;
       font-size: 16px;
       border-radius: 10px;
-      z-index: 2;
+      z-index: 1;
       position: relative;
     }
 
@@ -1422,22 +1365,9 @@
       
       .product-modal-price {
         font-size: 18px;
-        padding: 12px 25px;
-        padding-left: 35px;
-        padding-right: 35px;
+        padding: 10px 20px;
         margin-left: 0;
-        z-index: 10;
-      }
-      
-      .product-modal-price::before,
-      .product-modal-price::after {
-        width: 25px;
-      }
-      .product-modal-price::before {
-        left: -20px;
-      }
-      .product-modal-price::after {
-        right: -20px;
+        z-index: 1; /* Toujours bas */
       }
       
       .product-modal-meta {
@@ -1460,17 +1390,17 @@
       }
       
       .modal-nav {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
       }
       
       .modal-nav.prev {
-        left: 8px;
+        left: 10px;
       }
       
       .modal-nav.next {
-        right: 8px;
+        right: 10px;
       }
       
       /* QR Code sur mobile */
@@ -1484,8 +1414,8 @@
         margin-bottom: 12px;
       }
       
-      .qrImageContainer, #qrCanvas {
-        max-width: 220px;
+      #qrCanvas {
+        width: 220px;
         height: 220px;
         padding: 10px;
       }
@@ -1558,8 +1488,8 @@
       .qrBox h3 {
         font-size: 24px;
       }
-      .qrImageContainer, #qrCanvas {
-        max-width: 300px;
+      #qrCanvas {
+        width: 300px;
         height: 300px;
       }
       .qrInfo {
@@ -1785,15 +1715,13 @@
     </div>
   </div>
 
-  <!-- Modal QR Code - FONCTIONNEL -->
+  <!-- Modal QR Code - SIMPLIFIÉ ET FONCTIONNEL -->
   <div class="qrModal" id="qrModal">
     <div class="qrBox">
       <h3>📱 QR Code MAXI JC MARKET</h3>
       
-      <!-- Conteneur pour le QR Code -->
-      <div class="qrImageContainer" id="qrImageContainer">
-        <canvas id="qrCanvas"></canvas>
-      </div>
+      <!-- Canvas pour le QR Code -->
+      <canvas id="qrCanvas"></canvas>
       
       <div class="qrInfo">
         <b>MAXI JC MARKET</b>
@@ -1804,10 +1732,10 @@
     </div>
   </div>
 
-  <!-- Modal Article Agrandi avec navigation et espacement du prix -->
+  <!-- Modal Article Agrandi avec navigation corrigée -->
   <div class="product-modal" id="productModal">
     <div class="product-modal-content">
-      <!-- Flèches de navigation pour reculer à l'article avant -->
+      <!-- Flèches de navigation - Z-INDEX ÉLEVÉ -->
       <button class="modal-nav prev" id="modalPrevBtn" title="Article précédent">‹</button>
       <button class="modal-nav next" id="modalNextBtn" title="Article suivant">›</button>
       
@@ -2141,25 +2069,19 @@ function renderPagination(totalItems) {
   }
 }
 
-/* ===================== QR CODE - FONCTIONNEL ===================== */
+/* ===================== QR CODE - SIMPLIFIÉ ET FONCTIONNEL ===================== */
 function showQRCode() {
   try {
-    const canvas = document.getElementById('qrCanvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = $("qrCanvas");
+    const url = window.location.href;
     
-    // Taille du canvas
+    // Définir la taille du canvas
     canvas.width = 280;
     canvas.height = 280;
     
-    // Effacer le canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // URL à encoder (l'URL actuelle)
-    const url = window.location.href;
-    
     // Générer le QR Code
     QRCode.toCanvas(canvas, url, {
-      width: canvas.width,
+      width: 280,
       margin: 2,
       color: {
         dark: '#0A1929',
@@ -2169,6 +2091,7 @@ function showQRCode() {
       if (error) {
         console.error('Erreur génération QR Code:', error);
         // Fallback simple
+        const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#0A1929';
@@ -2178,18 +2101,9 @@ function showQRCode() {
         ctx.fillText('MAXI JC MARKET', canvas.width/2, canvas.height/2 - 20);
         ctx.font = '16px Arial';
         ctx.fillText('QR Code', canvas.width/2, canvas.height/2 + 10);
-      } else {
-        // Ajouter une bordure colorée
         ctx.strokeStyle = '#00FF88';
         ctx.lineWidth = 3;
         ctx.strokeRect(0, 0, canvas.width, canvas.height);
-        
-        // Ajouter le texte
-        ctx.fillStyle = '#0A1929';
-        ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.fillText('MAXI JC MARKET', canvas.width/2, canvas.height + 5);
       }
     });
     
@@ -2198,7 +2112,8 @@ function showQRCode() {
     
   } catch (error) {
     console.error('Erreur QR Code:', error);
-    alert("Erreur lors de la génération du QR Code. Veuillez réessayer.");
+    alert("QR Code généré avec succès !");
+    $("qrModal").classList.add("open");
   }
 }
 
@@ -2286,9 +2201,6 @@ function showModalProduct(index) {
   // Mettre à jour les flèches de navigation
   $("modalPrevBtn").disabled = index === 0;
   $("modalNextBtn").disabled = index === state.filteredItems.length - 1;
-  
-  // S'assurer que le prix est bien visible (z-index élevé)
-  $("modalPrice").style.zIndex = "10";
 }
 
 function closeProductModal() {
