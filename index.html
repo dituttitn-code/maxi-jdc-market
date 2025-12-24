@@ -3,11 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
-  <title>MAXI JC MARKET — Commande</title>
-  
-  <!-- Bibliothèque pour générer les QR Codes -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-  
+  <title>MAXI JDC MARKET — Commande</title>
+
   <style>
     :root{
       --bg0:#0a1929;
@@ -218,10 +215,6 @@
       align-items:center;
       gap:3px;
       flex-shrink: 0;
-      cursor: pointer;
-    }
-    .qrPill:hover {
-      background: rgba(0, 212, 255, 0.2);
     }
 
     /* CATÉGORIES HORIZONTALES */
@@ -674,7 +667,7 @@
       opacity:0;
       pointer-events:none;
       transition: opacity .3s ease;
-      z-index:1000;
+      z-index:19;
     }
     .backdrop.open{ opacity:1; pointer-events:auto; }
 
@@ -690,7 +683,7 @@
       box-shadow:-20px 0 60px rgba(0,0,0,.7);
       transform: translateX(100%);
       transition: transform .3s ease;
-      z-index:1001;
+      z-index:20;
       display:flex;
       flex-direction:column;
       backdrop-filter: blur(18px);
@@ -970,7 +963,7 @@
       display:none;
       align-items:center;
       justify-content:center;
-      z-index:2000;
+      z-index:30;
       padding:10px;
     }
     .modalBack.open{ display:flex; }
@@ -1036,11 +1029,11 @@
     .qrModal{
       position:fixed;
       inset:0;
-      background: rgba(0,0,0,.9);
+      background: rgba(0,0,0,.8);
       display:none;
       align-items:center;
       justify-content:center;
-      z-index:2001;
+      z-index:40;
       padding:10px;
       backdrop-filter: blur(10px);
     }
@@ -1048,64 +1041,49 @@
     .qrBox{
       background: var(--card);
       border-radius:var(--radius);
-      border:3px solid var(--accent);
-      padding:25px;
-      max-width:380px;
+      border:2px solid var(--accent);
+      padding:15px;
+      max-width:320px;
       width:90vw;
       text-align:center;
       box-shadow: var(--shadow);
     }
     .qrBox h3{
-      margin:0 0 15px;
+      margin:0 0 10px;
       color:var(--accent);
-      font-size:22px;
+      font-size:18px;
       font-weight:900;
     }
-    #qrCanvas{
+    .qrImage{
       width:100%;
-      max-width:280px;
-      height:280px;
-      border-radius:12px;
-      border:3px solid var(--accent2);
-      margin:0 auto 15px;
+      max-width:220px;
+      height:220px;
+      border-radius:10px;
+      border:2px solid var(--accent2);
+      margin:0 auto 10px;
       display:block;
+      object-fit: cover;
       background: white;
-      padding: 12px;
-      box-sizing: border-box;
     }
     .qrInfo{
-      color:var(--text);
-      font-size:16px;
-      margin:15px 0;
+      color:var(--muted);
+      font-size:12px;
+      margin:10px 0;
       line-height:1.5;
-      text-align:center;
     }
     .qrInfo b{
       color:var(--accent);
-      display: block;
-      margin-bottom: 8px;
-      font-size: 18px;
-    }
-    .qrBox .btn{
-      margin-top: 15px;
-      width: 100%;
-      max-width: 200px;
-      height: 45px;
-      font-size: 16px;
-      font-weight: 900;
-      margin-left: auto;
-      margin-right: auto;
     }
 
     /* MODAL ARTICLE AGRANDI */
     .product-modal {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.98);
+      background: rgba(0, 0, 0, 0.95);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 3000;
+      z-index: 50;
       padding: 10px;
       backdrop-filter: blur(10px);
     }
@@ -1162,12 +1140,69 @@
       padding: 20px;
     }
 
+    /* CURSEURS DE NAVIGATION DANS LE MODAL - STYLE AMÉLIORÉ */
+    .modal-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(10, 25, 47, 0.9);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 51;
+      font-size: 28px;
+      font-weight: 900;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(5px);
+      user-select: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-nav-btn:hover {
+      background: rgba(0, 255, 136, 0.25);
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 255, 136, 0.2);
+    }
+
+    .modal-nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      border-color: var(--muted);
+      color: var(--muted);
+    }
+
+    .modal-nav-btn:disabled:hover {
+      background: rgba(10, 25, 47, 0.9);
+      transform: translateY(-50%);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-nav-btn.prev {
+      left: 15px;
+    }
+
+    .modal-nav-btn.next {
+      right: 15px;
+    }
+
+    /* Positionnement intelligent pour éviter le prix */
+    .modal-nav-btn.price-zone {
+      top: 40%;
+    }
+
     .product-modal-info {
       padding: 15px;
       display: flex;
       flex-direction: column;
       gap: 12px;
       position: relative;
+      z-index: 1;
     }
 
     .product-modal-name {
@@ -1176,9 +1211,7 @@
       color: var(--text);
       line-height: 1.3;
       margin: 0;
-      z-index: 2;
-      position: relative;
-      padding-right: 40px;
+      padding-right: 60px; /* Espace pour les curseurs */
     }
 
     .product-modal-price {
@@ -1190,9 +1223,7 @@
       border-radius: 999px;
       padding: 10px 20px;
       align-self: flex-start;
-      z-index: 10;
-      position: relative;
-      margin-top: 10px;
+      margin-top: 5px;
     }
 
     .product-modal-meta {
@@ -1203,8 +1234,7 @@
       padding: 10px;
       border-radius: 8px;
       border: 1px solid var(--line);
-      z-index: 2;
-      position: relative;
+      margin-top: 10px;
     }
 
     .product-modal-meta div {
@@ -1217,8 +1247,6 @@
       gap: 10px;
       margin-top: 15px;
       flex-wrap: wrap;
-      z-index: 2;
-      position: relative;
     }
 
     .product-modal-close {
@@ -1240,77 +1268,10 @@
       border-color: var(--accent);
     }
 
-    /* FLÈCHES DE NAVIGATION */
-    .modal-nav {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: rgba(0, 0, 0, 0.7);
-      border: 2px solid var(--accent);
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      font-weight: 900;
-      cursor: pointer;
-      z-index: 1;
-      transition: all 0.2s ease;
-      opacity: 0.8;
-    }
-    
-    .modal-nav:hover {
-      background: rgba(0, 255, 136, 0.3);
-      transform: translateY(-50%) scale(1.1);
-      opacity: 1;
-      z-index: 3;
-    }
-    
-    .modal-nav.prev {
-      left: 10px;
-    }
-    
-    .modal-nav.next {
-      right: 10px;
-    }
-    
-    .modal-nav:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-      border-color: var(--muted);
-      color: var(--muted);
-    }
-    
-    .modal-nav:disabled:hover {
-      background: rgba(0, 0, 0, 0.7);
-      transform: translateY(-50%);
-      opacity: 0.3;
-    }
-
-    /* Indicateur de position */
-    .modal-position {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: rgba(0, 0, 0, 0.9);
-      color: var(--accent);
-      padding: 5px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 900;
-      border: 1px solid var(--accent);
-      z-index: 10;
-    }
-
     /* Pour le stepper et boutons dans le modal */
     .product-modal-actions .stepper {
       width: 120px;
       padding: 5px 8px;
-      z-index: 2;
-      position: relative;
     }
 
     .product-modal-actions .stepper button {
@@ -1329,8 +1290,6 @@
       padding: 0 20px;
       font-size: 14px;
       border-radius: 8px;
-      z-index: 2;
-      position: relative;
     }
 
     /* Responsive pour le modal */
@@ -1341,14 +1300,12 @@
       
       .product-modal-name {
         font-size: 16px;
-        padding-right: 35px;
+        padding-right: 50px;
       }
       
       .product-modal-price {
         font-size: 18px;
         padding: 8px 16px;
-        margin-left: 0;
-        z-index: 10;
       }
       
       .product-modal-meta {
@@ -1370,58 +1327,19 @@
         width: 100%;
       }
       
-      .modal-nav {
-        width: 35px;
-        height: 35px;
-        font-size: 18px;
-      }
-      
-      .modal-nav.prev {
-        left: 5px;
-      }
-      
-      .modal-nav.next {
-        right: 5px;
-      }
-      
-      /* QR Code sur mobile */
-      .qrBox {
-        padding: 20px;
-        max-width: 320px;
-      }
-      
-      .qrBox h3 {
-        font-size: 18px;
-        margin-bottom: 12px;
-      }
-      
-      #qrCanvas {
-        max-width: 220px;
-        height: 220px;
-        padding: 10px;
-      }
-      
-      .qrInfo {
-        font-size: 14px;
-        margin: 12px 0;
-      }
-      
-      .qrInfo b {
-        font-size: 16px;
-      }
-      
-      .qrBox .btn {
+      /* Curseurs plus petits sur mobile */
+      .modal-nav-btn {
+        width: 40px;
         height: 40px;
-        font-size: 14px;
+        font-size: 22px;
       }
-    }
-
-    @media (min-width: 768px) {
-      .product-modal-content {
-        max-width: 600px;
+      
+      .modal-nav-btn.prev {
+        left: 8px;
       }
-      .product-modal-img {
-        height: 300px;
+      
+      .modal-nav-btn.next {
+        right: 8px;
       }
     }
 
@@ -1461,23 +1379,11 @@
       .price{font-size:9px;}
       .drawer{width: var(--drawerW);}
       .drawer.open{transform: translateX(0);}
-      /* QR Code sur desktop */
-      .qrBox {
-        max-width: 420px;
-        padding: 30px;
+      .product-modal-content {
+        max-width: 600px;
       }
-      .qrBox h3 {
-        font-size: 24px;
-      }
-      #qrCanvas {
-        max-width: 300px;
+      .product-modal-img {
         height: 300px;
-      }
-      .qrInfo {
-        font-size: 18px;
-      }
-      .qrInfo b {
-        font-size: 20px;
       }
     }
 
@@ -1499,10 +1405,10 @@
       <div class="topRow">
         <div class="brand">
           <div class="logo">
-            <!-- Logo à ajouter -->
+            <img src="logo-maxi-jdc-market.jpg" alt="MAXI JDC MARKET" onerror="this.style.display='none'">
           </div>
           <div class="brandText">
-            <h1>MAXI JC MARKET</h1>
+            <h1>MAXI JDC MARKET</h1>
             <p>Des prix mini — Un MAXI choix</p>
           </div>
         </div>
@@ -1695,29 +1601,27 @@
     </div>
   </div>
 
-  <!-- Modal QR Code - SPÉCIAL MAXI JC MARKET -->
+  <!-- Modal QR Code -->
   <div class="qrModal" id="qrModal">
     <div class="qrBox">
-      <h3>📱 QR Code MAXI JC MARKET</h3>
-      <canvas id="qrCanvas"></canvas>
+      <h3>📱 QR Code du Site</h3>
+      <img src="qr-maxi-jdc-site.jpg" alt="QR Code MAXI JDC MARKET" class="qrImage" 
+           onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(window.location.href)+'&format=jpg&margin=10&color=0A1929&bgcolor=00FF88';">
       <div class="qrInfo">
-        <b>MAXI JC MARKET</b>
-        Scannez ce QR Code pour accéder au site de commande.<br>
+        <b>MAXI JDC MARKET</b><br>
+        Scannez ce QR Code pour accéder au site sur votre téléphone.<br>
         Partagez-le avec vos clients pour faciliter les commandes !
       </div>
       <button class="btn green" id="closeQrBtn">Fermer</button>
     </div>
   </div>
 
-  <!-- Modal Article Agrandi avec navigation -->
+  <!-- Modal Article Agrandi -->
   <div class="product-modal" id="productModal">
     <div class="product-modal-content">
-      <!-- Flèches de navigation -->
-      <button class="modal-nav prev" id="modalPrevBtn" title="Article précédent">‹</button>
-      <button class="modal-nav next" id="modalNextBtn" title="Article suivant">›</button>
-      
-      <!-- Indicateur de position -->
-      <div class="modal-position" id="modalPosition">1/1</div>
+      <!-- Curseurs de navigation - Positionnés sur l'image -->
+      <button class="modal-nav-btn prev" id="modalPrevBtn" title="Article précédent (Flèche gauche)">‹</button>
+      <button class="modal-nav-btn next" id="modalNextBtn" title="Article suivant (Flèche droite)">›</button>
       
       <div class="product-modal-img" id="modalImg">
         <div class="noPhoto" style="display:none;">Aucune photo disponible</div>
@@ -1730,6 +1634,7 @@
         <div class="product-modal-meta">
           <div id="modalCode"></div>
           <div id="modalCategory"></div>
+          <div id="modalStock"></div>
         </div>
         
         <div class="product-modal-actions">
@@ -1815,10 +1720,9 @@ const state = {
   pinCart:false,
   stockByCode:{},
   autoOpenOnAdd: false,
-  // Pour la navigation dans le modal
-  currentModalIndex: -1,
-  visibleItems: [],
-  filteredItems: []
+  // État pour la navigation dans le modal
+  currentModalIndex: 0,
+  currentModalItems: [],
 };
 
 /* ===================== STORAGE ===================== */
@@ -1952,7 +1856,6 @@ function getVisibleItems(){
   }
 
   items.sort((a,b)=>String(a.name).localeCompare(String(b.name), "fr"));
-  state.filteredItems = items; // Stocker pour la navigation
   return items;
 }
 
@@ -1971,16 +1874,20 @@ function toggleStock(code){
 function renderPagination(totalItems) {
   const totalPages = Math.max(1, Math.ceil(totalItems / state.perPage));
   
+  // Mettre à jour la pagination en haut
   $("pageInfo").textContent = `Page ${state.page}/${totalPages}`;
   
+  // Mettre à jour la pagination en bas
   const paginationBottom = $("paginationBottom");
   if (totalPages > 1) {
     paginationBottom.style.display = "block";
     $("pageInfoBottom").textContent = `Page ${state.page} sur ${totalPages} (${totalItems} articles)`;
     
+    // Boutons Précédent/Suivant
     $("prevBottomBtn").disabled = (state.page === 1);
     $("nextBottomBtn").disabled = (state.page === totalPages);
     
+    // Générer les numéros de page
     const pageNumbers = $("pageNumbers");
     pageNumbers.innerHTML = "";
     
@@ -1992,6 +1899,7 @@ function renderPagination(totalItems) {
       startPage = Math.max(1, endPage - maxVisible + 1);
     }
     
+    // Bouton première page
     if (startPage > 1) {
       const firstBtn = document.createElement("button");
       firstBtn.className = "page-btn";
@@ -2011,6 +1919,7 @@ function renderPagination(totalItems) {
       }
     }
     
+    // Pages visibles
     for (let i = startPage; i <= endPage; i++) {
       const pageBtn = document.createElement("button");
       pageBtn.className = "page-btn" + (i === state.page ? " active" : "");
@@ -2023,6 +1932,7 @@ function renderPagination(totalItems) {
       pageNumbers.appendChild(pageBtn);
     }
     
+    // Bouton dernière page
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         const dots = document.createElement("span");
@@ -2046,105 +1956,38 @@ function renderPagination(totalItems) {
   }
 }
 
-/* ===================== QR CODE GÉNÉRATION POUR MAXI JC MARKET ===================== */
-function generateQRCode() {
-  const canvas = document.getElementById('qrCanvas');
-  const currentUrl = window.location.href;
-  
-  // Effacer le canvas
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  // Options pour le QR Code
-  const qrOptions = {
-    width: canvas.width,
-    height: canvas.height,
-    margin: 2,
-    color: {
-      dark: '#0A1929', // Couleur des modules (bleu foncé)
-      light: '#FFFFFF' // Couleur de fond (blanc)
-    }
-  };
-  
-  try {
-    // Générer le QR Code avec la bibliothèque
-    QRCode.toCanvas(canvas, currentUrl, qrOptions, function(error) {
-      if (error) {
-        console.error('Erreur génération QR Code:', error);
-        // Fallback manuel
-        generateManualQRCode(ctx, canvas.width, canvas.height);
-      } else {
-        console.log('QR Code MAXI JC MARKET généré avec succès!');
-        // Ajouter une bordure colorée
-        ctx.strokeStyle = '#00FF88';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(0, 0, canvas.width, canvas.height);
-        
-        // Ajouter le texte MAXI JC MARKET en dessous du QR Code (dans l'image)
-        ctx.fillStyle = '#0A1929';
-        ctx.font = 'bold 18px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.fillText('MAXI JC MARKET', canvas.width/2, canvas.height + 5);
-      }
-    });
-  } catch (error) {
-    console.error('Erreur lors de la génération QR Code:', error);
-    generateManualQRCode(ctx, canvas.width, canvas.height);
-  }
-}
-
-// Fallback si la bibliothèque échoue
-function generateManualQRCode(ctx, width, height) {
-  // Fond blanc
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, width, height);
-  
-  // Texte MAXI JC MARKET au centre
-  ctx.fillStyle = '#0A1929';
-  ctx.font = 'bold 24px Arial';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('MAXI', width/2, height/2 - 25);
-  ctx.fillText('JC MARKET', width/2, height/2);
-  ctx.font = '16px Arial';
-  ctx.fillText('QR Code', width/2, height/2 + 25);
-  
-  // Bordure verte
-  ctx.strokeStyle = '#00FF88';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(0, 0, width, height);
-  
-  // Ajouter le texte en dessous
-  ctx.fillText('Scan pour commander', width/2, height + 20);
-}
-
-/* ===================== MODAL ARTICLE - NAVIGATION ===================== */
+/* ===================== FONCTIONS POUR LE MODAL D'ARTICLE ===================== */
 function openProductModal(product, pid) {
-  // Récupérer tous les articles filtrés
-  state.filteredItems = getVisibleItems();
+  // Obtenir tous les articles visibles
+  state.currentModalItems = getVisibleItems();
   
   // Trouver l'index de l'article actuel
-  state.currentModalIndex = state.filteredItems.findIndex(item => 
+  const index = state.currentModalItems.findIndex(item => 
     safeKey(`${item.catKey}_${item.code}_${item.name}`) === pid
   );
   
-  if (state.currentModalIndex === -1) {
+  if (index === -1) {
+    // Fallback: ouvrir juste l'article demandé
+    state.currentModalItems = [product];
     state.currentModalIndex = 0;
+  } else {
+    state.currentModalIndex = index;
   }
   
-  // Afficher l'article
-  showModalProduct(state.currentModalIndex);
+  // Mettre à jour le modal avec l'article actuel
+  updateProductModal();
   
   // Ouvrir le modal
   $("productModal").classList.add('open');
+  
+  // Ajuster la position des curseurs après ouverture
+  setTimeout(adjustModalNavPosition, 100);
 }
 
-function showModalProduct(index) {
-  if (index < 0 || index >= state.filteredItems.length) return;
+function updateProductModal() {
+  if (state.currentModalItems.length === 0) return;
   
-  state.currentModalIndex = index;
-  const product = state.filteredItems[index];
+  const product = state.currentModalItems[state.currentModalIndex];
   const pid = safeKey(`${product.catKey}_${product.code}_${product.name}`);
   
   const modalImg = $("modalImg");
@@ -2186,43 +2029,83 @@ function showModalProduct(index) {
   $("modalCode").textContent = `Code: ${product.code}`;
   $("modalCategory").textContent = `Catégorie: ${product.catLabel || 'Non spécifiée'}`;
   
-  // Mettre à jour l'indicateur de position
-  $("modalPosition").textContent = `${index + 1}/${state.filteredItems.length}`;
+  // Stock
+  const stockOk = isInStock(product.code);
+  $("modalStock").textContent = stockOk ? '✅ En stock' : '❌ Rupture de stock';
+  $("modalStock").style.color = stockOk ? 'var(--accent)' : 'var(--danger)';
   
   // Quantité
   const currentQty = state.qtyPick[pid] || 0;
   $("modalQty").textContent = currentQty;
   
   // Bouton ajouter (actif/désactivé selon stock)
-  const stockOk = isInStock(product.code);
   const addBtn = $("modalAddBtn");
   addBtn.disabled = !stockOk || currentQty === 0;
   addBtn.textContent = stockOk ? '🛒 Ajouter au panier' : '📦 Rupture de stock';
   addBtn.style.opacity = stockOk ? '1' : '0.6';
   
-  // Mettre à jour les flèches de navigation
-  $("modalPrevBtn").disabled = index === 0;
-  $("modalNextBtn").disabled = index === state.filteredItems.length - 1;
+  // Mettre à jour les boutons de navigation
+  updateModalNavButtons();
   
-  // S'assurer que le prix est bien visible (z-index élevé)
-  $("modalPrice").style.zIndex = "10";
+  // Ajuster la position des curseurs
+  setTimeout(adjustModalNavPosition, 50);
+}
+
+function adjustModalNavPosition() {
+  const prevBtn = $("modalPrevBtn");
+  const nextBtn = $("modalNextBtn");
+  const modalImg = $("modalImg");
+  
+  if (!modalImg || state.currentModalItems.length <= 1) return;
+  
+  const imgRect = modalImg.getBoundingClientRect();
+  
+  // Positionner les curseurs au centre vertical de l'image
+  const imgCenterY = imgRect.top + (imgRect.height / 2);
+  
+  // Convertir en pourcentage par rapport au modal
+  const modalRect = document.querySelector('.product-modal-content').getBoundingClientRect();
+  const relativeY = ((imgCenterY - modalRect.top) / modalRect.height) * 100;
+  
+  prevBtn.style.top = `${relativeY}%`;
+  nextBtn.style.top = `${relativeY}%`;
+}
+
+function updateModalNavButtons() {
+  const prevBtn = $("modalPrevBtn");
+  const nextBtn = $("modalNextBtn");
+  
+  // Cacher les boutons s'il n'y a qu'un seul article
+  if (state.currentModalItems.length <= 1) {
+    prevBtn.style.display = 'none';
+    nextBtn.style.display = 'none';
+    return;
+  }
+  
+  prevBtn.style.display = 'flex';
+  nextBtn.style.display = 'flex';
+  
+  // Activer/désactiver selon la position
+  prevBtn.disabled = state.currentModalIndex === 0;
+  nextBtn.disabled = state.currentModalIndex === state.currentModalItems.length - 1;
 }
 
 function closeProductModal() {
   $("productModal").classList.remove('open');
-  state.currentModalIndex = -1;
+  state.currentModalItems = [];
+  state.currentModalIndex = 0;
 }
 
 function navigateModal(direction) {
-  if (state.filteredItems.length === 0) return;
+  if (state.currentModalItems.length === 0) return;
   
-  let newIndex = state.currentModalIndex + direction;
-  
-  // Boucler si on dépasse les limites
-  if (newIndex < 0) newIndex = state.filteredItems.length - 1;
-  if (newIndex >= state.filteredItems.length) newIndex = 0;
-  
-  showModalProduct(newIndex);
+  if (direction === 'prev' && state.currentModalIndex > 0) {
+    state.currentModalIndex--;
+    updateProductModal();
+  } else if (direction === 'next' && state.currentModalIndex < state.currentModalItems.length - 1) {
+    state.currentModalIndex++;
+    updateProductModal();
+  }
 }
 
 /* ===================== RENDER ===================== */
@@ -2317,7 +2200,7 @@ function render(){
           return;
         }
         
-        // Ouvrir le modal d'agrandissement avec navigation
+        // Ouvrir le modal d'agrandissement
         openProductModal(it, pid);
       });
 
@@ -2663,11 +2546,8 @@ $("cartTopBtn").onclick = ()=> openDrawer();
 $("closeDrawer").onclick = ()=> closeDrawer(false);
 $("backdrop").onclick = ()=> closeDrawer(false);
 
-/* QR Code - GÉNÉRATION DYNAMIQUE */
-$("qrBtn").onclick = ()=> {
-  generateQRCode();
-  $("qrModal").classList.add("open");
-};
+/* QR Code */
+$("qrBtn").onclick = ()=> $("qrModal").classList.add("open");
 $("closeQrBtn").onclick = ()=> $("qrModal").classList.remove("open");
 $("qrModal").onclick = (e)=> {
   if(e.target.classList.contains("qrModal")) $("qrModal").classList.remove("open");
@@ -2801,7 +2681,7 @@ $("sendBtn").onclick = ()=>{
   const g = grandTotal();
   if(g === null){ alert(`Minimum commande: ${MIN_ORDER} dt`); return; }
 
-  let summary = `=== COMMANDE MAXI JC MARKET ===\n`;
+  let summary = `=== COMMANDE MAXI JDC MARKET ===\n`;
   summary += `Date: ${new Date().toLocaleString('fr-FR')}\n`;
   summary += `Client: ${state.client.name}\n`;
   summary += `Tél: ${state.client.tel}\n`;
@@ -2876,14 +2756,15 @@ $("productModal").onclick = (e) => {
   }
 };
 
-// Navigation dans le modal
-$("modalPrevBtn").onclick = () => navigateModal(-1);
-$("modalNextBtn").onclick = () => navigateModal(1);
+// Curseurs de navigation dans le modal
+$("modalPrevBtn").onclick = () => navigateModal('prev');
+$("modalNextBtn").onclick = () => navigateModal('next');
 
 // Gestionnaires pour le stepper dans le modal
 $("modalStepper").querySelector('[data-act="minus"]').onclick = () => {
-  if (state.currentModalIndex === -1) return;
-  const product = state.filteredItems[state.currentModalIndex];
+  if (state.currentModalItems.length === 0) return;
+  
+  const product = state.currentModalItems[state.currentModalIndex];
   const pid = safeKey(`${product.catKey}_${product.code}_${product.name}`);
   
   state.qtyPick[pid] = Math.max(0, (state.qtyPick[pid] || 0) - 1);
@@ -2898,8 +2779,9 @@ $("modalStepper").querySelector('[data-act="minus"]').onclick = () => {
 };
 
 $("modalStepper").querySelector('[data-act="plus"]').onclick = () => {
-  if (state.currentModalIndex === -1) return;
-  const product = state.filteredItems[state.currentModalIndex];
+  if (state.currentModalItems.length === 0) return;
+  
+  const product = state.currentModalItems[state.currentModalIndex];
   const pid = safeKey(`${product.catKey}_${product.code}_${product.name}`);
   
   state.qtyPick[pid] = (state.qtyPick[pid] || 0) + 1;
@@ -2915,9 +2797,9 @@ $("modalStepper").querySelector('[data-act="plus"]').onclick = () => {
 
 // Gestionnaire pour le bouton d'ajout dans le modal
 $("modalAddBtn").onclick = () => {
-  if (state.currentModalIndex === -1) return;
+  if (state.currentModalItems.length === 0) return;
   
-  const product = state.filteredItems[state.currentModalIndex];
+  const product = state.currentModalItems[state.currentModalIndex];
   const pid = safeKey(`${product.catKey}_${product.code}_${product.name}`);
   
   const q = state.qtyPick[pid] || 0;
@@ -2948,54 +2830,87 @@ $("modalAddBtn").onclick = () => {
   // Mettre à jour l'affichage dans la grille principale
   render();
   
-  // Optionnel : fermer automatiquement le modal après ajout
-  setTimeout(() => {
-    closeProductModal();
-  }, 800);
+  // Message de confirmation
+  const toast = document.createElement('div');
+  toast.textContent = `✅ ${q} × ${product.name} ajouté au panier`;
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--accent);
+    color: var(--bg0);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 900;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    animation: slideIn 0.3s ease, fadeOut 0.3s ease 2s forwards;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2300);
 };
 
-// Navigation clavier dans le modal
+// Navigation au clavier dans le modal
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && $("productModal").classList.contains('open')) {
-    closeProductModal();
+  if (e.key === 'Escape') {
+    if ($("productModal").classList.contains('open')) {
+      closeProductModal();
+    }
+    if ($("qrModal").classList.contains('open')) {
+      $("qrModal").classList.remove('open');
+    }
+    if ($("modalBack").classList.contains('open')) {
+      $("modalBack").classList.remove('open');
+    }
   }
-  if (e.key === 'ArrowLeft' && $("productModal").classList.contains('open')) {
-    if (!$("modalPrevBtn").disabled) navigateModal(-1);
-  }
-  if (e.key === 'ArrowRight' && $("productModal").classList.contains('open')) {
-    if (!$("modalNextBtn").disabled) navigateModal(1);
+  
+  // Navigation avec les flèches dans le modal
+  if ($("productModal").classList.contains('open')) {
+    if (e.key === 'ArrowLeft') {
+      navigateModal('prev');
+      e.preventDefault();
+    } else if (e.key === 'ArrowRight') {
+      navigateModal('next');
+      e.preventDefault();
+    }
   }
 });
 
-/* ===================== INITIALISATION ===================== */
+// Animation CSS pour les toasts
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+`;
+document.head.appendChild(style);
+
+/* ===================== INIT ===================== */
 loadLocal();
+$("pinCart").checked = state.pinCart;
+
 fillClientUI();
-renderHistory();
+refreshCartUI({ openAfterAdd:false });
 
-// Ouverture automatique du panier si épinglé
-if (state.pinCart) {
-  setTimeout(() => openDrawer(), 300);
-}
+if(state.pinCart) openDrawer(); else closeDrawer(true);
 
-// Chargement des données CSV
-loadAll().then(() => {
-  console.log("Données chargées avec succès !");
-  
-  // Vérifier l'URL pour les codes clients
-  const urlParams = new URLSearchParams(window.location.search);
-  const clientCode = urlParams.get('client');
-  if (clientCode) {
-    importClientCode(clientCode);
-  }
-  
-  // Générer le QR Code au chargement
-  setTimeout(generateQRCode, 500);
-}).catch(err => {
-  console.error("Erreur lors du chargement des données:", err);
-  $("products").innerHTML = `<div class="warn" style="grid-column:1/-1;text-align:center;padding:30px;">
-    ❌ Erreur de chargement des produits. Veuillez rafraîchir la page.
-  </div>`;
-});
+loadAll();
 </script>
 </body>
 </html>
