@@ -443,13 +443,13 @@
       opacity: 1;
     }
 
-    /* PHOTO PLUS PETITE POUR OPTIMISER L'ESPACE */
+    /* PHOTO SANS FOND BLANC */
     .imgWrap{
       width:100%;
       height:70px; /* Réduit de 90px à 70px */
       border-radius:6px;
       border:1px solid rgba(255,255,255,.12);
-      background: #ffffff;
+      background: transparent; /* CHANGÉ : fond transparent au lieu de blanc */
       display:flex;
       align-items:center;
       justify-content:center;
@@ -464,6 +464,7 @@
       height:auto;
       object-fit:contain;
       display:block;
+      mix-blend-mode: multiply; /* Pour mieux intégrer les images avec fond transparent */
     }
     .noPhoto{
       position:absolute;
@@ -471,12 +472,13 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      color:#666666;
+      color:var(--muted); /* CHANGÉ : couleur adaptée au thème */
       font-weight:800;
       font-size:7px; /* Réduit */
-      background: #f8f8f8;
+      background: rgba(255,255,255,0.05); /* CHANGÉ : fond semi-transparent */
       text-align:center;
       padding:2px;
+      border-radius: 6px;
     }
 
     /* CONTENU DE LA CARTE OPTIMISÉ */
@@ -1156,11 +1158,11 @@
       right: 20px;
     }
 
-    /* PHOTO EN PLEIN ÉCRAN */
+    /* PHOTO EN PLEIN ÉCRAN SANS FOND BLANC */
     .product-modal-img {
       width: 100%;
       height: 65vh;
-      background: #000000;
+      background: rgba(0, 0, 0, 0.3); /* CHANGÉ : fond sombre transparent */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1176,6 +1178,7 @@
       height: auto;
       object-fit: contain;
       transition: transform 0.3s ease;
+      mix-blend-mode: multiply; /* Pour images avec fond transparent */
     }
 
     .product-modal-img img:hover {
@@ -1188,12 +1191,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #ffffff;
+      color: var(--muted); /* CHANGÉ : couleur adaptée */
       font-weight: 900;
       font-size: 24px;
-      background: linear-gradient(135deg, #1a365d 0%, #112240 100%);
+      background: rgba(255, 255, 255, 0.05); /* CHANGÉ : fond semi-transparent */
       text-align: center;
       padding: 20px;
+      border-radius: 0;
     }
 
     /* ZONE INFOS EN BAS */
