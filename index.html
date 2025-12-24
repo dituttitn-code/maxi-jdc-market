@@ -4,10 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
   <title>MAXI JDC MARKET — Commande</title>
-  
-  <!-- Bibliothèque pour générer les QR Codes -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-  
+
   <style>
     :root{
       --bg0:#0a1929;
@@ -218,10 +215,6 @@
       align-items:center;
       gap:3px;
       flex-shrink: 0;
-      cursor: pointer;
-    }
-    .qrPill:hover {
-      background: rgba(0, 212, 255, 0.2);
     }
 
     /* CATÉGORIES HORIZONTALES */
@@ -674,7 +667,7 @@
       opacity:0;
       pointer-events:none;
       transition: opacity .3s ease;
-      z-index:1000;
+      z-index:19;
     }
     .backdrop.open{ opacity:1; pointer-events:auto; }
 
@@ -690,7 +683,7 @@
       box-shadow:-20px 0 60px rgba(0,0,0,.7);
       transform: translateX(100%);
       transition: transform .3s ease;
-      z-index:1001;
+      z-index:20;
       display:flex;
       flex-direction:column;
       backdrop-filter: blur(18px);
@@ -970,7 +963,7 @@
       display:none;
       align-items:center;
       justify-content:center;
-      z-index:2000;
+      z-index:30;
       padding:10px;
     }
     .modalBack.open{ display:flex; }
@@ -1040,7 +1033,7 @@
       display:none;
       align-items:center;
       justify-content:center;
-      z-index:2001;
+      z-index:40;
       padding:10px;
       backdrop-filter: blur(10px);
     }
@@ -1061,7 +1054,7 @@
       font-size:18px;
       font-weight:900;
     }
-    #qrCanvas{
+    .qrImage{
       width:100%;
       max-width:220px;
       height:220px;
@@ -1069,6 +1062,7 @@
       border:2px solid var(--accent2);
       margin:0 auto 10px;
       display:block;
+      object-fit: cover;
       background: white;
     }
     .qrInfo{
@@ -1081,15 +1075,15 @@
       color:var(--accent);
     }
 
-    /* MODAL ARTICLE AGRANDI - CORRIGÉ AVEC NAVIGATION ET Z-INDEX ÉLEVÉ */
+    /* MODAL ARTICLE AGRANDI */
     .product-modal {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.98);
+      background: rgba(0, 0, 0, 0.95);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 3000; /* Augmenté pour être au-dessus de tout */
+      z-index: 50;
       padding: 10px;
       backdrop-filter: blur(10px);
     }
@@ -1109,7 +1103,6 @@
       display: flex;
       flex-direction: column;
       max-height: 90vh;
-      position: relative;
     }
 
     .product-modal-img {
@@ -1213,67 +1206,6 @@
       border-color: var(--accent);
     }
 
-    /* FLÈCHES DE NAVIGATION DANS LE MODAL */
-    .modal-nav {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: rgba(0, 0, 0, 0.7);
-      border: 2px solid var(--accent);
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      font-weight: 900;
-      cursor: pointer;
-      z-index: 10;
-      transition: all 0.2s ease;
-    }
-    
-    .modal-nav:hover {
-      background: rgba(0, 255, 136, 0.2);
-      transform: translateY(-50%) scale(1.1);
-    }
-    
-    .modal-nav.prev {
-      left: 15px;
-    }
-    
-    .modal-nav.next {
-      right: 15px;
-    }
-    
-    .modal-nav:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-      border-color: var(--muted);
-      color: var(--muted);
-    }
-    
-    .modal-nav:disabled:hover {
-      background: rgba(0, 0, 0, 0.7);
-      transform: translateY(-50%);
-    }
-
-    /* Indicateur de position (ex: 1/20) */
-    .modal-position {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: rgba(0, 0, 0, 0.8);
-      color: var(--accent);
-      padding: 5px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 900;
-      border: 1px solid var(--accent);
-      z-index: 10;
-    }
-
     /* Pour le stepper et boutons dans le modal */
     .product-modal-actions .stepper {
       width: 120px;
@@ -1331,29 +1263,6 @@
         margin-left: 0;
         width: 100%;
       }
-      
-      .modal-nav {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-      }
-      
-      .modal-nav.prev {
-        left: 10px;
-      }
-      
-      .modal-nav.next {
-        right: 10px;
-      }
-    }
-
-    @media (min-width: 768px) {
-      .product-modal-content {
-        max-width: 600px;
-      }
-      .product-modal-img {
-        height: 300px;
-      }
     }
 
     /* ==== RESPONSIVE - Plus de colonnes sur écrans plus grands ==== */
@@ -1392,6 +1301,12 @@
       .price{font-size:9px;}
       .drawer{width: var(--drawerW);}
       .drawer.open{transform: translateX(0);}
+      .product-modal-content {
+        max-width: 600px;
+      }
+      .product-modal-img {
+        height: 300px;
+      }
     }
 
     @media (min-width: 1024px){
@@ -1612,7 +1527,8 @@
   <div class="qrModal" id="qrModal">
     <div class="qrBox">
       <h3>📱 QR Code du Site</h3>
-      <canvas id="qrCanvas"></canvas>
+      <img src="qr-maxi-jdc-site.jpg" alt="QR Code MAXI JDC MARKET" class="qrImage" 
+           onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(window.location.href)+'&format=jpg&margin=10&color=0A1929&bgcolor=00FF88';">
       <div class="qrInfo">
         <b>MAXI JDC MARKET</b><br>
         Scannez ce QR Code pour accéder au site sur votre téléphone.<br>
@@ -1622,16 +1538,9 @@
     </div>
   </div>
 
-  <!-- Modal Article Agrandi avec navigation -->
+  <!-- Modal Article Agrandi -->
   <div class="product-modal" id="productModal">
     <div class="product-modal-content">
-      <!-- Flèches de navigation -->
-      <button class="modal-nav prev" id="modalPrevBtn" title="Article précédent">‹</button>
-      <button class="modal-nav next" id="modalNextBtn" title="Article suivant">›</button>
-      
-      <!-- Indicateur de position -->
-      <div class="modal-position" id="modalPosition">1/1</div>
-      
       <div class="product-modal-img" id="modalImg">
         <div class="noPhoto" style="display:none;">Aucune photo disponible</div>
       </div>
@@ -1728,10 +1637,6 @@ const state = {
   pinCart:false,
   stockByCode:{},
   autoOpenOnAdd: false,
-  // Pour la navigation dans le modal
-  currentModalIndex: -1,
-  visibleItems: [],
-  filteredItems: []
 };
 
 /* ===================== STORAGE ===================== */
@@ -1865,7 +1770,6 @@ function getVisibleItems(){
   }
 
   items.sort((a,b)=>String(a.name).localeCompare(String(b.name), "fr"));
-  state.filteredItems = items; // Stocker pour la navigation
   return items;
 }
 
@@ -1884,16 +1788,20 @@ function toggleStock(code){
 function renderPagination(totalItems) {
   const totalPages = Math.max(1, Math.ceil(totalItems / state.perPage));
   
+  // Mettre à jour la pagination en haut
   $("pageInfo").textContent = `Page ${state.page}/${totalPages}`;
   
+  // Mettre à jour la pagination en bas
   const paginationBottom = $("paginationBottom");
   if (totalPages > 1) {
     paginationBottom.style.display = "block";
     $("pageInfoBottom").textContent = `Page ${state.page} sur ${totalPages} (${totalItems} articles)`;
     
+    // Boutons Précédent/Suivant
     $("prevBottomBtn").disabled = (state.page === 1);
     $("nextBottomBtn").disabled = (state.page === totalPages);
     
+    // Générer les numéros de page
     const pageNumbers = $("pageNumbers");
     pageNumbers.innerHTML = "";
     
@@ -1905,6 +1813,7 @@ function renderPagination(totalItems) {
       startPage = Math.max(1, endPage - maxVisible + 1);
     }
     
+    // Bouton première page
     if (startPage > 1) {
       const firstBtn = document.createElement("button");
       firstBtn.className = "page-btn";
@@ -1924,6 +1833,7 @@ function renderPagination(totalItems) {
       }
     }
     
+    // Pages visibles
     for (let i = startPage; i <= endPage; i++) {
       const pageBtn = document.createElement("button");
       pageBtn.className = "page-btn" + (i === state.page ? " active" : "");
@@ -1936,6 +1846,7 @@ function renderPagination(totalItems) {
       pageNumbers.appendChild(pageBtn);
     }
     
+    // Bouton dernière page
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         const dots = document.createElement("span");
@@ -1959,67 +1870,16 @@ function renderPagination(totalItems) {
   }
 }
 
-/* ===================== QR CODE GÉNÉRATION ===================== */
-function generateQRCode() {
-  const canvas = document.getElementById('qrCanvas');
-  const currentUrl = window.location.href;
-  
-  // Générer le QR Code
-  QRCode.toCanvas(canvas, currentUrl, {
-    width: 220,
-    height: 220,
-    margin: 2,
-    color: {
-      dark: '#0A1929',
-      light: '#00FF88'
-    }
-  }, function (error) {
-    if (error) {
-      console.error('Erreur génération QR Code:', error);
-      // Fallback simple
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#00FF88';
-      ctx.fillRect(0, 0, 220, 220);
-      ctx.fillStyle = '#0A1929';
-      ctx.font = 'bold 20px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('MAXI JDC', 110, 90);
-      ctx.fillText('MARKET', 110, 120);
-      ctx.font = '12px Arial';
-      ctx.fillText('QR Code', 110, 150);
-    }
-  });
-}
+/* ===================== VARIABLES POUR LE MODAL D'ARTICLE ===================== */
+let currentModalProduct = null;
+let currentModalPid = null;
 
-/* ===================== MODAL ARTICLE - NAVIGATION ===================== */
+/* ===================== FONCTIONS POUR LE MODAL D'ARTICLE ===================== */
 function openProductModal(product, pid) {
-  // Récupérer tous les articles filtrés
-  state.filteredItems = getVisibleItems();
+  currentModalProduct = product;
+  currentModalPid = pid;
   
-  // Trouver l'index de l'article actuel
-  state.currentModalIndex = state.filteredItems.findIndex(item => 
-    safeKey(`${item.catKey}_${item.code}_${item.name}`) === pid
-  );
-  
-  if (state.currentModalIndex === -1) {
-    state.currentModalIndex = 0;
-  }
-  
-  // Afficher l'article
-  showModalProduct(state.currentModalIndex);
-  
-  // Ouvrir le modal
-  $("productModal").classList.add('open');
-}
-
-function showModalProduct(index) {
-  if (index < 0 || index >= state.filteredItems.length) return;
-  
-  state.currentModalIndex = index;
-  const product = state.filteredItems[index];
-  const pid = safeKey(`${product.catKey}_${product.code}_${product.name}`);
-  
+  const modal = $("productModal");
   const modalImg = $("modalImg");
   const imgSrc = `images/products/${product.code}.jpg`;
   
@@ -2059,9 +1919,6 @@ function showModalProduct(index) {
   $("modalCode").textContent = `Code: ${product.code}`;
   $("modalCategory").textContent = `Catégorie: ${product.catLabel || 'Non spécifiée'}`;
   
-  // Mettre à jour l'indicateur de position
-  $("modalPosition").textContent = `${index + 1}/${state.filteredItems.length}`;
-  
   // Quantité
   const currentQty = state.qtyPick[pid] || 0;
   $("modalQty").textContent = currentQty;
@@ -2073,26 +1930,14 @@ function showModalProduct(index) {
   addBtn.textContent = stockOk ? '🛒 Ajouter au panier' : '📦 Rupture de stock';
   addBtn.style.opacity = stockOk ? '1' : '0.6';
   
-  // Mettre à jour les flèches de navigation
-  $("modalPrevBtn").disabled = index === 0;
-  $("modalNextBtn").disabled = index === state.filteredItems.length - 1;
+  // Ouvrir le modal
+  modal.classList.add('open');
 }
 
 function closeProductModal() {
   $("productModal").classList.remove('open');
-  state.currentModalIndex = -1;
-}
-
-function navigateModal(direction) {
-  if (state.filteredItems.length === 0) return;
-  
-  let newIndex = state.currentModalIndex + direction;
-  
-  // Boucler si on dépasse les limites
-  if (newIndex < 0) newIndex = state.filteredItems.length - 1;
-  if (newIndex >= state.filteredItems.length) newIndex = 0;
-  
-  showModalProduct(newIndex);
+  currentModalProduct = null;
+  currentModalPid = null;
 }
 
 /* ===================== RENDER ===================== */
@@ -2187,7 +2032,7 @@ function render(){
           return;
         }
         
-        // Ouvrir le modal d'agrandissement avec navigation
+        // Ouvrir le modal d'agrandissement
         openProductModal(it, pid);
       });
 
@@ -2533,11 +2378,8 @@ $("cartTopBtn").onclick = ()=> openDrawer();
 $("closeDrawer").onclick = ()=> closeDrawer(false);
 $("backdrop").onclick = ()=> closeDrawer(false);
 
-/* QR Code - GÉNÉRATION DYNAMIQUE */
-$("qrBtn").onclick = ()=> {
-  generateQRCode();
-  $("qrModal").classList.add("open");
-};
+/* QR Code - CORRECTION */
+$("qrBtn").onclick = ()=> $("qrModal").classList.add("open");
 $("closeQrBtn").onclick = ()=> $("qrModal").classList.remove("open");
 $("qrModal").onclick = (e)=> {
   if(e.target.classList.contains("qrModal")) $("qrModal").classList.remove("open");
@@ -2746,37 +2588,27 @@ $("productModal").onclick = (e) => {
   }
 };
 
-// Navigation dans le modal
-$("modalPrevBtn").onclick = () => navigateModal(-1);
-$("modalNextBtn").onclick = () => navigateModal(1);
-
 // Gestionnaires pour le stepper dans le modal
 $("modalStepper").querySelector('[data-act="minus"]').onclick = () => {
-  if (state.currentModalIndex === -1) return;
-  const product = state.filteredItems[state.currentModalIndex];
-  const pid = safeKey(`${product.catKey}_${product.code}_${product.name}`);
-  
-  state.qtyPick[pid] = Math.max(0, (state.qtyPick[pid] || 0) - 1);
-  $("modalQty").textContent = state.qtyPick[pid] || 0;
+  if (!currentModalPid) return;
+  state.qtyPick[currentModalPid] = Math.max(0, (state.qtyPick[currentModalPid] || 0) - 1);
+  $("modalQty").textContent = state.qtyPick[currentModalPid] || 0;
   
   // Mettre à jour l'état du bouton d'ajout
-  const stockOk = isInStock(product.code);
+  const stockOk = isInStock(currentModalProduct.code);
   const addBtn = $("modalAddBtn");
-  addBtn.disabled = !stockOk || state.qtyPick[pid] === 0;
+  addBtn.disabled = !stockOk || state.qtyPick[currentModalPid] === 0;
   addBtn.textContent = stockOk ? '🛒 Ajouter au panier' : '📦 Rupture de stock';
   addBtn.style.opacity = stockOk ? '1' : '0.6';
 };
 
 $("modalStepper").querySelector('[data-act="plus"]').onclick = () => {
-  if (state.currentModalIndex === -1) return;
-  const product = state.filteredItems[state.currentModalIndex];
-  const pid = safeKey(`${product.catKey}_${product.code}_${product.name}`);
-  
-  state.qtyPick[pid] = (state.qtyPick[pid] || 0) + 1;
-  $("modalQty").textContent = state.qtyPick[pid];
+  if (!currentModalPid) return;
+  state.qtyPick[currentModalPid] = (state.qtyPick[currentModalPid] || 0) + 1;
+  $("modalQty").textContent = state.qtyPick[currentModalPid];
   
   // Mettre à jour l'état du bouton d'ajout
-  const stockOk = isInStock(product.code);
+  const stockOk = isInStock(currentModalProduct.code);
   const addBtn = $("modalAddBtn");
   addBtn.disabled = !stockOk;
   addBtn.textContent = stockOk ? '🛒 Ajouter au panier' : '📦 Rupture de stock';
@@ -2785,23 +2617,23 @@ $("modalStepper").querySelector('[data-act="plus"]').onclick = () => {
 
 // Gestionnaire pour le bouton d'ajout dans le modal
 $("modalAddBtn").onclick = () => {
-  if (state.currentModalIndex === -1) return;
+  if (!currentModalProduct || !currentModalPid) return;
   
-  const product = state.filteredItems[state.currentModalIndex];
-  const pid = safeKey(`${product.catKey}_${product.code}_${product.name}`);
-  
-  const q = state.qtyPick[pid] || 0;
+  const q = state.qtyPick[currentModalPid] || 0;
   if (q <= 0) return;
+  
+  const pid = currentModalPid;
+  const it = currentModalProduct;
   
   if (state.cart[pid]) {
     state.cart[pid].qty += q;
   } else {
     state.cart[pid] = {
       pid,
-      name: product.name,
-      code: product.code,
-      price: product.price,
-      catLabel: product.catLabel,
+      name: it.name,
+      code: it.code,
+      price: it.price,
+      catLabel: it.catLabel,
       qty: q
     };
   }
@@ -2824,45 +2656,31 @@ $("modalAddBtn").onclick = () => {
   }, 800);
 };
 
-// Navigation clavier dans le modal
+// Ajouter une touche Échap pour fermer le modal
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && $("productModal").classList.contains('open')) {
-    closeProductModal();
-  }
-  if (e.key === 'ArrowLeft' && $("productModal").classList.contains('open')) {
-    if (!$("modalPrevBtn").disabled) navigateModal(-1);
-  }
-  if (e.key === 'ArrowRight' && $("productModal").classList.contains('open')) {
-    if (!$("modalNextBtn").disabled) navigateModal(1);
+  if (e.key === 'Escape') {
+    if ($("productModal").classList.contains('open')) {
+      closeProductModal();
+    }
+    if ($("qrModal").classList.contains('open')) {
+      $("qrModal").classList.remove('open');
+    }
+    if ($("modalBack").classList.contains('open')) {
+      $("modalBack").classList.remove('open');
+    }
   }
 });
 
-/* ===================== INITIALISATION ===================== */
+/* ===================== INIT ===================== */
 loadLocal();
+$("pinCart").checked = state.pinCart;
+
 fillClientUI();
-renderHistory();
+refreshCartUI({ openAfterAdd:false });
 
-// Ouverture automatique du panier si épinglé
-if (state.pinCart) {
-  setTimeout(() => openDrawer(), 300);
-}
+if(state.pinCart) openDrawer(); else closeDrawer(true);
 
-// Chargement des données CSV
-loadAll().then(() => {
-  console.log("Données chargées avec succès !");
-  
-  // Vérifier l'URL pour les codes clients
-  const urlParams = new URLSearchParams(window.location.search);
-  const clientCode = urlParams.get('client');
-  if (clientCode) {
-    importClientCode(clientCode);
-  }
-}).catch(err => {
-  console.error("Erreur lors du chargement des données:", err);
-  $("products").innerHTML = `<div class="warn" style="grid-column:1/-1;text-align:center;padding:30px;">
-    ❌ Erreur de chargement des produits. Veuillez rafraîchir la page.
-  </div>`;
-});
+loadAll();
 </script>
 </body>
 </html>
