@@ -1075,7 +1075,7 @@
       color:var(--accent);
     }
 
-    /* ===== MODAL ARTICLE AGRANDI - NOUVELLE VERSION AVEC PHOTO RÉDUITE ===== */
+    /* ===== MODAL ARTICLE AGRANDI - NOUVELLE VERSION AVEC POSITIONNEMENT DES BOUTONS ===== */
     .product-modal {
       position: fixed;
       inset: 0;
@@ -1105,15 +1105,14 @@
       padding: 0;
     }
 
-    /* CURSEURS DE NAVIGATION - MOINS EN ÉVIDENCE */
+    /* FLÈCHES DE NAVIGATION EN HAUT À DROITE ET GAUCHE DANS LA PHOTO */
     .modal-nav-btn {
       position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
+      top: 20px; /* CHANGEMENT: en haut au lieu du milieu */
       width: 40px;
       height: 40px;
-      border-radius: 50%;
-      background: rgba(10, 25, 47, 0.75);
+      border-radius: 8px;
+      background: rgba(10, 25, 47, 0.85);
       border: 2px solid var(--accent);
       color: var(--accent);
       display: flex;
@@ -1131,7 +1130,7 @@
 
     .modal-nav-btn:hover {
       background: rgba(0, 255, 136, 0.3);
-      transform: translateY(-50%) scale(1.1);
+      transform: scale(1.1);
       box-shadow: 0 4px 20px rgba(0, 255, 136, 0.4);
     }
 
@@ -1143,23 +1142,23 @@
     }
 
     .modal-nav-btn:disabled:hover {
-      background: rgba(10, 25, 47, 0.75);
-      transform: translateY(-50%);
+      background: rgba(10, 25, 47, 0.85);
+      transform: none;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     }
 
     .modal-nav-btn.prev {
-      left: 10px;
+      left: 20px; /* CHANGEMENT: en haut à gauche */
     }
 
     .modal-nav-btn.next {
-      right: 10px;
+      right: 20px; /* CHANGEMENT: en haut à droite */
     }
 
-    /* PHOTO RÉDUITE EN HAUTEUR POUR LIBÉRER DE L'ESPACE */
+    /* PHOTO RÉDUITE EN HAUTEUR */
     .product-modal-img {
       width: 100%;
-      height: 40vh; /* CHANGEMENT: réduit de 65vh à 40vh */
+      height: 40vh; /* Réduit pour libérer de l'espace */
       background: #000000; /* Fond noir pour la photo */
       display: flex;
       align-items: center;
@@ -1197,7 +1196,7 @@
       padding: 20px;
     }
 
-    /* ZONE INFOS EN BAS - PLUS D'ESPACE */
+    /* ZONE INFOS EN BAS - RÉORGANISATION */
     .product-modal-info {
       padding: 15px;
       display: flex;
@@ -1249,80 +1248,80 @@
       font-weight: 600;
     }
 
-    /* ZONE ACTIONS - PLUS D'ESPACE POUR LES BOUTONS */
-    .product-modal-actions {
+    /* SECTION BOUTONS EN HAUT (Stepper + Ajouter au panier) */
+    .product-modal-top-actions {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 15px;
       margin-top: 20px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      border: 2px solid var(--line);
       flex-wrap: wrap;
-      justify-content: space-between;
     }
 
-    .product-modal-close {
-      height: 50px;
-      padding: 0 25px;
-      border-radius: 12px;
+    /* STEPPER EN HAUT - PLUS GRAND */
+    .product-modal-top-actions .stepper {
+      width: 180px;
+      padding: 10px 15px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .product-modal-top-actions .stepper button {
+      width: 45px;
+      height: 45px;
+      font-size: 28px;
+      border-radius: 50%;
       border: 2px solid var(--line);
       background: rgba(255, 255, 255, 0.1);
       color: var(--text);
       cursor: pointer;
-      font-weight: 900;
-      font-size: 16px;
-      transition: all 0.3s ease;
-      flex-shrink: 0;
+      transition: all 0.2s ease;
     }
 
-    .product-modal-close:hover {
-      background: rgba(255, 255, 255, 0.2);
+    .product-modal-top-actions .stepper button:hover {
       border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.2);
     }
 
-    /* STEPPER DANS LE MODAL - PLUS COMPACT */
-    .product-modal-actions .stepper {
-      width: 160px;
-      padding: 8px 12px;
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 999px;
-      flex-shrink: 0;
-    }
-
-    .product-modal-actions .stepper button {
-      width: 40px;
-      height: 40px;
-      font-size: 24px;
-      border-radius: 50%;
-    }
-
-    .product-modal-actions .stepper span {
-      font-size: 24px;
-      min-width: 35px;
+    .product-modal-top-actions .stepper span {
+      font-size: 28px;
+      min-width: 40px;
       font-weight: 900;
       color: var(--accent);
+      text-align: center;
     }
 
-    /* BOUTON AJOUTER DANS LE MODAL - PLUS GRAND */
-    .product-modal-actions .addBtn {
+    /* BOUTON AJOUTER EN HAUT - À DROITE DU STEPPER */
+    .product-modal-top-actions .addBtn {
       height: 50px;
       padding: 0 30px;
       font-size: 16px;
       border-radius: 12px;
-      flex: 1;
-      min-width: 200px;
-      max-width: 300px;
       border: 3px solid var(--accent);
       background: rgba(0, 255, 136, 0.15);
       color: var(--accent);
       font-weight: 900;
       transition: all 0.3s ease;
+      cursor: pointer;
+      flex: 1;
+      min-width: 200px;
+      max-width: 300px;
     }
 
-    .product-modal-actions .addBtn:hover {
+    .product-modal-top-actions .addBtn:hover {
       background: rgba(0, 255, 136, 0.25);
       transform: translateY(-2px);
     }
 
-    .product-modal-actions .addBtn:disabled {
+    .product-modal-top-actions .addBtn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       border-color: var(--muted);
@@ -1330,11 +1329,11 @@
       color: var(--muted);
     }
 
-    /* BOUTON FERMER EN HAUT À DROITE - PLUS COMPACT */
+    /* BOUTON FERMER EN HAUT À DROITE (AU-DESSUS DE LA PHOTO) */
     .modal-close-btn {
       position: absolute;
-      top: 15px;
-      right: 15px;
+      top: 20px;
+      right: 20px;
       width: 45px;
       height: 45px;
       border-radius: 50%;
@@ -1358,34 +1357,30 @@
       transform: rotate(90deg);
     }
 
-    /* DISPOSITION RESPONSIVE POUR LES BOUTONS */
-    .actions-row {
-      display: flex;
-      align-items: center;
-      gap: 15px;
+    /* BOUTON FERMER EN BAS */
+    .product-modal-bottom-close {
       width: 100%;
-      justify-content: space-between;
-      flex-wrap: wrap;
+      height: 50px;
+      margin-top: 20px;
+      border-radius: 12px;
+      border: 2px solid var(--line);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 16px;
+      transition: all 0.3s ease;
     }
 
-    .actions-left {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .actions-right {
-      display: flex;
-      align-items: center;
-      gap: 15px;
+    .product-modal-bottom-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: var(--accent);
     }
 
     /* RESPONSIVE */
     @media (max-width: 768px) {
       .product-modal-img {
-        height: 35vh; /* Encore plus réduit sur mobile */
+        height: 35vh;
       }
       
       .product-modal-name {
@@ -1402,58 +1397,48 @@
         padding: 12px;
       }
       
-      .product-modal-actions {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-      }
-      
-      .actions-row {
+      .product-modal-top-actions {
         flex-direction: column;
         gap: 12px;
       }
       
-      .actions-left, .actions-right {
+      .product-modal-top-actions .stepper {
         width: 100%;
+        max-width: 250px;
       }
       
-      .product-modal-actions .stepper {
+      .product-modal-top-actions .addBtn {
         width: 100%;
-        justify-content: center;
+        min-width: auto;
       }
       
-      .product-modal-actions .addBtn {
-        min-width: 100%;
-        padding: 0 20px;
-      }
-      
-      /* Curseurs plus petits sur mobile */
       .modal-nav-btn {
         width: 35px;
         height: 35px;
         font-size: 18px;
+        top: 15px;
       }
       
       .modal-nav-btn.prev {
-        left: 8px;
+        left: 15px;
       }
       
       .modal-nav-btn.next {
-        right: 8px;
+        right: 15px;
       }
       
       .modal-close-btn {
         width: 40px;
         height: 40px;
         font-size: 20px;
-        top: 10px;
-        right: 10px;
+        top: 15px;
+        right: 15px;
       }
     }
 
     @media (max-width: 480px) {
       .product-modal-img {
-        height: 30vh; /* Très réduit sur très petits écrans */
+        height: 30vh;
       }
       
       .product-modal-name {
@@ -1474,26 +1459,37 @@
         width: 32px;
         height: 32px;
         font-size: 16px;
+        top: 10px;
+      }
+      
+      .modal-nav-btn.prev {
+        left: 10px;
+      }
+      
+      .modal-nav-btn.next {
+        right: 10px;
       }
       
       .modal-close-btn {
         width: 36px;
         height: 36px;
         font-size: 18px;
+        top: 10px;
+        right: 10px;
       }
       
-      .product-modal-actions .stepper button {
-        width: 35px;
-        height: 35px;
-        font-size: 20px;
+      .product-modal-top-actions .stepper button {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
       }
       
-      .product-modal-actions .stepper span {
-        font-size: 20px;
+      .product-modal-top-actions .stepper span {
+        font-size: 24px;
       }
       
-      .product-modal-actions .addBtn,
-      .product-modal-close {
+      .product-modal-top-actions .addBtn,
+      .product-modal-bottom-close {
         height: 45px;
         font-size: 14px;
       }
@@ -1501,7 +1497,7 @@
 
     @media (min-width: 1200px) {
       .product-modal-img {
-        height: 45vh; /* Un peu plus grand sur grands écrans mais toujours réduit */
+        height: 45vh;
       }
       
       .product-modal-name {
@@ -1514,6 +1510,10 @@
       
       .product-modal-meta {
         font-size: 18px;
+      }
+      
+      .product-modal-top-actions .stepper {
+        width: 200px;
       }
     }
 
@@ -1784,17 +1784,17 @@
     </div>
   </div>
 
-  <!-- Modal Article Agrandi ÉPURÉ - PLEIN ÉCRAN -->
+  <!-- Modal Article Agrandi AVEC NOUVEAU POSITIONNEMENT -->
   <div class="product-modal" id="productModal">
     <div class="product-modal-content">
       <!-- Bouton fermer en haut à droite -->
       <button class="modal-close-btn" id="closeProductModal" title="Fermer (Escape)">×</button>
       
-      <!-- Curseurs de navigation au milieu de la photo -->
+      <!-- Flèches de navigation en haut dans l'espace de la photo -->
       <button class="modal-nav-btn prev" id="modalPrevBtn" title="Article précédent (Flèche gauche)">‹</button>
       <button class="modal-nav-btn next" id="modalNextBtn" title="Article suivant (Flèche droite)">›</button>
       
-      <!-- Photo en plein écran (RÉDUITE EN HAUTEUR) -->
+      <!-- Photo en plein écran -->
       <div class="product-modal-img" id="modalImg">
         <div class="noPhoto" style="display:none;">Aucune photo disponible</div>
       </div>
@@ -1810,26 +1810,21 @@
           <div id="modalStock"></div>
         </div>
         
-        <!-- Actions - NOUVELLE DISPOSITION -->
-        <div class="product-modal-actions">
-          <div class="actions-row">
-            <div class="actions-left">
-              <div class="stepper" id="modalStepper">
-                <button data-act="minus" title="Moins">−</button>
-                <span class="qv" id="modalQty">0</span>
-                <button data-act="plus" title="Plus">+</button>
-              </div>
-              
-              <button class="addBtn" id="modalAddBtn">
-                🛒 Ajouter au panier
-              </button>
-            </div>
-            
-            <div class="actions-right">
-              <button class="product-modal-close" id="closeProductModalBottom">Fermer</button>
-            </div>
+        <!-- Section boutons en haut (Stepper + Ajouter au panier) -->
+        <div class="product-modal-top-actions">
+          <div class="stepper" id="modalStepper">
+            <button data-act="minus" title="Moins">−</button>
+            <span class="qv" id="modalQty">0</span>
+            <button data-act="plus" title="Plus">+</button>
           </div>
+          
+          <button class="addBtn" id="modalAddBtn">
+            🛒 Ajouter au panier
+          </button>
         </div>
+        
+        <!-- Bouton fermer en bas -->
+        <button class="product-modal-bottom-close" id="closeProductModalBottom">Fermer</button>
       </div>
     </div>
   </div>
@@ -2921,7 +2916,7 @@ function setupModalEvents() {
     }
   };
 
-  // Curseurs de navigation dans le modal
+  // Flèches de navigation dans le modal
   $("modalPrevBtn").onclick = () => navigateModal('prev');
   $("modalNextBtn").onclick = () => navigateModal('next');
 
