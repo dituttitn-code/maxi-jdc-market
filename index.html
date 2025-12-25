@@ -9,7 +9,7 @@
     :root{
       --bg0:#0a1929;
       --bg1:#112240;
-      --card:#1a365d;                                  
+      --card:#1a365d;
       --card2:#162447;
       --line:rgba(255,255,255,.15);
       --text:#f0f6fc;
@@ -443,13 +443,13 @@
       opacity: 1;
     }
 
-    /* PHOTO AVEC FOND NOIR PAR DÉFAUT */
+    /* PHOTO PLUS PETITE POUR OPTIMISER L'ESPACE */
     .imgWrap{
       width:100%;
       height:70px; /* Réduit de 90px à 70px */
       border-radius:6px;
       border:1px solid rgba(255,255,255,.12);
-      background: #000000; /* CHANGEMENT: fond noir au lieu de blanc */
+      background: #ffffff;
       display:flex;
       align-items:center;
       justify-content:center;
@@ -471,10 +471,10 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      color:#aaaaaa; /* CHANGEMENT: gris clair sur fond noir */
+      color:#666666;
       font-weight:800;
       font-size:7px; /* Réduit */
-      background: #000000; /* CHANGEMENT: fond noir */
+      background: #f8f8f8;
       text-align:center;
       padding:2px;
     }
@@ -1075,7 +1075,7 @@
       color:var(--accent);
     }
 
-    /* ===== MODAL ARTICLE AGRANDI - NOUVELLE VERSION AVEC POSITIONNEMENT DES BOUTONS ===== */
+    /* ===== MODAL ARTICLE AGRANDI - VERSION ÉPURÉE EN PLEIN ÉCRAN ===== */
     .product-modal {
       position: fixed;
       inset: 0;
@@ -1105,33 +1105,34 @@
       padding: 0;
     }
 
-    /* FLÈCHES DE NAVIGATION EN HAUT À DROITE ET GAUCHE DANS LA PHOTO */
+    /* CURSEURS DE NAVIGATION - POSITIONNÉS AU MILIEU DE LA PHOTO */
     .modal-nav-btn {
       position: absolute;
-      top: 20px; /* CHANGEMENT: en haut au lieu du milieu */
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
       background: rgba(10, 25, 47, 0.85);
-      border: 2px solid var(--accent);
+      border: 3px solid var(--accent);
       color: var(--accent);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       z-index: 1002;
-      font-size: 20px;
+      font-size: 32px;
       font-weight: 900;
       transition: all 0.3s ease;
       backdrop-filter: blur(5px);
       user-select: none;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.7);
     }
 
     .modal-nav-btn:hover {
       background: rgba(0, 255, 136, 0.3);
-      transform: scale(1.1);
-      box-shadow: 0 4px 20px rgba(0, 255, 136, 0.4);
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 6px 30px rgba(0, 255, 136, 0.4);
     }
 
     .modal-nav-btn:disabled {
@@ -1143,30 +1144,29 @@
 
     .modal-nav-btn:disabled:hover {
       background: rgba(10, 25, 47, 0.85);
-      transform: none;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      transform: translateY(-50%);
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.7);
     }
 
     .modal-nav-btn.prev {
-      left: 20px; /* CHANGEMENT: en haut à gauche */
+      left: 20px;
     }
 
     .modal-nav-btn.next {
-      right: 20px; /* CHANGEMENT: en haut à droite */
+      right: 20px;
     }
 
-    /* PHOTO RÉDUITE EN HAUTEUR */
+    /* PHOTO EN PLEIN ÉCRAN */
     .product-modal-img {
       width: 100%;
-      height: 40vh; /* Réduit pour libérer de l'espace */
-      background: #000000; /* Fond noir pour la photo */
+      height: 65vh;
+      background: #000000;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
       position: relative;
       flex-shrink: 0;
-      border-bottom: 2px solid var(--line);
     }
 
     .product-modal-img img {
@@ -1190,18 +1190,18 @@
       justify-content: center;
       color: #ffffff;
       font-weight: 900;
-      font-size: 18px;
-      background: #000000;
+      font-size: 24px;
+      background: linear-gradient(135deg, #1a365d 0%, #112240 100%);
       text-align: center;
       padding: 20px;
     }
 
-    /* ZONE INFOS EN BAS - RÉORGANISATION */
+    /* ZONE INFOS EN BAS */
     .product-modal-info {
-      padding: 15px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 15px;
       background: rgba(10, 25, 47, 0.95);
       flex: 1;
       overflow-y: auto;
@@ -1209,7 +1209,7 @@
     }
 
     .product-modal-name {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 900;
       color: var(--text);
       line-height: 1.3;
@@ -1218,110 +1218,104 @@
     }
 
     .product-modal-price {
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 900;
       color: var(--accent);
       background: rgba(0, 255, 136, 0.15);
       border: 3px solid var(--accent);
-      border-radius: 15px;
-      padding: 12px 25px;
+      border-radius: 20px;
+      padding: 15px 30px;
       align-self: flex-start;
-      margin-top: 5px;
+      margin-top: 10px;
     }
 
     .product-modal-meta {
       color: var(--muted);
-      font-size: 16px;
+      font-size: 18px;
       line-height: 1.6;
       background: rgba(255, 255, 255, 0.05);
-      padding: 15px;
-      border-radius: 12px;
+      padding: 20px;
+      border-radius: 15px;
       border: 2px solid var(--line);
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      margin-top: 15px;
     }
 
     .product-modal-meta div {
-      margin: 0;
+      margin: 12px 0;
       font-weight: 600;
     }
 
-    /* SECTION BOUTONS EN HAUT (Stepper + Ajouter au panier) */
-    .product-modal-top-actions {
+    /* ZONE ACTIONS */
+    .product-modal-actions {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 15px;
-      margin-top: 20px;
-      padding: 15px;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 12px;
-      border: 2px solid var(--line);
+      gap: 20px;
+      margin-top: 25px;
       flex-wrap: wrap;
     }
 
-    /* STEPPER EN HAUT - PLUS GRAND */
-    .product-modal-top-actions .stepper {
-      width: 180px;
-      padding: 10px 15px;
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 999px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-    }
-
-    .product-modal-top-actions .stepper button {
-      width: 45px;
-      height: 45px;
-      font-size: 28px;
-      border-radius: 50%;
+    .product-modal-close {
+      margin-left: auto;
+      height: 55px;
+      padding: 0 35px;
+      border-radius: 15px;
       border: 2px solid var(--line);
       background: rgba(255, 255, 255, 0.1);
       color: var(--text);
       cursor: pointer;
-      transition: all 0.2s ease;
+      font-weight: 900;
+      font-size: 18px;
+      transition: all 0.3s ease;
     }
 
-    .product-modal-top-actions .stepper button:hover {
-      border-color: var(--accent);
+    .product-modal-close:hover {
       background: rgba(255, 255, 255, 0.2);
+      border-color: var(--accent);
     }
 
-    .product-modal-top-actions .stepper span {
+    /* STEPPER DANS LE MODAL */
+    .product-modal-actions .stepper {
+      width: 180px;
+      padding: 10px 15px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 999px;
+    }
+
+    .product-modal-actions .stepper button {
+      width: 45px;
+      height: 45px;
+      font-size: 28px;
+      border-radius: 50%;
+    }
+
+    .product-modal-actions .stepper span {
       font-size: 28px;
       min-width: 40px;
       font-weight: 900;
       color: var(--accent);
-      text-align: center;
     }
 
-    /* BOUTON AJOUTER EN HAUT - À DROITE DU STEPPER */
-    .product-modal-top-actions .addBtn {
-      height: 50px;
-      padding: 0 30px;
-      font-size: 16px;
-      border-radius: 12px;
+    /* BOUTON AJOUTER DANS LE MODAL */
+    .product-modal-actions .addBtn {
+      height: 55px;
+      padding: 0 35px;
+      font-size: 18px;
+      border-radius: 15px;
+      flex: 1;
+      min-width: 220px;
       border: 3px solid var(--accent);
       background: rgba(0, 255, 136, 0.15);
       color: var(--accent);
       font-weight: 900;
       transition: all 0.3s ease;
-      cursor: pointer;
-      flex: 1;
-      min-width: 200px;
-      max-width: 300px;
     }
 
-    .product-modal-top-actions .addBtn:hover {
+    .product-modal-actions .addBtn:hover {
       background: rgba(0, 255, 136, 0.25);
       transform: translateY(-2px);
     }
 
-    .product-modal-top-actions .addBtn:disabled {
+    .product-modal-actions .addBtn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       border-color: var(--muted);
@@ -1329,20 +1323,20 @@
       color: var(--muted);
     }
 
-    /* BOUTON FERMER EN HAUT À DROITE (AU-DESSUS DE LA PHOTO) */
+    /* BOUTON FERMER EN HAUT À DROITE */
     .modal-close-btn {
       position: absolute;
       top: 20px;
       right: 20px;
-      width: 45px;
-      height: 45px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.1);
       border: 2px solid var(--line);
       color: var(--text);
       cursor: pointer;
       font-weight: 900;
-      font-size: 22px;
+      font-size: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1357,30 +1351,10 @@
       transform: rotate(90deg);
     }
 
-    /* BOUTON FERMER EN BAS */
-    .product-modal-bottom-close {
-      width: 100%;
-      height: 50px;
-      margin-top: 20px;
-      border-radius: 12px;
-      border: 2px solid var(--line);
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text);
-      cursor: pointer;
-      font-weight: 900;
-      font-size: 16px;
-      transition: all 0.3s ease;
-    }
-
-    .product-modal-bottom-close:hover {
-      background: rgba(255, 255, 255, 0.2);
-      border-color: var(--accent);
-    }
-
     /* RESPONSIVE */
     @media (max-width: 768px) {
       .product-modal-img {
-        height: 35vh;
+        height: 55vh;
       }
       
       .product-modal-name {
@@ -1388,35 +1362,36 @@
       }
       
       .product-modal-price {
-        font-size: 22px;
-        padding: 10px 20px;
+        font-size: 24px;
+        padding: 12px 24px;
       }
       
       .product-modal-meta {
-        font-size: 14px;
-        padding: 12px;
+        font-size: 16px;
+        padding: 15px;
       }
       
-      .product-modal-top-actions {
+      .product-modal-actions {
         flex-direction: column;
-        gap: 12px;
+        align-items: stretch;
+        gap: 15px;
       }
       
-      .product-modal-top-actions .stepper {
+      .product-modal-actions .stepper {
         width: 100%;
-        max-width: 250px;
+        justify-content: center;
       }
       
-      .product-modal-top-actions .addBtn {
+      .product-modal-close {
+        margin-left: 0;
         width: 100%;
-        min-width: auto;
       }
       
+      /* Curseurs plus petits sur mobile */
       .modal-nav-btn {
-        width: 35px;
-        height: 35px;
-        font-size: 18px;
-        top: 15px;
+        width: 50px;
+        height: 50px;
+        font-size: 28px;
       }
       
       .modal-nav-btn.prev {
@@ -1428,17 +1403,22 @@
       }
       
       .modal-close-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
+        width: 45px;
+        height: 45px;
+        font-size: 22px;
         top: 15px;
         right: 15px;
+      }
+      
+      .product-modal-actions .addBtn {
+        min-width: 100%;
+        padding: 0 20px;
       }
     }
 
     @media (max-width: 480px) {
       .product-modal-img {
-        height: 30vh;
+        height: 50vh;
       }
       
       .product-modal-name {
@@ -1447,73 +1427,52 @@
       
       .product-modal-price {
         font-size: 20px;
-        padding: 8px 16px;
+        padding: 10px 20px;
       }
       
       .product-modal-meta {
-        font-size: 12px;
-        padding: 10px;
+        font-size: 14px;
+        padding: 12px;
       }
       
       .modal-nav-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 16px;
-        top: 10px;
-      }
-      
-      .modal-nav-btn.prev {
-        left: 10px;
-      }
-      
-      .modal-nav-btn.next {
-        right: 10px;
+        width: 45px;
+        height: 45px;
+        font-size: 24px;
       }
       
       .modal-close-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 18px;
-        top: 10px;
-        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
       }
       
-      .product-modal-top-actions .stepper button {
+      .product-modal-actions .stepper button {
         width: 40px;
         height: 40px;
         font-size: 24px;
       }
       
-      .product-modal-top-actions .stepper span {
+      .product-modal-actions .stepper span {
         font-size: 24px;
-      }
-      
-      .product-modal-top-actions .addBtn,
-      .product-modal-bottom-close {
-        height: 45px;
-        font-size: 14px;
       }
     }
 
     @media (min-width: 1200px) {
       .product-modal-img {
-        height: 45vh;
+        height: 70vh;
       }
       
       .product-modal-name {
-        font-size: 26px;
-      }
-      
-      .product-modal-price {
         font-size: 28px;
       }
       
-      .product-modal-meta {
-        font-size: 18px;
+      .product-modal-price {
+        font-size: 32px;
       }
       
-      .product-modal-top-actions .stepper {
-        width: 200px;
+      .product-modal-meta {
+        font-size: 20px;
       }
     }
 
@@ -1784,13 +1743,13 @@
     </div>
   </div>
 
-  <!-- Modal Article Agrandi AVEC NOUVEAU POSITIONNEMENT -->
+  <!-- Modal Article Agrandi ÉPURÉ - PLEIN ÉCRAN -->
   <div class="product-modal" id="productModal">
     <div class="product-modal-content">
       <!-- Bouton fermer en haut à droite -->
       <button class="modal-close-btn" id="closeProductModal" title="Fermer (Escape)">×</button>
       
-      <!-- Flèches de navigation en haut dans l'espace de la photo -->
+      <!-- Curseurs de navigation au milieu de la photo -->
       <button class="modal-nav-btn prev" id="modalPrevBtn" title="Article précédent (Flèche gauche)">‹</button>
       <button class="modal-nav-btn next" id="modalNextBtn" title="Article suivant (Flèche droite)">›</button>
       
@@ -1810,8 +1769,8 @@
           <div id="modalStock"></div>
         </div>
         
-        <!-- Section boutons en haut (Stepper + Ajouter au panier) -->
-        <div class="product-modal-top-actions">
+        <!-- Actions -->
+        <div class="product-modal-actions">
           <div class="stepper" id="modalStepper">
             <button data-act="minus" title="Moins">−</button>
             <span class="qv" id="modalQty">0</span>
@@ -1821,10 +1780,9 @@
           <button class="addBtn" id="modalAddBtn">
             🛒 Ajouter au panier
           </button>
+          
+          <button class="product-modal-close" id="closeProductModalBottom">Fermer</button>
         </div>
-        
-        <!-- Bouton fermer en bas -->
-        <button class="product-modal-bottom-close" id="closeProductModalBottom">Fermer</button>
       </div>
     </div>
   </div>
@@ -2170,7 +2128,7 @@ function updateProductModal() {
   const modalImg = $("modalImg");
   const imgSrc = `images/products/${product.code}.jpg`;
   
-  // Image avec fond noir
+  // Image
   modalImg.innerHTML = '';
   const img = document.createElement('img');
   img.src = imgSrc;
@@ -2916,7 +2874,7 @@ function setupModalEvents() {
     }
   };
 
-  // Flèches de navigation dans le modal
+  // Curseurs de navigation dans le modal
   $("modalPrevBtn").onclick = () => navigateModal('prev');
   $("modalNextBtn").onclick = () => navigateModal('next');
 
