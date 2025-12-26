@@ -5,9 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MAXI JDC MARKET">
   <meta name="theme-color" content="#0a1929">
   <title>MAXI JDC MARKET — Application Mobile</title>
-
+  
+  <!-- Manifest PWA -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  
   <style>
     :root{
       --bg0:#0a1929;
@@ -2261,7 +2266,7 @@
     <!-- INFOS RAPIDES -->
     <div class="quick-info">
       <div class="info-pill">📍 Jardins de Carthage</div>
-      <div class="info-pill">🕒 7h – 1h</div>
+      <div class="info-pill">🕒 7am – 1am</div> <!-- MODIFIÉ ICI -->
       <div class="info-pill"><strong>WhatsApp:</strong> +216 25 600 978</div>
       <button class="info-pill qr-pill" id="qrBtn" title="Scanner le QR Code">
         📱 QR Code
@@ -2619,7 +2624,7 @@ const CONFIG = {
   shippingFee: 3,
   whatsappNumber: "21625600978",
   itemsPerPage: 24,
-  localStorageKey: 'maxi_jdc_market_app_v9',
+  localStorageKey: 'maxi_jdc_market_app_v10',
   appUrl: window.location.href
 };
 
@@ -2693,7 +2698,7 @@ function saveState() {
     user: state.user,
     cart: state.cart,
     stock: state.stock,
-    version: '9.0'
+    version: '10.0'
   };
   localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
 }
@@ -2701,7 +2706,7 @@ function saveState() {
 function loadState() {
   try {
     const data = JSON.parse(localStorage.getItem(CONFIG.localStorageKey));
-    if (data && data.version === '9.0') {
+    if (data && data.version === '10.0') {
       state.user = data.user || null;
       state.cart = data.cart || {};
       state.stock = data.stock || {};
@@ -3234,8 +3239,7 @@ function renderProducts() {
     const productId = generateProductId(product);
     const inStock = isInStock(product.code);
     
-    // Utiliser une image unique par code produit - CORRECTION ICI
-    // On utilise le code comme nom de fichier, mais on ajoute un hash pour éviter les répétitions
+    // Utiliser une image unique par code produit
     const imageHash = generateImageHash(product);
     const imgSrc = `images/products/${imageHash}.jpg`;
     
@@ -3580,7 +3584,7 @@ function openOrderModal() {
   summary += `TOTAL: ${formatPrice(total)}\n\n`;
   summary += `=== INFORMATIONS ===\n\n`;
   summary += `📍 Jardins de Carthage\n`;
-  summary += `🕒 7h – 1h\n`;
+  summary += `🕒 7am – 1am\n`;  // MODIFIÉ ICI
   summary += `📱 WhatsApp: +216 25 600 978\n`;
   summary += `💳 Paiement à la livraison\n`;
   
@@ -3716,7 +3720,7 @@ function init() {
     updateCategoriesUI();
   };
   
-  // QR Code - CORRIGÉ
+  // QR Code
   $('qrBtn').onclick = openQrModal;
   $('qrDirectBtn').onclick = openQrModal;
   $('closeQrModalBtn').onclick = closeQrModal;
@@ -3735,7 +3739,7 @@ function init() {
   $('saveAccountBtn').onclick = saveUser;
   $('editAccountBtn').onclick = editUser;
   
-  // Téléphone - NOUVELLE VERSION FONCTIONNELLE
+  // Téléphone
   $('clientPhone').addEventListener('input', function(e) {
     // Récupérer la valeur actuelle
     let value = this.value;
@@ -3916,19 +3920,28 @@ function init() {
       showToast('👋 Bienvenue ! Veuillez créer votre compte pour commander');
     }, 1000);
   }
+  
+  // Enregistrer Service Worker pour PWA
+  registerServiceWorker();
+}
+
+// ===================== SERVICE WORKER POUR PWA =====================
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(registration => {
+          console.log('Service Worker enregistré avec succès:', registration.scope);
+        })
+        .catch(error => {
+          console.log('Échec d\'enregistrement du Service Worker:', error);
+        });
+    });
+  }
 }
 
 // Démarrer l'application
 document.addEventListener('DOMContentLoaded', init);
-
-// Gérer l'installation PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js').catch(error => {
-      console.log('Service Worker registration failed:', error);
-    });
-  });
-}
 </script>
 </body>
 </html>
