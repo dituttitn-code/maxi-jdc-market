@@ -1,34 +1,48 @@
-const CACHE_NAME = "maxi-jdc-cache-v1";
-
-const ASSETS_TO_CACHE = [
-  "./",
-  "./index.html",
-  "./products.json",
-  "./logo-maxi-jdc-market.jpg",
-  "./qr-maxi-jdc-site.jpg"
+const CACHE_NAME = 'maxi-jdc-market-v2';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png'
 ];
 
-self.addEventListener("install", event => {
+// Installation
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS_TO_CACHE))
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Cache ouvert');
+        return cache.addAll(urlsToCache);
+      })
   );
-  self.skipWaiting();
 });
 
-self.addEventListener("activate", event => {
+// Activation
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.map(key => key !== CACHE_NAME && caches.delete(key))
-      )
-    )
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Suppression de l\'ancien cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
-  self.clients.claim();
 });
 
-self.addEventListener("fetch", event => {
+// Fetch
+self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then(response => response || fetch(event.request))
+    caches.match(event.request)
+      .then(response => {
+        if (response) {
+          return response;
+        }
+        return fetch(event.request);
+      })
   );
 });
-
