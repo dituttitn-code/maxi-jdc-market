@@ -24,7 +24,7 @@
       --shadow: 0 10px 40px rgba(0,0,0,.5);
       --radius:12px;
       --drawerW: 100vw;
-      --header-height: 60px;
+      --header-height: 70px;
       --safe-area: env(safe-area-inset-bottom, 0px);
     }
     
@@ -58,13 +58,13 @@
       flex: 1;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      padding: 0 8px 70px;
+      padding: 0 8px 100px;
       transition: transform .3s ease;
       height: 100%;
     }
     body.drawer-open .wrap{ transform: translateX(-20vw); }
 
-    /* HEADER FIXE */
+    /* HEADER FIXE - LOGO AGRANDI */
     .header {
       background: rgba(10, 25, 47, 0.98);
       border-bottom: 1px solid var(--line);
@@ -85,33 +85,34 @@
     .logo-brand {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       min-width: 0;
       flex: 1;
     }
 
     .logo{
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      border: 2px solid var(--accent);
+      width: 70px;  /* AUGMENTÉ */
+      height: 70px; /* AUGMENTÉ */
+      border-radius: 12px;
+      border: 3px solid var(--accent);
       overflow: hidden;
       flex-shrink: 0;
       display: grid;
       place-items: center;
       background:#0a1929;
-      padding: 2px;
+      padding: 4px;
     }
     .logo img{
       width:100%;
       height:100%;
       object-fit:contain;
       display:block;
+      border-radius: 8px;
     }
 
     .brand-text h1{
       margin:0;
-      font-size:15px;
+      font-size:18px;
       font-weight:900;
       background: linear-gradient(90deg, var(--accent), var(--accent2));
       -webkit-background-clip: text;
@@ -121,16 +122,16 @@
       letter-spacing: -0.2px;
     }
     .brand-text p{
-      margin:2px 0 0;
+      margin:4px 0 0;
       color:var(--muted);
-      font-size:10px;
+      font-size:11px;
     }
 
     /* BOUTON PANIER DANS HEADER */
     .cart-btn-header {
       position: relative;
-      width: 50px;
-      height: 44px;
+      width: 55px;
+      height: 50px;
       border-radius: 10px;
       border: 2px solid var(--accent);
       background: rgba(0, 255, 136, 0.1);
@@ -149,18 +150,18 @@
       transform: translateY(-1px);
     }
     .cart-btn-header .icon {
-      font-size: 18px;
+      font-size: 20px;
     }
     .cart-btn-header .count {
       background: rgba(0, 0, 0, 0.7);
       border: 1px solid var(--accent);
       border-radius: 50%;
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 900;
       position: absolute;
       top: -5px;
@@ -650,20 +651,20 @@
       border: 1px solid var(--line);
       background: rgba(0,0,0,.3);
       min-width: 0;
-      width: 80px;
+      width: 100px;
       flex-shrink: 0;
     }
 
     .stepper-btn {
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
       border-radius: 999px;
       border: 1px solid var(--line);
       background: rgba(255,255,255,.1);
       color: var(--text);
       cursor: pointer;
       font-weight: 900;
-      font-size: 12px;
+      font-size: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -677,11 +678,11 @@
     }
 
     .stepper-value {
-      min-width: 24px;
+      min-width: 30px;
       text-align: center;
       font-weight: 900;
       color: var(--text);
-      font-size: 13px;
+      font-size: 14px;
     }
 
     .stock-btn {
@@ -761,6 +762,115 @@
       opacity: 0.5;
       cursor: not-allowed;
       border-color: var(--muted);
+    }
+
+    /* BOUTONS DE NAVIGATION EN BAS DE PAGE */
+    .page-navigation-bottom {
+      position: fixed;
+      bottom: 80px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 15px;
+      background: linear-gradient(to top, var(--bg0) 30%, transparent 100%);
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .nav-slider-btn {
+      pointer-events: auto;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: rgba(0, 255, 136, 0.2);
+      color: var(--accent);
+      font-size: 24px;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+      transition: all 0.3s ease;
+    }
+
+    .nav-slider-btn:hover {
+      background: rgba(0, 255, 136, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,255,136,0.3);
+    }
+
+    .nav-slider-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      border-color: var(--muted);
+      color: var(--muted);
+    }
+
+    .nav-slider-btn:disabled:hover {
+      background: rgba(0, 255, 136, 0.2);
+      transform: none;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    }
+
+    .nav-slider-btn.prev {
+      margin-left: 5px;
+    }
+
+    .nav-slider-btn.next {
+      margin-right: 5px;
+    }
+
+    /* CURSEURS DE NAVIGATION AMÉLIORÉS */
+    .nav-slider-arrows {
+      position: fixed;
+      bottom: 140px; /* Au-dessus des boutons existants */
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 15px;
+      z-index: 99;
+      pointer-events: none;
+    }
+
+    .nav-arrow {
+      pointer-events: auto;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(0, 255, 136, 0.2);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      font-size: 24px;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      transition: all 0.3s ease;
+    }
+
+    .nav-arrow:hover {
+      background: rgba(0, 255, 136, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,255,136,0.3);
+    }
+
+    .nav-arrow:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      border-color: var(--muted);
+      color: var(--muted);
+    }
+
+    .nav-arrow:disabled:hover {
+      background: rgba(0, 255, 136, 0.2);
+      transform: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
     }
 
     /* MODAL ARTICLE AGRANDI */
@@ -2077,6 +2187,16 @@
       .modal-product-price {
         font-size: 24px;
       }
+      
+      .page-navigation-bottom {
+        bottom: 70px;
+      }
+      
+      .nav-slider-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 22px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -2085,17 +2205,17 @@
       }
       
       .logo {
-        width: 40px;
-        height: 40px;
+        width: 60px;
+        height: 60px;
       }
       
       .brand-text h1 {
-        font-size: 14px;
+        font-size: 16px;
       }
       
       .cart-btn-header {
-        width: 44px;
-        height: 40px;
+        width: 50px;
+        height: 45px;
       }
       
       .modal-stepper {
@@ -2115,6 +2235,17 @@
       .modal-add-btn {
         font-size: 16px;
         height: 50px;
+      }
+      
+      .page-navigation-bottom {
+        bottom: 65px;
+        padding: 8px 10px;
+      }
+      
+      .nav-slider-btn {
+        width: 42px;
+        height: 42px;
+        font-size: 20px;
       }
     }
 
@@ -2148,6 +2279,10 @@
       .header {
         padding-top: calc(8px + env(safe-area-inset-top));
         height: calc(var(--header-height) + env(safe-area-inset-top));
+      }
+      
+      .page-navigation-bottom {
+        bottom: calc(80px + env(safe-area-inset-bottom));
       }
     }
   </style>
@@ -2196,7 +2331,7 @@
     <div class="quick-info">
       <div class="info-pill">📍 Jardins de Carthage</div>
       <div class="info-pill">🕒 7h – 1h</div>
-      <div class="info-pill"><strong>WhatsApp:</strong> +216 25 600 978</div>
+      <div class="info-pill"><strong>WhatsApp:</strong> +216 25 532 480</div>
       <button class="info-pill qr-pill" id="qrBtn" title="Scanner le QR Code">
         📱 QR Code
       </button>
@@ -2236,6 +2371,18 @@
         </div>
       </div>
     </main>
+    
+    <!-- BOUTONS DE NAVIGATION EN BAS DE PAGE -->
+    <div class="page-navigation-bottom">
+      <button class="nav-slider-btn prev" id="pageNavPrevBtn" title="Page précédente">‹</button>
+      <button class="nav-slider-btn next" id="pageNavNextBtn" title="Page suivante">›</button>
+    </div>
+    
+    <!-- CURSEURS DE NAVIGATION AMÉLIORÉS -->
+    <div class="nav-slider-arrows">
+      <button class="nav-arrow" id="prevPageArrowBtn" title="Page précédente">‹</button>
+      <button class="nav-arrow" id="nextPageArrowBtn" title="Page suivante">›</button>
+    </div>
   </div>
 
   <!-- OVERLAY POUR DARK MODE -->
@@ -2267,11 +2414,11 @@
               <label for="clientPhone">Téléphone *</label>
               <div class="tel-input-wrapper">
                 <span class="tel-prefix">+216</span>
-                <input type="tel" id="clientPhone" placeholder="25 600 978" 
+                <input type="tel" id="clientPhone" placeholder="25 532 480" 
                        pattern="[0-9]{8}" inputmode="numeric" maxlength="8">
                 <button type="button" class="tel-clear-btn" id="clearPhoneBtn">×</button>
               </div>
-              <div class="tel-hint">Format: 8 chiffres (ex: 25 600 978)</div>
+              <div class="tel-hint">Format: 8 chiffres (ex: 25 532 480)</div>
             </div>
           </div>
           
@@ -2463,7 +2610,6 @@
       <div class="qr-modal-body">
         <div class="qr-code-container" id="qrCodeContainer">
           <!-- QR Code sera généré ici -->
-          <canvas id="qrCodeCanvas"></canvas>
         </div>
         
         <div class="qr-instructions">
@@ -2539,9 +2685,9 @@ const CONFIG = {
   minOrder: 15,
   freeShipping: 100,
   shippingFee: 3,
-  whatsappNumber: "21625600978",
+  whatsappNumber: "21625532480",
   itemsPerPage: 24,
-  localStorageKey: 'maxi_jdc_market_app_v5',
+  localStorageKey: 'maxi_jdc_market_app_v6',
   appUrl: window.location.href
 };
 
@@ -2615,7 +2761,7 @@ function saveState() {
     user: state.user,
     cart: state.cart,
     stock: state.stock,
-    version: '5.0'
+    version: '6.0'
   };
   localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
 }
@@ -2623,7 +2769,7 @@ function saveState() {
 function loadState() {
   try {
     const data = JSON.parse(localStorage.getItem(CONFIG.localStorageKey));
-    if (data && data.version === '5.0') {
+    if (data && data.version === '6.0') {
       state.user = data.user || null;
       state.cart = data.cart || {};
       state.stock = data.stock || {};
@@ -2716,15 +2862,18 @@ function saveUser() {
   
   phone = phone.replace(/\s/g, '');
   
-  if (phone.length !== 8 || !/^\d+$/.test(phone)) {
-    showToast('Le numéro de téléphone doit contenir 8 chiffres', 'warning');
+  if (phone.length !== 8 || !/^\d{8}$/.test(phone)) {
+    showToast('Le numéro de téléphone doit contenir exactement 8 chiffres', 'warning');
     $('clientPhone').focus();
     return;
   }
   
+  // Formater pour l'affichage: XX XXX XXX
+  const formattedPhone = phone.replace(/(\d{2})(\d{3})(\d{3})/, '$1 $2 $3');
+  
   state.user = {
     name,
-    phone,
+    phone: formattedPhone, // Stocker formaté
     address,
     lat: lat || null,
     lng: lng || null,
@@ -2957,20 +3106,63 @@ async function loadCategoryData(categoryKey) {
   }
 }
 
+// Données de secours
+async function loadFallbackData() {
+  const fallbackData = [
+    { code: "CAF001", name: "Café 250g", price: 8.5, category: "☕ Café", categoryKey: "cafe" },
+    { code: "CAF002", name: "Café 500g", price: 15.9, category: "☕ Café", categoryKey: "cafe" },
+    { code: "EAU001", name: "Eau Minérale 1.5L", price: 1.2, category: "💧 Eaux", categoryKey: "eaux" },
+    { code: "JUS001", name: "Jus d'Orange 1L", price: 3.5, category: "🧃 Jus & Boissons", categoryKey: "jus_boissons" },
+    { code: "LAI001", name: "Lait 1L", price: 2.8, category: "🥛 Lait & Œufs", categoryKey: "lait_oeufs_produits_frais" },
+    { code: "PAT001", name: "Pâtes 500g", price: 2.3, category: "🍝 Pâtes", categoryKey: "pates" },
+    { code: "CON001", name: "Tomates Pelées 400g", price: 1.8, category: "🥫 Conserves", categoryKey: "conserves" },
+    { code: "CHI001", name: "Chips Nature 150g", price: 1.5, category: "🥔 Chips & Snacks", categoryKey: "chips_snacks" }
+  ];
+  
+  return fallbackData;
+}
+
 async function loadAllProducts() {
   state.products.clear();
   
-  const defaultProducts = await loadCategoryData('cafe');
-  state.products.set('cafe', defaultProducts);
+  try {
+    const defaultProducts = await loadCategoryData('cafe');
+    if (defaultProducts.length === 0) {
+      // Utiliser les données de secours
+      const fallback = await loadFallbackData();
+      state.products.set('cafe', fallback.filter(p => p.categoryKey === 'cafe'));
+      
+      // Organiser par catégorie
+      CATEGORIES.forEach(cat => {
+        const catProducts = fallback.filter(p => p.categoryKey === cat.key);
+        if (catProducts.length > 0) {
+          state.products.set(cat.key, catProducts);
+        }
+      });
+    } else {
+      state.products.set('cafe', defaultProducts);
+    }
+  } catch (error) {
+    console.error('Erreur chargement initial:', error);
+    const fallback = await loadFallbackData();
+    state.products.set('cafe', fallback.filter(p => p.categoryKey === 'cafe'));
+  }
   
   renderCategories();
   renderProducts();
   
+  // Charger les autres catégories en arrière-plan
   setTimeout(async () => {
     for (const category of CATEGORIES) {
       if (category.key !== 'cafe') {
-        const products = await loadCategoryData(category.key);
-        state.products.set(category.key, products);
+        try {
+          const products = await loadCategoryData(category.key);
+          if (products.length > 0) {
+            state.products.set(category.key, products);
+          }
+        } catch (error) {
+          console.warn(`Erreur chargement ${category.key}:`, error);
+        }
       }
     }
     
@@ -2995,6 +3187,7 @@ function renderCategories() {
     state.currentPage = 1;
     renderProducts();
     updateCategoriesUI();
+    updatePageNavigation();
   };
   container.appendChild(allButton);
   
@@ -3011,6 +3204,7 @@ function renderCategories() {
       state.currentPage = 1;
       renderProducts();
       updateCategoriesUI();
+      updatePageNavigation();
     };
     container.appendChild(button);
   });
@@ -3081,9 +3275,15 @@ function renderProducts() {
   $('nextPageBtn').disabled = state.currentPage === totalPages;
   $('prevPageBottomBtn').disabled = state.currentPage === 1;
   $('nextPageBottomBtn').disabled = state.currentPage === totalPages;
+  $('prevPageArrowBtn').disabled = state.currentPage === 1;
+  $('nextPageArrowBtn').disabled = state.currentPage === totalPages;
+  $('pageNavPrevBtn').disabled = state.currentPage === 1;
+  $('pageNavNextBtn').disabled = state.currentPage === totalPages;
   
   // Afficher ou masquer la pagination en bas
   $('paginationBottom').style.display = totalPages > 1 ? 'flex' : 'none';
+  $('page-navigation-bottom').style.display = totalPages > 1 ? 'flex' : 'none';
+  $('nav-slider-arrows').style.display = totalPages > 1 ? 'flex' : 'none';
   
   // Calculer les produits à afficher
   const startIndex = (state.currentPage - 1) * CONFIG.itemsPerPage;
@@ -3132,9 +3332,9 @@ function renderProducts() {
       
       <div class="product-actions">
         <div class="quantity-stepper">
-          <button class="stepper-btn" data-action="decrease" data-id="${productId}">−</button>
+          <button class="stepper-btn minus-btn" data-action="decrease" data-id="${productId}">−</button>
           <span class="stepper-value">${quantity}</span>
-          <button class="stepper-btn" data-action="increase" data-id="${productId}">+</button>
+          <button class="stepper-btn plus-btn" data-action="increase" data-id="${productId}">+</button>
         </div>
         
         <button class="stock-btn" data-action="toggle-stock" data-code="${product.code}">
@@ -3200,6 +3400,42 @@ function renderProducts() {
       }
     };
   });
+}
+
+// ===================== NAVIGATION PAGES =====================
+function updatePageNavigation() {
+  const products = getFilteredProducts();
+  const totalPages = Math.ceil(products.length / CONFIG.itemsPerPage) || 1;
+  
+  $('pageNavPrevBtn').disabled = state.currentPage === 1;
+  $('pageNavNextBtn').disabled = state.currentPage === totalPages;
+  $('prevPageArrowBtn').disabled = state.currentPage === 1;
+  $('nextPageArrowBtn').disabled = state.currentPage === totalPages;
+  
+  // Afficher/masquer les curseurs de navigation
+  $('page-navigation-bottom').style.display = totalPages > 1 ? 'flex' : 'none';
+  $('nav-slider-arrows').style.display = totalPages > 1 ? 'flex' : 'none';
+}
+
+function navigateToPrevPage() {
+  if (state.currentPage > 1) {
+    state.currentPage--;
+    renderProducts();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    updatePageNavigation();
+  }
+}
+
+function navigateToNextPage() {
+  const products = getFilteredProducts();
+  const totalPages = Math.ceil(products.length / CONFIG.itemsPerPage) || 1;
+  
+  if (state.currentPage < totalPages) {
+    state.currentPage++;
+    renderProducts();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    updatePageNavigation();
+  }
 }
 
 // ===================== NAVIGATION PRODUITS =====================
@@ -3308,22 +3544,35 @@ function updateModalQuantity() {
 
 // ===================== MODAL QR CODE =====================
 function openQrModal() {
-  // Générer le QR Code
-  const canvas = document.getElementById('qrCodeCanvas');
-  QRCode.toCanvas(canvas, CONFIG.appUrl, {
-    width: 170,
-    height: 170,
-    margin: 1,
-    color: {
-      dark: '#00ff88',
-      light: '#0a1929'
-    }
-  }, function(error) {
-    if (error) {
-      console.error('Erreur génération QR Code:', error);
-      $('qrCodeContainer').innerHTML = '<div style="color:var(--danger);text-align:center;">Erreur génération QR Code</div>';
-    }
-  });
+  // Vider le conteneur
+  $('qrCodeContainer').innerHTML = '';
+  
+  // Créer une image
+  const img = document.createElement('img');
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.objectFit = 'contain';
+  img.style.borderRadius = '8px';
+  
+  // URL de l'image QR Code
+  img.src = 'maxi-jdc-delivery/tools/image-qr.jpg';
+  
+  img.onload = () => {
+    $('qrCodeContainer').appendChild(img);
+  };
+  
+  img.onerror = () => {
+    // Fallback si l'image n'existe pas
+    $('qrCodeContainer').innerHTML = `
+      <div style="color:var(--accent);text-align:center;padding:20px;width:100%;">
+        <div style="font-size:48px;margin-bottom:10px;">📱</div>
+        <div style="font-weight:bold;margin-bottom:5px;">MAXI JDC MARKET</div>
+        <div style="font-size:12px;color:var(--accent2);">Jardins de Carthage</div>
+        <div style="font-size:14px;margin-top:10px;">📞 +216 25 532 480</div>
+        <div style="font-size:11px;margin-top:5px;color:var(--muted);">Scan disponible dans l'application</div>
+      </div>
+    `;
+  };
   
   $('qrModal').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -3478,7 +3727,7 @@ function openOrderModal() {
   summary += `=== INFORMATIONS ===\n\n`;
   summary += `📍 Jardins de Carthage\n`;
   summary += `🕒 7h – 1h\n`;
-  summary += `📱 WhatsApp: +216 25 600 978\n`;
+  summary += `📱 WhatsApp: +216 25 532 480\n`;
   summary += `💳 Paiement à la livraison\n`;
   
   $('orderDetails').textContent = summary;
@@ -3563,11 +3812,13 @@ function init() {
     state.searchQuery = e.target.value;
     state.currentPage = 1;
     renderProducts();
+    updatePageNavigation();
   });
   
   $('searchEnterBtn').onclick = () => {
     state.currentPage = 1;
     renderProducts();
+    updatePageNavigation();
     $('searchInput').focus();
   };
   
@@ -3575,6 +3826,7 @@ function init() {
     if (e.key === 'Enter') {
       state.currentPage = 1;
       renderProducts();
+      updatePageNavigation();
     }
   });
   
@@ -3583,6 +3835,7 @@ function init() {
     state.searchQuery = '';
     state.currentPage = 1;
     renderProducts();
+    updatePageNavigation();
     $('searchInput').focus();
   };
   
@@ -3591,6 +3844,7 @@ function init() {
     state.currentPage = 1;
     renderProducts();
     updateCategoriesUI();
+    updatePageNavigation();
   };
   
   // QR Code
@@ -3602,25 +3856,10 @@ function init() {
   $('nextPageBtn').onclick = navigateToNextPage;
   $('prevPageBottomBtn').onclick = navigateToPrevPage;
   $('nextPageBottomBtn').onclick = navigateToNextPage;
-  
-  function navigateToPrevPage() {
-    if (state.currentPage > 1) {
-      state.currentPage--;
-      renderProducts();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
-  
-  function navigateToNextPage() {
-    const products = getFilteredProducts();
-    const totalPages = Math.ceil(products.length / CONFIG.itemsPerPage) || 1;
-    
-    if (state.currentPage < totalPages) {
-      state.currentPage++;
-      renderProducts();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
+  $('pageNavPrevBtn').onclick = navigateToPrevPage;
+  $('pageNavNextBtn').onclick = navigateToNextPage;
+  $('prevPageArrowBtn').onclick = navigateToPrevPage;
+  $('nextPageArrowBtn').onclick = navigateToNextPage;
   
   // Drawer
   $('closeDrawerBtn').onclick = closeDrawer;
@@ -3760,6 +3999,7 @@ function init() {
   
   updateUserUI();
   updateCartUI();
+  updatePageNavigation();
   
   if (!state.user) {
     setTimeout(() => {
