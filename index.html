@@ -462,7 +462,7 @@
       color: var(--muted);
     }
 
-    /* PAGINATION EN BAS - CURSEURS PLUS VISIBLES */
+    /* PAGINATION EN BAS - CURSEURS PLUS VISIBLES EN HORIZONTAL */
     .pagination-bottom {
       display: flex;
       justify-content: center;
@@ -2288,7 +2288,7 @@
         <!-- GRID PRODUITS -->
         <div class="products-grid" id="productsGrid"></div>
 
-        <!-- PAGINATION EN BAS AVEC CURSEURS VISIBLES -->
+        <!-- PAGINATION EN BAS AVEC CURSEURS VISIBLES EN HORIZONTAL -->
         <div class="pagination-bottom" id="paginationBottom">
           <button class="page-btn" id="prevPageBottomBtn" title="Page précédente">
             ‹‹ Précédent
@@ -2613,7 +2613,7 @@ const CONFIG = {
   shippingFee: 3,
   whatsappNumber: "21625600978",
   itemsPerPage: 24,
-  localStorageKey: 'maxi_jdc_market_app_v8',
+  localStorageKey: 'maxi_jdc_market_app_v9',
   appUrl: window.location.href
 };
 
@@ -2687,7 +2687,7 @@ function saveState() {
     user: state.user,
     cart: state.cart,
     stock: state.stock,
-    version: '8.0'
+    version: '9.0'
   };
   localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
 }
@@ -2695,7 +2695,7 @@ function saveState() {
 function loadState() {
   try {
     const data = JSON.parse(localStorage.getItem(CONFIG.localStorageKey));
-    if (data && data.version === '8.0') {
+    if (data && data.version === '9.0') {
       state.user = data.user || null;
       state.cart = data.cart || {};
       state.stock = data.stock || {};
@@ -3030,7 +3030,9 @@ async function loadCategoryData(categoryKey) {
     const firstLine = lines[0];
     const separator = firstLine.includes('\t') ? '\t' : ';';
     
-    return lines.slice(1).map(line => {
+    const productsMap = new Map(); // Pour éviter les doublons
+    
+    lines.slice(1).forEach(line => {
       const parts = line.split(separator).map(field => field.trim());
       if (parts.length < 3) return null;
       
@@ -3043,14 +3045,20 @@ async function loadCategoryData(categoryKey) {
       
       if (!code || !name || isNaN(price) || price <= 0) return null;
       
-      return {
-        code,
-        name,
-        price: price,
-        category: category.label,
-        categoryKey: category.key
-      };
-    }).filter(product => product !== null);
+      // Vérifier si le produit existe déjà
+      const productKey = `${code}_${name}`;
+      if (!productsMap.has(productKey)) {
+        productsMap.set(productKey, {
+          code,
+          name,
+          price: price,
+          category: category.label,
+          categoryKey: category.key
+        });
+      }
+    });
+    
+    return Array.from(productsMap.values());
   } catch (error) {
     console.error(`Erreur chargement ${categoryKey}:`, error);
     return [];
@@ -3158,7 +3166,18 @@ function getFilteredProducts() {
     );
   }
   
-  state.filteredProducts = products.sort((a, b) => a.name.localeCompare(b.name));
+  // Supprimer les doublons basés sur le code et le nom
+  const seen = new Set();
+  const uniqueProducts = products.filter(product => {
+    const key = `${product.code}_${product.name}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+  
+  state.filteredProducts = uniqueProducts.sort((a, b) => a.name.localeCompare(b.name));
   return state.filteredProducts;
 }
 
@@ -3209,7 +3228,7 @@ function renderProducts() {
     const productId = generateProductId(product);
     const inStock = isInStock(product.code);
     
-    // Vérifier si l'image existe réellement
+    // Utiliser une image unique par code produit
     const imgSrc = `images/products/${product.code}.jpg`;
     
     const card = document.createElement('div');
