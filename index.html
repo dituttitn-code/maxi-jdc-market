@@ -273,7 +273,7 @@
       background: rgba(0, 255, 136, 0.25);
     }
 
-    /* INFOS RAPIDES - CORRIGÉES (pas de texte blanc) */
+    /* INFOS RAPIDES */
     .quick-info {
       display: flex;
       gap: 8px;
@@ -418,7 +418,7 @@
       gap: 8px;
     }
 
-    /* PAGINATION EN BAS */
+    /* PAGINATION EN BAS - NOUVELLE STYLE AVEC FLÈCHES LARGES */
     .pagination-bottom {
       display: flex;
       justify-content: center;
@@ -430,18 +430,19 @@
     }
 
     .pagination-bottom .page-btn {
-      width: 44px;
+      width: 120px;
       height: 44px;
-      border-radius: 10px;
+      border-radius: 12px;
       border: 2px solid var(--line);
       background: rgba(255,255,255,.1);
       color: var(--text);
       cursor: pointer;
       font-weight: 900;
-      font-size: 18px;
+      font-size: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 8px;
       transition: all 0.2s ease;
     }
 
@@ -460,6 +461,10 @@
       font-weight: 700;
       min-width: 120px;
       text-align: center;
+      background: rgba(255,255,255,.05);
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
     }
 
     .page-controls {
@@ -525,7 +530,7 @@
       }
     }
 
-    /* CARTE PRODUIT - SIMPLIFIÉE (sans panier, + et -) */
+    /* CARTE PRODUIT - SIMPLIFIÉE */
     .product-card {
       border-radius: 12px;
       border: 1px solid var(--line);
@@ -631,7 +636,6 @@
       gap: 3px;
     }
 
-    /* MODIFIÉ: Supprimé .product-actions pour les cartes normales */
     .product-stock-tag {
       padding: 4px 8px;
       border-radius: 999px;
@@ -749,7 +753,7 @@
       gap: 20px;
     }
 
-    /* IMAGE MODAL - TAILLE OPTIMISÉE */
+    /* IMAGE MODAL */
     .modal-image-container {
       width: 100%;
       height: 40vh;
@@ -789,7 +793,7 @@
       padding: 40px;
     }
 
-    /* BARRE DE NAVIGATION PRODUITS (CURSEUR) */
+    /* BARRE DE NAVIGATION PRODUITS */
     .image-nav-bar {
       display: flex;
       align-items: center;
@@ -922,7 +926,7 @@
       font-weight: 600;
     }
 
-    /* ACTIONS MODAL - AVEC PANIER ET +/- */
+    /* ACTIONS MODAL */
     .modal-actions {
       display: flex;
       flex-direction: column;
@@ -1074,7 +1078,7 @@
       border-color: var(--accent2);
     }
 
-    /* MODAL QR CODE */
+    /* MODAL QR CODE - CORRIGÉ */
     .qr-modal-overlay {
       position: fixed;
       inset: 0;
@@ -1135,12 +1139,14 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      border: 3px solid var(--accent);
     }
 
     .qr-code-container img {
       width: 100%;
       height: 100%;
       object-fit: contain;
+      border-radius: 8px;
     }
 
     .qr-instructions {
@@ -1148,6 +1154,7 @@
       color: var(--muted);
       font-size: 14px;
       line-height: 1.5;
+      padding: 0 10px;
     }
 
     .qr-modal-footer {
@@ -1155,6 +1162,34 @@
       border-top: 1px solid var(--line);
       display: flex;
       justify-content: center;
+    }
+
+    /* BOUTON QR CODE DIRECT */
+    .qr-direct-btn {
+      position: fixed;
+      bottom: 80px;
+      right: 15px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(0, 212, 255, 0.2);
+      border: 2px solid var(--accent2);
+      color: var(--accent2);
+      cursor: pointer;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .qr-direct-btn:hover {
+      background: rgba(0, 212, 255, 0.3);
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
     }
 
     /* PANIER (DRAWER) */
@@ -1249,7 +1284,7 @@
       gap: 20px;
     }
 
-    /* SECTION COMPTE CLIENT - TÉLÉPHONE AMÉLIORÉ */
+    /* SECTION COMPTE CLIENT */
     .account-section {
       background: var(--card2);
       border-radius: var(--radius);
@@ -1340,7 +1375,7 @@
       cursor: not-allowed;
     }
 
-    /* INPUT TÉLÉPHONE AVEC CLAVIER NUMÉRIQUE - CORRIGÉ */
+    /* INPUT TÉLÉPHONE - CORRIGÉ */
     .tel-input-wrapper {
       position: relative;
     }
@@ -1366,7 +1401,6 @@
       margin-top: 4px;
     }
 
-    /* Bouton effacer pour le téléphone */
     .tel-clear-btn {
       position: absolute;
       right: 10px;
@@ -1441,7 +1475,7 @@
       background: rgba(255, 107, 107, 0.25);
     }
 
-    /* BOUTON LOCALISATION AVEC MAP */
+    /* BOUTON LOCALISATION */
     .gps-btn-wrapper {
       display: flex;
       align-items: center;
@@ -2009,6 +2043,11 @@
       .modal-product-price {
         font-size: 24px;
       }
+      
+      .pagination-bottom .page-btn {
+        width: 100px;
+        font-size: 14px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -2047,6 +2086,24 @@
       .modal-add-btn {
         font-size: 16px;
         height: 50px;
+      }
+      
+      .pagination-bottom {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .pagination-bottom .page-btn {
+        width: 100%;
+        max-width: 280px;
+      }
+      
+      .qr-direct-btn {
+        bottom: 70px;
+        right: 10px;
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
       }
     }
 
@@ -2124,7 +2181,7 @@
       </div>
     </div>
 
-    <!-- INFOS RAPIDES - CORRIGÉES -->
+    <!-- INFOS RAPIDES -->
     <div class="quick-info">
       <div class="info-pill">📍 Jardins de Carthage</div>
       <div class="info-pill">🕒 7h – 1h</div>
@@ -2160,14 +2217,23 @@
         <!-- GRID PRODUITS -->
         <div class="products-grid" id="productsGrid"></div>
 
-        <!-- PAGINATION EN BAS -->
+        <!-- PAGINATION EN BAS AVEC FLÈCHES LARGES -->
         <div class="pagination-bottom" id="paginationBottom">
-          <button class="page-btn" id="prevPageBottomBtn" title="Page précédente">‹</button>
+          <button class="page-btn" id="prevPageBottomBtn" title="Page précédente">
+            ‹‹ Précédent
+          </button>
           <span class="page-info" id="pageInfoBottom">Page 1/1</span>
-          <button class="page-btn" id="nextPageBottomBtn" title="Page suivante">›</button>
+          <button class="page-btn" id="nextPageBottomBtn" title="Page suivante">
+            Suivant ››
+          </button>
         </div>
       </div>
     </main>
+    
+    <!-- BOUTON QR CODE DIRECT -->
+    <button class="qr-direct-btn" id="qrDirectBtn" title="Scanner QR Code">
+      📱
+    </button>
   </div>
 
   <!-- OVERLAY POUR DARK MODE -->
@@ -2390,7 +2456,7 @@
     </div>
   </div>
 
-  <!-- MODAL QR CODE -->
+  <!-- MODAL QR CODE CORRIGÉ -->
   <div class="qr-modal-overlay" id="qrModal">
     <div class="qr-modal">
       <div class="qr-modal-header">
@@ -2399,11 +2465,13 @@
       
       <div class="qr-modal-body">
         <div class="qr-code-container" id="qrCodeContainer">
-          <!-- QR Code sera chargé ici depuis l'image -->
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://maxi-jdc-market.com" 
+               alt="QR Code MAXI JDC MARKET">
         </div>
         
         <div class="qr-instructions">
-          <p>Scannez ce code avec votre téléphone pour accéder à l'application MAXI JDC MARKET</p>
+          <p>Scannez ce code avec votre téléphone pour accéder à l'application MAXI JDC MARKET.</p>
+          <p>Ou utilisez ce lien : <strong>maxi-jdc-market.com</strong></p>
         </div>
       </div>
       
@@ -2474,7 +2542,7 @@ const CONFIG = {
   shippingFee: 3,
   whatsappNumber: "21625600978",
   itemsPerPage: 24,
-  localStorageKey: 'maxi_jdc_market_app_v5',
+  localStorageKey: 'maxi_jdc_market_app_v6',
   appUrl: window.location.href
 };
 
@@ -2548,7 +2616,7 @@ function saveState() {
     user: state.user,
     cart: state.cart,
     stock: state.stock,
-    version: '5.0'
+    version: '6.0'
   };
   localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
 }
@@ -2556,7 +2624,7 @@ function saveState() {
 function loadState() {
   try {
     const data = JSON.parse(localStorage.getItem(CONFIG.localStorageKey));
-    if (data && data.version === '5.0') {
+    if (data && data.version === '6.0') {
       state.user = data.user || null;
       state.cart = data.cart || {};
       state.stock = data.stock || {};
@@ -2658,7 +2726,7 @@ function saveUser() {
   
   state.user = {
     name,
-    phone,
+    phone: phone, // Stocker sans espaces
     address,
     lat: lat || null,
     lng: lng || null,
@@ -2796,15 +2864,12 @@ function addToCart(productId, product, quantity = 1) {
     };
   }
   
-  // Réinitialiser la quantité choisie et montrer un message
   state.quantityPicks[productId] = 0;
   
   updateCartUI();
   
-  // Message amélioré pour l'ajout au panier
   showToast(`✅ ${quantity} × ${product.name} ajouté au panier !`);
   
-  // Réinitialiser la quantité affichée dans le modal si c'est le produit courant
   if (state.currentModalProduct && generateProductId(state.currentModalProduct) === productId) {
     state.quantityPicks[productId] = 0;
     updateModalQuantity();
@@ -3043,7 +3108,6 @@ function renderProducts() {
     const productId = generateProductId(product);
     const inStock = isInStock(product.code);
     
-    // CARTE SIMPLIFIÉE - sans panier, + et -
     const card = document.createElement('div');
     card.className = 'product-card';
     card.innerHTML = `
@@ -3069,7 +3133,6 @@ function renderProducts() {
       </div>
     `;
     
-    // Clic sur toute la carte pour ouvrir le modal
     card.addEventListener('click', () => {
       openProductModal(product);
     });
@@ -3116,7 +3179,6 @@ function openProductModal(product) {
   const quantity = state.quantityPicks[productId] || 0;
   const inStock = isInStock(product.code);
   
-  // Mettre à jour l'interface du modal
   $('modalProductName').textContent = product.name;
   $('modalProductNameFull').textContent = product.name;
   $('modalProductPrice').textContent = formatPrice(product.price);
@@ -3127,12 +3189,10 @@ function openProductModal(product) {
   $('modalProductQuantity').textContent = quantity;
   $('modalStockStatus').textContent = inStock ? 'En stock' : 'Rupture';
   
-  // Configurer le bouton d'ajout
   const addBtn = $('modalAddToCartBtn');
   addBtn.disabled = !inStock || quantity === 0;
   addBtn.textContent = quantity > 0 ? `🛒 Ajouter ${quantity} au panier` : '🛒 Ajouter au panier';
   
-  // Charger l'image
   const img = $('modalProductImage');
   const noPhoto = $('modalNoPhoto');
   
@@ -3146,19 +3206,16 @@ function openProductModal(product) {
     noPhoto.style.display = 'flex';
   };
   
-  // Mettre à jour la barre de navigation (curseur)
   updateImageNavBar();
   
-  // Activer/désactiver la navigation d'image
-  const products = state.filteredProducts;
-  const currentIndex = products.findIndex(p => 
+  const productsList = state.filteredProducts;
+  const currentIndex = productsList.findIndex(p => 
     p.code === product.code && p.categoryKey === product.categoryKey
   );
   
   $('modalPrevImageBtn').disabled = currentIndex === 0;
-  $('modalNextImageBtn').disabled = currentIndex === products.length - 1;
+  $('modalNextImageBtn').disabled = currentIndex === productsList.length - 1;
   
-  // Ouvrir le modal
   $('productModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -3173,7 +3230,6 @@ function updateImageNavBar() {
   const navBar = $('imageNavBar');
   navBar.innerHTML = '';
   
-  // Créer des points de navigation pour tous les produits filtrés
   for (let i = 0; i < products.length; i++) {
     const dot = document.createElement('div');
     dot.className = `image-nav-dot ${i === currentIndex ? 'active' : ''}`;
@@ -3211,15 +3267,6 @@ function updateModalQuantity() {
 
 // ===================== MODAL QR CODE =====================
 function openQrModal() {
-  // Utiliser l'image existante
-  const container = $('qrCodeContainer');
-  container.innerHTML = `
-    <img src="maxi-jdc-delivery/tools/image-qr.jpg" 
-         alt="QR Code MAXI JDC MARKET" 
-         style="width:100%;height:100%;object-fit:contain;border-radius:8px;"
-         onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'color:var(--danger);text-align:center;padding:20px;\\'>Image QR Code non trouvée<br><small>maxi-jdc-delivery/tools/image-qr.jpg</small></div>';">
-  `;
-  
   $('qrModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -3446,6 +3493,26 @@ function closeDrawer() {
   document.body.style.overflow = '';
 }
 
+// ===================== NAVIGATION PAGES =====================
+function navigateToPrevPage() {
+  if (state.currentPage > 1) {
+    state.currentPage--;
+    renderProducts();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function navigateToNextPage() {
+  const products = getFilteredProducts();
+  const totalPages = Math.ceil(products.length / CONFIG.itemsPerPage) || 1;
+  
+  if (state.currentPage < totalPages) {
+    state.currentPage++;
+    renderProducts();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
 // ===================== INITIALISATION =====================
 function init() {
   loadState();
@@ -3490,32 +3557,14 @@ function init() {
   
   // QR Code
   $('qrBtn').onclick = openQrModal;
+  $('qrDirectBtn').onclick = openQrModal;
   $('closeQrModalBtn').onclick = closeQrModal;
   
-  // Pagination
+  // Pagination - NOUVEAU: Boutons avec texte
   $('prevPageBtn').onclick = navigateToPrevPage;
   $('nextPageBtn').onclick = navigateToNextPage;
   $('prevPageBottomBtn').onclick = navigateToPrevPage;
   $('nextPageBottomBtn').onclick = navigateToNextPage;
-  
-  function navigateToPrevPage() {
-    if (state.currentPage > 1) {
-      state.currentPage--;
-      renderProducts();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
-  
-  function navigateToNextPage() {
-    const products = getFilteredProducts();
-    const totalPages = Math.ceil(products.length / CONFIG.itemsPerPage) || 1;
-    
-    if (state.currentPage < totalPages) {
-      state.currentPage++;
-      renderProducts();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
   
   // Drawer
   $('closeDrawerBtn').onclick = closeDrawer;
@@ -3525,10 +3574,9 @@ function init() {
   $('saveAccountBtn').onclick = saveUser;
   $('editAccountBtn').onclick = editUser;
   
-  // Téléphone - CORRECTION: Limiter à 8 chiffres
+  // Téléphone - CORRIGÉ: Formatage automatique
   $('clientPhone').addEventListener('input', function() {
     let value = this.value.replace(/\D/g, '');
-    // Limiter à 8 chiffres maximum
     if (value.length > 8) value = value.substring(0, 8);
     
     let formatted = '';
@@ -3662,6 +3710,15 @@ function init() {
       showToast('👋 Bienvenue ! Veuillez créer votre compte pour commander');
     }, 1000);
   }
+  
+  // Ajouter le bouton QR code direct
+  const qrDirectBtn = document.createElement('button');
+  qrDirectBtn.className = 'qr-direct-btn';
+  qrDirectBtn.id = 'qrDirectBtn';
+  qrDirectBtn.innerHTML = '📱';
+  qrDirectBtn.title = 'Scanner QR Code';
+  qrDirectBtn.onclick = openQrModal;
+  document.body.appendChild(qrDirectBtn);
 }
 
 // Démarrer l'application
