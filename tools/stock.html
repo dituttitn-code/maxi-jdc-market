@@ -1,1 +1,1148 @@
-
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAXI JDC MARKET - Gestion des Stocks</title>
+    <style>
+        :root {
+            --bg0: #0a1929;
+            --bg1: #112240;
+            --card: #1a365d;
+            --card2: #162447;
+            --line: rgba(255,255,255,.15);
+            --text: #f0f6fc;
+            --muted: #8b949e;
+            --accent: #00ff88;
+            --accent2: #00d4ff;
+            --danger: #ff6b6b;
+            --warning: #ffa726;
+            --shadow: 0 10px 40px rgba(0,0,0,.5);
+            --radius: 12px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            color: var(--text);
+            background: linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--accent);
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: 900;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--muted);
+            font-size: 14px;
+        }
+        
+        .card {
+            background: var(--card2);
+            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+        }
+        
+        .card-title {
+            font-size: 20px;
+            color: var(--accent);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title .icon {
+            font-size: 24px;
+        }
+        
+        /* SECTION RECHERCHE */
+        .search-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .search-input input {
+            width: 100%;
+            padding: 15px;
+            border-radius: var(--radius);
+            border: 2px solid var(--line);
+            background: rgba(255,255,255,.08);
+            color: var(--text);
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input input:focus {
+            border-color: var(--accent);
+            background: rgba(255,255,255,.12);
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border-radius: var(--radius);
+            border: 2px solid;
+            font-weight: 900;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+        
+        .btn-primary {
+            background: rgba(0, 255, 136, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .btn-primary:hover {
+            background: rgba(0, 255, 136, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: var(--accent2);
+            color: var(--accent2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(0, 212, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: rgba(255, 107, 107, 0.15);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background: rgba(255, 107, 107, 0.25);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn:disabled:hover {
+            transform: none;
+        }
+        
+        /* TABLEAU DES STOCKS */
+        .stock-table-container {
+            overflow-x: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .stock-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        
+        .stock-table th {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent2);
+            padding: 15px;
+            text-align: left;
+            font-weight: 900;
+            font-size: 14px;
+            position: sticky;
+            top: 0;
+            border-bottom: 2px solid var(--accent2);
+        }
+        
+        .stock-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--line);
+            font-size: 13px;
+        }
+        
+        .stock-table tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        /* SWITCH STOCK/RUPTURE */
+        .stock-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--danger);
+            transition: .4s;
+            border-radius: 34px;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--accent);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(28px);
+        }
+        
+        .stock-label {
+            font-weight: 900;
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 2px solid;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .stock-label.in {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .stock-label.out {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: rgba(255, 107, 107, 0.1);
+        }
+        
+        /* STATISTIQUES */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--line);
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value.in {
+            color: var(--accent);
+        }
+        
+        .stat-value.out {
+            color: var(--danger);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--muted);
+        }
+        
+        /* TOAST */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: var(--accent);
+            color: var(--bg0);
+            border-radius: var(--radius);
+            font-weight: 900;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0,255,136,0.3);
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.5s forwards;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .toast.error {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .toast.warning {
+            background: var(--warning);
+            color: #000;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        /* LOADING */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .search-section {
+                flex-direction: column;
+            }
+            
+            .search-input {
+                min-width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .stock-table th,
+            .stock-table td {
+                padding: 10px;
+                font-size: 12px;
+            }
+            
+            .switch {
+                width: 50px;
+                height: 26px;
+            }
+            
+            .slider:before {
+                height: 18px;
+                width: 18px;
+                left: 3px;
+                bottom: 2px;
+            }
+            
+            input:checked + .slider:before {
+                transform: translateX(22px);
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* CHECKBOX POUR SELECTION MULTIPLE */
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: var(--radius);
+        }
+        
+        .select-all input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .select-all label {
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        /* ACTIONS EN MASSE */
+        .bulk-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .bulk-actions .btn {
+            padding: 12px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- EN-TÊTE -->
+        <div class="header">
+            <div class="logo">MAXI JDC MARKET</div>
+            <div class="subtitle">Gestion des Stocks - Mode Administrateur</div>
+        </div>
+        
+        <!-- SECTION RECHERCHE -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">🔍</span>
+                Recherche de produits
+            </div>
+            
+            <div class="search-section">
+                <div class="search-input">
+                    <input type="text" id="searchInput" placeholder="Rechercher par code, nom ou catégorie...">
+                </div>
+                <button class="btn btn-secondary" id="searchBtn">
+                    🔎 Rechercher
+                </button>
+                <button class="btn" id="resetBtn">
+                    ↺ Tout afficher
+                </button>
+            </div>
+        </div>
+        
+        <!-- SECTION STATISTIQUES -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">📊</span>
+                Statistiques des stocks
+            </div>
+            
+            <div class="stats-container" id="statsContainer">
+                <div class="stat-card">
+                    <div class="stat-value in" id="inStockCount">0</div>
+                    <div class="stat-label">Produits en stock</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value out" id="outStockCount">0</div>
+                    <div class="stat-label">Produits en rupture</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalProducts">0</div>
+                    <div class="stat-label">Total produits</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="modifiedCount">0</div>
+                    <div class="stat-label">Modifications</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION SELECTION MULTIPLE -->
+        <div class="select-all">
+            <input type="checkbox" id="selectAllCheckbox">
+            <label for="selectAllCheckbox">Sélectionner tous les produits visibles</label>
+        </div>
+        
+        <!-- ACTIONS EN MASSE -->
+        <div class="bulk-actions">
+            <button class="btn btn-primary" id="setAllInStockBtn" disabled>
+                ✓ Tout mettre en stock
+            </button>
+            <button class="btn btn-danger" id="setAllOutStockBtn" disabled>
+                ✗ Tout mettre en rupture
+            </button>
+            <button class="btn btn-secondary" id="saveSelectedBtn" disabled>
+                💾 Sauvegarder sélection
+            </button>
+        </div>
+        
+        <!-- TABLEAU DES STOCKS -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">📦</span>
+                Liste des produits
+            </div>
+            
+            <div class="stock-table-container">
+                <table class="stock-table" id="stockTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" id="tableSelectAll">
+                            </th>
+                            <th>Code</th>
+                            <th>Nom du produit</th>
+                            <th>Catégorie</th>
+                            <th>Prix</th>
+                            <th>État actuel</th>
+                            <th>Changer l'état</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockTableBody">
+                        <!-- Les produits seront chargés ici -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="loading" id="loadingIndicator">
+                <div class="loading-spinner"></div>
+                <p>Chargement des produits...</p>
+            </div>
+        </div>
+        
+        <!-- ACTIONS PRINCIPALES -->
+        <div class="search-section" style="margin-top: 30px;">
+            <button class="btn btn-primary" id="saveAllBtn">
+                💾 Sauvegarder TOUS les changements
+            </button>
+            <button class="btn btn-secondary" id="exportBtn">
+                📤 Exporter vers CSV
+            </button>
+            <button class="btn btn-danger" id="revertBtn">
+                ↩️ Annuler tous les changements
+            </button>
+        </div>
+        
+        <!-- INFORMATIONS -->
+        <div class="card" style="margin-top: 30px; background: rgba(0,212,255,0.05); border-color: var(--accent2);">
+            <div class="card-title">
+                <span class="icon">ℹ️</span>
+                Instructions
+            </div>
+            <div style="color: var(--muted); line-height: 1.6;">
+                <p><strong>Comment utiliser :</strong></p>
+                <ol style="margin-left: 20px; margin-top: 10px;">
+                    <li>Recherchez un produit par code, nom ou catégorie</li>
+                    <li>Utilisez les interrupteurs pour changer l'état (EN STOCK / RUPTURE)</li>
+                    <li>Sélectionnez plusieurs produits avec les cases à cocher</li>
+                    <li>Utilisez les boutons d'actions en masse pour modifier plusieurs produits à la fois</li>
+                    <li>Cliquez sur "Sauvegarder TOUS les changements" pour mettre à jour le fichier stock.csv</li>
+                    <li>Les changements seront immédiatement visibles dans l'application principale</li>
+                </ol>
+                <p style="margin-top: 15px; color: var(--warning);">
+                    ⚠️ <strong>Important :</strong> Les changements ne sont définitifs qu'après avoir cliqué sur "Sauvegarder"
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    // ===================== CONFIGURATION =====================
+    const CONFIG = {
+        stockFile: 'data/stock.csv',
+        productsFolder: 'data/',
+        categories: [
+            'cafe', 'animaux_compagnie', 'bebe_maman', 'boulangerie_patisserie',
+            'chips_snacks', 'chocolats_biscuits', 'conserves', 'cuisine_monde',
+            'eaux', 'epicerie_salee', 'epicerie_sucree', 'fromage_charcuterie',
+            'fruits_legumes', 'fruits_secs_noix', 'hygiene_entretien', 'hygiene_soins',
+            'jus_boissons', 'lait_oeufs_produits_frais', 'pates', 'produits_surgeles',
+            'vipa_selections', 'promotions'
+        ]
+    };
+    
+    // ===================== ÉTAT GLOBAL =====================
+    const state = {
+        allProducts: [],
+        filteredProducts: [],
+        stockData: new Map(), // Map: code -> {disponibilite: 'en stock'/'rupture', ...}
+        originalStockData: new Map(),
+        modifiedProducts: new Set(),
+        selectedProducts: new Set(),
+        searchQuery: '',
+        isLoading: true
+    };
+    
+    // ===================== UTILITAIRES =====================
+    function $(id) { return document.getElementById(id); }
+    
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <span>${type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '❌'}</span>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+    
+    // ===================== CHARGEMENT DES DONNÉES =====================
+    async function loadStockFile() {
+        try {
+            const response = await fetch(CONFIG.stockFile);
+            if (!response.ok) {
+                console.warn('Fichier stock.csv non trouvé, création d\'un nouveau fichier');
+                return new Map();
+            }
+            
+            const text = await response.text();
+            const lines = text.split('\n').filter(line => line.trim());
+            if (lines.length === 0) return new Map();
+            
+            const separator = lines[0].includes(';') ? ';' : (lines[0].includes('\t') ? '\t' : ',');
+            const stockMap = new Map();
+            
+            lines.slice(1).forEach((line, index) => {
+                const parts = line.split(separator).map(field => field.trim());
+                if (parts.length >= 2) {
+                    const code = parts[0];
+                    const disponibilite = parts[1].toLowerCase();
+                    stockMap.set(code, { disponibilite });
+                }
+            });
+            
+            console.log(`${stockMap.size} états de stock chargés depuis stock.csv`);
+            return stockMap;
+        } catch (error) {
+            console.error('Erreur chargement stock.csv:', error);
+            showToast('❌ Erreur chargement fichier stock', 'error');
+            return new Map();
+        }
+    }
+    
+    async function loadProductsFromCSV(filePath) {
+        try {
+            const response = await fetch(filePath);
+            if (!response.ok) return [];
+            
+            const text = await response.text();
+            const lines = text.split('\n').filter(line => line.trim());
+            if (lines.length === 0) return [];
+            
+            const separator = lines[0].includes(';') ? ';' : '\t';
+            const products = [];
+            const seen = new Set();
+            
+            lines.slice(1).forEach((line, index) => {
+                const parts = line.split(separator).map(field => field.trim());
+                if (parts.length >= 3) {
+                    const code = parts[0];
+                    const name = parts[1];
+                    const priceStr = parts[2].replace(',', '.').replace(/[^\d.]/g, '');
+                    const price = parseFloat(priceStr);
+                    
+                    if (code && name && !isNaN(price) && price > 0) {
+                        const productKey = `${code}_${name}`;
+                        if (!seen.has(productKey)) {
+                            seen.add(productKey);
+                            
+                            // Extraire le nom de fichier pour la catégorie
+                            const category = filePath.split('/').pop().replace('.csv', '').replace('_', ' ').toUpperCase();
+                            
+                            products.push({
+                                code,
+                                name,
+                                price,
+                                category,
+                                fileName: filePath.split('/').pop()
+                            });
+                        }
+                    }
+                }
+            });
+            
+            return products;
+        } catch (error) {
+            console.error(`Erreur chargement ${filePath}:`, error);
+            return [];
+        }
+    }
+    
+    async function loadAllProducts() {
+        state.isLoading = true;
+        $('loadingIndicator').style.display = 'block';
+        
+        // Charger les données de stock
+        state.stockData = await loadStockFile();
+        state.originalStockData = new Map(state.stockData);
+        
+        // Charger tous les produits depuis chaque fichier CSV
+        state.allProducts = [];
+        
+        for (const category of CONFIG.categories) {
+            const filePath = `${CONFIG.productsFolder}${category}.csv`;
+            const products = await loadProductsFromCSV(filePath);
+            state.allProducts.push(...products);
+        }
+        
+        // S'assurer que chaque produit a une entrée dans stockData
+        state.allProducts.forEach(product => {
+            if (!state.stockData.has(product.code)) {
+                state.stockData.set(product.code, { disponibilite: 'en stock' });
+            }
+        });
+        
+        state.filteredProducts = [...state.allProducts];
+        state.isLoading = false;
+        $('loadingIndicator').style.display = 'none';
+        
+        updateStats();
+        renderStockTable();
+        
+        showToast(`✅ ${state.allProducts.length} produits chargés`);
+    }
+    
+    // ===================== AFFICHAGE =====================
+    function updateStats() {
+        let inStock = 0;
+        let outStock = 0;
+        
+        state.allProducts.forEach(product => {
+            const stockInfo = state.stockData.get(product.code);
+            if (stockInfo && stockInfo.disponibilite === 'en stock') {
+                inStock++;
+            } else {
+                outStock++;
+            }
+        });
+        
+        $('inStockCount').textContent = inStock;
+        $('outStockCount').textContent = outStock;
+        $('totalProducts').textContent = state.allProducts.length;
+        $('modifiedCount').textContent = state.modifiedProducts.size;
+    }
+    
+    function renderStockTable() {
+        const tableBody = $('stockTableBody');
+        tableBody.innerHTML = '';
+        
+        if (state.filteredProducts.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">
+                        <div style="font-size:48px;margin-bottom:15px;">🔍</div>
+                        <h3>Aucun produit trouvé</h3>
+                        <p>Essayez une autre recherche</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        state.filteredProducts.forEach(product => {
+            const stockInfo = state.stockData.get(product.code);
+            const isInStock = stockInfo && stockInfo.disponibilite === 'en stock';
+            const isModified = state.modifiedProducts.has(product.code);
+            const isSelected = state.selectedProducts.has(product.code);
+            
+            const row = document.createElement('tr');
+            if (isModified) {
+                row.style.background = 'rgba(255,167,38,0.1)';
+            }
+            
+            row.innerHTML = `
+                <td>
+                    <input type="checkbox" class="product-checkbox" 
+                           data-code="${product.code}"
+                           ${isSelected ? 'checked' : ''}>
+                </td>
+                <td><strong>${product.code}</strong></td>
+                <td>${product.name}</td>
+                <td>${product.category}</td>
+                <td>${product.price.toFixed(2).replace('.', ',')} dt</td>
+                <td>
+                    <span class="stock-label ${isInStock ? 'in' : 'out'}">
+                        ${isInStock ? 'EN STOCK' : 'RUPTURE'}
+                    </span>
+                </td>
+                <td>
+                    <div class="stock-switch">
+                        <label class="switch">
+                            <input type="checkbox" class="stock-toggle" 
+                                   data-code="${product.code}"
+                                   ${isInStock ? 'checked' : ''}>
+                            <span class="slider"></span>
+                        </label>
+                        <span class="stock-label ${isInStock ? 'in' : 'out'}">
+                            ${isInStock ? 'EN STOCK' : 'RUPTURE'}
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn" style="padding: 5px 10px; font-size: 11px;" 
+                            onclick="saveSingleProduct('${product.code}')">
+                        💾 Sauvegarder
+                    </button>
+                </td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+        
+        // Mettre à jour les boutons d'actions en masse
+        updateBulkActions();
+    }
+    
+    // ===================== GESTION DES CHANGEMENTS =====================
+    function updateProductStock(code, isInStock) {
+        const stockInfo = state.stockData.get(code);
+        const originalInfo = state.originalStockData.get(code);
+        
+        if (!stockInfo) {
+            state.stockData.set(code, { disponibilite: isInStock ? 'en stock' : 'rupture' });
+        } else {
+            stockInfo.disponibilite = isInStock ? 'en stock' : 'rupture';
+        }
+        
+        // Vérifier si c'est une modification
+        const originalWasInStock = originalInfo ? originalInfo.disponibilite === 'en stock' : true;
+        if (originalWasInStock !== isInStock) {
+            state.modifiedProducts.add(code);
+        } else {
+            state.modifiedProducts.delete(code);
+        }
+        
+        updateStats();
+        
+        // Mettre à jour l'affichage de la ligne
+        const rows = document.querySelectorAll(`tr`);
+        rows.forEach(row => {
+            const checkbox = row.querySelector(`.product-checkbox[data-code="${code}"]`);
+            if (checkbox) {
+                const stockLabel = row.querySelector('.stock-switch .stock-label');
+                if (stockLabel) {
+                    stockLabel.textContent = isInStock ? 'EN STOCK' : 'RUPTURE';
+                    stockLabel.className = `stock-label ${isInStock ? 'in' : 'out'}`;
+                }
+                
+                // Marquer la ligne comme modifiée
+                if (state.modifiedProducts.has(code)) {
+                    row.style.background = 'rgba(255,167,38,0.1)';
+                } else {
+                    row.style.background = '';
+                }
+            }
+        });
+    }
+    
+    function saveSingleProduct(code) {
+        const stockInfo = state.stockData.get(code);
+        if (!stockInfo) return;
+        
+        // Ici, normalement, vous enverriez la mise à jour au serveur
+        // Pour l'instant, on simule avec un message
+        showToast(`✅ Produit ${code} sauvegardé: ${stockInfo.disponibilite.toUpperCase()}`);
+        
+        // Mettre à jour l'original pour marquer comme non modifié
+        state.originalStockData.set(code, { ...stockInfo });
+        state.modifiedProducts.delete(code);
+        
+        updateStats();
+        
+        // Mettre à jour l'affichage
+        const rows = document.querySelectorAll(`tr`);
+        rows.forEach(row => {
+            const checkbox = row.querySelector(`.product-checkbox[data-code="${code}"]`);
+            if (checkbox) {
+                row.style.background = '';
+            }
+        });
+    }
+    
+    async function saveAllChanges() {
+        if (state.modifiedProducts.size === 0) {
+            showToast('ℹ️ Aucun changement à sauvegarder', 'warning');
+            return;
+        }
+        
+        try {
+            // Créer le contenu CSV
+            let csvContent = 'code;disponibilite\n';
+            
+            // Trier les codes pour un fichier propre
+            const sortedCodes = Array.from(state.stockData.keys()).sort();
+            
+            sortedCodes.forEach(code => {
+                const stockInfo = state.stockData.get(code);
+                csvContent += `${code};${stockInfo.disponibilite}\n`;
+            });
+            
+            // Dans un environnement réel, vous enverriez ça au serveur
+            // Pour l'instant, on simule avec un download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'stock.csv';
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            // Mettre à jour l'état
+            state.originalStockData = new Map(state.stockData);
+            state.modifiedProducts.clear();
+            updateStats();
+            
+            showToast(`✅ ${state.modifiedProducts.size} changements sauvegardés dans stock.csv`);
+            
+        } catch (error) {
+            console.error('Erreur sauvegarde:', error);
+            showToast('❌ Erreur lors de la sauvegarde', 'error');
+        }
+    }
+    
+    // ===================== ACTIONS EN MASSE =====================
+    function updateBulkActions() {
+        const hasSelection = state.selectedProducts.size > 0;
+        const hasModifications = state.modifiedProducts.size > 0;
+        
+        $('setAllInStockBtn').disabled = !hasSelection;
+        $('setAllOutStockBtn').disabled = !hasSelection;
+        $('saveSelectedBtn').disabled = !hasSelection;
+        $('saveAllBtn').disabled = !hasModifications;
+        
+        // Mettre à jour la case "Tout sélectionner"
+        const allVisibleSelected = state.filteredProducts.every(p => 
+            state.selectedProducts.has(p.code)
+        );
+        $('tableSelectAll').checked = allVisibleSelected && state.filteredProducts.length > 0;
+        $('selectAllCheckbox').checked = allVisibleSelected && state.filteredProducts.length > 0;
+    }
+    
+    function setSelectedProductsStock(isInStock) {
+        state.selectedProducts.forEach(code => {
+            updateProductStock(code, isInStock);
+        });
+        
+        renderStockTable();
+        showToast(`✅ ${state.selectedProducts.size} produits mis ${isInStock ? 'en stock' : 'en rupture'}`);
+    }
+    
+    function saveSelectedProducts() {
+        state.selectedProducts.forEach(code => {
+            saveSingleProduct(code);
+        });
+        
+        state.selectedProducts.clear();
+        renderStockTable();
+    }
+    
+    // ===================== RECHERCHE =====================
+    function filterProducts() {
+        const query = state.searchQuery.toLowerCase();
+        
+        if (!query) {
+            state.filteredProducts = [...state.allProducts];
+        } else {
+            state.filteredProducts = state.allProducts.filter(product => 
+                product.code.toLowerCase().includes(query) ||
+                product.name.toLowerCase().includes(query) ||
+                product.category.toLowerCase().includes(query)
+            );
+        }
+        
+        renderStockTable();
+    }
+    
+    // ===================== ÉVÉNEMENTS =====================
+    function initEvents() {
+        // Recherche
+        $('searchInput').addEventListener('input', (e) => {
+            state.searchQuery = e.target.value;
+            filterProducts();
+        });
+        
+        $('searchBtn').onclick = () => {
+            filterProducts();
+        };
+        
+        $('resetBtn').onclick = () => {
+            $('searchInput').value = '';
+            state.searchQuery = '';
+            filterProducts();
+        };
+        
+        // Interrupteurs de stock
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('stock-toggle')) {
+                const code = e.target.dataset.code;
+                const isInStock = e.target.checked;
+                updateProductStock(code, isInStock);
+            }
+            
+            // Cases à cocher
+            if (e.target.classList.contains('product-checkbox')) {
+                const code = e.target.dataset.code;
+                if (e.target.checked) {
+                    state.selectedProducts.add(code);
+                } else {
+                    state.selectedProducts.delete(code);
+                }
+                updateBulkActions();
+            }
+        });
+        
+        // Sélection globale
+        $('tableSelectAll').onclick = $('selectAllCheckbox').onclick = (e) => {
+            const isChecked = e.target.checked;
+            
+            if (isChecked) {
+                state.filteredProducts.forEach(product => {
+                    state.selectedProducts.add(product.code);
+                });
+            } else {
+                state.filteredProducts.forEach(product => {
+                    state.selectedProducts.delete(product.code);
+                });
+            }
+            
+            // Mettre à jour toutes les cases à cocher
+            document.querySelectorAll('.product-checkbox').forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+            
+            updateBulkActions();
+        };
+        
+        // Actions en masse
+        $('setAllInStockBtn').onclick = () => {
+            setSelectedProductsStock(true);
+        };
+        
+        $('setAllOutStockBtn').onclick = () => {
+            setSelectedProductsStock(false);
+        };
+        
+        $('saveSelectedBtn').onclick = () => {
+            saveSelectedProducts();
+        };
+        
+        // Actions principales
+        $('saveAllBtn').onclick = saveAllChanges;
+        
+        $('exportBtn').onclick = async () => {
+            await saveAllChanges();
+        };
+        
+        $('revertBtn').onclick = () => {
+            if (state.modifiedProducts.size === 0) {
+                showToast('ℹ️ Aucun changement à annuler', 'warning');
+                return;
+            }
+            
+            if (confirm(`Annuler ${state.modifiedProducts.size} modification(s) ?`)) {
+                // Restaurer les valeurs originales
+                state.modifiedProducts.forEach(code => {
+                    const original = state.originalStockData.get(code);
+                    if (original) {
+                        state.stockData.set(code, { ...original });
+                    }
+                });
+                
+                state.modifiedProducts.clear();
+                updateStats();
+                renderStockTable();
+                
+                showToast('↩️ Tous les changements annulés');
+            }
+        };
+    }
+    
+    // ===================== INITIALISATION =====================
+    async function init() {
+        showToast('📦 Chargement des produits...', 'warning');
+        
+        await loadAllProducts();
+        initEvents();
+        
+        showToast('✅ Interface prête !');
+    }
+    
+    // Démarrer l'application
+    document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
