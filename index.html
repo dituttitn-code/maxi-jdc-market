@@ -4040,7 +4040,7 @@
       const category = CATEGORIES.find(c => c.key === categoryKey);
       if (!category) return [];
       
-      const response = await fetch(category.file);
+      const response = await fetch(category.file + '?v=' + Date.now());
       if (!response.ok) {
         console.warn(`Fichier non trouvé: ${category.file}`);
         return [];
@@ -5890,5 +5890,6 @@ $('adminStockBtn').onclick = openStockManagement;
   </script>
 </body>
 </html>
+
 
 
