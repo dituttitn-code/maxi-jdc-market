@@ -4608,7 +4608,9 @@ if (parts.length >= 4) {
     
     $('modalProductCode').textContent = product.code;
     $('modalProductCategory').textContent = product.category;
-    $('modalProductStock').textContent = `${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}`;
+    $('modalProductStock').textContent =
+  stockStatus.available ? '✅ En stock' : '❌ Rupture de stock';
+
     $('modalProductStock').style.color = stockStatus.class === 'ok' ? 'var(--accent)' : stockStatus.class === 'low' ? 'var(--warning)' : 'var(--danger)';
     
     // Utiliser l'input de quantité
@@ -6005,6 +6007,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
