@@ -5977,11 +5977,22 @@ document.addEventListener("DOMContentLoaded", () => {
   loadStock();
 
   document.getElementById("stock-btn-search").onclick = () => {
-    const code = document.getElementById("stock-search").value;
-    const p = STOCK.find(x => x.article === code);
-    document.getElementById("stock-result").textContent =
-      p ? `${p.produits} — Stock: ${p.stock}` : "Produit introuvable";
-  };
+  const code = document.getElementById("stock-search").value.trim();
+  const p = STOCK.find(x => String(x.article).trim() === code);
+
+  if (!p) {
+    document.getElementById("stock-result").textContent = "Produit introuvable";
+    return;
+  }
+
+  const etat = Number(p.stock) === 0
+    ? "❌ Rupture de stock"
+    : "✅ En stock";
+
+  document.getElementById("stock-result").innerHTML =
+    `${p.produits} — <b>${etat}</b>`;
+};
+
 
   document.getElementById("stock-btn-reload").onclick = loadStock;
 });
@@ -5989,6 +6000,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
