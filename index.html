@@ -5888,8 +5888,106 @@ $('adminStockBtn').onclick = openStockManagement;
     }
   });
   </script>
+  <!-- ====== STOCK GOOGLE SHEETS ====== -->
+<section id="stock-section" style="padding:16px; background:#fff; border-radius:12px; margin:12px;">
+  <h2>📦 Stock (Google Sheets)</h2>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <input id="stock-search" placeholder="Code article (ex: 1017)" />
+    <button id="stock-btn-search">Rechercher</button>
+    <button id="stock-btn-reload">Actualiser</button>
+    <span id="stock-status">—</span>
+  </div>
+
+  <div id="stock-result" style="margin-top:10px;"></div>
+
+  <table style="width:100%; margin-top:10px; border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th>Article</th>
+        <th>Produit</th>
+        <th>Stock</th>
+      </tr>
+    </thead>
+    <tbody id="stock-tbody"></tbody>
+  </table>
+</section>
+<!-- ====== /STOCK ====== -->
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv";
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    const next = text[i + 1];
+    if (c === '"' && inQuotes && next === '"') { field += '"'; i++; continue; }
+    if (c === '"') { inQuotes = !inQuotes; continue; }
+    if (c === ',' && !inQuotes) { row.push(field); field = ""; continue; }
+    if ((c === '\n' || c === '\r') && !inQuotes) {
+      if (c === '\r' && next === '\n') i++;
+      row.push(field); field = "";
+      if (row.length > 1 || row[0] !== "") rows.push(row);
+      row = [];
+      continue;
+    }
+    field += c;
+  }
+  row.push(field);
+  if (row.length > 1 || row[0] !== "") rows.push(row);
+
+  const headers = rows.shift().map(h => h.trim());
+  return rows
+    .filter(r => r.some(x => String(x).trim() !== ""))
+    .map(r => {
+      const obj = {};
+      headers.forEach((h, idx) => obj[h] = (r[idx] ?? "").trim());
+      return obj;
+    });
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+let STOCK = [];
+
+async function loadStock() {
+  document.getElementById("stock-status").textContent = "Chargement…";
+  const res = await fetch(CSV_URL + "&t=" + Date.now());
+  const text = await res.text();
+  STOCK = parseCSV(text);
+
+  document.getElementById("stock-body").innerHTML =
+    STOCK.map(p => `
+      <tr>
+        <td>${escapeHtml(p.article)}</td>
+        <td>${escapeHtml(p.produits)}</td>
+        <td>${escapeHtml(p.stock)}</td>
+      </tr>
+    `).join("");
+
+  document.getElementById("stock-status").textContent = "OK";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadStock();
+
+  document.getElementById("stock-btn-search").onclick = () => {
+    const code = document.getElementById("stock-search").value;
+    const p = STOCK.find(x => x.article === code);
+    document.getElementById("stock-result").textContent =
+      p ? `${p.produits} — Stock: ${p.stock}` : "Produit introuvable";
+  };
+
+  document.getElementById("stock-btn-reload").onclick = loadStock;
+});
+</script>
+
 </body>
 </html>
+
 
 
 
