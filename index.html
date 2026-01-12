@@ -4064,11 +4064,11 @@
         const code = parts[0];
         const name = parts[1];
         let priceStr = parts[2];
-        let stock = 0;
+        let stock = 1; // par défaut: en stock
 
 if (parts.length >= 4) {
-    const stockStr = parts[3];
-    stock = Number(stockStr) === 1 ? 1 : 0;
+  const s = String(parts[3]).trim();
+  stock = (s === "0") ? 0 : 1;  // 0 => rupture, sinon => en stock
 }
 
         
@@ -6001,6 +6001,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
