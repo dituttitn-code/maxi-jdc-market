@@ -4148,10 +4148,13 @@ if (parts.length >= 4) {
         const promoType = parts[4];
         let stock = 0;
 
+let inStock = true;
+
 if (parts.length >= 4) {
-    const stockStr = parts[3];
-    stock = Number(stockStr);
+  const value = parts[3].toString().toLowerCase().trim();
+  inStock = value === 'en stock' || value === '1' || value === 'true';
 }
+
 
         
         if (!code || !name) return;
@@ -6002,6 +6005,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
