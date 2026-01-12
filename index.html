@@ -19,7 +19,6 @@
    crossorigin=""/>
   
   <style>
-    /* Styles existants inchangés... */
     :root{
       --bg0:#0a1929;
       --bg1:#112240;
@@ -3752,7 +3751,7 @@
     shippingFee: 3,
     whatsappNumber: "21625600978",
     itemsPerPage: 24,
-    localStorageKey: 'maxi_jdc_market_app_v31',
+    localStorageKey: 'maxi_jdc_market_app_v30',
     imagesBasePath: 'images/products/',
     historyRetentionYears: 2,
     adminPasswordKey: 'maxi_jdc_admin_password',
@@ -3815,8 +3814,7 @@
     productStocks: new Map(),
     pendingStockUpdates: new Map(),
     lastSyncTime: null,
-    syncTimer: null,
-    stockData: new Map() // Nouveau: stock chargé depuis stock.csv
+    syncTimer: null
   };
 
   // ===================== UTILITAIRES =====================
@@ -3841,74 +3839,28 @@
     }, 3000);
   }
 
-  // MODIFICATION IMPORTANTE: Fonction pour obtenir l'état du stock depuis stock.csv
   function getStockStatus(stock) {
-    // Stock est soit "en stock" soit "rupture de stock"
-    if (stock === "rupture de stock" || stock === "Rupture de stock" || stock === "RUPTURE DE STOCK") {
-      return { class: 'out', text: 'Rupture de stock', displayText: 'Rupture de stock', available: false };
-    } else if (stock === "en stock" || stock === "En stock" || stock === "EN STOCK") {
-      return { class: 'ok', text: 'En stock', displayText: 'En stock', available: true };
+    if (stock <= 0) {
+      return { class: 'out', text: 'Rupture de stock', available: false };
+    } else if (stock <= 5) {
+      return { class: 'low', text: `${stock} restant(s)`, available: true };
     } else {
-      // Par défaut, considérer comme en stock
-      return { class: 'ok', text: 'En stock', displayText: 'En stock', available: true };
-    }
-  }
-
-  // ===================== CHARGEMENT DU STOCK CSV =====================
-  async function loadStockData() {
-    try {
-      console.log('Chargement du fichier stock.csv...');
-      const response = await fetch('data/stock.csv?v=' + Date.now());
-      
-      if (!response.ok) {
-        console.warn('Fichier stock.csv non trouvé');
-        return new Map();
-      }
-      
-      const text = await response.text();
-      const lines = text.split('\n').filter(line => line.trim());
-      
-      if (lines.length === 0) {
-        console.warn('Fichier stock.csv vide');
-        return new Map();
-      }
-      
-      const stockMap = new Map();
-      const separator = lines[0].includes(';') ? ';' : '\t';
-      
-      // Ignorer l'en-tête
-      lines.slice(1).forEach((line, index) => {
-        const parts = line.split(separator).map(field => field.trim());
-        if (parts.length >= 3) {
-          const code = parts[0];
-          const name = parts[1];
-          const stock = parts[2];
-          
-          // Stocker avec le code comme clé
-          stockMap.set(code, {
-            code,
-            name,
-            stock: stock
-          });
-        }
-      });
-      
-      console.log(`Stock chargé: ${stockMap.size} articles trouvés`);
-      return stockMap;
-    } catch (error) {
-      console.error('Erreur chargement stock.csv:', error);
-      return new Map();
+      return { class: 'ok', text: `${stock} en stock`, available: true };
     }
   }
 
   // ===================== SYNCHRONISATION DES STOCKS =====================
   function initializeSync() {
+    // Charger les données de synchronisation
     loadSyncData();
     
+    // Démarrer le timer de synchronisation
     state.syncTimer = setInterval(syncStocks, CONFIG.syncInterval);
     
+    // Synchroniser au démarrage
     setTimeout(syncStocks, 2000);
     
+    // Synchroniser aussi quand la page devient visible
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         syncStocks();
@@ -3922,13 +3874,16 @@
       if (syncData) {
         const data = JSON.parse(syncData);
         
+        // Charger les stocks synchronisés
         if (data.productStocks) {
           Object.entries(data.productStocks).forEach(([key, stock]) => {
             state.productStocks.set(key, stock);
           });
         }
         
+        // Charger l'historique des ventes
         if (data.salesHistory) {
+          // Fusionner avec l'historique local
           state.orderHistory = [...state.orderHistory, ...data.salesHistory]
             .filter((order, index, self) =>
               index === self.findIndex(o => o.id === order.id)
@@ -3961,27 +3916,34 @@
 
   function syncStocks() {
     try {
+      // Récupérer les données de synchronisation partagées
       const syncData = localStorage.getItem(CONFIG.syncStorageKey);
       if (!syncData) return;
       
       const sharedData = JSON.parse(syncData);
       
+      // Mettre à jour les stocks avec les données partagées
       if (sharedData.productStocks) {
         Object.entries(sharedData.productStocks).forEach(([key, stock]) => {
           const currentStock = state.productStocks.get(key) || 0;
           
+          // Prendre la valeur la plus basse (stock réel)
           if (stock < currentStock) {
             state.productStocks.set(key, stock);
           }
         });
         
+        // Appliquer les stocks mis à jour aux produits
         updateAllProductStocks();
+        
+        // Rafraîchir l'affichage
         renderProducts();
         
         state.lastSyncTime = sharedData.lastSyncTime;
         console.log('Stocks synchronisés:', new Date().toLocaleTimeString());
       }
       
+      // Sauvegarder nos propres modifications
       if (state.pendingStockUpdates.size > 0) {
         saveSyncData();
         state.pendingStockUpdates.clear();
@@ -3993,6 +3955,7 @@
   }
 
   function updateAllProductStocks() {
+    // Mettre à jour les stocks dans tous les produits
     for (const [catKey, products] of state.products.entries()) {
       const updatedProducts = products.map(product => {
         const stockKey = `${product.categoryKey}_${product.code}`;
@@ -4072,7 +4035,7 @@
   }
 
   // ===================== GESTION DES DONNÉES =====================
-  async function loadCategoryData(categoryKey, stockMap) {
+  async function loadCategoryData(categoryKey) {
     try {
       const category = CATEGORIES.find(c => c.key === categoryKey);
       if (!category) return [];
@@ -4101,12 +4064,11 @@
         const code = parts[0];
         const name = parts[1];
         let priceStr = parts[2];
+        let stock = 100;
         
-        // Récupérer l'état du stock depuis stockMap
-        let stockStatus = "en stock"; // Par défaut
-        if (stockMap.has(code)) {
-          const stockInfo = stockMap.get(code);
-          stockStatus = stockInfo.stock;
+        if (parts.length >= 4) {
+          const stockStr = parts[3];
+          stock = parseInt(stockStr) || 100;
         }
         
         if (!code || !name) return;
@@ -4130,8 +4092,8 @@
           category: category.label,
           categoryKey: category.key,
           isPromotion: false,
-          stock: stockStatus, // Stocker le statut de stock
-          originalStock: stockStatus,
+          stock: stock,
+          originalStock: stock,
           oldPrice: null,
           discountPercent: 0
         };
@@ -4140,9 +4102,7 @@
         
         const stockKey = `${category.key}_${code}`;
         if (!state.productStocks.has(stockKey)) {
-          // Convertir "en stock" en 100, "rupture de stock" en 0
-          const stockValue = stockStatus === "rupture de stock" ? 0 : 100;
-          state.productStocks.set(stockKey, stockValue);
+          state.productStocks.set(stockKey, stock);
         }
       });
       
@@ -4154,7 +4114,7 @@
     }
   }
 
-  async function loadPromotionsData(stockMap) {
+  async function loadPromotionsData() {
     try {
       const response = await fetch('data/PROMOTIONS.csv');
       if (!response.ok) {
@@ -4185,12 +4145,11 @@
         const originalPriceStr = parts[2];
         const promoPriceStr = parts[3];
         const promoType = parts[4];
+        let stock = 100;
         
-        // Récupérer l'état du stock depuis stockMap
-        let stockStatus = "en stock"; // Par défaut
-        if (stockMap.has(code)) {
-          const stockInfo = stockMap.get(code);
-          stockStatus = stockInfo.stock;
+        if (parts.length >= 6) {
+          const stockStr = parts[5];
+          stock = parseInt(stockStr) || 100;
         }
         
         if (!code || !name) return;
@@ -4236,8 +4195,8 @@
           code,
           name,
           price: finalPrice,
-          stock: stockStatus,
-          originalStock: stockStatus,
+          stock: stock,
+          originalStock: stock,
           category: '🔥 PROMOTIONS',
           categoryKey: 'promotions',
           isPromotion: true,
@@ -4251,9 +4210,7 @@
         
         const stockKey = `promotions_${code}`;
         if (!state.productStocks.has(stockKey)) {
-          // Convertir "en stock" en 100, "rupture de stock" en 0
-          const stockValue = stockStatus === "rupture de stock" ? 0 : 100;
-          state.productStocks.set(stockKey, stockValue);
+          state.productStocks.set(stockKey, stock);
         }
       });
       
@@ -4268,22 +4225,19 @@
   async function loadAllProducts() {
     state.products.clear();
     
-    // Charger d'abord le fichier stock.csv
-    state.stockData = await loadStockData();
-    
     const allProducts = [];
     
     for (const category of CATEGORIES) {
       if (category.key === 'promotions') continue;
       
-      const products = await loadCategoryData(category.key, state.stockData);
+      const products = await loadCategoryData(category.key);
       if (products.length > 0) {
         state.products.set(category.key, products);
         allProducts.push(...products);
       }
     }
     
-    const promotions = await loadPromotionsData(state.stockData);
+    const promotions = await loadPromotionsData();
     if (promotions.length > 0) {
       state.products.set('promotions', promotions);
       state.promotions = promotions;
@@ -4295,7 +4249,7 @@
     renderCategories();
     renderProducts();
     
-    showToast('✅ Produits et stock chargés avec succès');
+    showToast('✅ Produits chargés avec succès');
   }
 
   function applyPromotions(allProducts, promotions) {
@@ -4337,23 +4291,23 @@
   // ===================== GESTION DU STOCK =====================
   function updateProductStock(product, quantity) {
     const stockKey = `${product.categoryKey}_${product.code}`;
-    const currentStock = state.productStocks.get(stockKey) || (product.stock === "rupture de stock" ? 0 : 100);
+    const currentStock = state.productStocks.get(stockKey) || product.stock;
     
     const newStock = Math.max(0, currentStock - quantity);
     state.productStocks.set(stockKey, newStock);
     
+    // Marquer comme modification en attente
     state.pendingStockUpdates.set(stockKey, newStock);
     
     // Mettre à jour le produit dans toutes les catégories
     for (const [catKey, products] of state.products.entries()) {
       const index = products.findIndex(p => p.code === product.code);
       if (index !== -1) {
-        // Convertir le nombre en statut texte
-        const stockStatus = newStock > 0 ? "en stock" : "rupture de stock";
-        state.products.get(catKey)[index].stock = stockStatus;
+        state.products.get(catKey)[index].stock = newStock;
       }
     }
     
+    // Sauvegarder les changements de stock
     saveSyncData();
     
     return newStock;
@@ -4361,14 +4315,7 @@
 
   function getAvailableStock(product) {
     const stockKey = `${product.categoryKey}_${product.code}`;
-    const storedStock = state.productStocks.get(stockKey);
-    
-    if (storedStock !== undefined) {
-      return storedStock;
-    }
-    
-    // Si pas stocké, vérifier le statut texte
-    return product.stock === "rupture de stock" ? 0 : 100;
+    return state.productStocks.get(stockKey) || product.stock || 0;
   }
 
   // ===================== AFFICHAGE =====================
@@ -4563,7 +4510,7 @@
         </div>
         
         <div class="product-stock-tag ${stockStatus.class}">
-          ${stockStatus.class === 'ok' ? '✓' : '✗'} ${stockStatus.displayText}
+          ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
         </div>
       `;
       
@@ -4625,7 +4572,7 @@
     const productId = generateProductId(product);
     const quantity = state.quantityPicks[productId] || 0;
     const availableStock = getAvailableStock(product);
-    const stockStatus = getStockStatus(product.stock);
+    const stockStatus = getStockStatus(availableStock);
     
     $('modalProductName').textContent = product.name;
     $('modalProductNameFull').textContent = product.name;
@@ -4656,10 +4603,8 @@
     
     $('modalProductCode').textContent = product.code;
     $('modalProductCategory').textContent = product.category;
-    
-    // Afficher l'état du stock
-    $('modalProductStock').textContent = `${stockStatus.class === 'ok' ? '✓' : '✗'} ${stockStatus.displayText}`;
-    $('modalProductStock').style.color = stockStatus.class === 'ok' ? 'var(--accent)' : 'var(--danger)';
+    $('modalProductStock').textContent = `${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}`;
+    $('modalProductStock').style.color = stockStatus.class === 'ok' ? 'var(--accent)' : stockStatus.class === 'low' ? 'var(--warning)' : 'var(--danger)';
     
     // Utiliser l'input de quantité
     const quantityInput = $('modalQuantityInput');
@@ -4808,7 +4753,6 @@
       
       const card = document.createElement('div');
       card.className = 'similar-product-card';
-      
       card.innerHTML = `
         <div class="similar-product-image">
           <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
@@ -4817,7 +4761,7 @@
           <div class="similar-product-name">${product.name}</div>
           <div class="similar-product-price">${formatPrice(product.price)}</div>
           <div class="similar-product-stock ${stockStatus.class}">
-            ${stockStatus.class === 'ok' ? '✓' : '✗'} ${stockStatus.displayText}
+            ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
           </div>
         </div>
       `;
@@ -5052,15 +4996,18 @@
         <td>${product.category}</td>
         <td>${formatPrice(product.price)}</td>
         <td>
-          <span class="${getStockStatus(product.stock).class}" style="padding: 3px 8px; border-radius: 4px;">
-            ${product.stock}
+          <span class="${getStockStatus(currentStock).class}" style="padding: 3px 8px; border-radius: 4px;">
+            ${currentStock}
           </span>
         </td>
         <td>
-          <select class="stock-input" data-key="${product.categoryKey}_${product.code}">
-            <option value="en stock" ${product.stock === "en stock" ? "selected" : ""}>En stock</option>
-            <option value="rupture de stock" ${product.stock === "rupture de stock" ? "selected" : ""}>Rupture de stock</option>
-          </select>
+          <input type="number" 
+                 class="stock-input" 
+                 data-key="${product.categoryKey}_${product.code}"
+                 value="${currentStock}"
+                 min="0"
+                 max="9999"
+                 step="1">
         </td>
         <td>
           <button class="stock-save-btn" data-key="${product.categoryKey}_${product.code}">
@@ -5075,21 +5022,21 @@
 
   function updateStock(productKey, newStock) {
     const [categoryKey, code] = productKey.split('_');
+    newStock = parseInt(newStock) || 0;
     
-    // Mettre à jour le stock dans les produits
+    // Mettre à jour le stock global
+    state.productStocks.set(productKey, newStock);
+    
+    // Mettre à jour les produits dans toutes les catégories
     for (const [catKey, products] of state.products.entries()) {
       const index = products.findIndex(p => p.code === code);
       if (index !== -1) {
         state.products.get(catKey)[index].stock = newStock;
-        
-        // Mettre à jour productStocks (0 pour rupture, 100 pour en stock)
-        const stockValue = newStock === "rupture de stock" ? 0 : 100;
-        state.productStocks.set(productKey, stockValue);
       }
     }
     
     // Marquer comme modification
-    state.pendingStockUpdates.set(productKey, newStock === "rupture de stock" ? 0 : 100);
+    state.pendingStockUpdates.set(productKey, newStock);
     
     // Sauvegarder
     saveSyncData();
@@ -5098,7 +5045,7 @@
     renderProducts();
     renderStockTable($('stockSearchInput').value);
     
-    showToast(`✅ Stock mis à jour pour ${code}: ${newStock}`);
+    showToast(`✅ Stock mis à jour pour ${code}: ${newStock} unités`);
   }
 
   // ===================== CARTE ET LOCALISATION =====================
@@ -5271,7 +5218,7 @@
     );
     
     saveState();
-    saveSyncData();
+    saveSyncData(); // Sauvegarder aussi dans les données de synchronisation
     
     if (orderDetails.savings && orderDetails.savings > 0) {
       showToast(`🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(orderDetails.savings)} !`);
@@ -5438,13 +5385,19 @@
   }
 
   function openDashboard() {
-    if (!state.isAdmin) {
-      showToast('❌ Accès administrateur requis', 'error');
-      return;
-    }
-    
-    window.open(CONFIG.dashboardUrl, '_blank');
+  if (!state.isAdmin) {
+    showToast('❌ Accès administrateur requis', 'error');
+    return;
   }
+  
+  // Ouvrir le tableau de bord dans un nouvel onglet
+  window.open(CONFIG.dashboardUrl, '_blank');
+} // <-- Ce } ferme la fonction openDashboard()
+
+// Dans la section des événements, ajoutez :
+$('adminDashboardBtn').onclick = openDashboard;
+$('adminStockBtn').onclick = openStockManagement;
+  
 
   // ===================== GESTION UTILISATEUR =====================
   function updateUserUI() {
@@ -5876,31 +5829,21 @@
       const saveBtn = e.target.closest('.stock-save-btn');
       if (saveBtn) {
         const productKey = saveBtn.dataset.key;
-        const select = document.querySelector(`.stock-input[data-key="${productKey}"]`);
-        if (select) {
-          updateStock(productKey, select.value);
+        const input = document.querySelector(`.stock-input[data-key="${productKey}"]`);
+        if (input) {
+          updateStock(productKey, input.value);
         }
       }
     });
     
     $('saveAllStockBtn').onclick = () => {
-      const selects = document.querySelectorAll('.stock-input');
+      const inputs = document.querySelectorAll('.stock-input');
       let updatedCount = 0;
       
-      selects.forEach(select => {
-        const productKey = select.dataset.key;
-        const newStock = select.value;
-        const [categoryKey, code] = productKey.split('_');
-        
-        // Trouver le produit pour comparer
-        let currentStock = "en stock";
-        for (const [catKey, products] of state.products.entries()) {
-          const product = products.find(p => p.code === code);
-          if (product) {
-            currentStock = product.stock;
-            break;
-          }
-        }
+      inputs.forEach(input => {
+        const productKey = input.dataset.key;
+        const newStock = parseInt(input.value) || 0;
+        const currentStock = state.productStocks.get(productKey) || 0;
         
         if (newStock !== currentStock) {
           updateStock(productKey, newStock);
@@ -5930,7 +5873,7 @@
       user: state.user,
       cart: state.cart,
       orderHistory: state.orderHistory,
-      version: '31.0'
+      version: '30.0'
     };
     localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
   }
@@ -5947,3 +5890,5 @@
   </script>
 </body>
 </html>
+
+
