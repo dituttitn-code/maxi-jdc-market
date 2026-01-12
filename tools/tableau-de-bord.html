@@ -788,7 +788,8 @@
                 : 0;
             
             // Articles en rupture (à calculer à partir des produits)
-            state.analytics.lowStockItems = 0; // À implémenter avec les données produits
+            state.analytics.lowStockItems = state.products.filter(p => Number(p.stock) === 0).length;
+
             
             // Économies totales
             state.analytics.totalSavings = state.orders.reduce((sum, order) => 
