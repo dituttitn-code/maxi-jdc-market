@@ -5955,7 +5955,8 @@ let STOCK = [];
 
 async function loadStock() {
   document.getElementById("stock-status").textContent = "Chargement…";
-  const res = await fetch(CSV_URL + "&t=" + Date.now());
+  const res = await fetch(CSV_URL + "&t=" + Date.now(), { cache: "no-store" });
+
   const text = await res.text();
   STOCK = parseCSV(text);
 
@@ -5987,6 +5988,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
