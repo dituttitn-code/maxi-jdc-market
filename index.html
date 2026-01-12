@@ -4064,12 +4064,13 @@
         const code = parts[0];
         const name = parts[1];
         let priceStr = parts[2];
-        let stock = 100;
-        
-        if (parts.length >= 4) {
-          const stockStr = parts[3];
-          stock = parseInt(stockStr) || 100;
-        }
+        let stock = 0;
+
+if (parts.length >= 4) {
+    const stockStr = parts[3];
+    stock = Number(stockStr) === 1 ? 1 : 0;
+}
+
         
         if (!code || !name) return;
         
@@ -6000,6 +6001,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
