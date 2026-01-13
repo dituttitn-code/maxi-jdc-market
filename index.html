@@ -3842,14 +3842,17 @@
   }
 
   function getStockStatus(stock) {
-    if (stock <= 0) {
-      return { class: 'out', text: 'Rupture de stock', available: false };
-    } else if (stock <= 5) {
-      return { class: 'low', text: `${stock} restant(s)`, available: true };
-    } else {
-      return { class: 'ok', text: 'En stock', available: true };
-    }
+  if (stock <= 0) {
+    return { class: 'out', text: 'Rupture de stock', available: false };
+  } else if (stock === 1) {
+    return { class: 'low', text: 'Dernier article !', available: true };
+  } else if (stock <= 5) {
+    return { class: 'medium', text: `${stock} en stock`, available: true };
+  } else {
+    return { class: 'ok', text: 'En stock', available: true };
   }
+}
+
 
   // ===================== GOOGLE SHEETS INTÉGRATION =====================
   async function loadGoogleSheetsStock() {
@@ -5913,3 +5916,4 @@
   </script>
 </body>
 </html>
+
