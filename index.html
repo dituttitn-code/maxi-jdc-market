@@ -3751,7 +3751,7 @@
     shippingFee: 3,
     whatsappNumber: "21625600978",
     itemsPerPage: 24,
-    localStorageKey: 'maxi_jdc_market_app_v30',
+    localStorageKey: 'maxi_jdc_market_app_v31',
     imagesBasePath: 'images/products/',
     historyRetentionYears: 2,
     adminPasswordKey: 'maxi_jdc_admin_password',
@@ -3762,8 +3762,9 @@
       lat: 36.851234,
       lng: 10.301234
     },
-    syncInterval: 30000, // 30 secondes
-    dashboardUrl: 'tools/tableau-de-bord.html'
+    syncInterval: 30000,
+    dashboardUrl: 'tools/tableau-de-bord.html',
+    googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv"
   };
 
   // Catégories
@@ -3814,7 +3815,8 @@
     productStocks: new Map(),
     pendingStockUpdates: new Map(),
     lastSyncTime: null,
-    syncTimer: null
+    syncTimer: null,
+    googleSheetsStock: new Map()
   };
 
   // ===================== UTILITAIRES =====================
@@ -3845,22 +3847,109 @@
     } else if (stock <= 5) {
       return { class: 'low', text: `${stock} restant(s)`, available: true };
     } else {
-      return { class: 'ok', text: `${stock} en stock`, available: true };
+      return { class: 'ok', text: 'En stock', available: true };
     }
+  }
+
+  // ===================== GOOGLE SHEETS INTÉGRATION =====================
+  async function loadGoogleSheetsStock() {
+    try {
+      console.log('Chargement du stock depuis Google Sheets...');
+      const response = await fetch(CONFIG.googleSheetsUrl + "&t=" + Date.now(), { 
+        cache: "no-store" 
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+      
+      const text = await response.text();
+      const rows = parseCSV(text);
+      
+      state.googleSheetsStock.clear();
+      
+      rows.forEach(row => {
+        const code = String(row.Article || row.Code || '').trim();
+        const produit = String(row.Produits || row.Nom || '').trim();
+        const stock = parseInt(row.Stock || row.Quantite || 0);
+        
+        if (code) {
+          state.googleSheetsStock.set(code, {
+            stock: stock,
+            produit: produit,
+            code: code
+          });
+        }
+      });
+      
+      console.log(`${state.googleSheetsStock.size} produits chargés depuis Google Sheets`);
+      return true;
+    } catch (error) {
+      console.error('Erreur chargement Google Sheets:', error);
+      return false;
+    }
+  }
+
+  function parseCSV(text) {
+    const rows = [];
+    let row = [], field = "", inQuotes = false;
+    
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      const next = text[i + 1];
+      
+      if (c === '"' && inQuotes && next === '"') { 
+        field += '"'; 
+        i++; 
+        continue; 
+      }
+      if (c === '"') { 
+        inQuotes = !inQuotes; 
+        continue; 
+      }
+      if (c === ',' && !inQuotes) { 
+        row.push(field); 
+        field = ""; 
+        continue; 
+      }
+      if ((c === '\n' || c === '\r') && !inQuotes) {
+        if (c === '\r' && next === '\n') i++;
+        row.push(field); 
+        field = "";
+        if (row.length > 1 || row[0] !== "") rows.push(row);
+        row = [];
+        continue;
+      }
+      field += c;
+    }
+    
+    row.push(field);
+    if (row.length > 1 || row[0] !== "") rows.push(row);
+
+    const headers = rows.shift().map(h => h.trim());
+    return rows
+      .filter(r => r.some(x => String(x).trim() !== ""))
+      .map(r => {
+        const obj = {};
+        headers.forEach((h, idx) => obj[h] = (r[idx] ?? "").trim());
+        return obj;
+      });
+  }
+
+  function getStockFromGoogleSheets(code) {
+    const item = state.googleSheetsStock.get(code);
+    if (!item) return 0;
+    
+    return item.stock || 0;
   }
 
   // ===================== SYNCHRONISATION DES STOCKS =====================
   function initializeSync() {
-    // Charger les données de synchronisation
     loadSyncData();
     
-    // Démarrer le timer de synchronisation
     state.syncTimer = setInterval(syncStocks, CONFIG.syncInterval);
-    
-    // Synchroniser au démarrage
     setTimeout(syncStocks, 2000);
     
-    // Synchroniser aussi quand la page devient visible
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         syncStocks();
@@ -3874,16 +3963,13 @@
       if (syncData) {
         const data = JSON.parse(syncData);
         
-        // Charger les stocks synchronisés
         if (data.productStocks) {
           Object.entries(data.productStocks).forEach(([key, stock]) => {
             state.productStocks.set(key, stock);
           });
         }
         
-        // Charger l'historique des ventes
         if (data.salesHistory) {
-          // Fusionner avec l'historique local
           state.orderHistory = [...state.orderHistory, ...data.salesHistory]
             .filter((order, index, self) =>
               index === self.findIndex(o => o.id === order.id)
@@ -3916,34 +4002,31 @@
 
   function syncStocks() {
     try {
-      // Récupérer les données de synchronisation partagées
+      loadGoogleSheetsStock().then(() => {
+        updateAllProductStocks();
+        renderProducts();
+        console.log('Stocks synchronisés avec Google Sheets');
+      });
+      
       const syncData = localStorage.getItem(CONFIG.syncStorageKey);
       if (!syncData) return;
       
       const sharedData = JSON.parse(syncData);
       
-      // Mettre à jour les stocks avec les données partagées
       if (sharedData.productStocks) {
         Object.entries(sharedData.productStocks).forEach(([key, stock]) => {
           const currentStock = state.productStocks.get(key) || 0;
-          
-          // Prendre la valeur la plus basse (stock réel)
           if (stock < currentStock) {
             state.productStocks.set(key, stock);
           }
         });
         
-        // Appliquer les stocks mis à jour aux produits
         updateAllProductStocks();
-        
-        // Rafraîchir l'affichage
         renderProducts();
         
         state.lastSyncTime = sharedData.lastSyncTime;
-        console.log('Stocks synchronisés:', new Date().toLocaleTimeString());
       }
       
-      // Sauvegarder nos propres modifications
       if (state.pendingStockUpdates.size > 0) {
         saveSyncData();
         state.pendingStockUpdates.clear();
@@ -3955,19 +4038,22 @@
   }
 
   function updateAllProductStocks() {
-    // Mettre à jour les stocks dans tous les produits
     for (const [catKey, products] of state.products.entries()) {
       const updatedProducts = products.map(product => {
         const stockKey = `${product.categoryKey}_${product.code}`;
+        const googleStock = getStockFromGoogleSheets(product.code);
         const currentStock = state.productStocks.get(stockKey);
         
-        if (currentStock !== undefined) {
-          return {
-            ...product,
-            stock: currentStock
-          };
+        let finalStock = googleStock;
+        
+        if (currentStock !== undefined && currentStock < googleStock) {
+          finalStock = currentStock;
         }
-        return product;
+        
+        return {
+          ...product,
+          stock: finalStock
+        };
       });
       
       state.products.set(catKey, updatedProducts);
@@ -4064,13 +4150,6 @@
         const code = parts[0];
         const name = parts[1];
         let priceStr = parts[2];
-        let stock = 1; // par défaut: en stock
-
-if (parts.length >= 4) {
-  const s = String(parts[3]).trim();
-  stock = (s === "0") ? 0 : 1;  // 0 => rupture, sinon => en stock
-}
-
         
         if (!code || !name) return;
         
@@ -4086,6 +4165,8 @@ if (parts.length >= 4) {
           return;
         }
         
+        const googleStock = getStockFromGoogleSheets(code);
+        
         const product = {
           code,
           name,
@@ -4093,8 +4174,8 @@ if (parts.length >= 4) {
           category: category.label,
           categoryKey: category.key,
           isPromotion: false,
-          stock: stock,
-          originalStock: stock,
+          stock: googleStock,
+          originalStock: googleStock,
           oldPrice: null,
           discountPercent: 0
         };
@@ -4103,7 +4184,7 @@ if (parts.length >= 4) {
         
         const stockKey = `${category.key}_${code}`;
         if (!state.productStocks.has(stockKey)) {
-          state.productStocks.set(stockKey, stock);
+          state.productStocks.set(stockKey, googleStock);
         }
       });
       
@@ -4146,16 +4227,6 @@ if (parts.length >= 4) {
         const originalPriceStr = parts[2];
         const promoPriceStr = parts[3];
         const promoType = parts[4];
-        let stock = 0;
-
-let inStock = true;
-
-if (parts.length >= 4) {
-  const value = parts[3].toString().toLowerCase().trim();
-  inStock = value === 'en stock' || value === '1' || value === 'true';
-}
-
-
         
         if (!code || !name) return;
         
@@ -4196,12 +4267,14 @@ if (parts.length >= 4) {
           discountPercent = 0;
         }
         
+        const googleStock = getStockFromGoogleSheets(code);
+        
         const product = {
           code,
           name,
           price: finalPrice,
-          stock: stock,
-          originalStock: stock,
+          stock: googleStock,
+          originalStock: googleStock,
           category: '🔥 PROMOTIONS',
           categoryKey: 'promotions',
           isPromotion: true,
@@ -4215,7 +4288,7 @@ if (parts.length >= 4) {
         
         const stockKey = `promotions_${code}`;
         if (!state.productStocks.has(stockKey)) {
-          state.productStocks.set(stockKey, stock);
+          state.productStocks.set(stockKey, googleStock);
         }
       });
       
@@ -4228,8 +4301,9 @@ if (parts.length >= 4) {
   }
 
   async function loadAllProducts() {
-    state.products.clear();
+    await loadGoogleSheetsStock();
     
+    state.products.clear();
     const allProducts = [];
     
     for (const category of CATEGORIES) {
@@ -4301,10 +4375,8 @@ if (parts.length >= 4) {
     const newStock = Math.max(0, currentStock - quantity);
     state.productStocks.set(stockKey, newStock);
     
-    // Marquer comme modification en attente
     state.pendingStockUpdates.set(stockKey, newStock);
     
-    // Mettre à jour le produit dans toutes les catégories
     for (const [catKey, products] of state.products.entries()) {
       const index = products.findIndex(p => p.code === product.code);
       if (index !== -1) {
@@ -4312,7 +4384,6 @@ if (parts.length >= 4) {
       }
     }
     
-    // Sauvegarder les changements de stock
     saveSyncData();
     
     return newStock;
@@ -4582,7 +4653,6 @@ if (parts.length >= 4) {
     $('modalProductName').textContent = product.name;
     $('modalProductNameFull').textContent = product.name;
     
-    // Prix et promotion
     if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
       $('modalCurrentPrice').textContent = formatPrice(product.price);
       $('modalOldPrice').textContent = formatPrice(product.oldPrice);
@@ -4608,12 +4678,9 @@ if (parts.length >= 4) {
     
     $('modalProductCode').textContent = product.code;
     $('modalProductCategory').textContent = product.category;
-    $('modalProductStock').textContent =
-  stockStatus.available ? '✅ En stock' : '❌ Rupture de stock';
-
+    $('modalProductStock').textContent = stockStatus.text;
     $('modalProductStock').style.color = stockStatus.class === 'ok' ? 'var(--accent)' : stockStatus.class === 'low' ? 'var(--warning)' : 'var(--danger)';
     
-    // Utiliser l'input de quantité
     const quantityInput = $('modalQuantityInput');
     quantityInput.value = quantity;
     quantityInput.max = Math.min(999, availableStock);
@@ -4622,7 +4689,6 @@ if (parts.length >= 4) {
     addBtn.disabled = quantity === 0 || !stockStatus.available;
     addBtn.textContent = quantity > 0 ? `🛒 Ajouter ${quantity} au panier` : '🛒 Ajouter au panier';
     
-    // Image
     const img = $('modalProductImage');
     const noPhoto = $('modalNoPhoto');
     const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
@@ -4638,21 +4704,17 @@ if (parts.length >= 4) {
       noPhoto.textContent = `Aucune photo pour ${product.code}`;
     };
     
-    // Navigation
     updateModalNavigationButtons();
     
-    // Réinitialiser les boutons de navigation d'image
     $('modalPrevImageBtn').style.display = 'none';
     $('modalNextImageBtn').style.display = 'none';
     $('imageNavBar').innerHTML = '';
     
-    // Mettre à jour les produits similaires
     renderSimilarProducts(product);
     
     $('productModal').classList.add('open');
     document.body.style.overflow = 'hidden';
     
-    // Focus sur l'input de quantité
     setTimeout(() => {
       quantityInput.focus();
       quantityInput.select();
@@ -4673,14 +4735,12 @@ if (parts.length >= 4) {
     let quantity = parseInt(quantityInput.value) || 0;
     const availableStock = getAvailableStock(state.currentModalProduct);
     
-    // Valider par rapport au stock disponible
     if (quantity > availableStock) {
       quantity = availableStock;
       quantityInput.value = quantity;
       showToast(`⚠️ Stock limité à ${availableStock} unités`, 'warning');
     }
     
-    // Sauvegarder la quantité
     state.quantityPicks[productId] = quantity;
     
     const addBtn = $('modalAddToCartBtn');
@@ -4688,19 +4748,14 @@ if (parts.length >= 4) {
     addBtn.textContent = quantity > 0 ? `🛒 Ajouter ${quantity} au panier` : '🛒 Ajouter au panier';
   }
 
-  // ===================== GESTION DE L'ENTRÉE DIRECTE DE QUANTITÉ =====================
   function handleQuantityInputChange() {
     const quantityInput = $('modalQuantityInput');
     let value = parseInt(quantityInput.value) || 0;
     
-    // Valider les limites
     if (value < 0) value = 0;
     if (value > 999) value = 999;
     
-    // Mettre à jour la valeur
     quantityInput.value = value;
-    
-    // Mettre à jour l'interface
     updateModalQuantity();
   }
 
@@ -4898,7 +4953,6 @@ if (parts.length >= 4) {
       return;
     }
     
-    // Mettre à jour le stock
     const newStock = updateProductStock(product, quantity);
     
     if (state.cart[productId]) {
@@ -4913,11 +4967,8 @@ if (parts.length >= 4) {
     state.quantityPicks[productId] = 0;
     
     updateCartUI();
-    
-    // Mettre à jour l'affichage des produits
     renderProducts();
     
-    // Message spécial si promotion
     if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
       const saving = (product.oldPrice - product.price) * quantity;
       showToast(`✅ ${quantity} × ${product.name} ajouté ! Économie: ${formatPrice(saving)}`);
@@ -4937,7 +4988,6 @@ if (parts.length >= 4) {
     const item = state.cart[productId];
     const removeQuantity = Math.min(quantity, item.quantity);
     
-    // Restaurer le stock
     const stockKey = `${item.categoryKey}_${item.code}`;
     const currentStock = state.productStocks.get(stockKey) || 0;
     state.productStocks.set(stockKey, currentStock + removeQuantity);
@@ -4949,7 +4999,6 @@ if (parts.length >= 4) {
       delete state.quantityPicks[productId];
     }
     
-    // Mettre à jour l'affichage des produits
     renderProducts();
     updateCartUI();
   }
@@ -4980,7 +5029,6 @@ if (parts.length >= 4) {
       });
     }
     
-    // Filtrer si recherche
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       allProducts = allProducts.filter(p =>
@@ -4990,7 +5038,6 @@ if (parts.length >= 4) {
       );
     }
     
-    // Trier par code
     allProducts.sort((a, b) => a.code.localeCompare(b.code));
     
     allProducts.forEach(product => {
@@ -5004,7 +5051,7 @@ if (parts.length >= 4) {
         <td>${formatPrice(product.price)}</td>
         <td>
           <span class="${getStockStatus(currentStock).class}" style="padding: 3px 8px; border-radius: 4px;">
-            ${currentStock}
+            ${currentStock > 0 ? 'En stock' : 'Rupture'}
           </span>
         </td>
         <td>
@@ -5031,10 +5078,8 @@ if (parts.length >= 4) {
     const [categoryKey, code] = productKey.split('_');
     newStock = parseInt(newStock) || 0;
     
-    // Mettre à jour le stock global
     state.productStocks.set(productKey, newStock);
     
-    // Mettre à jour les produits dans toutes les catégories
     for (const [catKey, products] of state.products.entries()) {
       const index = products.findIndex(p => p.code === code);
       if (index !== -1) {
@@ -5042,13 +5087,8 @@ if (parts.length >= 4) {
       }
     }
     
-    // Marquer comme modification
     state.pendingStockUpdates.set(productKey, newStock);
-    
-    // Sauvegarder
     saveSyncData();
-    
-    // Rafraîchir l'affichage
     renderProducts();
     renderStockTable($('stockSearchInput').value);
     
@@ -5225,7 +5265,7 @@ if (parts.length >= 4) {
     );
     
     saveState();
-    saveSyncData(); // Sauvegarder aussi dans les données de synchronisation
+    saveSyncData();
     
     if (orderDetails.savings && orderDetails.savings > 0) {
       showToast(`🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(orderDetails.savings)} !`);
@@ -5273,7 +5313,6 @@ if (parts.length >= 4) {
       });
       
       const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
-      
       const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
       
       const historyItem = document.createElement('div');
@@ -5392,19 +5431,13 @@ if (parts.length >= 4) {
   }
 
   function openDashboard() {
-  if (!state.isAdmin) {
-    showToast('❌ Accès administrateur requis', 'error');
-    return;
+    if (!state.isAdmin) {
+      showToast('❌ Accès administrateur requis', 'error');
+      return;
+    }
+    
+    window.open(CONFIG.dashboardUrl, '_blank');
   }
-  
-  // Ouvrir le tableau de bord dans un nouvel onglet
-  window.open(CONFIG.dashboardUrl, '_blank');
-} // <-- Ce } ferme la fonction openDashboard()
-
-// Dans la section des événements, ajoutez :
-$('adminDashboardBtn').onclick = openDashboard;
-$('adminStockBtn').onclick = openStockManagement;
-  
 
   // ===================== GESTION UTILISATEUR =====================
   function updateUserUI() {
@@ -5561,7 +5594,6 @@ $('adminStockBtn').onclick = openStockManagement;
 
   // ===================== INITIALISATION =====================
   function init() {
-    // Charger l'état
     try {
       const saved = localStorage.getItem(CONFIG.localStorageKey);
       if (saved) {
@@ -5580,7 +5612,6 @@ $('adminStockBtn').onclick = openStockManagement;
       console.warn('Erreur chargement état:', e);
     }
     
-    // Événements
     $('cartTopBtn').onclick = () => {
       $('drawer').classList.add('open');
       $('drawerOverlay').classList.add('open');
@@ -5652,13 +5683,11 @@ $('adminStockBtn').onclick = openStockManagement;
       }
     };
     
-    // Navigation produits
     $('modalPrevProduct').onclick = showPrevProduct;
     $('modalNextProduct').onclick = showNextProduct;
     
     $('closeProductModalBtn').onclick = $('modalCloseBottomBtn').onclick = closeProductModal;
     
-    // Gestion de la quantité
     $('modalDecreaseBtn').onclick = decreaseQuantity;
     $('modalIncreaseBtn').onclick = increaseQuantity;
     
@@ -5677,17 +5706,14 @@ $('adminStockBtn').onclick = openStockManagement;
       }
     };
     
-    // QR Code
     $('qrInfoBtn').onclick = openQRModal;
     $('qrDirectBtn').onclick = openQRModal;
     $('closeQrModalBtn').onclick = closeQRModal;
     
-    // Admin
     $('secretAdminBtn').onclick = toggleAdminMode;
     $('adminDashboardBtn').onclick = openDashboard;
     $('adminStockBtn').onclick = openStockManagement;
     
-    // Gestion du panier
     $('clearCartBtn').onclick = () => {
       if (Object.keys(state.cart).length === 0) return;
       
@@ -5733,7 +5759,6 @@ $('adminStockBtn').onclick = openStockManagement;
       }
     });
     
-    // Gestion utilisateur
     $('saveAccountBtn').onclick = saveUser;
     $('editAccountBtn').onclick = editUser;
     $('clearPhoneBtn').onclick = () => {
@@ -5741,11 +5766,9 @@ $('adminStockBtn').onclick = openStockManagement;
       $('clientPhone').focus();
     };
     
-    // Localisation
     $('getLocationBtn').onclick = getLocationFromBrowser;
     $('mapPreview').onclick = openMapModal;
     
-    // Map modal
     $('closeMapModalBtn').onclick = () => {
       $('mapModal').classList.remove('open');
       document.body.style.overflow = '';
@@ -5761,7 +5784,6 @@ $('adminStockBtn').onclick = openStockManagement;
       $('closeMapModalBtn').click();
     };
     
-    // Historique
     $('searchHistoryBtn').onclick = () => {
       const phone = $('searchHistoryPhone').value.trim();
       if (!phone) {
@@ -5779,10 +5801,8 @@ $('adminStockBtn').onclick = openStockManagement;
       }
     };
     
-    // Commande
     $('placeOrderBtn').onclick = placeOrder;
     
-    // Modal commande
     $('closeOrderModalBtn').onclick = () => {
       $('orderModal').classList.remove('open');
     };
@@ -5817,7 +5837,6 @@ $('adminStockBtn').onclick = openStockManagement;
       window.open(whatsappUrl, '_blank');
     };
     
-    // Modal gestion stock
     $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
       $('stockModal').classList.remove('open');
       document.body.style.overflow = '';
@@ -5828,8 +5847,11 @@ $('adminStockBtn').onclick = openStockManagement;
     });
     
     $('refreshStockBtn').onclick = () => {
-      renderStockTable($('stockSearchInput').value);
-      showToast('🔄 Stocks actualisés');
+      loadGoogleSheetsStock().then(() => {
+        updateAllProductStocks();
+        renderStockTable($('stockSearchInput').value);
+        showToast('🔄 Stocks actualisés depuis Google Sheets');
+      });
     };
     
     $('stockTableBody').addEventListener('click', (e) => {
@@ -5865,157 +5887,29 @@ $('adminStockBtn').onclick = openStockManagement;
       }
     };
     
-    // Charger les produits
     loadAllProducts();
-    
-    // Initialiser la synchronisation
     initializeSync();
     
     showToast('👋 Bienvenue sur MAXI JDC MARKET !');
   }
 
-  // Sauvegarder l'état
   function saveState() {
     const data = {
       user: state.user,
       cart: state.cart,
       orderHistory: state.orderHistory,
-      version: '30.0'
+      version: '31.0'
     };
     localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
   }
 
-  // Démarrer l'application
   document.addEventListener('DOMContentLoaded', init);
   
-  // Nettoyer le timer à la fermeture
   window.addEventListener('beforeunload', () => {
     if (state.syncTimer) {
       clearInterval(state.syncTimer);
     }
   });
   </script>
-  <!-- ====== STOCK GOOGLE SHEETS ====== -->
-<section id="stock-section" style="padding:16px; background:#fff; border-radius:12px; margin:12px;">
-  <h2>📦 Stock (Google Sheets)</h2>
-
-  <div style="display:flex; gap:10px; flex-wrap:wrap;">
-    <input id="stock-search" placeholder="Code article (ex: 1017)" />
-    <button id="stock-btn-search">Rechercher</button>
-    <button id="stock-btn-reload">Actualiser</button>
-    <span id="stock-status">—</span>
-  </div>
-
-  <div id="stock-result" style="margin-top:10px;"></div>
-
-  <table style="width:100%; margin-top:10px; border-collapse:collapse;">
-    <thead>
-      <tr>
-        <th>Article</th>
-        <th>Produit</th>
-        <th>Stock</th>
-      </tr>
-    </thead>
-    <tbody id="stock-tbody"></tbody>
-  </table>
-</section>
-<!-- ====== /STOCK ====== -->
-<script>
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv";
-
-function parseCSV(text) {
-  const rows = [];
-  let row = [], field = "", inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    const next = text[i + 1];
-    if (c === '"' && inQuotes && next === '"') { field += '"'; i++; continue; }
-    if (c === '"') { inQuotes = !inQuotes; continue; }
-    if (c === ',' && !inQuotes) { row.push(field); field = ""; continue; }
-    if ((c === '\n' || c === '\r') && !inQuotes) {
-      if (c === '\r' && next === '\n') i++;
-      row.push(field); field = "";
-      if (row.length > 1 || row[0] !== "") rows.push(row);
-      row = [];
-      continue;
-    }
-    field += c;
-  }
-  row.push(field);
-  if (row.length > 1 || row[0] !== "") rows.push(row);
-
-  const headers = rows.shift().map(h => h.trim());
-  return rows
-    .filter(r => r.some(x => String(x).trim() !== ""))
-    .map(r => {
-      const obj = {};
-      headers.forEach((h, idx) => obj[h] = (r[idx] ?? "").trim());
-      return obj;
-    });
-}
-
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-let STOCK = [];
-
-async function loadStock() {
-  document.getElementById("stock-status").textContent = "Chargement…";
-  const res = await fetch(CSV_URL + "&t=" + Date.now(), { cache: "no-store" });
-
-  const text = await res.text();
-  STOCK = parseCSV(text);
-
-  document.getElementById("stock-body").innerHTML =
-    STOCK.map(p => `
-      <tr>
-        <td>${escapeHtml(p.article)}</td>
-        <td>${escapeHtml(p.produits)}</td>
-        <td>${Number(p.stock) === 0 ? "❌ Rupture de stock" : "✅ En stock"}</td>
-
-      </tr>
-    `).join("");
-
-  document.getElementById("stock-status").textContent = "OK";
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadStock();
-
-  document.getElementById("stock-btn-search").onclick = () => {
-  const code = document.getElementById("stock-search").value.trim();
-  const p = STOCK.find(x => String(x.article).trim() === code);
-
-  if (!p) {
-    document.getElementById("stock-result").textContent = "Produit introuvable";
-    return;
-  }
-
-  const etat = Number(p.stock) === 0
-    ? "❌ Rupture de stock"
-    : "✅ En stock";
-
-  document.getElementById("stock-result").innerHTML =
-    `${p.produits} — <b>${etat}</b>`;
-};
-
-
-  document.getElementById("stock-btn-reload").onclick = loadStock;
-});
-</script>
-
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
