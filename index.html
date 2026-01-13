@@ -5497,8 +5497,17 @@
     $('accountStatus').textContent = 'Modification';
   }
 
+
   // ===================== COMMANDES =====================
   function placeOrder() {
+    // === Nom du client ===
+const client = state.user.name?.trim();
+
+if (!client) {
+  showToast('❌ Veuillez entrer le nom du client', 'error');
+  return;
+}
+
     if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
       showToast('❌ Veuillez compléter vos informations personnelles', 'error');
       $('cartTopBtn').click();
@@ -5916,4 +5925,5 @@
   </script>
 </body>
 </html>
+
 
