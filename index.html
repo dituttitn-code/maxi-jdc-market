@@ -3755,7 +3755,7 @@
     shippingFee: 3,
     whatsappNumber: "21625600978",
     itemsPerPage: 24,
-    localStorageKey: 'maxi_jdc_market_app_v32',
+    localStorageKey: 'maxi_jdc_market_app_v33',
     imagesBasePath: 'images/products/',
     historyRetentionYears: 2,
     adminPasswordKey: 'maxi_jdc_admin_password',
@@ -3769,8 +3769,8 @@
     syncInterval: 30000,
     dashboardUrl: 'tools/tableau-de-bord.html',
     googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
-    // NOUVEAU LIEN GOOGLE APPS SCRIPT POUR L'ENREGISTREMENT AUTOMATIQUE
-    commandeApiUrl: "https://script.google.com/macros/s/AKfycbxyCGW7xQJvPMkRFhSeocGHLq9WgAbi5N8zQRL6ntrzAHMgkZCT08MIzvBejn9f-bw9/exec"
+    // NOUVEAU LIEN GOOGLE APPS SCRIPT POUR L'ENREGISTREMENT AUTOMATIQUE DES COMMANDES
+    commandeApiUrl: "https://script.google.com/macros/s/AKfycbx2q_NIFwLXkC1D1rP_YG2BxROTxVkf_h30f0LVlniptYDfC6YrOH_aaPDCk-lfVy7a/exec"
   };
 
   // Catégories
@@ -5530,24 +5530,25 @@
         pourcentage_economies: orderData.savingsPercentage || 0
       };
       
-      // Envoyer la commande au nouveau Google Apps Script
+      console.log('Envoi de la commande à Google Sheets:', dataToSend);
+      
+      // Envoyer la commande au Google Apps Script
       const response = await fetch(CONFIG.commandeApiUrl, {
         method: 'POST',
-        mode: 'no-cors', // Mode no-cors pour contourner les restrictions CORS
+        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams(dataToSend).toString()
       });
       
-      // Note: Avec 'no-cors', on ne peut pas lire la réponse, mais la requête est envoyée
-      console.log('Commande envoyée au Google Sheets:', dataToSend);
+      // Note: Avec 'no-cors', on ne peut pas lire la réponse
+      console.log('Commande envoyée au Google Sheets avec succès');
       
-      showToast('✅ Commande enregistrée automatiquement !');
+      // On suppose que la requête a réussi
       return true;
     } catch (error) {
       console.error('Erreur lors de l\'enregistrement automatique:', error);
-      showToast('⚠️ Commande créée mais erreur d\'enregistrement automatique', 'warning');
       return false;
     }
   }
@@ -5647,7 +5648,7 @@
     };
     
     // Appeler la fonction d'enregistrement automatique
-    await enregistrerCommandeAutomatique(orderData);
+    const enregistrementReussi = await enregistrerCommandeAutomatique(orderData);
     
     // Sauvegarder dans l'historique local
     saveOrderToHistory(orderData);
@@ -5656,7 +5657,11 @@
     state.cart = {};
     updateCartUI();
     
-    showToast('✅ Commande créée et enregistrée avec succès !');
+    if (enregistrementReussi) {
+      showToast('✅ Commande créée et enregistrée avec succès !');
+    } else {
+      showToast('✅ Commande créée ! (Erreur d\'enregistrement automatique)', 'warning');
+    }
   }
 
   // ===================== INITIALISATION =====================
@@ -5965,7 +5970,7 @@
       user: state.user,
       cart: state.cart,
       orderHistory: state.orderHistory,
-      version: '32.0'
+      version: '33.0'
     };
     localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
   }
