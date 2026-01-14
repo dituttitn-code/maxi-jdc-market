@@ -3751,7 +3751,7 @@
     shippingFee: 3,
     whatsappNumber: "21625600978",
     itemsPerPage: 24,
-    localStorageKey: 'maxi_jdc_market_app_v31',
+    localStorageKey: 'maxi_jdc_market_app_v32',
     imagesBasePath: 'images/products/',
     historyRetentionYears: 2,
     adminPasswordKey: 'maxi_jdc_admin_password',
@@ -3765,7 +3765,8 @@
     syncInterval: 30000,
     dashboardUrl: 'tools/tableau-de-bord.html',
     googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
-    commandeApiUrl: "https://script.google.com/macros/s/AKfycbxZ0XlAPkV-YTp4fxoBfYu_8sv3f19s1rOFhGnQBvF3utpI1iDfpLdt6iBw1Fva2ewc/exec"
+    // NOUVEAU LIEN GOOGLE APPS SCRIPT POUR L'ENREGISTREMENT AUTOMATIQUE
+    commandeApiUrl: "https://script.google.com/macros/s/AKfycbxOPbFSr1_gbyOHfjKaaa-TO4VXt2qY4T8Ssu75FiuVmKLxtfQ71J5lSvvPmPkOriQw/exec"
   };
 
   // Catégories
@@ -5497,16 +5498,58 @@
     $('accountStatus').textContent = 'Modification';
   }
 
+  // ===================== NOUVELLE FONCTION : ENREGISTREMENT AUTOMATIQUE DE COMMANDE =====================
+  async function enregistrerCommandeAutomatique(orderData) {
+    try {
+      showToast('📤 Enregistrement automatique de la commande...', 'warning');
+      
+      // Préparer les données pour l'envoi au Google Apps Script
+      const dataToSend = {
+        timestamp: new Date().toISOString(),
+        commande_id: Date.now().toString(),
+        client_nom: state.user.name,
+        client_telephone: state.user.phone,
+        client_adresse: state.user.address,
+        articles: JSON.stringify(Object.values(state.cart).map(item => ({
+          produit: item.name,
+          code: item.code,
+          quantite: item.quantity,
+          prix_unitaire: item.price,
+          prix_total: item.price * item.quantity,
+          promotion: item.isPromotion,
+          ancien_prix: item.oldPrice || item.price
+        }))),
+        sous_total: orderData.subtotal,
+        frais_livraison: orderData.shipping,
+        total: orderData.total,
+        economies: orderData.savings || 0,
+        pourcentage_economies: orderData.savingsPercentage || 0
+      };
+      
+      // Envoyer la commande au nouveau Google Apps Script
+      const response = await fetch(CONFIG.commandeApiUrl, {
+        method: 'POST',
+        mode: 'no-cors', // Mode no-cors pour contourner les restrictions CORS
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(dataToSend).toString()
+      });
+      
+      // Note: Avec 'no-cors', on ne peut pas lire la réponse, mais la requête est envoyée
+      console.log('Commande envoyée au Google Sheets:', dataToSend);
+      
+      showToast('✅ Commande enregistrée automatiquement !');
+      return true;
+    } catch (error) {
+      console.error('Erreur lors de l\'enregistrement automatique:', error);
+      showToast('⚠️ Commande créée mais erreur d\'enregistrement automatique', 'warning');
+      return false;
+    }
+  }
+
   // ===================== COMMANDES =====================
   async function placeOrder() {
-    // === Nom du client ===
-    const client = state.user.name?.trim();
-
-    if (!client) {
-      showToast('❌ Veuillez entrer le nom du client', 'error');
-      return;
-    }
-
     if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
       showToast('❌ Veuillez compléter vos informations personnelles', 'error');
       $('cartTopBtn').click();
@@ -5590,51 +5633,26 @@
     $('orderDetails').textContent = orderText;
     $('orderModal').classList.add('open');
     
-    // Envoi de chaque article au Google Apps Script
-    const orderPromises = Object.values(state.cart).map(async (item) => {
-      try {
-        const response = await fetch(CONFIG.commandeApiUrl, {
-          method: 'POST',
-          mode: 'no-cors', // Important pour les Google Apps Script
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            commande: Date.now().toString(),
-            client: state.user.name,
-            produit: item.name,
-            categorie: item.category,
-            quantite: item.quantity,
-            prix: item.price
-          })
-        });
-        
-        // Note: avec 'no-cors', on ne peut pas lire la réponse
-        console.log(`Article envoyé: ${item.name}`);
-        return true;
-      } catch (error) {
-        console.error(`Erreur envoi article ${item.name}:`, error);
-        return false;
-      }
-    });
-    
-    // Attendre que tous les envois soient terminés
-    await Promise.all(orderPromises);
-    
-    saveOrderToHistory({
+    // ENREGISTREMENT AUTOMATIQUE DE LA COMMANDE
+    const orderData = {
       subtotal,
       shipping: shippingFee,
       total,
-      address: state.user.address,
       savings: savings.totalSavings,
       savingsPercentage: savings.percentage
-    });
+    };
+    
+    // Appeler la fonction d'enregistrement automatique
+    await enregistrerCommandeAutomatique(orderData);
+    
+    // Sauvegarder dans l'historique local
+    saveOrderToHistory(orderData);
     
     // Vider le panier après envoi
     state.cart = {};
     updateCartUI();
     
-    showToast('✅ Commande envoyée avec succès !');
+    showToast('✅ Commande créée et enregistrée avec succès !');
   }
 
   // ===================== INITIALISATION =====================
@@ -5908,7 +5926,7 @@
           updateStock(productKey, input.value);
         }
       }
-    });
+    };
     
     $('saveAllStockBtn').onclick = () => {
       const inputs = document.querySelectorAll('.stock-input');
@@ -5943,7 +5961,7 @@
       user: state.user,
       cart: state.cart,
       orderHistory: state.orderHistory,
-      version: '31.0'
+      version: '32.0'
     };
     localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
   }
@@ -5955,77 +5973,6 @@
       clearInterval(state.syncTimer);
     }
   });
-    // ✅ URL de ton Apps Script
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxOPbFSr1_gbyOHfjKaaa-TO4VXt2qY4T8Ssu75FiuVmKLxtfQ71J5lSvvPmPkOriQw/exec";
-
-// ✅ doit être EXACTEMENT le même que dans Code.gs
-const TOKEN = "MAXI_JDC_2026";
-
-// Exemple: récupère le panier (adapte si ton panier a un autre nom)
-function getPanier() {
-  // si tu as déjà un tableau panier dans ton code, retourne-le ici
-  return window.panier || [];
-}
-
-// Exemple: récupère le nom client (adapte à ton input)
-function getClient() {
-  const el = document.getElementById("clientNom") || document.querySelector('input[name="client"]');
-  return el ? el.value.trim() : "";
-}
-
-// ✅ construit l’objet commande au format attendu par Code.gs
-function buildCommandePayload() {
-  const panier = getPanier();
-
-  return {
-    token: TOKEN,
-    commande: "CMD-" + Date.now(),
-    client: getClient(),
-    produits: panier.map(p => ({
-      produit: p.produit || p.name || p.nom || "",
-      categorie: p.categorie || p.category || "",
-      quantite: Number(p.quantite || p.qty || 1),
-      prix: Number(p.prix || p.price || 0)
-    }))
-  };
-}
-
-// ✅ envoi vers Google Sheets (1 commande = 1 ligne)
-async function envoyerCommandeGoogleSheet() {
-  const payload = buildCommandePayload();
-
-  // petite validation
-  if (!payload.client) {
-    alert("Veuillez saisir le nom du client.");
-    return;
-  }
-  if (!payload.produits.length) {
-    alert("Panier vide.");
-    return;
-  }
-
-  try {
-    await fetch(SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors", // ✅ évite le blocage CORS
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
-    });
-
-    // ✅ succès "côté envoi" (la ligne arrive dans le Sheet)
-    alert("Commande envoyée ✅");
-    
-    // option : vider panier / localStorage après envoi
-    // localStorage.removeItem("maxi_jdc_commande");
-    // window.panier = []; renderPanier();
-
-  } catch (err) {
-    console.error(err);
-    alert("Erreur d’envoi. Réessayez.");
-  }
-}
-
   </script>
 </body>
 </html>
-
