@@ -3770,7 +3770,7 @@
     dashboardUrl: 'tools/tableau-de-bord.html',
     googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
     // NOUVEAU LIEN GOOGLE APPS SCRIPT POUR L'ENREGISTREMENT AUTOMATIQUE
-    commandeApiUrl: "https://script.google.com/macros/s/AKfycbxeClJyoZszNz3QCZtWI_HPhRwFulRHzJh5avThb6vqswakNdgN1PQBzLvhJ-9dalH3/exec"
+    commandeApiUrl: "https://script.google.com/macros/s/AKfycbw6aYedCJHpad_4NZBqy4prfUeFUInP4_FKyap0lh4s5kQJLhBUz0M32g4br_qZF131/exec"
   };
 
   // Catégories
@@ -5530,31 +5530,15 @@
         pourcentage_economies: orderData.savingsPercentage || 0
       };
       
-  
-// ✅ Préparer les données pour Apps Script
-const dataToSend = {
-  token: "MAXI_JDC_2026",                 // ✅ OBLIGATOIRE
-  commande: state.now.toString(),         // id commande
-  client: state.user.name || "",          // nom client (compatible Code.gs)
-  produits: Object.values(state.cart).map(item => ({
-    produit: item.name,
-    categorie: item.category || "",
-    quantite: item.quantity || 1,
-    prix: item.price || 0
-  })),
-  statut: "Payée"
-};
-
-// ✅ Envoyer la commande au Google Apps Script
-await fetch(CONFIG.commandeApiUrl, {
-  method: "POST",
-  mode: "no-cors",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(dataToSend)
-});
-
-
-
+      // Envoyer la commande au nouveau Google Apps Script
+      const response = await fetch(CONFIG.commandeApiUrl, {
+        method: 'POST',
+        mode: 'no-cors', // Mode no-cors pour contourner les restrictions CORS
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(dataToSend).toString()
+      });
       
       // Note: Avec 'no-cors', on ne peut pas lire la réponse, mais la requête est envoyée
       console.log('Commande envoyée au Google Sheets:', dataToSend);
@@ -5996,17 +5980,3 @@ await fetch(CONFIG.commandeApiUrl, {
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
