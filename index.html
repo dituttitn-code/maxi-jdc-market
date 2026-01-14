@@ -5531,14 +5531,15 @@
       };
       
       // Envoyer la commande au nouveau Google Apps Script
-      const response = await fetch(CONFIG.commandeApiUrl, {
-        method: 'POST',
-        mode: 'no-cors', // Mode no-cors pour contourner les restrictions CORS
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams(dataToSend).toString()
-      });
+      await fetch(CONFIG.commandeApiUrl, {
+  method: "POST",
+  mode: "no-cors",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(dataToSend)
+});
+
       
       // Note: Avec 'no-cors', on ne peut pas lire la réponse, mais la requête est envoyée
       console.log('Commande envoyée au Google Sheets:', dataToSend);
@@ -5980,6 +5981,7 @@
   </script>
 </body>
 </html>
+
 
 
 
