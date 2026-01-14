@@ -5955,6 +5955,77 @@
       clearInterval(state.syncTimer);
     }
   });
+    // ✅ URL de ton Apps Script
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxOPbFSr1_gbyOHfjKaaa-TO4VXt2qY4T8Ssu75FiuVmKLxtfQ71J5lSvvPmPkOriQw/exec";
+
+// ✅ doit être EXACTEMENT le même que dans Code.gs
+const TOKEN = "MAXI_JDC_2026";
+
+// Exemple: récupère le panier (adapte si ton panier a un autre nom)
+function getPanier() {
+  // si tu as déjà un tableau panier dans ton code, retourne-le ici
+  return window.panier || [];
+}
+
+// Exemple: récupère le nom client (adapte à ton input)
+function getClient() {
+  const el = document.getElementById("clientNom") || document.querySelector('input[name="client"]');
+  return el ? el.value.trim() : "";
+}
+
+// ✅ construit l’objet commande au format attendu par Code.gs
+function buildCommandePayload() {
+  const panier = getPanier();
+
+  return {
+    token: TOKEN,
+    commande: "CMD-" + Date.now(),
+    client: getClient(),
+    produits: panier.map(p => ({
+      produit: p.produit || p.name || p.nom || "",
+      categorie: p.categorie || p.category || "",
+      quantite: Number(p.quantite || p.qty || 1),
+      prix: Number(p.prix || p.price || 0)
+    }))
+  };
+}
+
+// ✅ envoi vers Google Sheets (1 commande = 1 ligne)
+async function envoyerCommandeGoogleSheet() {
+  const payload = buildCommandePayload();
+
+  // petite validation
+  if (!payload.client) {
+    alert("Veuillez saisir le nom du client.");
+    return;
+  }
+  if (!payload.produits.length) {
+    alert("Panier vide.");
+    return;
+  }
+
+  try {
+    await fetch(SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors", // ✅ évite le blocage CORS
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+
+    // ✅ succès "côté envoi" (la ligne arrive dans le Sheet)
+    alert("Commande envoyée ✅");
+    
+    // option : vider panier / localStorage après envoi
+    // localStorage.removeItem("maxi_jdc_commande");
+    // window.panier = []; renderPanier();
+
+  } catch (err) {
+    console.error(err);
+    alert("Erreur d’envoi. Réessayez.");
+  }
+}
+
   </script>
 </body>
 </html>
+
