@@ -5530,15 +5530,28 @@
         pourcentage_economies: orderData.savingsPercentage || 0
       };
       
-      // Envoyer la commande au nouveau Google Apps Script
-      await fetch(CONFIG.commandeApiUrl, {
+           // ✅ Préparer les données pour Apps Script
+const dataToSend = {
+  token: "MAXI_JDC_2026",                 // ✅ OBLIGATOIRE
+  commande: state.now.toString(),         // id commande
+  client: state.user.name || "",          // nom client (compatible Code.gs)
+  produits: Object.values(state.cart).map(item => ({
+    produit: item.name,
+    categorie: item.category || "",
+    quantite: item.quantity || 1,
+    prix: item.price || 0
+  })),
+  statut: "Payée"
+};
+
+// ✅ Envoyer la commande au Google Apps Script
+await fetch(CONFIG.commandeApiUrl, {
   method: "POST",
   mode: "no-cors",
-  headers: {
-    "Content-Type": "application/json"
-  },
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify(dataToSend)
 });
+
 
       
       // Note: Avec 'no-cors', on ne peut pas lire la réponse, mais la requête est envoyée
@@ -5981,6 +5994,7 @@
   </script>
 </body>
 </html>
+
 
 
 
