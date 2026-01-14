@@ -3843,17 +3843,16 @@
   }
 
   function getStockStatus(stock) {
-  if (stock <= 0) {
-    return { class: 'out', text: 'Rupture de stock', available: false };
-  } else if (stock === 1) {
-    return { class: 'low', text: 'Dernier article !', available: true };
-  } else if (stock <= 5) {
-    return { class: 'medium', text: `${stock} en stock`, available: true };
-  } else {
-    return { class: 'ok', text: 'En stock', available: true };
+    if (stock <= 0) {
+      return { class: 'out', text: 'Rupture de stock', available: false };
+    } else if (stock === 1) {
+      return { class: 'low', text: 'Dernier article !', available: true };
+    } else if (stock <= 5) {
+      return { class: 'low', text: `${stock} en stock`, available: true };
+    } else {
+      return { class: 'ok', text: 'En stock', available: true };
+    }
   }
-}
-
 
   // ===================== GOOGLE SHEETS INTÉGRATION =====================
   async function loadGoogleSheetsStock() {
@@ -5498,16 +5497,15 @@
     $('accountStatus').textContent = 'Modification';
   }
 
-
   // ===================== COMMANDES =====================
-  function placeOrder() {
+  async function placeOrder() {
     // === Nom du client ===
-const client = state.user.name?.trim();
+    const client = state.user.name?.trim();
 
-if (!client) {
-  showToast('❌ Veuillez entrer le nom du client', 'error');
-  return;
-}
+    if (!client) {
+      showToast('❌ Veuillez entrer le nom du client', 'error');
+      return;
+    }
 
     if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
       showToast('❌ Veuillez compléter vos informations personnelles', 'error');
@@ -5592,6 +5590,37 @@ if (!client) {
     $('orderDetails').textContent = orderText;
     $('orderModal').classList.add('open');
     
+    // Envoi de chaque article au Google Apps Script
+    const orderPromises = Object.values(state.cart).map(async (item) => {
+      try {
+        const response = await fetch(CONFIG.commandeApiUrl, {
+          method: 'POST',
+          mode: 'no-cors', // Important pour les Google Apps Script
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            commande: Date.now().toString(),
+            client: state.user.name,
+            produit: item.name,
+            categorie: item.category,
+            quantite: item.quantity,
+            prix: item.price
+          })
+        });
+        
+        // Note: avec 'no-cors', on ne peut pas lire la réponse
+        console.log(`Article envoyé: ${item.name}`);
+        return true;
+      } catch (error) {
+        console.error(`Erreur envoi article ${item.name}:`, error);
+        return false;
+      }
+    });
+    
+    // Attendre que tous les envois soient terminés
+    await Promise.all(orderPromises);
+    
     saveOrderToHistory({
       subtotal,
       shipping: shippingFee,
@@ -5600,24 +5629,12 @@ if (!client) {
       savings: savings.totalSavings,
       savingsPercentage: savings.percentage
     });
-    Object.values(state.cart).forEach(item => {
-    fetch(CONFIG.commandeApiUrl, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    commande: Date.now(),
-    client: state.user.name,   // ✅ OBLIGATOIRE
-    produit: item.name,
-    categorie: item.category,
-    quantite: item.quantity,
-    prix: item.price
-  })
-});
-
+    
+    // Vider le panier après envoi
     state.cart = {};
     updateCartUI();
+    
+    showToast('✅ Commande envoyée avec succès !');
   }
 
   // ===================== INITIALISATION =====================
@@ -5941,9 +5958,3 @@ if (!client) {
   </script>
 </body>
 </html>
-
-
-
-
-
-
