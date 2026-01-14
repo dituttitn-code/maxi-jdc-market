@@ -5599,7 +5599,21 @@ if (!client) {
       savings: savings.totalSavings,
       savingsPercentage: savings.percentage
     });
-    
+    fetch(CONFIG.commandeApiUrl, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    commande: Date.now(),
+    client: state.user.name,   // ✅ OBLIGATOIRE
+    produit: item.name,
+    categorie: item.category,
+    quantite: item.quantity,
+    prix: item.price
+  })
+});
+
     state.cart = {};
     updateCartUI();
   }
@@ -5925,5 +5939,6 @@ if (!client) {
   </script>
 </body>
 </html>
+
 
 
