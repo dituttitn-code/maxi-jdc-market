@@ -5544,6 +5544,20 @@ const dataToSend = {
   statut: "Payée"
 };
 
+// ✅ Préparer les données pour Apps Script
+const dataToSend = {
+  token: "MAXI_JDC_2026",                 // ✅ OBLIGATOIRE
+  commande: state.now.toString(),         // id commande
+  client: state.user.name || "",          // nom client (compatible Code.gs)
+  produits: Object.values(state.cart).map(item => ({
+    produit: item.name,
+    categorie: item.category || "",
+    quantite: item.quantity || 1,
+    prix: item.price || 0
+  })),
+  statut: "Payée"
+};
+
 // ✅ Envoyer la commande au Google Apps Script
 await fetch(CONFIG.commandeApiUrl, {
   method: "POST",
@@ -5551,6 +5565,7 @@ await fetch(CONFIG.commandeApiUrl, {
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(dataToSend)
 });
+
 
 
       
@@ -5994,6 +6009,7 @@ await fetch(CONFIG.commandeApiUrl, {
   </script>
 </body>
 </html>
+
 
 
 
