@@ -5999,8 +5999,52 @@ try {
     }
   });
   </script>
+  <script>
+async function loadCommandes() {
+  try {
+    const res = await fetch(API_URL + "?data=1");
+    const json = await res.json();
+
+    if (!json.ok) {
+      alert("Erreur API : " + json.error);
+      return;
+    }
+
+    console.log("COMMANDES :", json.data);
+    renderTable(json.headers, json.data);
+
+  } catch (err) {
+    console.error(err);
+    alert("Erreur de connexion API");
+  }
+}
+
+function renderTable(headers, rows) {
+  const table = document.getElementById("commandesTable");
+  table.innerHTML = "";
+
+  // Header
+  let thead = "<tr>";
+  headers.forEach(h => thead += `<th>${h}</th>`);
+  thead += "</tr>";
+  table.innerHTML += thead;
+
+  // Rows
+  rows.forEach(row => {
+    let tr = "<tr>";
+    headers.forEach(h => tr += `<td>${row[h] ?? ""}</td>`);
+    tr += "</tr>";
+    table.innerHTML += tr;
+  });
+}
+
+// Charger au démarrage
+document.addEventListener("DOMContentLoaded", loadCommandes);
+</script>
+
 </body>
 </html>
+
 
 
 
