@@ -5532,22 +5532,34 @@
       console.log('Envoi de la commande à Google Sheets:', dataToSend);
       
       // Envoyer la commande au Google Apps Script
+ let result = null;
+
+try {
   const response = await fetch(CONFIG.commandeApiUrl, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify(dataToSend)
-});
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dataToSend)
+  });
 
-if (!response.ok) {
-  throw new Error(Erreur HTTP: ${response.status});
+  // Même si HTTP n'est pas OK, on ne casse pas l'app
+  const text = await response.text();
+
+  // On essaie de lire du JSON, sinon on affiche le texte
+  try {
+    result = JSON.parse(text);
+  } catch {
+    console.warn("Réponse non-JSON Apps Script:", text);
+    return false;
+  }
+
+  console.log("Réponse Apps Script:", result);
+
+  return response.ok && result && result.success === true;
+
+} catch (err) {
+  console.error("Erreur fetch Apps Script:", err);
+  return false;
 }
-
-const result = await response.json();
-console.log("Réponse Apps Script:", result);
-
-return result.success === true;
       
      
     } catch (error) {
@@ -5988,6 +6000,7 @@ return result.success === true;
   </script>
 </body>
 </html>
+
 
 
 
