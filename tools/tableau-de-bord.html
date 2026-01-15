@@ -1258,53 +1258,85 @@
         // Démarrer l'application
         document.addEventListener('DOMContentLoaded', init);
     </script>
-        <!-- autres scripts existants du dashboard -->
-    <script src="chart.js"></script>
-    <script src="dashboard.js"></script>
+     <script>
+/* ====== JSONP + branchement dashboard (à coller avant </body>) ====== */
+(function () {
+  // ✅ Mets ici ton URL Web App Apps Script (SANS ?data=1)
+  const API_URL = "https://script.google.com/macros/s/AKfycbz7hSAp2KOixv4JUEXGgWFnpw09oIuH1EawLCVQq6e7R_5VmjKjPD9Z6Gw5Ai8J1RQW/exec";
 
-    <!-- 🔽 AJOUTE CE SCRIPT ICI 🔽 -->
-    <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbz7hSAp2KOixv4JUEXGgWFnpw09oIuH1EawLCVQq6e7R_5VmjKjPD9Z6Gw5Ai8J1RQW/exec";
+  function fetchJsonp(url) {
+    return new Promise((resolve, reject) => {
+      const cb = "cb_" + Math.random().toString(36).slice(2);
+      const script = document.createElement("script");
 
-    function fetchJsonp(url) {
-      return new Promise((resolve, reject) => {
-        const cb = "cb_" + Math.random().toString(36).slice(2);
-        window[cb] = (data) => {
-          delete window[cb];
-          script.remove();
-          resolve(data);
-        };
-        const script = document.createElement("script");
-        script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
-        script.onerror = () => {
-          delete window[cb];
-          script.remove();
-          reject(new Error("JSONP error"));
-        };
-        document.body.appendChild(script);
-      });
-    }
+      window[cb] = (data) => {
+        try { delete window[cb]; } catch(e) {}
+        script.remove();
+        resolve(data);
+      };
 
-    async function loadCommandesDashboard() {
-      try {
-        const json = await fetchJsonp(API_URL + "?data=1");
-        console.log("DATA:", json);
+      script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+      script.onerror = () => {
+        try { delete window[cb]; } catch(e) {}
+        script.remove();
+        reject(new Error("JSONP error"));
+      };
 
-        // 🔴 IMPORTANT : appelle ICI ta fonction existante
-        // exemple :
-        // updateDashboard(json.data);
+      document.body.appendChild(script);
+    });
+  }
 
-      } catch (e) {
-        console.error(e);
-        showToast("Erreur chargement données");
+  // 🔁 Cette fonction charge les commandes depuis Apps Script
+  async function loadDataFromAppsScript() {
+    try {
+      const json = await fetchJsonp(API_URL + "?data=1");
+
+      if (!json || json.ok !== true) {
+        throw new Error((json && json.error) ? json.error : "Réponse API invalide");
       }
+
+      console.log("DATA (Apps Script):", json);
+
+      // ✅ Stockage global pour que ton dashboard puisse l’utiliser
+      window.commandes = json.data || [];
+      window.dashboardData = json;
+      window.state = window.state || {};
+      window.state.orders = window.commandes;
+
+      // ✅ Appel des fonctions existantes si elles existent dans ton dashboard
+      if (typeof window.updateDashboard === "function") window.updateDashboard(window.commandes, json);
+      if (typeof window.updateUI === "function") window.updateUI(window.commandes, json);
+      if (typeof window.renderDashboard === "function") window.renderDashboard(window.commandes, json);
+      if (typeof window.updateStats === "function") window.updateStats(window.commandes, json);
+      if (typeof window.updateCharts === "function") window.updateCharts();
+
+      return json;
+    } catch (e) {
+      console.error("Erreur chargement Apps Script:", e);
+
+      // Toast/alert si ton dashboard en a déjà
+      if (typeof window.showToast === "function") window.showToast("Erreur chargement données");
+      else if (typeof window.showAlert === "function") window.showAlert("Erreur chargement données", "error");
     }
+  }
 
-    // Charger automatiquement au démarrage
-    document.addEventListener("DOMContentLoaded", loadCommandesDashboard);
-    </script>
+  // ✅ IMPORTANT :
+  // Si ton fichier possède déjà une fonction loadData() (ce qui est le cas chez toi),
+  // on la remplace pour qu’elle charge depuis Apps Script (JSONP).
+  window.loadData = loadDataFromAppsScript;
 
+  // Optionnel : au cas où rien ne l’appelle, on lance au chargement
+  document.addEventListener("DOMContentLoaded", () => {
+    // si ton init() appelle déjà loadData(), ça ne fait pas de mal
+    loadDataFromAppsScript();
+  });
+
+})();
+</script>
+  
 </body>
 </html>
+
+
 
 
