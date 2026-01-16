@@ -180,7 +180,7 @@
     <section class="sectionGrid">
       <div class="card">
         <div class="sectionTitle">
-          <h3>📈 Ventes (30 derniers jours)</h3>
+          <h3>📈 Ventes (N derniers jours)</h3>
           <select class="btn" id="salesPeriod" style="padding:8px 10px; border-radius:10px;">
             <option value="7">7 jours</option>
             <option value="30" selected>30 jours</option>
@@ -195,7 +195,7 @@
       <div class="card">
         <div class="sectionTitle">
           <h3>🍽️ Répartition par catégorie</h3>
-          <span class="sub">Top 8 catégories</span>
+          <span class="sub">À venir (si topProduit/catégories sont calculés)</span>
         </div>
         <div class="chartBox">
           <canvas id="categoryChart"></canvas>
@@ -255,7 +255,6 @@
 
   <script>
     /* ===================== CONFIG ===================== */
-    // Mets bien l’URL /exec de ton Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbxA5r6T2v28uT8aXW4ZH3ATp1j-rrsuqzvchlsBpKiC-FFvRQFUjDJvvhgiK--XPaeT/exec";
 
     const state = {
@@ -289,28 +288,47 @@
       return d.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" });
     }
 
-    async function apiGet(path) {
-      const url = API_URL + path + (path.includes("?") ? "&" : "?") + "t=" + Date.now();
-      const res = await fetch(url); // IMPORTANT: pas de headers
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
+    // JSONP (évite CORS et évite les erreurs fetch selon navigateur)
+    function fetchJsonp(url) {
+      return new Promise((resolve, reject) => {
+        const cb = "cb_" + Math.random().toString(36).slice(2);
+        const script = document.createElement("script");
+        window[cb] = (data) => {
+          try { delete window[cb]; } catch(e) {}
+          script.remove();
+          resolve(data);
+        };
+        script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+        script.onerror = () => {
+          try { delete window[cb]; } catch(e) {}
+          script.remove();
+          reject(new Error("JSONP error"));
+        };
+        document.body.appendChild(script);
+      });
+    }
+
+    async function apiGetJsonp(params) {
+      const url = API_URL + params + (params.includes("?") ? "&" : "?") + "t=" + Date.now();
+      const data = await fetchJsonp(url);
       if (!data || data.ok !== true) throw new Error(data?.error || "Réponse API invalide");
       return data;
     }
 
-    async function loadStats() {
-      const data = await apiGet("?action=stats");
+    // Ton Code.gs renvoie stats + lastOrders dans action=stats
+    async function loadStatsAndLastOrders() {
+      // ping pour vérifier rapidement
+      await apiGetJsonp("?action=ping");
+
+      const data = await apiGetJsonp("?action=stats");
       state.stats.chiffreAffaires = Number(data.chiffreAffaires || 0);
       state.stats.commandes = Number(data.commandes || 0);
       state.stats.panierMoyen = Number(data.panierMoyen || 0);
       state.stats.topProduit = data.topProduit || null;
       state.stats.categories = Array.isArray(data.categories) ? data.categories : [];
-      $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
-    }
-
-    async function loadLastOrders(limit=10) {
-      const data = await apiGet("?action=orders&limit=" + encodeURIComponent(limit));
       state.lastOrders = Array.isArray(data.lastOrders) ? data.lastOrders : [];
+
+      $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
     }
 
     function updateCards() {
@@ -327,13 +345,14 @@
       body.innerHTML = "";
 
       for (const o of (state.lastOrders || [])) {
-        const tr = document.createElement("tr");
-        const status = safeText(o.statut || o.status || "—");
+        const status = safeText(o.statut || "Nouveau");
         const statusColor = status.toLowerCase().includes("liv") ? "var(--green)" : "var(--orange)";
+        const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${formatDate(o.date)}</td>
-          <td><div style="font-weight:900">${safeText(o.nom || "")}</div>
-              <div style="font-size:12px;color:var(--muted)">${safeText(o.telephone || "")}</div></td>
+          <td>
+            <div style="font-weight:900">${safeText(o.nom)}</div>
+          </td>
           <td style="font-weight:900;color:var(--green)">${formatPrice(o.total)}</td>
           <td><span style="font-weight:1000;color:${statusColor}">${status}</span></td>
         `;
@@ -347,8 +366,8 @@
       }
     }
 
-    // Ton API renvoie seulement "topProduit" (pas une liste topProducts),
-    // donc on affiche une seule ligne.
+    // Comme ton API retourne topProduit=null (pour l’instant),
+    // on affiche une ligne vide, pas d’erreur.
     function updateTopProductsTable() {
       const body = $("topProductsBody");
       body.innerHTML = "";
@@ -362,12 +381,11 @@
           <td style="font-weight:900;color:var(--muted)">—</td>
         `;
         body.appendChild(tr);
-        return;
+      } else {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="3" style="color:var(--muted)">Aucune donnée (topProduit non calculé dans l'API).</td>`;
+        body.appendChild(tr);
       }
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td colspan="3" style="color:var(--muted)">Aucune donnée.</td>`;
-      body.appendChild(tr);
     }
 
     function initCharts() {
@@ -388,7 +406,7 @@
       const catCtx = $("categoryChart").getContext("2d");
       state.charts.category = new Chart(catCtx, {
         type: "doughnut",
-        data: { labels: [], datasets: [{ data: [], borderWidth: 2 }] },
+        data: { labels: ["Non calculé"], datasets: [{ data: [1], borderWidth: 2 }] },
         options: {
           responsive:true, maintainAspectRatio:false,
           plugins:{ legend:{ position:"right", labels:{ color:"#f0f6fc" } } }
@@ -396,19 +414,11 @@
       });
     }
 
-    function updateCategoryChart() {
-      const cats = (state.stats.categories || []).slice(0, 8);
-      if (!state.charts.category) return;
-      state.charts.category.data.labels = cats.map(c => c.name);
-      state.charts.category.data.datasets[0].data = cats.map(c => Number(c.qty || 0));
-      state.charts.category.update();
-    }
-
-    // Graphe ventes calculé à partir des dernières commandes (limité).
     function updateSalesChart() {
       const period = Number($("salesPeriod").value || 30);
-      const map = new Map();
 
+      // Dernières commandes -> map par jour
+      const map = new Map();
       for (const o of (state.lastOrders || [])) {
         const d = new Date(o.date);
         const key = isNaN(d.getTime()) ? safeText(o.date) : d.toLocaleDateString("fr-FR");
@@ -432,18 +442,36 @@
       }
     }
 
+    function updateCategoryChart() {
+      // Ton Code.gs retourne categories: [] (pour l’instant)
+      // Donc on laisse “Non calculé” sans erreur
+      if (!state.charts.category) return;
+
+      const cats = Array.isArray(state.stats.categories) ? state.stats.categories : [];
+      if (!cats.length) {
+        state.charts.category.data.labels = ["Non calculé"];
+        state.charts.category.data.datasets[0].data = [1];
+        state.charts.category.update();
+        return;
+      }
+
+      const top = cats.slice(0, 8);
+      state.charts.category.data.labels = top.map(c => c.name);
+      state.charts.category.data.datasets[0].data = top.map(c => Number(c.qty || 0));
+      state.charts.category.update();
+    }
+
     async function refreshAll() {
       try {
         $("btnRefresh").disabled = true;
 
-        await loadStats();
-        await loadLastOrders(10);
+        await loadStatsAndLastOrders();
 
         updateCards();
         updateTopProductsTable();
         updateRecentOrdersTable();
-        updateCategoryChart();
         updateSalesChart();
+        updateCategoryChart();
 
         showToast("✅ Données chargées depuis l'API", "success");
       } catch (e) {
