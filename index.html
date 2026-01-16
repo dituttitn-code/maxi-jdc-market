@@ -3519,7 +3519,7 @@
       <button class="footer-btn clear" id="clearCartBtn">
         🗑️ Vider le panier
       </button>
-      <button class="footer-btn order" id="placeOrderBtn" disabled>
+      <button class="footer-btn order" id="placeOrderBtn" type="button" onclick="envoyerCommande(event)" disabled>
         🚀 Commander
       </button>
     </div>
@@ -6051,8 +6051,55 @@ async function loadCommandes() {
 </form>
 <iframe name="gsFrame" style="display:none;"></iframe>
 
+
+<script>
+  // 🔴 URL UNIQUE DE TON APPS SCRIPT (NE JAMAIS METTRE DANS Code.gs)
+  const API_URL = "https://script.google.com/macros/s/AKfycbz9x8ZWTQOC1g6b5uTNImzR0xakWldSarkABsaK9xxIdSHjN4HB59lB7swoie1Gkf5g/exec";
+
+  async function envoyerCommande(event) {
+    if (event) event.preventDefault(); // empêche le rechargement
+
+    const payload = {
+      client_name: document.getElementById("clientName")?.value || "Client test",
+      client_phone: document.getElementById("clientPhone")?.value || "0000",
+      address: document.getElementById("clientAddress")?.value || "Adresse test",
+      items: window.cart || [
+        { name: "Produit test", qty: 1, price: 5, category: "Test" }
+      ],
+      subtotal: window.cartSubtotal || 5,
+      delivery: window.deliveryFee || 0,
+      total: window.cartTotal || 5,
+      status: "Nouveau"
+    };
+
+    console.log("📤 ENVOI COMMANDE →", payload);
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify(payload) // ❌ PAS DE HEADERS
+      });
+
+      const data = await res.json();
+      console.log("📥 RÉPONSE API →", data);
+
+      if (data.ok === true) {
+        alert("✅ Commande enregistrée avec succès");
+      } else {
+        alert("❌ Erreur API : " + (data.error || "inconnue"));
+      }
+    } catch (err) {
+      console.error("❌ ERREUR POST :", err);
+      alert("❌ Erreur réseau – commande non envoyée");
+    }
+  }
+</script>
+
+
+  
   </body>
 </html>
+
 
 
 
