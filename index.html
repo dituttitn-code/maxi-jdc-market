@@ -6054,22 +6054,19 @@ async function loadCommandes() {
 
 <script>
   // 🔴 URL UNIQUE DE TON APPS SCRIPT (NE JAMAIS METTRE DANS Code.gs)
-  const API_URL = "https://script.google.com/macros/s/AKfycbz9x8ZWTQOC1g6b5uTNImzR0xakWldSarkABsaK9xxIdSHjN4HB59lB7swoie1Gkf5g/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbyCWlDEVKFg7kUt-Yng3wA9TpQv7JkomtMZc5RcAnRbNhEzLNWRd1uWtEBVh_Q285Qs/exec";
 
   async function envoyerCommande(event) {
     if (event) event.preventDefault(); // empêche le rechargement
 
     const payload = {
-      client_name: document.getElementById("clientName")?.value || "Client test",
-      client_phone: document.getElementById("clientPhone")?.value || "0000",
-      address: document.getElementById("clientAddress")?.value || "Adresse test",
-      items: window.cart || [
-        { name: "Produit test", qty: 1, price: 5, category: "Test" }
-      ],
-      subtotal: window.cartSubtotal || 5,
-      delivery: window.deliveryFee || 0,
-      total: window.cartTotal || 5,
-      status: "Nouveau"
+       orderText: document.getElementById("orderText")?.value || "",
+  status: "Nouveau"
+};
+
+if (!payload.orderText.trim()) {
+  alert("Colle le texte complet de la commande (NOUVELLE COMMANDE...)");
+  return;
     };
 
     console.log("📤 ENVOI COMMANDE →", payload);
@@ -6110,6 +6107,7 @@ async function loadCommandes() {
   
   </body>
 </html>
+
 
 
 
