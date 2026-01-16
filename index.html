@@ -6056,7 +6056,41 @@ async function loadCommandes() {
   // 🔴 URL UNIQUE DE TON APPS SCRIPT (NE JAMAIS METTRE DANS Code.gs)
   const API_URL = "https://script.google.com/macros/s/AKfycbyCWlDEVKFg7kUt-Yng3wA9TpQv7JkomtMZc5RcAnRbNhEzLNWRd1uWtEBVh_Q285Qs/exec";
 
-  async function envoyerCommande(event) {
+function getOrderTextAuto() {
+  // 1) Si un champ existe (au cas où)
+  const input = document.getElementById("orderText");
+  if (input && input.value.trim()) return input.value.trim();
+
+  // 2) Sinon on récupère le texte du ticket affiché (Commande confirmée)
+  // Essaie plusieurs sélecteurs pour être sûr
+  const candidates = [
+    "#commandeText",
+    "#ticketText",
+    "#receipt",
+    ".ticket",
+    ".receipt",
+    ".commande",
+    ".commande-content",
+    ".modal-content"
+  ];
+
+  for (const sel of candidates) {
+    const el = document.querySelector(sel);
+    if (el && el.innerText && el.innerText.trim().length > 20) {
+      return el.innerText.trim();
+    }
+  }
+
+  // 3) Dernier recours: prendre le texte du bloc visible dans la fenêtre
+  const frame = document.querySelector(".swal2-html-container, .swal2-popup, .modal, .popup");
+  if (frame && frame.innerText && frame.innerText.trim().length > 20) {
+    return frame.innerText.trim();
+  }
+
+  return "";
+}
+
+    async function envoyerCommande(event) {
     if (event) event.preventDefault(); // empêche le rechargement
 
     const payload = {
@@ -6113,6 +6147,7 @@ if (!payload.orderText.trim()) {
   
   </body>
 </html>
+
 
 
 
