@@ -6108,29 +6108,24 @@ if (!payload.orderText.trim()) {
     console.log("📤 ENVOI COMMANDE →", payload);
 
     try {
-      const res = await fetch(API_URL, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify(payload)
-});
+  const form = document.getElementById("gsForm");
+  const input = document.getElementById("gsPayload");
+      
+if (!form || !input) {
+  alert("❌ Formulaire GS introuvable (gsForm/gsPayload).");
+  return;
+}
 
+  form.action = API_URL;
+  input.value = JSON.stringify(payload);
+  form.submit();
 
+  alert("✅ Commande envoyée !");
+} catch (err) {
+  console.error("Erreur envoi", err);
+  alert("❌ Erreur réseau — commande non envoyée");
+}
 
-
-      const data = await res.json();
-      console.log("📥 RÉPONSE API →", data);
-
-      if (data.ok === true) {
-        alert("✅ Commande enregistrée avec succès");
-      } else {
-        alert("❌ Erreur API : " + (data.error || "inconnue"));
-      }
-    } catch (err) {
-      console.error("❌ ERREUR POST :", err);
-      alert("❌ Erreur réseau – commande non envoyée");
-    }
   }
 </script>
 
@@ -6149,6 +6144,7 @@ if (!payload.orderText.trim()) {
   
   </body>
 </html>
+
 
 
 
