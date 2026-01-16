@@ -1,241 +1,467 @@
-<script>
-  /* ===================== CONFIG ===================== */
-  // ✅ Mets ici TON URL /exec (la bonne)
-  const API_URL = "https://script.google.com/macros/s/AKfycbz9x8ZWTQOC1g6b5uTNImzR0xakWldSarkABsaK9xxIdSHjN4HB59lB7swoie1Gkf5g/exec";
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tableau de Bord - MAXI JDC MARKET</title>
 
-  const state = {
-    stats: {
-      chiffreAffaires: 0,
-      commandes: 0,
-      panierMoyen: 0,
-      topProduit: null,
-      categories: [],   // [{name, qty}]
-    },
-    lastOrders: [],     // [{date, nom, telephone, adresse, total, statut}]
-    charts: { sales: null, category: null }
-  };
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  /* ===================== UI helpers ===================== */
-  const $ = (id) => document.getElementById(id);
+  <style>
+    :root{
+      --bg1:#0a1929; --bg2:#112240; --card:#162447; --line:rgba(255,255,255,.15);
+      --txt:#f0f6fc; --muted:#8b949e; --green:#00ff88; --blue:#00d4ff; --orange:#ffa726; --red:#ff6b6b;
+      --shadow:0 10px 40px rgba(0,0,0,.45); --r:14px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background:linear-gradient(135deg,var(--bg1),var(--bg2));
+      color:var(--txt); min-height:100vh; padding:18px;
+    }
+    .container{max-width:1400px;margin:0 auto}
+    .header{
+      background:rgba(10,25,47,.95);
+      border:2px solid var(--green);
+      border-radius:var(--r);
+      padding:18px 22px;
+      display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      box-shadow:var(--shadow);
+    }
+    .left{display:flex; align-items:center; gap:14px}
+    .logo{
+      width:56px;height:56px;border-radius:12px;
+      border:3px solid var(--green);
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(0,255,136,.12); font-size:22px; font-weight:900;
+    }
+    h1{
+      font-size:22px;font-weight:900;
+      background:linear-gradient(90deg,var(--green),var(--blue));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      margin-bottom:4px;
+    }
+    .sub{color:var(--muted);font-size:13px}
+    .btn{
+      background:rgba(255,255,255,.10); border:2px solid var(--line);
+      color:var(--txt); padding:10px 14px; border-radius:10px; font-weight:800;
+      cursor:pointer; transition:.2s;
+      display:flex; gap:8px; align-items:center;
+    }
+    .btn:hover{transform:translateY(-2px); border-color:var(--blue); background:rgba(255,255,255,.15)}
+    .badge{
+      background:rgba(255,167,38,.18); border:2px solid var(--orange);
+      color:var(--orange); padding:8px 12px; border-radius:999px; font-weight:900; font-size:13px;
+      display:flex; gap:8px; align-items:center;
+    }
 
-  function showToast(msg, type = "info") {
-    const el = $("toast");
-    const bg = type === "success" ? "#00ff88" : type === "error" ? "#ff6b6b" : "#00d4ff";
-    el.style.background = bg;
-    el.textContent = msg;
-    el.classList.add("show");
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
-  }
+    .grid{
+      display:grid; gap:16px; margin-top:18px;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    }
+    .card{
+      background:var(--card);
+      border:2px solid var(--line);
+      border-radius:var(--r);
+      box-shadow:var(--shadow);
+      padding:18px;
+      transition:.2s;
+    }
+    .card:hover{border-color:var(--green); transform:translateY(-3px)}
+    .statTop{display:flex; justify-content:space-between; align-items:center; gap:10px}
+    .icon{
+      width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+      font-size:22px; background:rgba(255,255,255,.06); border:1px solid var(--line);
+    }
+    .value{font-size:30px; font-weight:1000; margin-top:2px}
+    .label{font-size:13px; color:var(--muted); font-weight:700}
 
-  function formatPrice(amount) {
-    const n = Number(amount || 0);
-    return n.toFixed(2).replace(".", ",") + " dt";
-  }
+    .sectionGrid{
+      display:grid; gap:18px; margin-top:18px;
+      grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+    }
+    .sectionTitle{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px}
+    .sectionTitle h3{font-size:16px; font-weight:1000; color:var(--green)}
+    .chartBox{height:300px; position:relative}
+    .tableWrap{border:1px solid var(--line); border-radius:12px; overflow:auto; max-height:420px}
+    table{width:100%; border-collapse:collapse}
+    th{
+      position:sticky; top:0;
+      background:rgba(0,212,255,.10);
+      color:var(--blue);
+      text-align:left;
+      padding:12px;
+      border-bottom:2px solid var(--blue);
+      font-size:13px; font-weight:1000;
+    }
+    td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px}
+    tr:hover{background:rgba(255,255,255,.05)}
 
-  function safeText(x) {
-    if (x === null || x === undefined) return "";
-    return String(x);
-  }
+    .footer{
+      margin-top:18px; padding:14px; text-align:center; color:var(--muted);
+      border-top:1px solid var(--line);
+      font-size:13px;
+    }
 
-  function formatDate(dateValue) {
-    const d = new Date(dateValue);
-    if (isNaN(d.getTime())) return safeText(dateValue);
-    return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-  }
+    .toast{
+      position:fixed; top:18px; right:18px; z-index:99999;
+      padding:12px 16px; border-radius:12px; font-weight:900; color:#0a1929;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+      display:none;
+    }
+    .toast.show{display:block; animation:pop .2s ease}
+    @keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+  </style>
+</head>
 
-  /* ===================== API calls (NO JSONP) ===================== */
-  async function apiGet(path) {
-    // t=Date.now() évite cache et aide en debug
-    const url = API_URL + path + (path.includes("?") ? "&" : "?") + "t=" + Date.now();
-    const res = await fetch(url); // <-- IMPORTANT: pas de headers ici
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    if (!data || data.ok !== true) throw new Error(data?.error || "Réponse API invalide");
-    return data;
-  }
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="left">
+        <div class="logo">📊</div>
+        <div>
+          <h1>Tableau de Bord Administratif</h1>
+          <div class="sub">MAXI JDC MARKET — Données en temps réel</div>
+        </div>
+      </div>
 
-  async function loadStats() {
-    const data = await apiGet("?action=stats");
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <div class="badge"><span>🔧</span><span>MODE ADMIN</span></div>
+        <button class="btn" id="btnRefresh"><span>🔄</span><span>Actualiser</span></button>
+        <button class="btn" onclick="window.history.back()"><span>←</span><span>Retour</span></button>
+      </div>
+    </header>
 
-    state.stats.chiffreAffaires = Number(data.chiffreAffaires || 0);
-    state.stats.commandes = Number(data.commandes || 0);
-    state.stats.panierMoyen = Number(data.panierMoyen || 0);
-    state.stats.topProduit = data.topProduit || null;
-    state.stats.categories = Array.isArray(data.categories) ? data.categories : [];
+    <!-- STATS -->
+    <section class="grid">
+      <div class="card">
+        <div class="statTop">
+          <div>
+            <div class="value" id="totalRevenue">0,00 dt</div>
+            <div class="label">Chiffre d'affaires total</div>
+          </div>
+          <div class="icon">💰</div>
+        </div>
+      </div>
 
-    $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
-  }
+      <div class="card">
+        <div class="statTop">
+          <div>
+            <div class="value" id="totalOrders">0</div>
+            <div class="label">Commandes totales</div>
+          </div>
+          <div class="icon">📦</div>
+        </div>
+      </div>
 
-  async function loadLastOrders(limit = 10) {
-    const data = await apiGet("?action=orders&limit=" + encodeURIComponent(limit));
-    state.lastOrders = Array.isArray(data.lastOrders) ? data.lastOrders : [];
-  }
+      <div class="card">
+        <div class="statTop">
+          <div>
+            <div class="value" id="avgOrderValue">0,00 dt</div>
+            <div class="label">Panier moyen</div>
+          </div>
+          <div class="icon">🛒</div>
+        </div>
+      </div>
 
-  /* ===================== UI render ===================== */
-  function updateCards() {
-    $("totalRevenue").textContent = formatPrice(state.stats.chiffreAffaires);
-    $("totalOrders").textContent = String(state.stats.commandes);
-    $("avgOrderValue").textContent = formatPrice(state.stats.panierMoyen);
+      <div class="card">
+        <div class="statTop">
+          <div>
+            <div class="value" id="topProductName">—</div>
+            <div class="label">Produit le + vendu</div>
+          </div>
+          <div class="icon">🏆</div>
+        </div>
+      </div>
+    </section>
 
-    const tp = state.stats.topProduit;
-    $("topProductName").textContent = tp && tp.name ? `${tp.name} (${tp.qty || 0})` : "—";
-  }
+    <!-- CHARTS -->
+    <section class="sectionGrid">
+      <div class="card">
+        <div class="sectionTitle">
+          <h3>📈 Ventes (30 derniers jours)</h3>
+          <select class="btn" id="salesPeriod" style="padding:8px 10px; border-radius:10px;">
+            <option value="7">7 jours</option>
+            <option value="30" selected>30 jours</option>
+            <option value="90">90 jours</option>
+          </select>
+        </div>
+        <div class="chartBox">
+          <canvas id="salesChart"></canvas>
+        </div>
+      </div>
 
-  function updateRecentOrdersTable() {
-    const body = $("recentOrdersBody");
-    body.innerHTML = "";
+      <div class="card">
+        <div class="sectionTitle">
+          <h3>🍽️ Répartition par catégorie</h3>
+          <span class="sub">Top 8 catégories</span>
+        </div>
+        <div class="chartBox">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </section>
 
-    for (const o of (state.lastOrders || [])) {
+    <!-- TABLES -->
+    <section class="sectionGrid">
+      <div class="card">
+        <div class="sectionTitle">
+          <h3>🏆 Top produits</h3>
+          <span class="sub">Quantité / Revenu</span>
+        </div>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Quantité</th>
+                <th>Revenu</th>
+              </tr>
+            </thead>
+            <tbody id="topProductsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sectionTitle">
+          <h3>👥 Dernières commandes</h3>
+          <span class="sub">10 dernières</span>
+        </div>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Montant</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody id="recentOrdersBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div>© 2024 MAXI JDC MARKET — Tableau de bord administratif</div>
+      <div style="margin-top:6px; font-size:12px;">Dernière mise à jour : <span id="lastUpdate">—</span></div>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* ===================== CONFIG ===================== */
+    // Mets bien l’URL /exec de ton Apps Script
+    const API_URL = "https://script.google.com/macros/s/AKfycbz9x8ZWTQOC1g6b5uTNImzR0xakWldSarkABsaK9xxIdSHjN4HB59lB7swoie1Gkf5g/exec";
+
+    const state = {
+      stats: { chiffreAffaires: 0, commandes: 0, panierMoyen: 0, topProduit: null, categories: [] },
+      lastOrders: [],
+      charts: { sales: null, category: null }
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function showToast(msg, type="info") {
+      const el = $("toast");
+      const bg = type === "success" ? "#00ff88" : type === "error" ? "#ff6b6b" : "#00d4ff";
+      el.style.background = bg;
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
+    }
+
+    function formatPrice(amount) {
+      const n = Number(amount || 0);
+      return n.toFixed(2).replace(".", ",") + " dt";
+    }
+
+    function safeText(x) { return (x === null || x === undefined) ? "" : String(x); }
+
+    function formatDate(dateValue) {
+      const d = new Date(dateValue);
+      if (isNaN(d.getTime())) return safeText(dateValue);
+      return d.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" });
+    }
+
+    async function apiGet(path) {
+      const url = API_URL + path + (path.includes("?") ? "&" : "?") + "t=" + Date.now();
+      const res = await fetch(url); // IMPORTANT: pas de headers
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      if (!data || data.ok !== true) throw new Error(data?.error || "Réponse API invalide");
+      return data;
+    }
+
+    async function loadStats() {
+      const data = await apiGet("?action=stats");
+      state.stats.chiffreAffaires = Number(data.chiffreAffaires || 0);
+      state.stats.commandes = Number(data.commandes || 0);
+      state.stats.panierMoyen = Number(data.panierMoyen || 0);
+      state.stats.topProduit = data.topProduit || null;
+      state.stats.categories = Array.isArray(data.categories) ? data.categories : [];
+      $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
+    }
+
+    async function loadLastOrders(limit=10) {
+      const data = await apiGet("?action=orders&limit=" + encodeURIComponent(limit));
+      state.lastOrders = Array.isArray(data.lastOrders) ? data.lastOrders : [];
+    }
+
+    function updateCards() {
+      $("totalRevenue").textContent = formatPrice(state.stats.chiffreAffaires);
+      $("totalOrders").textContent = String(state.stats.commandes);
+      $("avgOrderValue").textContent = formatPrice(state.stats.panierMoyen);
+
+      const tp = state.stats.topProduit;
+      $("topProductName").textContent = (tp && tp.name) ? `${tp.name} (${tp.qty || 0})` : "—";
+    }
+
+    function updateRecentOrdersTable() {
+      const body = $("recentOrdersBody");
+      body.innerHTML = "";
+
+      for (const o of (state.lastOrders || [])) {
+        const tr = document.createElement("tr");
+        const status = safeText(o.statut || o.status || "—");
+        const statusColor = status.toLowerCase().includes("liv") ? "var(--green)" : "var(--orange)";
+        tr.innerHTML = `
+          <td>${formatDate(o.date)}</td>
+          <td><div style="font-weight:900">${safeText(o.nom || "")}</div>
+              <div style="font-size:12px;color:var(--muted)">${safeText(o.telephone || "")}</div></td>
+          <td style="font-weight:900;color:var(--green)">${formatPrice(o.total)}</td>
+          <td><span style="font-weight:1000;color:${statusColor}">${status}</span></td>
+        `;
+        body.appendChild(tr);
+      }
+
+      if (!body.children.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="4" style="color:var(--muted)">Aucune commande.</td>`;
+        body.appendChild(tr);
+      }
+    }
+
+    // Ton API renvoie seulement "topProduit" (pas une liste topProducts),
+    // donc on affiche une seule ligne.
+    function updateTopProductsTable() {
+      const body = $("topProductsBody");
+      body.innerHTML = "";
+
+      const tp = state.stats.topProduit;
+      if (tp && tp.name) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><div style="font-weight:900">${safeText(tp.name)}</div></td>
+          <td style="font-weight:900">${Number(tp.qty || 0)}</td>
+          <td style="font-weight:900;color:var(--muted)">—</td>
+        `;
+        body.appendChild(tr);
+        return;
+      }
+
       const tr = document.createElement("tr");
-      const status = safeText(o.statut || o.status || "—");
-      const statusColor = status.toLowerCase().includes("liv") ? "var(--green)" : "var(--orange)";
-      tr.innerHTML = `
-        <td>${formatDate(o.date)}</td>
-        <td>
-          <div style="font-weight:900">${safeText(o.nom || o.clientName || "")}</div>
-          <div style="font-size:12px;color:var(--muted)">${safeText(o.telephone || o.clientPhone || "")}</div>
-        </td>
-        <td style="font-weight:900;color:var(--green)">${formatPrice(o.total)}</td>
-        <td><span style="font-weight:1000;color:${statusColor}">${status}</span></td>
-      `;
+      tr.innerHTML = `<td colspan="3" style="color:var(--muted)">Aucune donnée.</td>`;
       body.appendChild(tr);
     }
 
-    if (!body.children.length) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td colspan="4" style="color:var(--muted)">Aucune commande.</td>`;
-      body.appendChild(tr);
-    }
-  }
-
-  // ⚠️ Ton API ne renvoie pas la liste complète des top produits (seulement topProduit).
-  // Donc on remplit le tableau "Top produits" avec une seule ligne (topProduit).
-  function updateTopProductsTable() {
-    const body = $("topProductsBody");
-    body.innerHTML = "";
-
-    const tp = state.stats.topProduit;
-    if (tp && tp.name) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><div style="font-weight:900">${safeText(tp.name)}</div></td>
-        <td style="font-weight:900">${Number(tp.qty || 0)}</td>
-        <td style="font-weight:900;color:var(--muted)">—</td>
-      `;
-      body.appendChild(tr);
-      return;
-    }
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="3" style="color:var(--muted)">Aucune donnée.</td>`;
-    body.appendChild(tr);
-  }
-
-  /* ===================== Charts ===================== */
-  function initCharts() {
-    const salesCtx = $("salesChart").getContext("2d");
-    state.charts.sales = new Chart(salesCtx, {
-      type: "line",
-      data: { labels: [], datasets: [{ label: "Chiffre d'affaires (dt)", data: [], borderWidth: 3, fill: true, tension: .35 }] },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: "#f0f6fc" } } },
-        scales: {
-          x: { ticks: { color: "#8b949e" }, grid: { color: "rgba(255,255,255,.10)" } },
-          y: { ticks: { color: "#8b949e" }, grid: { color: "rgba(255,255,255,.10)" } }
+    function initCharts() {
+      const salesCtx = $("salesChart").getContext("2d");
+      state.charts.sales = new Chart(salesCtx, {
+        type: "line",
+        data: { labels: [], datasets: [{ label: "Chiffre d'affaires (dt)", data: [], borderWidth: 3, fill: true, tension: .35 }] },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ labels:{ color:"#f0f6fc" } } },
+          scales:{
+            x:{ ticks:{ color:"#8b949e" }, grid:{ color:"rgba(255,255,255,.10)" } },
+            y:{ ticks:{ color:"#8b949e" }, grid:{ color:"rgba(255,255,255,.10)" } }
+          }
         }
+      });
+
+      const catCtx = $("categoryChart").getContext("2d");
+      state.charts.category = new Chart(catCtx, {
+        type: "doughnut",
+        data: { labels: [], datasets: [{ data: [], borderWidth: 2 }] },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ position:"right", labels:{ color:"#f0f6fc" } } }
+        }
+      });
+    }
+
+    function updateCategoryChart() {
+      const cats = (state.stats.categories || []).slice(0, 8);
+      if (!state.charts.category) return;
+      state.charts.category.data.labels = cats.map(c => c.name);
+      state.charts.category.data.datasets[0].data = cats.map(c => Number(c.qty || 0));
+      state.charts.category.update();
+    }
+
+    // Graphe ventes calculé à partir des dernières commandes (limité).
+    function updateSalesChart() {
+      const period = Number($("salesPeriod").value || 30);
+      const map = new Map();
+
+      for (const o of (state.lastOrders || [])) {
+        const d = new Date(o.date);
+        const key = isNaN(d.getTime()) ? safeText(o.date) : d.toLocaleDateString("fr-FR");
+        map.set(key, (map.get(key) || 0) + Number(o.total || 0));
       }
-    });
 
-    const catCtx = $("categoryChart").getContext("2d");
-    state.charts.category = new Chart(catCtx, {
-      type: "doughnut",
-      data: { labels: [], datasets: [{ data: [], borderWidth: 2 }] },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: "right", labels: { color: "#f0f6fc" } } }
+      const labels = [];
+      const values = [];
+      for (let i = period - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = d.toLocaleDateString("fr-FR");
+        labels.push(key);
+        values.push(Number(map.get(key) || 0));
       }
+
+      if (state.charts.sales) {
+        state.charts.sales.data.labels = labels;
+        state.charts.sales.data.datasets[0].data = values;
+        state.charts.sales.update();
+      }
+    }
+
+    async function refreshAll() {
+      try {
+        $("btnRefresh").disabled = true;
+
+        await loadStats();
+        await loadLastOrders(10);
+
+        updateCards();
+        updateTopProductsTable();
+        updateRecentOrdersTable();
+        updateCategoryChart();
+        updateSalesChart();
+
+        showToast("✅ Données chargées depuis l'API", "success");
+      } catch (e) {
+        console.error(e);
+        showToast("❌ Erreur de connexion API", "error");
+      } finally {
+        $("btnRefresh").disabled = false;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initCharts();
+      $("salesPeriod").addEventListener("change", updateSalesChart);
+      $("btnRefresh").addEventListener("click", refreshAll);
+
+      refreshAll();
+      setInterval(refreshAll, 30000);
     });
-  }
-
-  function updateCategoryChart() {
-    const cats = (state.stats.categories || []).slice(0, 8);
-    if (!state.charts.category) return;
-
-    state.charts.category.data.labels = cats.map(c => c.name);
-    state.charts.category.data.datasets[0].data = cats.map(c => Number(c.qty || 0));
-    state.charts.category.update();
-  }
-
-  // Graphe ventes: on calcule à partir des dernières commandes (limité).
-  // (Si tu veux un graphe parfait 30/90 jours, il faudra un endpoint API qui renvoie l’historique complet.)
-  function updateSalesChartFromOrders() {
-    const period = Number($("salesPeriod").value || 30);
-    const map = new Map(); // key dd/mm/yyyy -> total
-
-    for (const o of (state.lastOrders || [])) {
-      const d = new Date(o.date);
-      const key = isNaN(d.getTime()) ? safeText(o.date) : d.toLocaleDateString("fr-FR");
-      map.set(key, (map.get(key) || 0) + Number(o.total || 0));
-    }
-
-    const labels = [];
-    const values = [];
-    for (let i = period - 1; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const key = d.toLocaleDateString("fr-FR");
-      labels.push(key);
-      values.push(Number(map.get(key) || 0));
-    }
-
-    if (state.charts.sales) {
-      state.charts.sales.data.labels = labels;
-      state.charts.sales.data.datasets[0].data = values;
-      state.charts.sales.update();
-    }
-  }
-
-  /* ===================== Main ===================== */
-  async function refreshAll() {
-    try {
-      $("btnRefresh").disabled = true;
-
-      // 1) Stats
-      await loadStats();
-
-      // 2) Dernières commandes (10)
-      await loadLastOrders(10);
-
-      // 3) UI
-      updateCards();
-      updateTopProductsTable();
-      updateRecentOrdersTable();
-
-      // 4) Charts
-      updateCategoryChart();
-
-      // Si tu veux que le graphe ventes soit basé sur + de commandes :
-      // remplace 10 par 50 dans loadLastOrders() ci-dessus.
-      updateSalesChartFromOrders();
-
-      showToast("✅ Données chargées depuis l'API", "success");
-    } catch (e) {
-      console.error(e);
-      showToast("❌ Erreur de connexion API", "error");
-    } finally {
-      $("btnRefresh").disabled = false;
-    }
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    initCharts();
-
-    $("salesPeriod").addEventListener("change", () => updateSalesChartFromOrders());
-    $("btnRefresh").addEventListener("click", () => refreshAll());
-
-    refreshAll();
-    setInterval(refreshAll, 30000);
-  });
-</script>
+  </script>
+</body>
+</html>
