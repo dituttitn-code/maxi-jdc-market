@@ -6134,6 +6134,41 @@ if (!form || !input) {
 
 <!-- 2) Script qui utilise envoyerCommande -->
 <script>
+
+function getPanierArticles_() {
+  const keys = Object.keys(localStorage);
+  const preferred = ["cart", "panier", "basket", "cartItems", "panierItems", "CART", "PANIER"];
+  const ordered = [...preferred, ...keys];
+
+  let raw = null;
+  for (const k of ordered) {
+    const v = localStorage.getItem(k);
+    if (v && v !== "[]" && v !== "{}" && v !== "null") { raw = v; break; }
+  }
+  if (!raw) return [];
+
+  let arr;
+  try {
+    arr = JSON.parse(raw);
+  } catch (e) {
+    console.error("❌ Panier JSON invalide:", raw);
+    return [];
+  }
+
+  if (!Array.isArray(arr) && typeof arr === "object") {
+    arr = arr.items || arr.cart || arr.panier || arr.products || [];
+  }
+  if (!Array.isArray(arr)) return [];
+
+  return arr.map(p => {
+    const name = p.name ?? p.nom ?? p.title ?? p.designation ?? p.productName ?? ("Produit " + (p.id ?? ""));
+    const qty = Number(p.qty ?? p.qte ?? p.quantite ?? p.quantity ?? 1);
+    const price = Number(String(p.price ?? p.prix ?? p.pu ?? p.unitPrice ?? 0).replace(",", "."));
+    const category = p.category ?? p.categorie ?? "";
+    return { name, qty, price, category };
+  }).filter(x => x.name && x.qty > 0);
+}
+  
   window.addEventListener("load", () => {
     const btn = document.getElementById("placeOrderBtn");
     if (!btn) {
@@ -6150,10 +6185,12 @@ if (!form || !input) {
       const adresse = "Carthage";
       const livraison = 3;
 
-      // 🔹 À REMPLACER PAR LE PANIER RÉEL
-      const articles = [
-        { name: "Produit test", qty: 1, price: 5, category: "Test" }
-      ];
+      const articles = getPanierArticles_();
+if (!articles.length) {
+  alert("❌ Panier vide (aucun article trouvé).");
+  return;
+}
+
 
       envoyerCommande({
         nom,
@@ -6171,6 +6208,7 @@ if (!form || !input) {
 
    </body>
 </html>
+
 
 
 
