@@ -6095,10 +6095,22 @@ async function loadCommandes() {
   }
 </script>
 
+<script>
+  window.addEventListener("load", () => {
+    const btn = document.getElementById("placeOrderBtn");
+    if (!btn) return console.error("placeOrderBtn introuvable");
+
+    btn.addEventListener("click", (e) => {
+      console.log("✅ CLICK Commander -> envoi API");
+      envoyerCommande(e);
+    }, true); // capture = passe avant les autres scripts
+  });
+</script>
 
   
   </body>
 </html>
+
 
 
 
