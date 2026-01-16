@@ -6129,21 +6129,49 @@ if (!form || !input) {
   }
 </script>
 
+<!-- 1) Import API commandes (OBLIGATOIRE AVANT) -->
+<script src="tools/api-commandes.js"></script>
+
+<!-- 2) Script qui utilise envoyerCommande -->
 <script>
   window.addEventListener("load", () => {
     const btn = document.getElementById("placeOrderBtn");
-    if (!btn) return console.error("placeOrderBtn introuvable");
+    if (!btn) {
+      console.error("❌ placeOrderBtn introuvable");
+      return;
+    }
 
-    btn.addEventListener("click", (e) => {
-      console.log("✅ CLICK Commander -> envoi API");
-      envoyerCommande(e);
-    }, true); // capture = passe avant les autres scripts
+    btn.addEventListener("click", () => {
+      console.log("✅ CLICK Commander → envoi API");
+
+      // 🔹 À REMPLACER PLUS TARD PAR TES VRAIES DONNÉES
+      const nom = "Lotfi";
+      const telephone = "55532482";
+      const adresse = "Carthage";
+      const livraison = 3;
+
+      // 🔹 À REMPLACER PAR LE PANIER RÉEL
+      const articles = [
+        { name: "Produit test", qty: 1, price: 5, category: "Test" }
+      ];
+
+      envoyerCommande({
+        nom,
+        telephone,
+        adresse,
+        livraison,
+        articles
+      });
+
+      alert("✅ Commande envoyée !");
+    });
   });
 </script>
 
-  
-  </body>
+
+   </body>
 </html>
+
 
 
 
