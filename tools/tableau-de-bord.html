@@ -1,657 +1,287 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tableau de Bord - MAXI JDC MARKET</title>
-
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
-    :root{
-      --bg1:#0a1929; --bg2:#112240; --card:#162447; --line:rgba(255,255,255,.15);
-      --txt:#f0f6fc; --muted:#8b949e; --green:#00ff88; --blue:#00d4ff; --orange:#ffa726; --red:#ff6b6b;
-      --shadow:0 10px 40px rgba(0,0,0,.45); --r:14px;
+    :root { color-scheme: dark; }
+    body { margin:0; font-family: Arial, sans-serif; background:#071624; color:#e8f0ff; }
+    header { padding:16px 18px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; justify-content:space-between; gap:12px; align-items:center; }
+    header h1 { font-size:18px; margin:0; }
+    .wrap { padding:14px 18px; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:12px 14px; }
+    .stats { display:grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap:12px; }
+    @media (max-width:900px){ .stats{ grid-template-columns: repeat(2, minmax(160px, 1fr)); } }
+    .stat-title{ opacity:.8; font-size:12px; }
+    .stat-value{ font-size:20px; font-weight:700; margin-top:6px; }
+    input, select, button{
+      background: rgba(255,255,255,.06);
+      color:#e8f0ff;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:10px;
+      padding:10px 12px;
+      outline:none;
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
-      background:linear-gradient(135deg,var(--bg1),var(--bg2));
-      color:var(--txt); min-height:100vh; padding:18px;
-    }
-    .container{max-width:1400px;margin:0 auto}
-    .header{
-      background:rgba(10,25,47,.95);
-      border:2px solid var(--green);
-      border-radius:var(--r);
-      padding:18px 22px;
-      display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap;
-      box-shadow:var(--shadow);
-    }
-    .left{display:flex; align-items:center; gap:14px}
-    .logo{
-      width:56px;height:56px;border-radius:12px;
-      border:3px solid var(--green);
-      display:flex;align-items:center;justify-content:center;
-      background:rgba(0,255,136,.12); font-size:22px; font-weight:900;
-    }
-    h1{
-      font-size:22px;font-weight:900;
-      background:linear-gradient(90deg,var(--green),var(--blue));
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-      margin-bottom:4px;
-    }
-    .sub{color:var(--muted);font-size:13px}
-    .btn{
-      background:rgba(255,255,255,.10); border:2px solid var(--line);
-      color:var(--txt); padding:10px 14px; border-radius:10px; font-weight:800;
-      cursor:pointer; transition:.2s;
-      display:flex; gap:8px; align-items:center;
-    }
-    .btn:hover{transform:translateY(-2px); border-color:var(--blue); background:rgba(255,255,255,.15)}
-    .badge{
-      background:rgba(255,167,38,.18); border:2px solid var(--orange);
-      color:var(--orange); padding:8px 12px; border-radius:999px; font-weight:900; font-size:13px;
-      display:flex; gap:8px; align-items:center;
-    }
-
-    .grid{
-      display:grid; gap:16px; margin-top:18px;
-      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    }
-    .card{
-      background:var(--card);
-      border:2px solid var(--line);
-      border-radius:var(--r);
-      box-shadow:var(--shadow);
-      padding:18px;
-      transition:.2s;
-    }
-    .card:hover{border-color:var(--green); transform:translateY(-3px)}
-    .statTop{display:flex; justify-content:space-between; align-items:center; gap:10px}
-    .icon{
-      width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center;
-      font-size:22px; background:rgba(255,255,255,.06); border:1px solid var(--line);
-    }
-    .value{font-size:30px; font-weight:1000; margin-top:2px}
-    .label{font-size:13px; color:var(--muted); font-weight:700}
-
-    .sectionGrid{
-      display:grid; gap:18px; margin-top:18px;
-      grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
-    }
-    .sectionTitle{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px}
-    .sectionTitle h3{font-size:16px; font-weight:1000; color:var(--green)}
-    .chartBox{height:300px; position:relative}
-    .tableWrap{border:1px solid var(--line); border-radius:12px; overflow:auto; max-height:420px}
-    table{width:100%; border-collapse:collapse}
-    th{
-      position:sticky; top:0;
-      background:rgba(0,212,255,.10);
-      color:var(--blue);
-      text-align:left;
-      padding:12px;
-      border-bottom:2px solid var(--blue);
-      font-size:13px; font-weight:1000;
-    }
-    td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px}
-    tr:hover{background:rgba(255,255,255,.05)}
-
-    .footer{
-      margin-top:18px; padding:14px; text-align:center; color:var(--muted);
-      border-top:1px solid var(--line);
-      font-size:13px;
-    }
-
-    .toast{
-      position:fixed; top:18px; right:18px; z-index:99999;
-      padding:12px 16px; border-radius:12px; font-weight:900; color:#0a1929;
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-      display:none;
-    }
-    .toast.show{display:block; animation:pop .2s ease}
-    @keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+    button{ cursor:pointer; }
+    button:hover{ border-color: rgba(255,255,255,.25); }
+    .hint { opacity:.75; font-size:12px; }
+    .error { background: rgba(255,0,0,.12); border:1px solid rgba(255,0,0,.35); padding:10px 12px; border-radius:10px; margin-top:12px; display:none; }
+    .ok { background: rgba(0,255,100,.10); border:1px solid rgba(0,255,100,.30); padding:10px 12px; border-radius:10px; margin-top:12px; display:none; }
+    table{ width:100%; border-collapse:collapse; margin-top:12px; }
+    thead th{ text-align:left; font-size:12px; opacity:.8; padding:10px 8px; border-bottom:1px solid rgba(255,255,255,.10); }
+    tbody td{ padding:10px 8px; border-bottom:1px solid rgba(255,255,255,.06); vertical-align:top; }
+    tbody tr:hover{ background:rgba(255,255,255,.03); }
+    .tag{ display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; }
+    .right{ text-align:right; }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <header class="header">
-      <div class="left">
-        <div class="logo">📊</div>
-        <div>
-          <h1>Tableau de Bord Administratif</h1>
-          <div class="sub">MAXI JDC MARKET — Données en temps réel</div>
-        </div>
-      </div>
+<header>
+  <div>
+    <h1>Tableau de Bord — MAXI JDC MARKET</h1>
+    <div class="hint">Lecture: CSV public (Google Sheets). Écriture: Apps Script.</div>
+  </div>
+  <div class="row">
+    <button id="btnRefresh">🔄 Actualiser</button>
+    <button id="btnHome">🏠 Site</button>
+  </div>
+</header>
 
-      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-        <div class="badge"><span>🔧</span><span>MODE ADMIN</span></div>
-        <button class="btn" id="btnRefresh"><span>🔄</span><span>Actualiser</span></button>
-        <button class="btn" onclick="window.history.back()"><span>←</span><span>Retour</span></button>
-      </div>
-    </header>
-
-    <!-- STATS -->
-    <section class="grid">
-      <div class="card">
-        <div class="statTop">
-          <div>
-            <div class="value" id="totalRevenue">0,00 dt</div>
-            <div class="label">Chiffre d'affaires total</div>
-          </div>
-          <div class="icon">💰</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="statTop">
-          <div>
-            <div class="value" id="totalOrders">0</div>
-            <div class="label">Commandes totales</div>
-          </div>
-          <div class="icon">📦</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="statTop">
-          <div>
-            <div class="value" id="avgOrderValue">0,00 dt</div>
-            <div class="label">Panier moyen</div>
-          </div>
-          <div class="icon">🛒</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="statTop">
-          <div>
-            <div class="value" id="topProductName">—</div>
-            <div class="label">Produit le + vendu</div>
-          </div>
-          <div class="icon">🏆</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CHARTS -->
-    <section class="sectionGrid">
-      <div class="card">
-        <div class="sectionTitle">
-          <h3>📈 Ventes (N derniers jours)</h3>
-          <select class="btn" id="salesPeriod" style="padding:8px 10px; border-radius:10px;">
-            <option value="7">7 jours</option>
-            <option value="30" selected>30 jours</option>
-            <option value="90">90 jours</option>
-          </select>
-        </div>
-        <div class="chartBox">
-          <canvas id="salesChart"></canvas>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="sectionTitle">
-          <h3>🍽️ Répartition par catégorie</h3>
-          <span class="sub">Basé sur Articles (JSON)</span>
-        </div>
-        <div class="chartBox">
-          <canvas id="categoryChart"></canvas>
-        </div>
-      </div>
-    </section>
-
-    <!-- TABLES -->
-    <section class="sectionGrid">
-      <div class="card">
-        <div class="sectionTitle">
-          <h3>🏆 Top produits</h3>
-          <span class="sub">Quantité / Revenu</span>
-        </div>
-        <div class="tableWrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Produit</th>
-                <th>Quantité</th>
-                <th>Revenu</th>
-              </tr>
-            </thead>
-            <tbody id="topProductsBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="sectionTitle">
-          <h3>👥 Dernières commandes</h3>
-          <span class="sub">10 dernières</span>
-        </div>
-        <div class="tableWrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Client</th>
-                <th>Montant</th>
-                <th>Statut</th>
-              </tr>
-            </thead>
-            <tbody id="recentOrdersBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <footer class="footer">
-      <div>© 2024 MAXI JDC MARKET — Tableau de bord administratif</div>
-      <div style="margin-top:6px; font-size:12px;">Dernière mise à jour : <span id="lastUpdate">—</span></div>
-    </footer>
+<div class="wrap">
+  <div class="stats">
+    <div class="card"><div class="stat-title">Commandes (filtrées)</div><div class="stat-value" id="stCount">—</div></div>
+    <div class="card"><div class="stat-title">Total (filtré)</div><div class="stat-value" id="stSum">—</div></div>
+    <div class="card"><div class="stat-title">Sous-total (filtré)</div><div class="stat-value" id="stSub">—</div></div>
+    <div class="card"><div class="stat-title">Livraison (filtré)</div><div class="stat-value" id="stDel">—</div></div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="card" style="margin-top:12px;">
+    <div class="row">
+      <input id="q" type="search" placeholder="Rechercher (nom / tel / adresse / statut)..." style="flex:1; min-width:220px;">
+      <select id="status">
+        <option value="">Tous statuts</option>
+        <option value="Nouveau">Nouveau</option>
+        <option value="En cours">En cours</option>
+        <option value="Livré">Livré</option>
+        <option value="Annulé">Annulé</option>
+      </select>
+      <select id="sort">
+        <option value="date_desc">Date ↓</option>
+        <option value="date_asc">Date ↑</option>
+        <option value="total_desc">Total ↓</option>
+        <option value="total_asc">Total ↑</option>
+      </select>
+    </div>
+    <div class="row" style="margin-top:10px; justify-content:space-between;">
+      <div class="hint" id="lastLoad">Chargement…</div>
+      <div class="hint">Le CSV doit finir par <b>output=csv</b>.</div>
+    </div>
+  </div>
 
-  <script>
-    /* ===================== CONFIG ===================== */
-    // ✅ TON URL API
-    const API_URL = "https://script.google.com/macros/s/AKfycbyMa4TcmjykCb_O3VvjaakExOTfXk369B4FZ318WK4TC6jK50Qq9c7gaSuYUB-DS1yY/exec";
+  <div class="error" id="errBox"></div>
+  <div class="ok" id="okBox"></div>
 
-    const state = {
-      headers: [],
-      rows: [],
-      stats: { chiffreAffaires: 0, commandes: 0, panierMoyen: 0, topProduit: null, categories: [] },
-      topProducts: [],
-      lastOrders: [],
-      charts: { sales: null, category: null }
-    };
+  <div class="card" style="margin-top:12px;">
+    <div class="row" style="justify-content:space-between;">
+      <div><span class="tag">Commandes</span> <span class="hint" id="rowsInfo"></span></div>
+    </div>
 
-    const $ = (id) => document.getElementById(id);
+    <table>
+      <thead>
+      <tr>
+        <th>Date</th><th>Nom</th><th>Téléphone</th><th>Adresse</th><th>Articles</th>
+        <th class="right">Sous-total</th><th class="right">Livraison</th><th class="right">Total</th><th>Statut</th>
+      </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="9" class="hint">Chargement…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-    function showToast(msg, type="info") {
-      const el = $("toast");
-      const bg = type === "success" ? "#00ff88" : type === "error" ? "#ff6b6b" : "#00d4ff";
-      el.style.background = bg;
-      el.textContent = msg;
-      el.classList.add("show");
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
+<script>
+/*** ✅ TES 2 URL (hardcodées ici => zéro problème de import/chemin/cache) ***/
+const WRITE_API_URL = "https://script.google.com/macros/s/AKfycbwKs58CxTeaANxbdLukMcr4PTPrkZS7KkQQadJq2EfXMPhDSlJbu8gzpY-ZX9TeHFVn/exec";
+const READ_CSV_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnzZS17O7qIf35FOQHZfOXRDS-tZDCBmze4FkEEfw2kY5KdEj4Kj9ycv-1J4y_i-2_YKKnp9P48MFy/pub?gid=1804772268&single=true&output=csv";
+
+/*** UI refs ***/
+const $ = (id)=>document.getElementById(id);
+const tbody=$("tbody"), q=$("q"), status=$("status"), sort=$("sort");
+const stCount=$("stCount"), stSum=$("stSum"), stSub=$("stSub"), stDel=$("stDel");
+const lastLoad=$("lastLoad"), rowsInfo=$("rowsInfo"), errBox=$("errBox"), okBox=$("okBox");
+
+let all=[];
+
+function showError(msg){ errBox.style.display="block"; errBox.textContent=msg; okBox.style.display="none"; }
+function showOk(msg){ okBox.style.display="block"; okBox.textContent=msg; errBox.style.display="none"; }
+function clearMessages(){ errBox.style.display="none"; okBox.style.display="none"; errBox.textContent=""; okBox.textContent=""; }
+
+function asNumber(v){ const n=Number(String(v??"").replace(",",".").trim()); return Number.isFinite(n)?n:0; }
+function parseDate(v){
+  const s=String(v??"").trim(); if(!s) return 0;
+  const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if(m){ return new Date(+m[3], +m[2]-1, +m[1], +(m[4]||0), +(m[5]||0), +(m[6]||0)).getTime(); }
+  const t=Date.parse(s); return Number.isFinite(t)?t:0;
+}
+function escapeHtml(s){
+  return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+
+/*** CSV parse (robuste) ***/
+function parseCsv(text){
+  const rows=[]; let row=[]; let cur=""; let inQuotes=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i], next=text[i+1];
+    if(ch=='"' && inQuotes && next=='"'){ cur+='"'; i++; continue; }
+    if(ch=='"'){ inQuotes=!inQuotes; continue; }
+    if(ch=="," && !inQuotes){ row.push(cur); cur=""; continue; }
+    if((ch=="\n"||ch=="\r") && !inQuotes){
+      if(ch=="\r"&&next=="\n") i++;
+      row.push(cur); rows.push(row); row=[]; cur=""; continue;
     }
-
-    function formatPrice(amount) {
-      const n = Number(amount || 0);
-      return n.toFixed(2).replace(".", ",") + " dt";
-    }
-
-    function safeText(x) { return (x === null || x === undefined) ? "" : String(x); }
-
-    // Support dd/MM/yyyy HH:mm:ss (format Apps Script) + ISO + Date
-    function parseDateSmart(v) {
-      if (!v) return null;
-      if (v instanceof Date && !isNaN(v.getTime())) return v;
-
-      const s = String(v).trim();
-
-      // ISO (2026-01-16T10:44:50.000Z)
-      const dIso = new Date(s);
-      if (!isNaN(dIso.getTime())) return dIso;
-
-      // dd/MM/yyyy HH:mm:ss
-      const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
-      if (m) {
-        const dd = Number(m[1]), mm = Number(m[2]) - 1, yyyy = Number(m[3]);
-        const HH = Number(m[4] || 0), MI = Number(m[5] || 0), SS = Number(m[6] || 0);
-        const d = new Date(yyyy, mm, dd, HH, MI, SS);
-        if (!isNaN(d.getTime())) return d;
-      }
-
-      return null;
-    }
-
-    function formatDate(dateValue) {
-      const d = parseDateSmart(dateValue);
-      if (!d) return safeText(dateValue);
-      return d.toLocaleString("fr-FR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
-    }
-
-    function toNumber(v, def=0) {
-      if (v === null || v === undefined) return def;
-      if (typeof v === "number" && isFinite(v)) return v;
-      const s = String(v).toLowerCase().replace(/dt/g,"").replace(/\s+/g,"").replace(",",".");
-      const n = Number(s);
-      return isFinite(n) ? n : def;
-    }
-
-    function safeJsonParse(txt) {
-      try { return JSON.parse(txt); } catch(e) { return null; }
-    }
-
-    /* ===================== JSONP ===================== */
-    function fetchJsonp(url) {
-      return new Promise((resolve, reject) => {
-        const cb = "cb_" + Math.random().toString(36).slice(2);
-        const script = document.createElement("script");
-
-        window[cb] = (data) => {
-          try { delete window[cb]; } catch(e) {}
-          script.remove();
-          resolve(data);
-        };
-
-        script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
-        script.onerror = () => {
-          try { delete window[cb]; } catch(e) {}
-          script.remove();
-          reject(new Error("JSONP error"));
-        };
-
-        document.body.appendChild(script);
-      });
-    }
-
-    async function apiGetJsonp(params) {
-      // ajoute anti-cache
-      const url = API_URL + params + (params.includes("?") ? "&" : "?") + "t=" + Date.now();
-      const data = await fetchJsonp(url);
-      if (!data || data.ok !== true) throw new Error(data?.error || "Réponse API invalide");
-      return data;
-    }
-
-    /* ===================== DATA LOADING ===================== */
-    async function loadOrders() {
-      // ping (facultatif mais utile)
-      await apiGetJsonp("?action=ping");
-
-      // IMPORTANT: ton Code.gs supporte list, pas stats
-      const data = await apiGetJsonp("?action=list");
-
-      state.headers = Array.isArray(data.headers) ? data.headers : [];
-      state.rows = Array.isArray(data.rows) ? data.rows : [];
-
-      $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
-    }
-
-    /* ===================== COMPUTE STATS (from rows) ===================== */
-    function buildIndexMap(headers) {
-      const map = {};
-      headers.forEach((h, i) => map[String(h).trim().toLowerCase()] = i);
-      return map;
-    }
-
-    function computeFromSheet() {
-      const idx = buildIndexMap(state.headers);
-
-      // Colonnes attendues (selon ta sheet)
-      const iDate = idx["date"] ?? 0;
-      const iNom = idx["nom"] ?? 1;
-      const iArticles = idx["articles (json)"] ?? idx["articles(json)"] ?? 4;
-      const iSousTotal = idx["sous-total"] ?? idx["sous total"] ?? 5;
-      const iLivraison = idx["livraison"] ?? 6;
-      const iTotal = idx["total"] ?? 7;
-      const iStatut = idx["statut"] ?? 8;
-
-      let revenue = 0;
-      const orders = [];
-
-      // produit -> {qty, revenue}
-      const prodMap = new Map();
-      // catégorie -> qty
-      const catMap = new Map();
-
-      for (const r of state.rows) {
-        const dateRaw = r[iDate];
-        const nom = r[iNom];
-        const total = toNumber(r[iTotal], toNumber(r[iSousTotal], 0) + toNumber(r[iLivraison], 0));
-        const statut = r[iStatut];
-
-        revenue += total;
-
-        orders.push({
-          date: dateRaw,
-          dateObj: parseDateSmart(dateRaw),
-          nom: nom,
-          total: total,
-          statut: statut
-        });
-
-        // Articles JSON (peut être string JSON, ou vide, ou texte)
-        const artCell = r[iArticles];
-        let articlesArr = [];
-
-        if (Array.isArray(artCell)) {
-          articlesArr = artCell;
-        } else if (typeof artCell === "string") {
-          const s = artCell.trim();
-          const parsed = safeJsonParse(s);
-          if (Array.isArray(parsed)) articlesArr = parsed;
-          else articlesArr = []; // ex: "Thon" => pas de détail
-        }
-
-        for (const it of articlesArr) {
-          const name = safeText(it?.name || it?.nom || "").trim() || "Produit";
-          const qty = toNumber(it?.qty ?? it?.qte ?? it?.quantite ?? it?.quantity, 0);
-          const price = toNumber(it?.price ?? it?.prix ?? it?.pu ?? it?.unitPrice, 0);
-          const lineRevenue = qty * price;
-
-          const prev = prodMap.get(name) || { qty: 0, revenue: 0 };
-          prev.qty += qty;
-          prev.revenue += lineRevenue;
-          prodMap.set(name, prev);
-
-          const cat = safeText(it?.category || it?.categorie || "Autre").trim() || "Autre";
-          catMap.set(cat, (catMap.get(cat) || 0) + qty);
-        }
-      }
-
-      const commandes = orders.length;
-      const panierMoyen = commandes ? (revenue / commandes) : 0;
-
-      // Top produits
-      const topProducts = Array.from(prodMap.entries())
-        .map(([name, v]) => ({ name, qty: v.qty, revenue: v.revenue }))
-        .sort((a,b) => (b.qty - a.qty) || (b.revenue - a.revenue));
-
-      const topProduit = topProducts[0] ? { name: topProducts[0].name, qty: topProducts[0].qty } : null;
-
-      // Catégories
-      const categories = Array.from(catMap.entries())
-        .map(([name, qty]) => ({ name, qty }))
-        .sort((a,b) => b.qty - a.qty);
-
-      // Dernières commandes (10)
-      const lastOrders = orders
-        .slice()
-        .sort((a,b) => {
-          const ta = a.dateObj ? a.dateObj.getTime() : 0;
-          const tb = b.dateObj ? b.dateObj.getTime() : 0;
-          return tb - ta;
-        })
-        .slice(0, 10);
-
-      state.stats.chiffreAffaires = revenue;
-      state.stats.commandes = commandes;
-      state.stats.panierMoyen = panierMoyen;
-      state.stats.topProduit = topProduit;
-      state.stats.categories = categories;
-
-      state.topProducts = topProducts.slice(0, 10);
-      state.lastOrders = lastOrders;
-    }
-
-    /* ===================== UI UPDATE ===================== */
-    function updateCards() {
-      $("totalRevenue").textContent = formatPrice(state.stats.chiffreAffaires);
-      $("totalOrders").textContent = String(state.stats.commandes);
-      $("avgOrderValue").textContent = formatPrice(state.stats.panierMoyen);
-
-      const tp = state.stats.topProduit;
-      $("topProductName").textContent = (tp && tp.name) ? `${tp.name} (${tp.qty || 0})` : "—";
-    }
-
-    function updateRecentOrdersTable() {
-      const body = $("recentOrdersBody");
-      body.innerHTML = "";
-
-      for (const o of (state.lastOrders || [])) {
-        const status = safeText(o.statut || "Nouveau");
-        const s = status.toLowerCase();
-        const statusColor = (s.includes("liv") || s.includes("done") || s.includes("ok")) ? "var(--green)" : "var(--orange)";
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${formatDate(o.date)}</td>
-          <td><div style="font-weight:900">${safeText(o.nom)}</div></td>
-          <td style="font-weight:900;color:var(--green)">${formatPrice(o.total)}</td>
-          <td><span style="font-weight:1000;color:${statusColor}">${status}</span></td>
-        `;
-        body.appendChild(tr);
-      }
-
-      if (!body.children.length) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td colspan="4" style="color:var(--muted)">Aucune commande.</td>`;
-        body.appendChild(tr);
-      }
-    }
-
-    function updateTopProductsTable() {
-      const body = $("topProductsBody");
-      body.innerHTML = "";
-
-      const list = state.topProducts || [];
-      if (list.length) {
-        for (const p of list) {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td><div style="font-weight:900">${safeText(p.name)}</div></td>
-            <td style="font-weight:900">${Number(p.qty || 0)}</td>
-            <td style="font-weight:900;color:var(--muted)">${formatPrice(p.revenue || 0)}</td>
-          `;
-          body.appendChild(tr);
-        }
-      } else {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td colspan="3" style="color:var(--muted)">Aucune donnée (Articles JSON vides).</td>`;
-        body.appendChild(tr);
-      }
-    }
-
-    /* ===================== CHARTS ===================== */
-    function initCharts() {
-      const salesCtx = $("salesChart").getContext("2d");
-      state.charts.sales = new Chart(salesCtx, {
-        type: "line",
-        data: { labels: [], datasets: [{ label: "Chiffre d'affaires (dt)", data: [], borderWidth: 3, fill: true, tension: .35 }] },
-        options: {
-          responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{ labels:{ color:"#f0f6fc" } } },
-          scales:{
-            x:{ ticks:{ color:"#8b949e" }, grid:{ color:"rgba(255,255,255,.10)" } },
-            y:{ ticks:{ color:"#8b949e" }, grid:{ color:"rgba(255,255,255,.10)" } }
-          }
-        }
-      });
-
-      const catCtx = $("categoryChart").getContext("2d");
-      state.charts.category = new Chart(catCtx, {
-        type: "doughnut",
-        data: { labels: ["Non calculé"], datasets: [{ data: [1], borderWidth: 2 }] },
-        options: {
-          responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{ position:"right", labels:{ color:"#f0f6fc" } } }
-        }
-      });
-    }
-
-    function updateSalesChart() {
-      const period = Number($("salesPeriod").value || 30);
-
-      // On agrège sur TOUTES les commandes (pas juste last 10)
-      const idx = buildIndexMap(state.headers);
-      const iDate = idx["date"] ?? 0;
-      const iTotal = idx["total"] ?? 7;
-      const iSousTotal = idx["sous-total"] ?? 5;
-      const iLivraison = idx["livraison"] ?? 6;
-
-      const map = new Map(); // key=YYYY-MM-DD, value=total
-
-      for (const r of state.rows) {
-        const dObj = parseDateSmart(r[iDate]);
-        if (!dObj) continue;
-
-        const key = dObj.toISOString().slice(0,10); // YYYY-MM-DD
-        const total = toNumber(r[iTotal], toNumber(r[iSousTotal],0) + toNumber(r[iLivraison],0));
-        map.set(key, (map.get(key) || 0) + total);
-      }
-
-      const labels = [];
-      const values = [];
-
-      for (let i = period - 1; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const key = d.toISOString().slice(0,10);
-
-        labels.push(d.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit" }));
-        values.push(Number(map.get(key) || 0));
-      }
-
-      if (state.charts.sales) {
-        state.charts.sales.data.labels = labels;
-        state.charts.sales.data.datasets[0].data = values;
-        state.charts.sales.update();
-      }
-    }
-
-    function updateCategoryChart() {
-      if (!state.charts.category) return;
-
-      const cats = Array.isArray(state.stats.categories) ? state.stats.categories : [];
-      if (!cats.length) {
-        state.charts.category.data.labels = ["Non calculé"];
-        state.charts.category.data.datasets[0].data = [1];
-        state.charts.category.update();
-        return;
-      }
-
-      const top = cats.slice(0, 8);
-      state.charts.category.data.labels = top.map(c => c.name);
-      state.charts.category.data.datasets[0].data = top.map(c => Number(c.qty || 0));
-      state.charts.category.update();
-    }
-
-    /* ===================== MAIN REFRESH ===================== */
-    async function refreshAll() {
-      try {
-        $("btnRefresh").disabled = true;
-
-        await loadOrders();
-        computeFromSheet();
-
-        updateCards();
-        updateTopProductsTable();
-        updateRecentOrdersTable();
-        updateSalesChart();
-        updateCategoryChart();
-
-        showToast("✅ Données chargées (action=list)", "success");
-      } catch (e) {
-        console.error(e);
-        showToast("❌ Erreur de connexion API", "error");
-      } finally {
-        $("btnRefresh").disabled = false;
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      initCharts();
-      $("salesPeriod").addEventListener("change", updateSalesChart);
-      $("btnRefresh").addEventListener("click", refreshAll);
-
-      refreshAll();
-      setInterval(refreshAll, 30000);
-    });
-  </script>
+    cur+=ch;
+  }
+  row.push(cur); rows.push(row);
+  return rows;
+}
+
+async function recupererCommandes(){
+  const res = await fetch(READ_CSV_URL, { cache:"no-store" });
+  if(!res.ok) throw new Error("CSV HTTP "+res.status);
+  const text = await res.text();
+  const rows = parseCsv(text);
+  if(!rows.length) return [];
+  const headers = rows[0].map(h=>(h||"").trim());
+  const out=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i]; if(!r) continue;
+    if(r.every(c=>String(c||"").trim()==="")) continue;
+    const obj={};
+    for(let c=0;c<headers.length;c++) obj[headers[c]||("col_"+c)] = r[c]??"";
+    out.push(obj);
+  }
+  return out;
+}
+
+function normalizeRow(r){
+  return {
+    date: r["Date"] || "",
+    nom: r["Nom"] || "",
+    telephone: r["Téléphone"] || r["Telephone"] || "",
+    adresse: r["Adresse"] || "",
+    articles: r["Articles (JSON)"] || r["Articles"] || "",
+    sousTotal: asNumber(r["Sous-total"] ?? r["Sous total"] ?? 0),
+    livraison: asNumber(r["Livraison"] ?? 0),
+    total: asNumber(r["Total"] ?? 0),
+    statut: r["Statut"] || ""
+  };
+}
+
+function matchFilter(x){
+  const term=q.value.trim().toLowerCase();
+  const st=status.value.trim();
+  if(st && String(x.statut).trim()!==st) return false;
+  if(!term) return true;
+  return [x.date,x.nom,x.telephone,x.adresse,x.statut,x.articles].join(" ").toLowerCase().includes(term);
+}
+
+function sortRows(rows){
+  const mode=sort.value; const copy=rows.slice();
+  copy.sort((a,b)=>{
+    if(mode==="date_desc") return parseDate(b.date)-parseDate(a.date);
+    if(mode==="date_asc") return parseDate(a.date)-parseDate(b.date);
+    if(mode==="total_desc") return b.total-a.total;
+    if(mode==="total_asc") return a.total-b.total;
+    return 0;
+  });
+  return copy;
+}
+
+function render(){
+  const filtered = sortRows(all.filter(matchFilter));
+
+  stCount.textContent = String(filtered.length);
+  stSum.textContent = filtered.reduce((s,x)=>s+asNumber(x.total),0).toFixed(2);
+  stSub.textContent = filtered.reduce((s,x)=>s+asNumber(x.sousTotal),0).toFixed(2);
+  stDel.textContent = filtered.reduce((s,x)=>s+asNumber(x.livraison),0).toFixed(2);
+
+  rowsInfo.textContent = `(${filtered.length} affichées / ${all.length} total)`;
+
+  if(!filtered.length){
+    tbody.innerHTML = `<tr><td colspan="9" class="hint">Aucune commande.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(x=>{
+    const art=String(x.articles||"");
+    const artShort = art.length>140? art.slice(0,140)+"…" : art;
+    return `
+    <tr>
+      <td class="hint">${escapeHtml(x.date)}</td>
+      <td>${escapeHtml(x.nom)}</td>
+      <td class="mono">${escapeHtml(x.telephone)}</td>
+      <td>${escapeHtml(x.adresse)}</td>
+      <td class="mono" title="${escapeHtml(art)}">${escapeHtml(artShort)}</td>
+      <td class="right mono">${x.sousTotal.toFixed(2)}</td>
+      <td class="right mono">${x.livraison.toFixed(2)}</td>
+      <td class="right mono">${x.total.toFixed(2)}</td>
+      <td><span class="tag">${escapeHtml(x.statut||"")}</span></td>
+    </tr>`;
+  }).join("");
+}
+
+async function load(){
+  clearMessages();
+  tbody.innerHTML = `<tr><td colspan="9" class="hint">Chargement…</td></tr>`;
+  try{
+    const rows = await recupererCommandes();
+    all = rows.map(normalizeRow);
+    lastLoad.textContent = "Dernier chargement : " + new Date().toLocaleString();
+    showOk("Lecture OK (CSV).");
+    render();
+  }catch(e){
+    console.error(e);
+    showError("Erreur connexion (CSV). Vérifie que le lien CSV est public. Détail: "+(e?.message||e));
+    tbody.innerHTML = `<tr><td colspan="9" class="hint">Erreur de chargement.</td></tr>`;
+    lastLoad.textContent = "Erreur de chargement.";
+  }
+}
+
+/*** Events ***/
+q.addEventListener("input", render);
+status.addEventListener("change", render);
+sort.addEventListener("change", render);
+$("btnRefresh").addEventListener("click", load);
+$("btnHome").addEventListener("click", ()=> location.href="./index.html");
+
+/*** Auto-load ***/
+load();
+
+/*** Petit test écriture (optionnel depuis console):
+    envoyerCommandeTest()
+***/
+window.envoyerCommandeTest = () => {
+  // IMPORTANT: no-cors => pas de réponse lisible, mais la requête part.
+  fetch(WRITE_API_URL, {
+    method:"POST",
+    mode:"no-cors",
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },
+    body: JSON.stringify({
+      nom:"TEST FINAL",
+      telephone:"111",
+      adresse:"Tunis",
+      articles:[{name:"Produit test", qty:1, price:5}],
+      sousTotal:5, livraison:3, total:8
+    })
+  });
+  console.log("POST envoyé (no-cors). Vérifie la feuille COMMANDES dans 5-10s.");
+};
+</script>
 </body>
 </html>
