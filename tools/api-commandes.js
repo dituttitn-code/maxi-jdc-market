@@ -4,7 +4,7 @@
 
 // ✅ ECRITURE (Apps Script /exec) - NOUVELLE URL
 const WRITE_API_URL =
-  "https://script.google.com/macros/s/AKfycbwKs58CxTeaANxbdLukMcr4PTPrkZS7KkQQadJq2EfXMPhDSlJbu8gzpY-ZX9TeHFVn/exec";
+  "https://script.google.com/macros/s/AKfycbyCbLgikzDFzK8CkNzku1Ga0yWjAnvzGp_gMo15qg-gilbIVojYi6SDqKJHQzIkvb0z/exec";
 
 // ✅ LECTURE (CSV Google Sheet publié)
 const READ_CSV_URL =
