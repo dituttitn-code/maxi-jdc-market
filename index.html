@@ -6179,38 +6179,97 @@ function getPanierArticles_() {
     btn.addEventListener("click", () => {
       console.log("✅ CLICK Commander → envoi API");
 
-      // 🔹 À REMPLACER PLUS TARD PAR TES VRAIES DONNÉES
+           // 🔹 À REMPLACER PLUS TARD PAR TES VRAIES DONNÉES
       const nom = "Lotfi";
       const telephone = "55532482";
       const adresse = "Carthage";
       const livraison = 3;
 
-      const articles = getPanierArticles_();
-if (!articles.length) {
-  alert("❌ Panier vide (aucun article trouvé).");
-  return;
-}
+      const articles = getCartArticles();
+      if (!articles.length) {
+        alert("❌ Panier vide (aucun article trouvé).");
+        return;
+      }
 
+      (async () => {
+        try {
+          await envoyerCommande({
+            nom,
+            telephone,
+            adresse,
+            livraison,
+            articles
+          });
 
-      envoyerCommande({
-        nom,
-        telephone,
-        adresse,
-        livraison,
-        articles
-      });
-
-      alert("✅ Commande envoyée !");
+          alert("✅ Commande envoyée !");
+        } catch (e) {
+          console.error(e);
+          alert("❌ Erreur envoi commande");
+        }
+      })();
     });
   });
+}
+
+/* ===================== PANIER SAFE ===================== */
+
+function safeJsonParse(v) {
+  try { return JSON.parse(v); } catch (e) { return null; }
+}
+
+function normalizeCartItem(it) {
+  if (!it) return null;
+
+  const name = (it.name || it.nom || it.title || "").toString().trim();
+  const qty = Number(it.qty ?? it.qte ?? it.quantite ?? it.quantity ?? 0);
+  const price = Number(it.price ?? it.prix ?? it.pu ?? it.unitPrice ?? 0);
+  const category = (it.category || it.categorie || it.cat || "Autre").toString().trim();
+
+  if (!name || !qty || !price) return null;
+  return { name, qty, price, category };
+}
+
+function getCartArticles() {
+  // 1️⃣ Variables globales
+  const candidates = [];
+  if (Array.isArray(window.cart)) candidates.push(window.cart);
+  if (Array.isArray(window.cartItems)) candidates.push(window.cartItems);
+  if (Array.isArray(window.panier)) candidates.push(window.panier);
+
+  for (const arr of candidates) {
+    const norm = arr.map(normalizeCartItem).filter(Boolean);
+    if (norm.length) return norm;
+  }
+
+  // 2️⃣ localStorage (plusieurs clés possibles)
+  const keys = ["cart", "panier", "cartItems", "panierItems"];
+  for (const k of keys) {
+    const raw = localStorage.getItem(k);
+    if (!raw) continue;
+    const parsed = safeJsonParse(raw);
+    if (Array.isArray(parsed)) {
+      const norm = parsed.map(normalizeCartItem).filter(Boolean);
+      if (norm.length) return norm;
+    }
+  }
+
+  return [];
+}
+
+/* ===================== FIN PANIER SAFE ===================== */
 </script>
 
+<!-- FORMULAIRE CACHÉ POUR ENVOI COMMANDE -->
+<form id="orderForm" style="display:none;">
+  <input type="hidden" id="order_nom">
+  <input type="hidden" id="order_telephone">
+  <input type="hidden" id="order_adresse">
+  <input type="hidden" id="order_articles">
+  <input type="hidden" id="order_livraison">
+</form>
 
-   </body>
+</body>
 </html>
-
-
-
 
 
 
