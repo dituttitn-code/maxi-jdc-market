@@ -1,124 +1,151 @@
-// tools/api-commandes.js  (GitHub Pages friendly via JSONP)
-// =======================================================
+// tools/api-commandes.js
+// =====================================================
+// API Commandes - GitHub Pages friendly (JSONP)
+// - Ajoute toujours sheet=COMMANDES
+// - Retourne un vrai {ok:true} ou {ok:false,error:"..."}
+// - Utilisation simple: await envoyerCommande({nom, telephone, adresse, livraison, articles})
+// =====================================================
 
-(() => {
-  "use strict";
+const API_COMMANDES =
+  "https://script.google.com/macros/s/AKfycbxpL1Iv3FL1aYy2EwwRyrian8Kv8wwASl43mrebdg0LoEd-ZX2LSPt1HOUQxVvqcbJh/exec";
 
-  // ✅ TON URL WebApp /exec (celle qui marche chez toi)
-  const API_URL =
-    "https://script.google.com/macros/s/AKfycbxpL1Iv3FL1aYy2EwwRyrian8Kv8wwASl43mrebdg0LoEd-ZX2LSPt1HOUQxVvqcbJh/exec";
+// ✅ Nom de l'onglet dans Google Sheet
+const SHEET_COMMANDES = "COMMANDES";
 
-  // -----------------------------
-  // JSONP helper (permet de lire la réponse)
-  // -----------------------------
-  function jsonp(params = {}, timeoutMs = 15000) {
-    return new Promise((resolve) => {
-      const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
-      const url = new URL(API_URL);
-      url.searchParams.set("callback", cb);
+// ---------------------------
+// JSONP helper
+// ---------------------------
+function gsJsonp(params = {}) {
+  return new Promise((resolve) => {
+    const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
 
-      Object.keys(params).forEach((k) => {
-        const v = params[k];
-        if (v === undefined || v === null) return;
-        url.searchParams.set(k, typeof v === "string" ? v : String(v));
-      });
+    let script = null;
 
-      let done = false;
-      const script = document.createElement("script");
+    const cleanup = () => {
+      try {
+        delete window[cbName];
+      } catch (_) {}
+      if (script && script.parentNode) script.parentNode.removeChild(script);
+      script = null;
+    };
 
-      const cleanup = () => {
-        if (done) return;
-        done = true;
-        try {
-          delete window[cb];
-        } catch (_) {}
-        if (script && script.parentNode) script.parentNode.removeChild(script);
-      };
+    const timeout = setTimeout(() => {
+      cleanup();
+      resolve({ ok: false, error: "Timeout (Apps Script ne répond pas)" });
+    }, 15000);
 
-      const timer = setTimeout(() => {
-        cleanup();
-        resolve({ ok: false, error: "Timeout API (JSONP)" });
-      }, timeoutMs);
+    window[cbName] = (res) => {
+      clearTimeout(timeout);
+      cleanup();
+      if (!res) return resolve({ ok: false, error: "Réponse vide" });
+      resolve(res);
+    };
 
-      window[cb] = (res) => {
-        clearTimeout(timer);
-        cleanup();
-        resolve(res || { ok: false, error: "Réponse vide API" });
-      };
+    const url = new URL(API_COMMANDES);
+    url.searchParams.set("callback", cbName);
 
-      script.src = url.toString();
-      script.onerror = () => {
-        clearTimeout(timer);
-        cleanup();
-        resolve({ ok: false, error: "Erreur réseau/JSONP (URL/AdBlock/offline)" });
-      };
+    // ✅ important : forcer le bon onglet côté Apps Script si ton Code.gs le supporte
+    url.searchParams.set("sheet", SHEET_COMMANDES);
 
-      document.body.appendChild(script);
+    // ajouter params
+    Object.keys(params || {}).forEach((k) => {
+      const v = params[k];
+      if (v === undefined || v === null) return;
+      url.searchParams.set(k, typeof v === "string" ? v : String(v));
     });
-  }
 
-  // -----------------------------
-  // Normalisation articles (évite erreurs qty/price)
-  // -----------------------------
-  function normalizeArticles(articles) {
-    const arr = Array.isArray(articles) ? articles : [];
-    return arr
-      .map((it) => {
-        const name = String(it?.name ?? it?.nom ?? it?.libelle ?? "").trim();
-        const qty = Number(it?.qty ?? it?.qte ?? it?.quantite ?? it?.quantity ?? 0) || 0;
-        const price = Number(it?.price ?? it?.prix ?? it?.pu ?? it?.unitPrice ?? 0) || 0;
-        const category = it?.category ?? it?.categorie ?? "";
-        return { name, qty, price, category };
-      })
-      .filter((x) => x.name && x.qty > 0);
-  }
+    script = document.createElement("script");
+    script.src = url.toString();
+    script.onerror = () => {
+      clearTimeout(timeout);
+      cleanup();
+      resolve({ ok: false, error: "Erreur réseau/JSONP (bloqueur, URL, offline)" });
+    };
 
-  // -----------------------------
-  // API publique
-  // -----------------------------
-  const CommandesAPI = {
-    ping() {
-      return jsonp({ action: "ping" });
-    },
+    document.body.appendChild(script);
+  });
+}
 
-    create({ nom, telephone, adresse, livraison = 0, articles = [], statut = "Nouveau" }) {
-      const cleanArticles = normalizeArticles(articles);
+// ---------------------------
+// API functions
+// ---------------------------
+async function pingCommandes() {
+  const res = await gsJsonp({ action: "ping" });
+  return normalizeRes(res);
+}
 
-      return jsonp({
-        action: "create",
-        nom: String(nom || "").trim(),
-        telephone: String(telephone || "").trim(),
-        adresse: String(adresse || "").trim(),
-        livraison: String(livraison || 0),
-        statut: String(statut || "Nouveau").trim() || "Nouveau",
-        articles: JSON.stringify(cleanArticles),
-      });
-    },
-
-    list() {
-      return jsonp({ action: "list" });
-    },
-
-    setStatus(rowIndex, statut) {
-      return jsonp({
-        action: "set_status",
-        rowIndex: String(rowIndex),
-        statut: String(statut || "").trim(),
-      });
-    },
-
-    delete(rowIndex) {
-      return jsonp({
-        action: "delete",
-        rowIndex: String(rowIndex),
-      });
-    },
+async function envoyerCommande({ nom, telephone, adresse, livraison = 0, articles = [], statut = "Nouveau" }) {
+  const payload = {
+    action: "create",
+    nom: String(nom || "").trim(),
+    telephone: String(telephone || "").trim(),
+    adresse: String(adresse || "").trim(),
+    livraison: String(livraison || 0),
+    statut: String(statut || "Nouveau").trim() || "Nouveau",
+    articles: JSON.stringify(articles || []),
   };
 
-  // ✅ globals (pour que ton code actuel puisse l’utiliser)
-  window.CommandesAPI = CommandesAPI;
+  // validation minimale
+  if (!payload.nom) return { ok: false, error: "Nom vide" };
+  if (!payload.telephone) return { ok: false, error: "Téléphone vide" };
+  if (!payload.adresse) return { ok: false, error: "Adresse vide" };
 
-  // Compat : si ton site appelle déjà envoyerCommande(...)
-  window.envoyerCommande = (payload) => CommandesAPI.create(payload);
+  const res = await gsJsonp(payload);
+  return normalizeRes(res);
+}
 
-})();
+async function listerCommandes() {
+  const res = await gsJsonp({ action: "list" });
+  return normalizeRes(res);
+}
+
+async function setStatut(rowIndex, statut) {
+  const res = await gsJsonp({
+    action: "set_status",
+    rowIndex: String(rowIndex),
+    statut: String(statut || "").trim(),
+  });
+  return normalizeRes(res);
+}
+
+async function supprimerCommande(rowIndex) {
+  const res = await gsJsonp({
+    action: "delete",
+    rowIndex: String(rowIndex),
+  });
+  return normalizeRes(res);
+}
+
+// ---------------------------
+// normalize: force {ok:boolean, error?:string}
+// ---------------------------
+function normalizeRes(res) {
+  // Certains scripts renvoient {status:"ok"} etc -> on standardise
+  if (!res || typeof res !== "object") return { ok: false, error: "Réponse invalide" };
+
+  // Si Apps Script renvoie ok:true -> parfait
+  if (res.ok === true) return res;
+
+  // Si ok absent mais action existe et pas d'erreur
+  if (res.ok === undefined && res.error === undefined && res.action) {
+    return { ok: true, ...res };
+  }
+
+  // Sinon erreur
+  const err = res.error || res.message || "Erreur inconnue";
+  return { ok: false, ...res, error: String(err) };
+}
+
+// ---------------------------
+// Expose global API
+// ---------------------------
+window.CommandesAPI = {
+  ping: pingCommandes,
+  create: envoyerCommande,
+  list: listerCommandes,
+  setStatus: setStatut,
+  delete: supprimerCommande,
+};
+
+// compat ancien nom (si ton code appelle encore envoyerCommande())
+window.envoyerCommande = envoyerCommande;
