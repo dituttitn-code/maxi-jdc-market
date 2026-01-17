@@ -255,8 +255,13 @@
 
   <script>
     /* ===================== CONFIG ===================== */
-    // ✅ IMPORTANT : URL /exec SEULE (SANS ?data=1)
-    const API_URL = "https://script.google.com/macros/s/AKfycbz7hSAp2KOixv4JUEXGgWFnpw09oIuH1EawLCVQq6e7R_5VmjKjPD9Z6Gw5Ai8J1RQW/exec";
+    // ✅ LECTURE: CSV (compatible GitHub Pages)
+    const READ_CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnzZS17O7qIf35FOQHZfOXRDS-tZDCBmze4FkEEfw2kY5KdEj4Kj9ycv-1J4y_i-2_YKKnp9P48MFy/pub?gid=1804772268&single=true&output=csv";
+
+    // ✅ ECRITURE: Apps Script (pas utilisé par le dashboard, mais gardé)
+    const WRITE_API_URL =
+      "https://script.google.com/macros/s/AKfycbwKs58CxTeaANxbdLukMcr4PTPrkZS7KkQQadJq2EfXMPhDSlJbu8gzpY-ZX9TeHFVn/exec";
 
     const state = {
       orders: [],
@@ -298,96 +303,139 @@
       return String(x);
     }
 
-    function formatDate(dateValue) {
-      const d = new Date(dateValue);
-      if (isNaN(d.getTime())) return safeText(dateValue);
-      return d.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" });
+    function parseSheetDate(value) {
+      // format attendu: "16/01/2026 12:55:33"
+      const s = safeText(value).trim();
+      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+      if (m) {
+        const dd = +m[1], mm = +m[2]-1, yy = +m[3];
+        const hh = +(m[4]||0), mi = +(m[5]||0), ss = +(m[6]||0);
+        return new Date(yy, mm, dd, hh, mi, ss);
+      }
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
     }
 
-    /* ===================== JSONP (anti-CORS) ===================== */
-    function fetchJsonp(url) {
-      return new Promise((resolve, reject) => {
-        const cb = "cb_" + Math.random().toString(36).slice(2);
-        const script = document.createElement("script");
+    function formatDate(dateValue) {
+      const d = (dateValue instanceof Date) ? dateValue : parseSheetDate(dateValue);
+      if (!d) return safeText(dateValue);
+      return d.toLocaleString("fr-FR", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+    }
 
-        window[cb] = (data) => {
-          try { delete window[cb]; } catch(e) {}
-          script.remove();
-          resolve(data);
-        };
+    /* ===================== CSV Parser robuste ===================== */
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let cur = "";
+      let inQuotes = false;
 
-        script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
-        script.onerror = () => {
-          try { delete window[cb]; } catch(e) {}
-          script.remove();
-          reject(new Error("JSONP error"));
-        };
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const next = text[i + 1];
 
-        document.body.appendChild(script);
-      });
+        if (ch === '"' && inQuotes && next === '"') { cur += '"'; i++; continue; }
+        if (ch === '"') { inQuotes = !inQuotes; continue; }
+
+        if (ch === "," && !inQuotes) { row.push(cur); cur = ""; continue; }
+
+        if ((ch === "\n" || ch === "\r") && !inQuotes) {
+          if (ch === "\r" && next === "\n") i++;
+          row.push(cur); rows.push(row);
+          row = []; cur = "";
+          continue;
+        }
+        cur += ch;
+      }
+      row.push(cur);
+      rows.push(row);
+      return rows;
+    }
+
+    async function fetchCsvObjects(url) {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error("CSV HTTP " + res.status);
+
+      const csvText = await res.text();
+      const rows = parseCsv(csvText);
+      if (!rows.length) return [];
+
+      const headers = rows[0].map(h => (h || "").trim());
+      const data = [];
+
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r || r.every(c => String(c || "").trim() === "")) continue;
+
+        const obj = {};
+        for (let c = 0; c < headers.length; c++) obj[headers[c] || `col_${c}`] = r[c] ?? "";
+        data.push(obj);
+      }
+      return data;
     }
 
     /* ===================== Mapping Google Sheet -> orders ===================== */
+    function safeJsonParseArray(str) {
+      const s = safeText(str).trim();
+      if (!s) return [];
+      try {
+        const v = JSON.parse(s);
+        if (Array.isArray(v)) return v;
+        if (v && typeof v === "object") return [v];
+        return [];
+      } catch {
+        return [];
+      }
+    }
+
     function rowToOrder(row) {
       // Champs Google Sheet
-      const date = row["Date"] || row["date"] || row["DATE"] || new Date().toISOString();
-      const total = Number(row["Total"] ?? row["total"] ?? 0);
+      const dateStr = row["Date"] || row["date"] || row["DATE"] || "";
+      const dateObj = parseSheetDate(dateStr) || new Date();
+
+      const total = Number(String(row["Total"] ?? row["total"] ?? 0).replace(",", ".") || 0);
+      const sousTotal = Number(String(row["Sous-total"] ?? row["Sous total"] ?? row["sousTotal"] ?? 0).replace(",", ".") || 0);
+      const livraison = Number(String(row["Livraison"] ?? row["livraison"] ?? 0).replace(",", ".") || 0);
 
       const clientName = row["Nom"] || row["Client"] || row["clientName"] || "";
       const clientPhone = row["Téléphone"] || row["Telephone"] || row["clientPhone"] || "";
       const status = row["Statut"] || row["status"] || "Nouveau";
 
       // Articles (JSON)
-      let itemsRaw = row["Articles (JSON)"] || row["Articles"] || row["items"] || "[]";
-      let items = [];
-      try {
-        if (typeof itemsRaw === "string") itemsRaw = JSON.parse(itemsRaw);
-        if (Array.isArray(itemsRaw)) {
-          items = itemsRaw.map((it) => {
-            const name = it.name || it.produit || it.title || "Produit";
-            const quantity = Number(it.qty ?? it.quantity ?? 1);
-            const price = Number(it.price ?? it.prix ?? 0);
-            const totalItem = Number(it.total ?? (price * quantity));
-            return {
-              code: it.code || name,
-              name,
-              quantity,
-              total: totalItem
-            };
-          });
-        }
-      } catch (e) {
-        items = [];
-      }
+      const itemsRaw = row["Articles (JSON)"] || row["Articles"] || row["items"] || "[]";
+      const itemsArr = safeJsonParseArray(itemsRaw);
 
-      // id stable
-      const id = row["ID"] || row["Id"] || row["id"] || (safeText(date) + "_" + safeText(clientPhone) + "_" + total);
+      const items = itemsArr.map((it) => {
+        const name = it.name || it.produit || it.title || "Produit";
+        const quantity = Number(it.qty ?? it.quantity ?? it.quantite ?? 1) || 1;
+        const price = Number(it.price ?? it.prix ?? 0) || 0;
+        const totalItem = Number(it.total ?? (price * quantity)) || 0;
+        return { code: it.code || name, name, quantity, total: totalItem };
+      });
+
+      const id = row["ID"] || row["Id"] || row["id"] || (dateStr + "_" + clientPhone + "_" + total);
 
       return {
         id,
-        date,
+        date: dateObj,
+        dateStr,
         total,
+        sousTotal,
+        livraison,
         clientName,
         clientPhone,
         status,
-        savings: Number(row["Économies"] ?? row["Economies"] ?? row["savings"] ?? 0),
         items
       };
     }
 
-    /* ===================== Load from Apps Script ===================== */
+    /* ===================== Load Orders (CSV) ===================== */
     async function loadOrders() {
-      // On ajoute data=1 ici (pas dans API_URL)
-      const json = await fetchJsonp(API_URL + "?data=1");
-      if (!json || json.ok !== true) throw new Error((json && json.error) ? json.error : "Réponse API invalide");
-
-      const rows = Array.isArray(json.data) ? json.data : [];
+      const rows = await fetchCsvObjects(READ_CSV_URL);
       const orders = rows.map(rowToOrder);
 
-      // Trier par date desc
-      orders.sort((a,b) => new Date(b.date) - new Date(a.date));
-
+      orders.sort((a,b) => (b.date?.getTime?.() || 0) - (a.date?.getTime?.() || 0));
       state.orders = orders;
+
       $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
     }
 
@@ -406,45 +454,32 @@
     function calculateAnalytics() {
       const orders = state.orders || [];
 
-      // Totaux
       const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
       const totalOrders = orders.length;
       const avgOrderValue = totalOrders ? (totalRevenue / totalOrders) : 0;
 
-      // Top produits
-      const productSales = new Map(); // key-> {name, qty, revenue}
-      const categories = {};          // cat -> {revenue, items, orders}
-      const salesByDay = {};          // dd/mm -> revenue
+      const productSales = new Map(); // name -> {name, qty, revenue}
+      const categories = {};          // cat -> {revenue}
+      const salesByDay = {};          // dd/mm/yyyy -> revenue
 
       for (const order of orders) {
-        // Ventes par jour
-        const d = new Date(order.date);
-        const dayKey = isNaN(d.getTime()) ? safeText(order.date) : d.toLocaleDateString("fr-FR");
+        const dayKey = order.date ? order.date.toLocaleDateString("fr-FR") : safeText(order.dateStr);
         salesByDay[dayKey] = (salesByDay[dayKey] || 0) + Number(order.total || 0);
 
-        // Catégories : compter 1 commande par catégorie touchée
-        const touchedCats = new Set();
-
         for (const it of (order.items || [])) {
-          const key = it.code || it.name || "Produit";
+          const key = it.name || "Produit";
           const qty = Number(it.quantity || 0);
           const rev = Number(it.total || 0);
 
-          if (!productSales.has(key)) {
-            productSales.set(key, { name: it.name || key, quantity: 0, revenue: 0 });
-          }
+          if (!productSales.has(key)) productSales.set(key, { name: key, quantity: 0, revenue: 0 });
           const obj = productSales.get(key);
           obj.quantity += qty;
           obj.revenue += rev;
 
           const cat = getCategoryFromItemName(it.name);
-          if (!categories[cat]) categories[cat] = { revenue: 0, items: 0, orders: 0 };
+          if (!categories[cat]) categories[cat] = { revenue: 0 };
           categories[cat].revenue += rev;
-          categories[cat].items += qty;
-          touchedCats.add(cat);
         }
-
-        touchedCats.forEach(cat => categories[cat].orders++);
       }
 
       const topProducts = Array.from(productSales.values())
@@ -477,9 +512,7 @@
       for (const p of (state.analytics.topProducts || [])) {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>
-            <div style="font-weight:900">${safeText(p.name)}</div>
-          </td>
+          <td><div style="font-weight:900">${safeText(p.name)}</div></td>
           <td style="font-weight:900">${Number(p.quantity||0)}</td>
           <td style="font-weight:900;color:var(--green)">${formatPrice(p.revenue)}</td>
         `;
@@ -505,9 +538,7 @@
             <div style="font-size:12px;color:var(--muted)">${safeText(o.clientPhone)}</div>
           </td>
           <td style="font-weight:900;color:var(--green)">${formatPrice(o.total)}</td>
-          <td>
-            <span style="font-weight:1000;color:${statusColor}">${status}</span>
-          </td>
+          <td><span style="font-weight:1000;color:${statusColor}">${status}</span></td>
         `;
         recBody.appendChild(tr);
       }
@@ -520,7 +551,6 @@
 
     /* ===================== Charts ===================== */
     function initCharts() {
-      // Sales
       const salesCtx = $("salesChart").getContext("2d");
       state.charts.sales = new Chart(salesCtx, {
         type: "line",
@@ -535,7 +565,6 @@
         }
       });
 
-      // Category
       const catCtx = $("categoryChart").getContext("2d");
       state.charts.category = new Chart(catCtx, {
         type: "doughnut",
@@ -551,7 +580,6 @@
       const period = Number($("salesPeriod").value || 30);
       const salesByDay = state.analytics.salesByDay || {};
 
-      // Construire liste de dates des N derniers jours
       const labels = [];
       const values = [];
       for (let i = period - 1; i >= 0; i--) {
@@ -568,7 +596,6 @@
         state.charts.sales.update();
       }
 
-      // Categories top 8
       const cats = Object.entries(state.analytics.categories || {})
         .sort((a,b) => (b[1].revenue||0) - (a[1].revenue||0))
         .slice(0, 8);
@@ -584,14 +611,16 @@
     async function refreshAll() {
       try {
         $("btnRefresh").disabled = true;
-        await loadOrders();
-        calculateAnalytics();
-        updateUI();
-        updateCharts();
-        showToast("✅ Données chargées depuis Google Sheet", "success");
+
+        await loadOrders();          // ✅ CSV
+        calculateAnalytics();        // ✅ calcul stats + top produit
+        updateUI();                  // ✅ UI identique
+        updateCharts();              // ✅ charts identiques
+
+        showToast("✅ Données chargées depuis Google Sheet (CSV)", "success");
       } catch (e) {
         console.error(e);
-        showToast("❌ Erreur de connexion API", "error");
+        showToast("❌ Erreur lecture CSV (vérifie Publish to web + output=csv)", "error");
       } finally {
         $("btnRefresh").disabled = false;
       }
@@ -602,10 +631,7 @@
       $("salesPeriod").addEventListener("change", () => updateCharts());
       $("btnRefresh").addEventListener("click", () => refreshAll());
 
-      // Chargement initial
       refreshAll();
-
-      // Auto-refresh toutes les 30 secondes
       setInterval(refreshAll, 30000);
     });
   </script>
