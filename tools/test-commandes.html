@@ -1,1 +1,76 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Test Commandes → Google Sheet</title>
+  <style>
+    body{font-family:Arial, sans-serif; padding:16px; max-width:700px; margin:auto;}
+    input, textarea{width:100%; padding:10px; margin:6px 0;}
+    button{padding:10px 14px; cursor:pointer;}
+    pre{background:#111; color:#0f0; padding:10px; overflow:auto;}
+  </style>
+</head>
+<body>
+
+  <h2>Test enregistrement commande (Google Sheet)</h2>
+
+  <button id="btnPing">PING API</button>
+
+  <hr>
+
+  <form id="f">
+    <input id="nom" placeholder="Nom" value="Lotfi" required />
+    <input id="tel" placeholder="Téléphone" value="+216 55532482" required />
+    <input id="adr" placeholder="Adresse" value="Carthage" required />
+    <input id="liv" placeholder="Livraison (ex: 3)" value="3" />
+
+    <textarea id="arts" rows="6" placeholder='Articles JSON'
+>[
+  {"name":"CAKE VANILLE VANOISE (2721)","qty":2,"price":6.40},
+  {"name":"10 CAPSULES INTENSE-GOLDEN COFFEE (4420)","qty":3,"price":17.90}
+]
+    </textarea>
+
+    <button type="submit">ENREGISTRER DANS SHEET</button>
+  </form>
+
+  <h3>Réponse</h3>
+  <pre id="out"></pre>
+
+  <script src="./api-commandes.js"></script>
+  <script>
+    const out = document.getElementById("out");
+
+    document.getElementById("btnPing").onclick = async () => {
+      const res = await CommandesAPI.ping();
+      out.textContent = JSON.stringify(res, null, 2);
+      alert(res.ok ? "✅ PING OK" : "❌ PING KO: " + (res.error || ""));
+    };
+
+    document.getElementById("f").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      let articles = [];
+      try { articles = JSON.parse(document.getElementById("arts").value); }
+      catch { alert("❌ Articles JSON invalide"); return; }
+
+      const payload = {
+        nom: document.getElementById("nom").value,
+        telephone: document.getElementById("tel").value,
+        adresse: document.getElementById("adr").value,
+        livraison: Number(document.getElementById("liv").value || 0),
+        articles
+      };
+
+      const res = await CommandesAPI.create(payload);
+      out.textContent = JSON.stringify(res, null, 2);
+
+      if (res && res.ok) alert("✅ Commande enregistrée !");
+      else alert("❌ Erreur: " + (res?.error || "inconnue"));
+    });
+  </script>
+
+</body>
+</html>
 
