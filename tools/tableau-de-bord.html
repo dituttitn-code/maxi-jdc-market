@@ -12,8 +12,8 @@
     .wrap { padding: 14px 18px; }
     .row { display:flex; gap:12px; flex-wrap: wrap; align-items: center; }
     .card { background: rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 14px; }
-    .stats { display:grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 12px; }
-    @media (max-width: 900px){ .stats{ grid-template-columns: repeat(2, minmax(160px, 1fr)); } }
+    .stats { display:grid; grid-template-columns: repeat(5, minmax(160px, 1fr)); gap: 12px; }
+    @media (max-width: 1050px){ .stats{ grid-template-columns: repeat(2, minmax(160px, 1fr)); } }
     .stat-title{ opacity:.8; font-size: 12px; }
     .stat-value{ font-size: 20px; font-weight: 700; margin-top: 6px; }
     .tools { margin-top: 12px; }
@@ -72,6 +72,11 @@
         <div class="stat-title">Livraison (filtré)</div>
         <div class="stat-value" id="stDel">—</div>
       </div>
+      <div class="card">
+        <div class="stat-title">Article le plus vendu (filtré)</div>
+        <div class="stat-value" id="stTopItem">—</div>
+        <div class="hint" id="stTopItemHint"></div>
+      </div>
     </div>
 
     <div class="card tools">
@@ -129,7 +134,7 @@
   </div>
 
   <script>
-    // ✅ TES 2 ADRESSES (mets ici et tu n'as plus besoin d'import)
+    // ✅ TES 2 ADRESSES
     const READ_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnzZS17O7qIf35FOQHZfOXRDS-tZDCBmze4FkEEfw2kY5KdEj4Kj9ycv-1J4y_i-2_YKKnp9P48MFy/pub?gid=1804772268&single=true&output=csv";
 
@@ -149,6 +154,9 @@
     const stSum = $("stSum");
     const stSub = $("stSub");
     const stDel = $("stDel");
+    const stTopItem = $("stTopItem");
+    const stTopItemHint = $("stTopItemHint");
+
     const lastLoad = $("lastLoad");
     const rowsInfo = $("rowsInfo");
     const errBox = $("errBox");
@@ -183,21 +191,44 @@
       if (!s) return 0;
       const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
       if (m) {
-        const dd = Number(m[1]), mm = Number(m[2]) - 1, yy = Number(m[3]);
-        const hh = Number(m[4] || 0), mi = Number(m[5] || 0), ss = Number(m[6] || 0);
-        return new Date(yy, mm, dd, hh, mi, ss).getTime();
+        return new Date(+m[3], +m[2]-1, +m[1], +(m[4]||0), +(m[5]||0), +(m[6]||0)).getTime();
       }
       const t = Date.parse(s);
       return Number.isFinite(t) ? t : 0;
     }
 
+    function escapeHtml(s) {
+      return String(s ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function safeParseArticles(raw) {
+      // raw peut être JSON string, ou vide
+      const s = String(raw ?? "").trim();
+      if (!s) return [];
+      try {
+        const val = JSON.parse(s);
+        // accept: array or object
+        if (Array.isArray(val)) return val;
+        if (val && typeof val === "object") return [val];
+        return [];
+      } catch {
+        return [];
+      }
+    }
+
     function normalizeRow(r) {
+      // Selon ton sheet: "Articles (JSON)" est la bonne colonne.
       return {
         date: r["Date"] || "",
         nom: r["Nom"] || "",
         telephone: r["Téléphone"] || r["Telephone"] || "",
         adresse: r["Adresse"] || "",
-        articles: r["Articles (JSON)"] || r["Articles"] || "",
+        articlesRaw: r["Articles (JSON)"] || r["Articles"] || "",
         sousTotal: asNumber(r["Sous-total"] ?? r["Sous total"] ?? 0),
         livraison: asNumber(r["Livraison"] ?? 0),
         total: asNumber(r["Total"] ?? 0),
@@ -210,7 +241,8 @@
       const st = status.value.trim();
       if (st && String(x.statut).trim() !== st) return false;
       if (!term) return true;
-      const blob = [x.date, x.nom, x.telephone, x.adresse, x.statut, x.articles].join(" ").toLowerCase();
+
+      const blob = [x.date, x.nom, x.telephone, x.adresse, x.statut, x.articlesRaw].join(" ").toLowerCase();
       return blob.includes(term);
     }
 
@@ -227,18 +259,30 @@
       return copy;
     }
 
-    function escapeHtml(s) {
-      return String(s ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    function computeTopArticle(filteredRows) {
+      // on additionne qty par nom d'article
+      const map = new Map(); // name -> qty
+      for (const row of filteredRows) {
+        const items = safeParseArticles(row.articlesRaw);
+        for (const it of items) {
+          const name = String(it?.name ?? it?.nom ?? "").trim();
+          if (!name) continue;
+          const qty = asNumber(it?.qty ?? it?.quantite ?? 1) || 1;
+          map.set(name, (map.get(name) || 0) + qty);
+        }
+      }
+      let bestName = "";
+      let bestQty = 0;
+      for (const [name, qty] of map.entries()) {
+        if (qty > bestQty) { bestQty = qty; bestName = name; }
+      }
+      return { name: bestName, qty: bestQty, distinct: map.size };
     }
 
     function render() {
       const filtered = sortRows(all.filter(matchFilter));
 
+      // Stats globales
       const count = filtered.length;
       const sumTotal = filtered.reduce((s, x) => s + asNumber(x.total), 0);
       const sumSub = filtered.reduce((s, x) => s + asNumber(x.sousTotal), 0);
@@ -249,15 +293,26 @@
       stSub.textContent = sumSub.toFixed(2);
       stDel.textContent = sumDel.toFixed(2);
 
+      // ✅ Top article
+      const top = computeTopArticle(filtered);
+      if (top.qty > 0) {
+        stTopItem.textContent = top.name;
+        stTopItemHint.textContent = `Quantité vendue: ${top.qty} • Articles distincts: ${top.distinct}`;
+      } else {
+        stTopItem.textContent = "—";
+        stTopItemHint.textContent = "Aucun article (JSON vide).";
+      }
+
       rowsInfo.textContent = `(${count} lignes affichées / ${all.length} total)`;
 
+      // Table
       if (!filtered.length) {
         tbody.innerHTML = `<tr><td colspan="9" class="small">Aucune commande trouvée (filtre).</td></tr>`;
         return;
       }
 
       tbody.innerHTML = filtered.map(x => {
-        const art = String(x.articles || "");
+        const art = String(x.articlesRaw || "");
         const artShort = art.length > 140 ? art.slice(0, 140) + "…" : art;
 
         return `
@@ -297,10 +352,8 @@
           row = []; cur = "";
           continue;
         }
-
         cur += ch;
       }
-
       row.push(cur);
       rows.push(row);
       return rows;
@@ -325,7 +378,6 @@
         for (let c = 0; c < headers.length; c++) obj[headers[c] || `col_${c}`] = r[c] ?? "";
         data.push(obj);
       }
-
       return data;
     }
 
@@ -357,7 +409,7 @@
     // auto-load
     load();
 
-    // outil test d'écriture depuis la console : envoyerCommandeTest()
+    // ✅ (option) test d'écriture depuis console: envoyerCommandeTest()
     window.envoyerCommandeTest = function () {
       fetch(WRITE_API_URL, {
         method: "POST",
