@@ -1,5 +1,5 @@
 // api-commandes.js
-const API_COMMANDES = "https://script.google.com/macros/s/AKfycbzV2CO58-kMEHTmBYxOEpTQo-x-TyCaZAX9k7W4bctsGZwO52aZ2Ye_-54vYJ2BlgtU/exec";
+const API_COMMANDES = "https://script.google.com/macros/s/AKfycbxpL1Iv3FL1aYy2EwwRyrian8Kv8wwASl43mrebdg0LoEd-ZX2LSPt1HOUQxVvqcbJh/exec";
 
 // articles: tableau [{name, qty, price, category}, ...]
 function envoyerCommande({ nom, telephone, adresse, livraison = 0, articles = [] }) {
