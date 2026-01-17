@@ -195,7 +195,7 @@
       <div class="card">
         <div class="sectionTitle">
           <h3>🍽️ Répartition par catégorie</h3>
-          <span class="sub">À venir (si topProduit/catégories sont calculés)</span>
+          <span class="sub">Basé sur Articles (JSON)</span>
         </div>
         <div class="chartBox">
           <canvas id="categoryChart"></canvas>
@@ -255,10 +255,14 @@
 
   <script>
     /* ===================== CONFIG ===================== */
+    // ✅ TON URL API
     const API_URL = "https://script.google.com/macros/s/AKfycbxpL1Iv3FL1aYy2EwwRyrian8Kv8wwASl43mrebdg0LoEd-ZX2LSPt1HOUQxVvqcbJh/exec";
 
     const state = {
+      headers: [],
+      rows: [],
       stats: { chiffreAffaires: 0, commandes: 0, panierMoyen: 0, topProduit: null, categories: [] },
+      topProducts: [],
       lastOrders: [],
       charts: { sales: null, category: null }
     };
@@ -282,55 +286,200 @@
 
     function safeText(x) { return (x === null || x === undefined) ? "" : String(x); }
 
-    function formatDate(dateValue) {
-      const d = new Date(dateValue);
-      if (isNaN(d.getTime())) return safeText(dateValue);
-      return d.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" });
+    // Support dd/MM/yyyy HH:mm:ss (format Apps Script) + ISO + Date
+    function parseDateSmart(v) {
+      if (!v) return null;
+      if (v instanceof Date && !isNaN(v.getTime())) return v;
+
+      const s = String(v).trim();
+
+      // ISO (2026-01-16T10:44:50.000Z)
+      const dIso = new Date(s);
+      if (!isNaN(dIso.getTime())) return dIso;
+
+      // dd/MM/yyyy HH:mm:ss
+      const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+      if (m) {
+        const dd = Number(m[1]), mm = Number(m[2]) - 1, yyyy = Number(m[3]);
+        const HH = Number(m[4] || 0), MI = Number(m[5] || 0), SS = Number(m[6] || 0);
+        const d = new Date(yyyy, mm, dd, HH, MI, SS);
+        if (!isNaN(d.getTime())) return d;
+      }
+
+      return null;
     }
 
-    // JSONP (évite CORS et évite les erreurs fetch selon navigateur)
+    function formatDate(dateValue) {
+      const d = parseDateSmart(dateValue);
+      if (!d) return safeText(dateValue);
+      return d.toLocaleString("fr-FR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+    }
+
+    function toNumber(v, def=0) {
+      if (v === null || v === undefined) return def;
+      if (typeof v === "number" && isFinite(v)) return v;
+      const s = String(v).toLowerCase().replace(/dt/g,"").replace(/\s+/g,"").replace(",",".");
+      const n = Number(s);
+      return isFinite(n) ? n : def;
+    }
+
+    function safeJsonParse(txt) {
+      try { return JSON.parse(txt); } catch(e) { return null; }
+    }
+
+    /* ===================== JSONP ===================== */
     function fetchJsonp(url) {
       return new Promise((resolve, reject) => {
         const cb = "cb_" + Math.random().toString(36).slice(2);
         const script = document.createElement("script");
+
         window[cb] = (data) => {
           try { delete window[cb]; } catch(e) {}
           script.remove();
           resolve(data);
         };
+
         script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
         script.onerror = () => {
           try { delete window[cb]; } catch(e) {}
           script.remove();
           reject(new Error("JSONP error"));
         };
+
         document.body.appendChild(script);
       });
     }
 
     async function apiGetJsonp(params) {
+      // ajoute anti-cache
       const url = API_URL + params + (params.includes("?") ? "&" : "?") + "t=" + Date.now();
       const data = await fetchJsonp(url);
       if (!data || data.ok !== true) throw new Error(data?.error || "Réponse API invalide");
       return data;
     }
 
-    // Ton Code.gs renvoie stats + lastOrders dans action=stats
-    async function loadStatsAndLastOrders() {
-      // ping pour vérifier rapidement
+    /* ===================== DATA LOADING ===================== */
+    async function loadOrders() {
+      // ping (facultatif mais utile)
       await apiGetJsonp("?action=ping");
 
-      const data = await apiGetJsonp("?action=stats");
-      state.stats.chiffreAffaires = Number(data.chiffreAffaires || 0);
-      state.stats.commandes = Number(data.commandes || 0);
-      state.stats.panierMoyen = Number(data.panierMoyen || 0);
-      state.stats.topProduit = data.topProduit || null;
-      state.stats.categories = Array.isArray(data.categories) ? data.categories : [];
-      state.lastOrders = Array.isArray(data.lastOrders) ? data.lastOrders : [];
+      // IMPORTANT: ton Code.gs supporte list, pas stats
+      const data = await apiGetJsonp("?action=list");
+
+      state.headers = Array.isArray(data.headers) ? data.headers : [];
+      state.rows = Array.isArray(data.rows) ? data.rows : [];
 
       $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
     }
 
+    /* ===================== COMPUTE STATS (from rows) ===================== */
+    function buildIndexMap(headers) {
+      const map = {};
+      headers.forEach((h, i) => map[String(h).trim().toLowerCase()] = i);
+      return map;
+    }
+
+    function computeFromSheet() {
+      const idx = buildIndexMap(state.headers);
+
+      // Colonnes attendues (selon ta sheet)
+      const iDate = idx["date"] ?? 0;
+      const iNom = idx["nom"] ?? 1;
+      const iArticles = idx["articles (json)"] ?? idx["articles(json)"] ?? 4;
+      const iSousTotal = idx["sous-total"] ?? idx["sous total"] ?? 5;
+      const iLivraison = idx["livraison"] ?? 6;
+      const iTotal = idx["total"] ?? 7;
+      const iStatut = idx["statut"] ?? 8;
+
+      let revenue = 0;
+      const orders = [];
+
+      // produit -> {qty, revenue}
+      const prodMap = new Map();
+      // catégorie -> qty
+      const catMap = new Map();
+
+      for (const r of state.rows) {
+        const dateRaw = r[iDate];
+        const nom = r[iNom];
+        const total = toNumber(r[iTotal], toNumber(r[iSousTotal], 0) + toNumber(r[iLivraison], 0));
+        const statut = r[iStatut];
+
+        revenue += total;
+
+        orders.push({
+          date: dateRaw,
+          dateObj: parseDateSmart(dateRaw),
+          nom: nom,
+          total: total,
+          statut: statut
+        });
+
+        // Articles JSON (peut être string JSON, ou vide, ou texte)
+        const artCell = r[iArticles];
+        let articlesArr = [];
+
+        if (Array.isArray(artCell)) {
+          articlesArr = artCell;
+        } else if (typeof artCell === "string") {
+          const s = artCell.trim();
+          const parsed = safeJsonParse(s);
+          if (Array.isArray(parsed)) articlesArr = parsed;
+          else articlesArr = []; // ex: "Thon" => pas de détail
+        }
+
+        for (const it of articlesArr) {
+          const name = safeText(it?.name || it?.nom || "").trim() || "Produit";
+          const qty = toNumber(it?.qty ?? it?.qte ?? it?.quantite ?? it?.quantity, 0);
+          const price = toNumber(it?.price ?? it?.prix ?? it?.pu ?? it?.unitPrice, 0);
+          const lineRevenue = qty * price;
+
+          const prev = prodMap.get(name) || { qty: 0, revenue: 0 };
+          prev.qty += qty;
+          prev.revenue += lineRevenue;
+          prodMap.set(name, prev);
+
+          const cat = safeText(it?.category || it?.categorie || "Autre").trim() || "Autre";
+          catMap.set(cat, (catMap.get(cat) || 0) + qty);
+        }
+      }
+
+      const commandes = orders.length;
+      const panierMoyen = commandes ? (revenue / commandes) : 0;
+
+      // Top produits
+      const topProducts = Array.from(prodMap.entries())
+        .map(([name, v]) => ({ name, qty: v.qty, revenue: v.revenue }))
+        .sort((a,b) => (b.qty - a.qty) || (b.revenue - a.revenue));
+
+      const topProduit = topProducts[0] ? { name: topProducts[0].name, qty: topProducts[0].qty } : null;
+
+      // Catégories
+      const categories = Array.from(catMap.entries())
+        .map(([name, qty]) => ({ name, qty }))
+        .sort((a,b) => b.qty - a.qty);
+
+      // Dernières commandes (10)
+      const lastOrders = orders
+        .slice()
+        .sort((a,b) => {
+          const ta = a.dateObj ? a.dateObj.getTime() : 0;
+          const tb = b.dateObj ? b.dateObj.getTime() : 0;
+          return tb - ta;
+        })
+        .slice(0, 10);
+
+      state.stats.chiffreAffaires = revenue;
+      state.stats.commandes = commandes;
+      state.stats.panierMoyen = panierMoyen;
+      state.stats.topProduit = topProduit;
+      state.stats.categories = categories;
+
+      state.topProducts = topProducts.slice(0, 10);
+      state.lastOrders = lastOrders;
+    }
+
+    /* ===================== UI UPDATE ===================== */
     function updateCards() {
       $("totalRevenue").textContent = formatPrice(state.stats.chiffreAffaires);
       $("totalOrders").textContent = String(state.stats.commandes);
@@ -346,13 +495,13 @@
 
       for (const o of (state.lastOrders || [])) {
         const status = safeText(o.statut || "Nouveau");
-        const statusColor = status.toLowerCase().includes("liv") ? "var(--green)" : "var(--orange)";
+        const s = status.toLowerCase();
+        const statusColor = (s.includes("liv") || s.includes("done") || s.includes("ok")) ? "var(--green)" : "var(--orange)";
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${formatDate(o.date)}</td>
-          <td>
-            <div style="font-weight:900">${safeText(o.nom)}</div>
-          </td>
+          <td><div style="font-weight:900">${safeText(o.nom)}</div></td>
           <td style="font-weight:900;color:var(--green)">${formatPrice(o.total)}</td>
           <td><span style="font-weight:1000;color:${statusColor}">${status}</span></td>
         `;
@@ -366,28 +515,29 @@
       }
     }
 
-    // Comme ton API retourne topProduit=null (pour l’instant),
-    // on affiche une ligne vide, pas d’erreur.
     function updateTopProductsTable() {
       const body = $("topProductsBody");
       body.innerHTML = "";
 
-      const tp = state.stats.topProduit;
-      if (tp && tp.name) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><div style="font-weight:900">${safeText(tp.name)}</div></td>
-          <td style="font-weight:900">${Number(tp.qty || 0)}</td>
-          <td style="font-weight:900;color:var(--muted)">—</td>
-        `;
-        body.appendChild(tr);
+      const list = state.topProducts || [];
+      if (list.length) {
+        for (const p of list) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><div style="font-weight:900">${safeText(p.name)}</div></td>
+            <td style="font-weight:900">${Number(p.qty || 0)}</td>
+            <td style="font-weight:900;color:var(--muted)">${formatPrice(p.revenue || 0)}</td>
+          `;
+          body.appendChild(tr);
+        }
       } else {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td colspan="3" style="color:var(--muted)">Aucune donnée (topProduit non calculé dans l'API).</td>`;
+        tr.innerHTML = `<td colspan="3" style="color:var(--muted)">Aucune donnée (Articles JSON vides).</td>`;
         body.appendChild(tr);
       }
     }
 
+    /* ===================== CHARTS ===================== */
     function initCharts() {
       const salesCtx = $("salesChart").getContext("2d");
       state.charts.sales = new Chart(salesCtx, {
@@ -417,21 +567,33 @@
     function updateSalesChart() {
       const period = Number($("salesPeriod").value || 30);
 
-      // Dernières commandes -> map par jour
-      const map = new Map();
-      for (const o of (state.lastOrders || [])) {
-        const d = new Date(o.date);
-        const key = isNaN(d.getTime()) ? safeText(o.date) : d.toLocaleDateString("fr-FR");
-        map.set(key, (map.get(key) || 0) + Number(o.total || 0));
+      // On agrège sur TOUTES les commandes (pas juste last 10)
+      const idx = buildIndexMap(state.headers);
+      const iDate = idx["date"] ?? 0;
+      const iTotal = idx["total"] ?? 7;
+      const iSousTotal = idx["sous-total"] ?? 5;
+      const iLivraison = idx["livraison"] ?? 6;
+
+      const map = new Map(); // key=YYYY-MM-DD, value=total
+
+      for (const r of state.rows) {
+        const dObj = parseDateSmart(r[iDate]);
+        if (!dObj) continue;
+
+        const key = dObj.toISOString().slice(0,10); // YYYY-MM-DD
+        const total = toNumber(r[iTotal], toNumber(r[iSousTotal],0) + toNumber(r[iLivraison],0));
+        map.set(key, (map.get(key) || 0) + total);
       }
 
       const labels = [];
       const values = [];
+
       for (let i = period - 1; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const key = d.toLocaleDateString("fr-FR");
-        labels.push(key);
+        const key = d.toISOString().slice(0,10);
+
+        labels.push(d.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit" }));
         values.push(Number(map.get(key) || 0));
       }
 
@@ -443,8 +605,6 @@
     }
 
     function updateCategoryChart() {
-      // Ton Code.gs retourne categories: [] (pour l’instant)
-      // Donc on laisse “Non calculé” sans erreur
       if (!state.charts.category) return;
 
       const cats = Array.isArray(state.stats.categories) ? state.stats.categories : [];
@@ -461,11 +621,13 @@
       state.charts.category.update();
     }
 
+    /* ===================== MAIN REFRESH ===================== */
     async function refreshAll() {
       try {
         $("btnRefresh").disabled = true;
 
-        await loadStatsAndLastOrders();
+        await loadOrders();
+        computeFromSheet();
 
         updateCards();
         updateTopProductsTable();
@@ -473,7 +635,7 @@
         updateSalesChart();
         updateCategoryChart();
 
-        showToast("✅ Données chargées depuis l'API", "success");
+        showToast("✅ Données chargées (action=list)", "success");
       } catch (e) {
         console.error(e);
         showToast("❌ Erreur de connexion API", "error");
