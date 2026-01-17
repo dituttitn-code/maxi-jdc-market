@@ -6268,9 +6268,54 @@ function getCartArticles() {
   <input type="hidden" id="order_articles">
   <input type="hidden" id="order_livraison">
 </form>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>MAXI JDC MARKET</title>
+</head>
+
+<body>
+
+  <!-- TON CONTENU HTML -->
+  <h1>Commande</h1>
+
+  <button id="btnCommander">Envoyer commande</button>
+
+  <!-- ✅ ICI : SCRIPT JAVASCRIPT -->
+  <script>
+    document.getElementById("btnCommander").addEventListener("click", function () {
+
+      fetch("https://script.google.com/macros/s/AKfycbya_NjfouW0nd_A8Y657X34FCbXy71JUtJepJyubni4zZ0Vwt66PN8FpXbw7x8TUs5p/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nom: "CLIENT_SITE",
+          telephone: "999",
+          adresse: "Carthage",
+          items: [
+            { name: "Produit test", qty: 1, price: 5, category: "Test" }
+          ],
+          livraison: 3
+        })
+      })
+      .then(r => r.json())
+      .then(res => {
+        console.log(res);
+        alert("Commande envoyée !");
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Erreur commande");
+      });
+
+    });
+  </script>
 
 </body>
 </html>
+
+
 
 
 
