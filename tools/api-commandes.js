@@ -7,7 +7,7 @@
 // =====================================================
 
 const API_COMMANDES =
-  "https://script.google.com/macros/s/AKfycbxpL1Iv3FL1aYy2EwwRyrian8Kv8wwASl43mrebdg0LoEd-ZX2LSPt1HOUQxVvqcbJh/exec";
+  "https://script.google.com/macros/s/AKfycbyMa4TcmjykCb_O3VvjaakExOTfXk369B4FZ318WK4TC6jK50Qq9c7gaSuYUB-DS1yY/exec";
 
 // ✅ Nom de l'onglet dans Google Sheet
 const SHEET_COMMANDES = "COMMANDES";
