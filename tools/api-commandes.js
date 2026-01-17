@@ -2,15 +2,14 @@
  * CONFIG
  *********************************/
 
-// 1) URL pour ECRIRE (Apps Script Web App /exec)
+// 1) API d'ECRITURE (Apps Script /exec) -> pour enregistrer une commande
+// ⚠️ Mets ici TON URL /exec (celle de ton Apps Script pour l'enregistrement)
 const WRITE_API_URL =
   "https://script.google.com/macros/s/AKfycbyMa4TcmjykCb_O3VvjaakExOTfXk369B4FZ318WK4TC6jK50Qq9c7gaSuYUB-DS1yY/exec";
 
-// 2) URL pour LIRE (Google Sheet publié en CSV)
-// IMPORTANT: mets ici l'URL "pub?gid=...&single=true&output=csv"
+// 2) API de LECTURE (CSV publié) -> pour le tableau de bord
 const READ_CSV_URL =
-  "COLLE_ICI_TON_URL_CSV_PUB"; // ex: https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?gid=0&single=true&output=csv
-
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnzZS17O7qIf35FOQHZfOXRDS-tZDCBmze4FkEEfw2kY5KdEj4Kj9ycv-1J4y_i-2_YKKnp9P48MFy/pub?gid=1804772268&single=true&output=csv";
 
 /*********************************
  * 1) ENVOYER UNE COMMANDE (ECRITURE)
@@ -38,16 +37,11 @@ export function envoyerCommande(dataCommande) {
   });
 }
 
-
 /*********************************
  * 2) RECUPERER LES COMMANDES (LECTURE)
  * Lit le CSV public du Google Sheet et retourne un tableau d'objets
  *********************************/
 export async function recupererCommandes() {
-  if (!READ_CSV_URL || READ_CSV_URL.includes("COLLE_ICI")) {
-    throw new Error("READ_CSV_URL n'est pas configurée (URL CSV pub manquante).");
-  }
-
   const res = await fetch(READ_CSV_URL, { cache: "no-store" });
   if (!res.ok) throw new Error("Impossible de lire le CSV (HTTP " + res.status + ")");
 
@@ -56,14 +50,12 @@ export async function recupererCommandes() {
 
   if (!rows.length) return [];
 
-  // 1ère ligne = entêtes
-  const headers = rows[0].map(h => (h || "").trim());
-
-  // Les lignes suivantes = données
+  const headers = rows[0].map((h) => (h || "").trim());
   const data = [];
+
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
-    if (r.every(cell => String(cell || "").trim() === "")) continue;
+    if (!r || r.every((cell) => String(cell || "").trim() === "")) continue;
 
     const obj = {};
     for (let c = 0; c < headers.length; c++) {
@@ -74,7 +66,6 @@ export async function recupererCommandes() {
 
   return data;
 }
-
 
 /*********************************
  * CSV PARSER (simple + robuste)
@@ -90,7 +81,6 @@ function parseCsv(text) {
     const next = text[i + 1];
 
     if (ch === '"' && inQuotes && next === '"') {
-      // double quote -> " داخل قيمة quoted
       cur += '"';
       i++;
       continue;
@@ -115,7 +105,6 @@ function parseCsv(text) {
     cur += ch;
   }
 
-  // dernier champ
   row.push(cur);
   rows.push(row);
 
