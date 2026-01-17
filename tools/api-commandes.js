@@ -1,104 +1,124 @@
-// tools/api-commandes.js (GitHub Pages friendly - JSONP)
-// ======================================================
+// tools/api-commandes.js  (GitHub Pages friendly via JSONP)
+// =======================================================
 
-// ✅ TON URL WEB APP /exec (celle qui marche en ping)
-const API_COMMANDES = "https://script.google.com/macros/s/AKfycbxpL1Iv3FL1aYy2EwwRyrian8Kv8wwASl43mrebdg0LoEd-ZX2LSPt1HOUQxVvqcbJh/exec";
+(() => {
+  "use strict";
 
-/**
- * JSONP helper (évite CORS sur GitHub Pages)
- */
-function gsJsonp(params = {}, timeoutMs = 15000) {
-  return new Promise((resolve) => {
-    const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+  // ✅ TON URL WebApp /exec (celle qui marche chez toi)
+  const API_URL =
+    "https://script.google.com/macros/s/AKfycbxpL1Iv3FL1aYy2EwwRyrian8Kv8wwASl43mrebdg0LoEd-ZX2LSPt1HOUQxVvqcbJh/exec";
 
-    let done = false;
-    const timer = setTimeout(() => {
-      if (done) return;
-      done = true;
-      cleanup();
-      resolve({ ok: false, error: "Timeout JSONP (Apps Script ne répond pas)" });
-    }, timeoutMs);
+  // -----------------------------
+  // JSONP helper (permet de lire la réponse)
+  // -----------------------------
+  function jsonp(params = {}, timeoutMs = 15000) {
+    return new Promise((resolve) => {
+      const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
+      const url = new URL(API_URL);
+      url.searchParams.set("callback", cb);
 
-    function cleanup() {
-      clearTimeout(timer);
-      try { delete window[cbName]; } catch (_) {}
-      if (script && script.parentNode) script.parentNode.removeChild(script);
-    }
+      Object.keys(params).forEach((k) => {
+        const v = params[k];
+        if (v === undefined || v === null) return;
+        url.searchParams.set(k, typeof v === "string" ? v : String(v));
+      });
 
-    window[cbName] = (res) => {
-      if (done) return;
-      done = true;
-      cleanup();
-      resolve(res || { ok: false, error: "Réponse vide" });
-    };
+      let done = false;
+      const script = document.createElement("script");
 
-    const url = new URL(API_COMMANDES);
-    url.searchParams.set("callback", cbName);
+      const cleanup = () => {
+        if (done) return;
+        done = true;
+        try {
+          delete window[cb];
+        } catch (_) {}
+        if (script && script.parentNode) script.parentNode.removeChild(script);
+      };
 
-    Object.keys(params || {}).forEach((k) => {
-      const v = params[k];
-      if (v === undefined || v === null) return;
-      url.searchParams.set(k, String(v));
+      const timer = setTimeout(() => {
+        cleanup();
+        resolve({ ok: false, error: "Timeout API (JSONP)" });
+      }, timeoutMs);
+
+      window[cb] = (res) => {
+        clearTimeout(timer);
+        cleanup();
+        resolve(res || { ok: false, error: "Réponse vide API" });
+      };
+
+      script.src = url.toString();
+      script.onerror = () => {
+        clearTimeout(timer);
+        cleanup();
+        resolve({ ok: false, error: "Erreur réseau/JSONP (URL/AdBlock/offline)" });
+      };
+
+      document.body.appendChild(script);
     });
+  }
 
-    const script = document.createElement("script");
-    script.src = url.toString();
-    script.onerror = () => {
-      if (done) return;
-      done = true;
-      cleanup();
-      resolve({ ok: false, error: "Erreur réseau JSONP (URL, internet, bloqueur, etc.)" });
-    };
+  // -----------------------------
+  // Normalisation articles (évite erreurs qty/price)
+  // -----------------------------
+  function normalizeArticles(articles) {
+    const arr = Array.isArray(articles) ? articles : [];
+    return arr
+      .map((it) => {
+        const name = String(it?.name ?? it?.nom ?? it?.libelle ?? "").trim();
+        const qty = Number(it?.qty ?? it?.qte ?? it?.quantite ?? it?.quantity ?? 0) || 0;
+        const price = Number(it?.price ?? it?.prix ?? it?.pu ?? it?.unitPrice ?? 0) || 0;
+        const category = it?.category ?? it?.categorie ?? "";
+        return { name, qty, price, category };
+      })
+      .filter((x) => x.name && x.qty > 0);
+  }
 
-    document.body.appendChild(script);
-  });
-}
+  // -----------------------------
+  // API publique
+  // -----------------------------
+  const CommandesAPI = {
+    ping() {
+      return jsonp({ action: "ping" });
+    },
 
-// --------- API PUBLIC ---------
-window.CommandesAPI = {
-  // ✅ Test
-  ping: () => gsJsonp({ action: "ping" }),
+    create({ nom, telephone, adresse, livraison = 0, articles = [], statut = "Nouveau" }) {
+      const cleanArticles = normalizeArticles(articles);
 
-  // ✅ Create / appendRow
-  create: ({ nom, telephone, adresse, livraison = 0, articles = [], statut = "Nouveau" } = {}) => {
-    // validations simples côté client
-    nom = String(nom || "").trim();
-    telephone = String(telephone || "").trim();
-    adresse = String(adresse || "").trim();
+      return jsonp({
+        action: "create",
+        nom: String(nom || "").trim(),
+        telephone: String(telephone || "").trim(),
+        adresse: String(adresse || "").trim(),
+        livraison: String(livraison || 0),
+        statut: String(statut || "Nouveau").trim() || "Nouveau",
+        articles: JSON.stringify(cleanArticles),
+      });
+    },
 
-    if (!nom) return Promise.resolve({ ok: false, error: "Champ 'nom' obligatoire (client)." });
-    if (!telephone) return Promise.resolve({ ok: false, error: "Champ 'telephone' obligatoire (client)." });
-    if (!adresse) return Promise.resolve({ ok: false, error: "Champ 'adresse' obligatoire (client)." });
+    list() {
+      return jsonp({ action: "list" });
+    },
 
-    if (!Array.isArray(articles)) {
-      return Promise.resolve({ ok: false, error: "Champ 'articles' doit être un tableau." });
-    }
-    if (!articles.length) {
-      return Promise.resolve({ ok: false, error: "Champ 'articles' obligatoire (au moins 1 article)." });
-    }
+    setStatus(rowIndex, statut) {
+      return jsonp({
+        action: "set_status",
+        rowIndex: String(rowIndex),
+        statut: String(statut || "").trim(),
+      });
+    },
 
-    // IMPORTANT : envoyer qty/price (ton Code.gs calcule sousTotal)
-    const payload = {
-      action: "create",
-      nom,
-      telephone,
-      adresse,
-      livraison: Number(livraison) || 0,
-      statut: String(statut || "Nouveau").trim() || "Nouveau",
-      articles: JSON.stringify(articles),
-    };
+    delete(rowIndex) {
+      return jsonp({
+        action: "delete",
+        rowIndex: String(rowIndex),
+      });
+    },
+  };
 
-    return gsJsonp(payload);
-  },
+  // ✅ globals (pour que ton code actuel puisse l’utiliser)
+  window.CommandesAPI = CommandesAPI;
 
-  // ✅ List (si tu veux page suivi / tableau)
-  list: () => gsJsonp({ action: "list" }),
+  // Compat : si ton site appelle déjà envoyerCommande(...)
+  window.envoyerCommande = (payload) => CommandesAPI.create(payload);
 
-  // ✅ Update status (rowIndex >=2)
-  setStatus: (rowIndex, statut) =>
-    gsJsonp({ action: "set_status", rowIndex: Number(rowIndex), statut: String(statut || "").trim() }),
-
-  // ✅ Delete (rowIndex >=2)
-  delete: (rowIndex) =>
-    gsJsonp({ action: "delete", rowIndex: Number(rowIndex) }),
-};
+})();
