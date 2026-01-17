@@ -1,26 +1,24 @@
 /*********************************
- * CONFIG
+ * CONFIG (TES 2 ADRESSES)
  *********************************/
 
-// 1) API d'ECRITURE (Apps Script /exec) -> pour enregistrer une commande
-// ⚠️ Mets ici TON URL /exec (celle de ton Apps Script pour l'enregistrement)
+// ✅ ECRITURE (Apps Script /exec) - NOUVELLE URL
 const WRITE_API_URL =
-  "https://script.google.com/macros/s/AKfycbyMa4TcmjykCb_O3VvjaakExOTfXk369B4FZ318WK4TC6jK50Qq9c7gaSuYUB-DS1yY/exec";
+  "https://script.google.com/macros/s/AKfycbwKs58CxTeaANxbdLukMcr4PTPrkZS7KkQQadJq2EfXMPhDSlJbu8gzpY-ZX9TeHFVn/exec";
 
-// 2) API de LECTURE (CSV publié) -> pour le tableau de bord
+// ✅ LECTURE (CSV Google Sheet publié)
 const READ_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnzZS17O7qIf35FOQHZfOXRDS-tZDCBmze4FkEEfw2kY5KdEj4Kj9ycv-1J4y_i-2_YKKnp9P48MFy/pub?gid=1804772268&single=true&output=csv";
 
 /*********************************
- * 1) ENVOYER UNE COMMANDE (ECRITURE)
- * Compatible GitHub Pages (anti-CORS)
+ * ENVOYER UNE COMMANDE (ECRITURE)
  *********************************/
 export function envoyerCommande(dataCommande) {
   if (!dataCommande || typeof dataCommande !== "object") {
     throw new Error("Données de commande invalides.");
   }
 
-  // POST no-cors (on ne peut pas lire la réponse, c'est normal)
+  // no-cors = indispensable sur GitHub Pages (sinon CORS)
   return fetch(WRITE_API_URL, {
     method: "POST",
     mode: "no-cors",
@@ -38,8 +36,7 @@ export function envoyerCommande(dataCommande) {
 }
 
 /*********************************
- * 2) RECUPERER LES COMMANDES (LECTURE)
- * Lit le CSV public du Google Sheet et retourne un tableau d'objets
+ * RECUPERER LES COMMANDES (LECTURE CSV)
  *********************************/
 export async function recupererCommandes() {
   const res = await fetch(READ_CSV_URL, { cache: "no-store" });
@@ -47,7 +44,6 @@ export async function recupererCommandes() {
 
   const csvText = await res.text();
   const rows = parseCsv(csvText);
-
   if (!rows.length) return [];
 
   const headers = rows[0].map((h) => (h || "").trim());
@@ -68,7 +64,7 @@ export async function recupererCommandes() {
 }
 
 /*********************************
- * CSV PARSER (simple + robuste)
+ * CSV PARSER (robuste)
  *********************************/
 function parseCsv(text) {
   const rows = [];
@@ -110,3 +106,8 @@ function parseCsv(text) {
 
   return rows;
 }
+
+/*********************************
+ * BONUS: test depuis Console
+ *********************************/
+window.apiCommandes = { envoyerCommande, recupererCommandes };
