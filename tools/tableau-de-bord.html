@@ -6,282 +6,375 @@
   <title>Tableau de Bord - MAXI JDC MARKET</title>
   <style>
     :root { color-scheme: dark; }
-    body { margin:0; font-family: Arial, sans-serif; background:#071624; color:#e8f0ff; }
-    header { padding:16px 18px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; justify-content:space-between; gap:12px; align-items:center; }
-    header h1 { font-size:18px; margin:0; }
-    .wrap { padding:14px 18px; }
-    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-    .card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:12px 14px; }
-    .stats { display:grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap:12px; }
-    @media (max-width:900px){ .stats{ grid-template-columns: repeat(2, minmax(160px, 1fr)); } }
-    .stat-title{ opacity:.8; font-size:12px; }
-    .stat-value{ font-size:20px; font-weight:700; margin-top:6px; }
+    body { margin: 0; font-family: Arial, sans-serif; background:#071624; color:#e8f0ff; }
+    header { padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,.08); display:flex; gap:12px; align-items:center; justify-content:space-between; }
+    header h1 { font-size: 18px; margin: 0; }
+    .wrap { padding: 14px 18px; }
+    .row { display:flex; gap:12px; flex-wrap: wrap; align-items: center; }
+    .card { background: rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 14px; }
+    .stats { display:grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 12px; }
+    @media (max-width: 900px){ .stats{ grid-template-columns: repeat(2, minmax(160px, 1fr)); } }
+    .stat-title{ opacity:.8; font-size: 12px; }
+    .stat-value{ font-size: 20px; font-weight: 700; margin-top: 6px; }
+    .tools { margin-top: 12px; }
     input, select, button{
       background: rgba(255,255,255,.06);
       color:#e8f0ff;
       border:1px solid rgba(255,255,255,.12);
-      border-radius:10px;
-      padding:10px 12px;
-      outline:none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      outline: none;
     }
     button{ cursor:pointer; }
     button:hover{ border-color: rgba(255,255,255,.25); }
-    .hint { opacity:.75; font-size:12px; }
-    .error { background: rgba(255,0,0,.12); border:1px solid rgba(255,0,0,.35); padding:10px 12px; border-radius:10px; margin-top:12px; display:none; }
-    .ok { background: rgba(0,255,100,.10); border:1px solid rgba(0,255,100,.30); padding:10px 12px; border-radius:10px; margin-top:12px; display:none; }
-    table{ width:100%; border-collapse:collapse; margin-top:12px; }
-    thead th{ text-align:left; font-size:12px; opacity:.8; padding:10px 8px; border-bottom:1px solid rgba(255,255,255,.10); }
-    tbody td{ padding:10px 8px; border-bottom:1px solid rgba(255,255,255,.06); vertical-align:top; }
-    tbody tr:hover{ background:rgba(255,255,255,.03); }
-    .tag{ display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; }
-    .right{ text-align:right; }
+    .hint { opacity:.75; font-size: 12px; }
+    .error { background: rgba(255,0,0,.12); border:1px solid rgba(255,0,0,.35); padding: 10px 12px; border-radius: 10px; margin-top: 12px; display:none; }
+    .ok { background: rgba(0,255,100,.10); border:1px solid rgba(0,255,100,.30); padding: 10px 12px; border-radius: 10px; margin-top: 12px; display:none; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    thead th { text-align: left; font-size: 12px; opacity:.8; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,.10); }
+    tbody td { padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,.06); vertical-align: top; }
+    tbody tr:hover { background: rgba(255,255,255,.03); }
+    .tag { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; opacity:.95; }
+    .small { font-size: 12px; opacity:.85; }
+    .right { text-align:right; }
   </style>
 </head>
 
 <body>
-<header>
-  <div>
-    <h1>Tableau de Bord — MAXI JDC MARKET</h1>
-    <div class="hint">Lecture: CSV public (Google Sheets). Écriture: Apps Script.</div>
-  </div>
-  <div class="row">
-    <button id="btnRefresh">🔄 Actualiser</button>
-    <button id="btnHome">🏠 Site</button>
-  </div>
-</header>
-
-<div class="wrap">
-  <div class="stats">
-    <div class="card"><div class="stat-title">Commandes (filtrées)</div><div class="stat-value" id="stCount">—</div></div>
-    <div class="card"><div class="stat-title">Total (filtré)</div><div class="stat-value" id="stSum">—</div></div>
-    <div class="card"><div class="stat-title">Sous-total (filtré)</div><div class="stat-value" id="stSub">—</div></div>
-    <div class="card"><div class="stat-title">Livraison (filtré)</div><div class="stat-value" id="stDel">—</div></div>
-  </div>
-
-  <div class="card" style="margin-top:12px;">
+  <header>
+    <div>
+      <h1>Tableau de Bord — MAXI JDC MARKET</h1>
+      <div class="hint">Lecture: CSV public (Google Sheets). Écriture: Apps Script.</div>
+    </div>
     <div class="row">
-      <input id="q" type="search" placeholder="Rechercher (nom / tel / adresse / statut)..." style="flex:1; min-width:220px;">
-      <select id="status">
-        <option value="">Tous statuts</option>
-        <option value="Nouveau">Nouveau</option>
-        <option value="En cours">En cours</option>
-        <option value="Livré">Livré</option>
-        <option value="Annulé">Annulé</option>
-      </select>
-      <select id="sort">
-        <option value="date_desc">Date ↓</option>
-        <option value="date_asc">Date ↑</option>
-        <option value="total_desc">Total ↓</option>
-        <option value="total_asc">Total ↑</option>
-      </select>
+      <button id="btnRefresh">🔄 Actualiser</button>
+      <button id="btnHome" title="Retour au site">🏠 Site</button>
     </div>
-    <div class="row" style="margin-top:10px; justify-content:space-between;">
-      <div class="hint" id="lastLoad">Chargement…</div>
-      <div class="hint">Le CSV doit finir par <b>output=csv</b>.</div>
+  </header>
+
+  <div class="wrap">
+
+    <div class="stats">
+      <div class="card">
+        <div class="stat-title">Commandes (filtrées)</div>
+        <div class="stat-value" id="stCount">—</div>
+      </div>
+      <div class="card">
+        <div class="stat-title">Total (filtré)</div>
+        <div class="stat-value" id="stSum">—</div>
+      </div>
+      <div class="card">
+        <div class="stat-title">Sous-total (filtré)</div>
+        <div class="stat-value" id="stSub">—</div>
+      </div>
+      <div class="card">
+        <div class="stat-title">Livraison (filtré)</div>
+        <div class="stat-value" id="stDel">—</div>
+      </div>
     </div>
+
+    <div class="card tools">
+      <div class="row">
+        <input id="q" type="search" placeholder="Rechercher (nom / tel / adresse / statut)..." style="flex:1; min-width:220px;">
+        <select id="status">
+          <option value="">Tous statuts</option>
+          <option value="Nouveau">Nouveau</option>
+          <option value="En cours">En cours</option>
+          <option value="Livré">Livré</option>
+          <option value="Annulé">Annulé</option>
+        </select>
+        <select id="sort">
+          <option value="date_desc">Date ↓</option>
+          <option value="date_asc">Date ↑</option>
+          <option value="total_desc">Total ↓</option>
+          <option value="total_asc">Total ↑</option>
+        </select>
+      </div>
+      <div class="row" style="margin-top:10px; justify-content:space-between;">
+        <div class="hint" id="lastLoad">Chargement…</div>
+        <div class="hint">Astuce : le CSV doit finir par <b>output=csv</b>.</div>
+      </div>
+    </div>
+
+    <div class="error" id="errBox"></div>
+    <div class="ok" id="okBox"></div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <div><span class="tag">Commandes</span> <span class="small" id="rowsInfo"></span></div>
+        <div class="small">Colonnes: Date / Nom / Téléphone / Adresse / Articles / Sous-total / Livraison / Total / Statut</div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Nom</th>
+            <th>Téléphone</th>
+            <th>Adresse</th>
+            <th>Articles</th>
+            <th class="right">Sous-total</th>
+            <th class="right">Livraison</th>
+            <th class="right">Total</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="9" class="small">Chargement…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
   </div>
 
-  <div class="error" id="errBox"></div>
-  <div class="ok" id="okBox"></div>
+  <script>
+    // ✅ TES 2 ADRESSES (mets ici et tu n'as plus besoin d'import)
+    const READ_CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnzZS17O7qIf35FOQHZfOXRDS-tZDCBmze4FkEEfw2kY5KdEj4Kj9ycv-1J4y_i-2_YKKnp9P48MFy/pub?gid=1804772268&single=true&output=csv";
 
-  <div class="card" style="margin-top:12px;">
-    <div class="row" style="justify-content:space-between;">
-      <div><span class="tag">Commandes</span> <span class="hint" id="rowsInfo"></span></div>
-    </div>
+    const WRITE_API_URL =
+      "https://script.google.com/macros/s/AKfycbwKs58CxTeaANxbdLukMcr4PTPrkZS7KkQQadJq2EfXMPhDSlJbu8gzpY-ZX9TeHFVn/exec";
 
-    <table>
-      <thead>
-      <tr>
-        <th>Date</th><th>Nom</th><th>Téléphone</th><th>Adresse</th><th>Articles</th>
-        <th class="right">Sous-total</th><th class="right">Livraison</th><th class="right">Total</th><th>Statut</th>
-      </tr>
-      </thead>
-      <tbody id="tbody">
-        <tr><td colspan="9" class="hint">Chargement…</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+    const $ = (id) => document.getElementById(id);
 
-<script>
-/*** ✅ TES 2 URL (hardcodées ici => zéro problème de import/chemin/cache) ***/
-const WRITE_API_URL = "https://script.google.com/macros/s/AKfycbwKs58CxTeaANxbdLukMcr4PTPrkZS7KkQQadJq2EfXMPhDSlJbu8gzpY-ZX9TeHFVn/exec";
-const READ_CSV_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnzZS17O7qIf35FOQHZfOXRDS-tZDCBmze4FkEEfw2kY5KdEj4Kj9ycv-1J4y_i-2_YKKnp9P48MFy/pub?gid=1804772268&single=true&output=csv";
+    const tbody = $("tbody");
+    const q = $("q");
+    const status = $("status");
+    const sort = $("sort");
+    const btnRefresh = $("btnRefresh");
+    const btnHome = $("btnHome");
 
-/*** UI refs ***/
-const $ = (id)=>document.getElementById(id);
-const tbody=$("tbody"), q=$("q"), status=$("status"), sort=$("sort");
-const stCount=$("stCount"), stSum=$("stSum"), stSub=$("stSub"), stDel=$("stDel");
-const lastLoad=$("lastLoad"), rowsInfo=$("rowsInfo"), errBox=$("errBox"), okBox=$("okBox");
+    const stCount = $("stCount");
+    const stSum = $("stSum");
+    const stSub = $("stSub");
+    const stDel = $("stDel");
+    const lastLoad = $("lastLoad");
+    const rowsInfo = $("rowsInfo");
+    const errBox = $("errBox");
+    const okBox = $("okBox");
 
-let all=[];
+    let all = [];
 
-function showError(msg){ errBox.style.display="block"; errBox.textContent=msg; okBox.style.display="none"; }
-function showOk(msg){ okBox.style.display="block"; okBox.textContent=msg; errBox.style.display="none"; }
-function clearMessages(){ errBox.style.display="none"; okBox.style.display="none"; errBox.textContent=""; okBox.textContent=""; }
-
-function asNumber(v){ const n=Number(String(v??"").replace(",",".").trim()); return Number.isFinite(n)?n:0; }
-function parseDate(v){
-  const s=String(v??"").trim(); if(!s) return 0;
-  const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
-  if(m){ return new Date(+m[3], +m[2]-1, +m[1], +(m[4]||0), +(m[5]||0), +(m[6]||0)).getTime(); }
-  const t=Date.parse(s); return Number.isFinite(t)?t:0;
-}
-function escapeHtml(s){
-  return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-}
-
-/*** CSV parse (robuste) ***/
-function parseCsv(text){
-  const rows=[]; let row=[]; let cur=""; let inQuotes=false;
-  for(let i=0;i<text.length;i++){
-    const ch=text[i], next=text[i+1];
-    if(ch=='"' && inQuotes && next=='"'){ cur+='"'; i++; continue; }
-    if(ch=='"'){ inQuotes=!inQuotes; continue; }
-    if(ch=="," && !inQuotes){ row.push(cur); cur=""; continue; }
-    if((ch=="\n"||ch=="\r") && !inQuotes){
-      if(ch=="\r"&&next=="\n") i++;
-      row.push(cur); rows.push(row); row=[]; cur=""; continue;
+    function showError(msg) {
+      errBox.style.display = "block";
+      errBox.textContent = msg;
+      okBox.style.display = "none";
     }
-    cur+=ch;
-  }
-  row.push(cur); rows.push(row);
-  return rows;
-}
+    function showOk(msg) {
+      okBox.style.display = "block";
+      okBox.textContent = msg;
+      errBox.style.display = "none";
+    }
+    function clearMessages() {
+      errBox.style.display = "none";
+      okBox.style.display = "none";
+      errBox.textContent = "";
+      okBox.textContent = "";
+    }
 
-async function recupererCommandes(){
-  const res = await fetch(READ_CSV_URL, { cache:"no-store" });
-  if(!res.ok) throw new Error("CSV HTTP "+res.status);
-  const text = await res.text();
-  const rows = parseCsv(text);
-  if(!rows.length) return [];
-  const headers = rows[0].map(h=>(h||"").trim());
-  const out=[];
-  for(let i=1;i<rows.length;i++){
-    const r=rows[i]; if(!r) continue;
-    if(r.every(c=>String(c||"").trim()==="")) continue;
-    const obj={};
-    for(let c=0;c<headers.length;c++) obj[headers[c]||("col_"+c)] = r[c]??"";
-    out.push(obj);
-  }
-  return out;
-}
+    function asNumber(v) {
+      const n = Number(String(v ?? "").replace(",", ".").trim());
+      return Number.isFinite(n) ? n : 0;
+    }
 
-function normalizeRow(r){
-  return {
-    date: r["Date"] || "",
-    nom: r["Nom"] || "",
-    telephone: r["Téléphone"] || r["Telephone"] || "",
-    adresse: r["Adresse"] || "",
-    articles: r["Articles (JSON)"] || r["Articles"] || "",
-    sousTotal: asNumber(r["Sous-total"] ?? r["Sous total"] ?? 0),
-    livraison: asNumber(r["Livraison"] ?? 0),
-    total: asNumber(r["Total"] ?? 0),
-    statut: r["Statut"] || ""
-  };
-}
+    function parseDate(v) {
+      const s = String(v ?? "").trim();
+      if (!s) return 0;
+      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+      if (m) {
+        const dd = Number(m[1]), mm = Number(m[2]) - 1, yy = Number(m[3]);
+        const hh = Number(m[4] || 0), mi = Number(m[5] || 0), ss = Number(m[6] || 0);
+        return new Date(yy, mm, dd, hh, mi, ss).getTime();
+      }
+      const t = Date.parse(s);
+      return Number.isFinite(t) ? t : 0;
+    }
 
-function matchFilter(x){
-  const term=q.value.trim().toLowerCase();
-  const st=status.value.trim();
-  if(st && String(x.statut).trim()!==st) return false;
-  if(!term) return true;
-  return [x.date,x.nom,x.telephone,x.adresse,x.statut,x.articles].join(" ").toLowerCase().includes(term);
-}
+    function normalizeRow(r) {
+      return {
+        date: r["Date"] || "",
+        nom: r["Nom"] || "",
+        telephone: r["Téléphone"] || r["Telephone"] || "",
+        adresse: r["Adresse"] || "",
+        articles: r["Articles (JSON)"] || r["Articles"] || "",
+        sousTotal: asNumber(r["Sous-total"] ?? r["Sous total"] ?? 0),
+        livraison: asNumber(r["Livraison"] ?? 0),
+        total: asNumber(r["Total"] ?? 0),
+        statut: r["Statut"] || ""
+      };
+    }
 
-function sortRows(rows){
-  const mode=sort.value; const copy=rows.slice();
-  copy.sort((a,b)=>{
-    if(mode==="date_desc") return parseDate(b.date)-parseDate(a.date);
-    if(mode==="date_asc") return parseDate(a.date)-parseDate(b.date);
-    if(mode==="total_desc") return b.total-a.total;
-    if(mode==="total_asc") return a.total-b.total;
-    return 0;
-  });
-  return copy;
-}
+    function matchFilter(x) {
+      const term = q.value.trim().toLowerCase();
+      const st = status.value.trim();
+      if (st && String(x.statut).trim() !== st) return false;
+      if (!term) return true;
+      const blob = [x.date, x.nom, x.telephone, x.adresse, x.statut, x.articles].join(" ").toLowerCase();
+      return blob.includes(term);
+    }
 
-function render(){
-  const filtered = sortRows(all.filter(matchFilter));
+    function sortRows(rows) {
+      const mode = sort.value;
+      const copy = rows.slice();
+      copy.sort((a, b) => {
+        if (mode === "date_desc") return parseDate(b.date) - parseDate(a.date);
+        if (mode === "date_asc") return parseDate(a.date) - parseDate(b.date);
+        if (mode === "total_desc") return b.total - a.total;
+        if (mode === "total_asc") return a.total - b.total;
+        return 0;
+      });
+      return copy;
+    }
 
-  stCount.textContent = String(filtered.length);
-  stSum.textContent = filtered.reduce((s,x)=>s+asNumber(x.total),0).toFixed(2);
-  stSub.textContent = filtered.reduce((s,x)=>s+asNumber(x.sousTotal),0).toFixed(2);
-  stDel.textContent = filtered.reduce((s,x)=>s+asNumber(x.livraison),0).toFixed(2);
+    function escapeHtml(s) {
+      return String(s ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
 
-  rowsInfo.textContent = `(${filtered.length} affichées / ${all.length} total)`;
+    function render() {
+      const filtered = sortRows(all.filter(matchFilter));
 
-  if(!filtered.length){
-    tbody.innerHTML = `<tr><td colspan="9" class="hint">Aucune commande.</td></tr>`;
-    return;
-  }
+      const count = filtered.length;
+      const sumTotal = filtered.reduce((s, x) => s + asNumber(x.total), 0);
+      const sumSub = filtered.reduce((s, x) => s + asNumber(x.sousTotal), 0);
+      const sumDel = filtered.reduce((s, x) => s + asNumber(x.livraison), 0);
 
-  tbody.innerHTML = filtered.map(x=>{
-    const art=String(x.articles||"");
-    const artShort = art.length>140? art.slice(0,140)+"…" : art;
-    return `
-    <tr>
-      <td class="hint">${escapeHtml(x.date)}</td>
-      <td>${escapeHtml(x.nom)}</td>
-      <td class="mono">${escapeHtml(x.telephone)}</td>
-      <td>${escapeHtml(x.adresse)}</td>
-      <td class="mono" title="${escapeHtml(art)}">${escapeHtml(artShort)}</td>
-      <td class="right mono">${x.sousTotal.toFixed(2)}</td>
-      <td class="right mono">${x.livraison.toFixed(2)}</td>
-      <td class="right mono">${x.total.toFixed(2)}</td>
-      <td><span class="tag">${escapeHtml(x.statut||"")}</span></td>
-    </tr>`;
-  }).join("");
-}
+      stCount.textContent = String(count);
+      stSum.textContent = sumTotal.toFixed(2);
+      stSub.textContent = sumSub.toFixed(2);
+      stDel.textContent = sumDel.toFixed(2);
 
-async function load(){
-  clearMessages();
-  tbody.innerHTML = `<tr><td colspan="9" class="hint">Chargement…</td></tr>`;
-  try{
-    const rows = await recupererCommandes();
-    all = rows.map(normalizeRow);
-    lastLoad.textContent = "Dernier chargement : " + new Date().toLocaleString();
-    showOk("Lecture OK (CSV).");
-    render();
-  }catch(e){
-    console.error(e);
-    showError("Erreur connexion (CSV). Vérifie que le lien CSV est public. Détail: "+(e?.message||e));
-    tbody.innerHTML = `<tr><td colspan="9" class="hint">Erreur de chargement.</td></tr>`;
-    lastLoad.textContent = "Erreur de chargement.";
-  }
-}
+      rowsInfo.textContent = `(${count} lignes affichées / ${all.length} total)`;
 
-/*** Events ***/
-q.addEventListener("input", render);
-status.addEventListener("change", render);
-sort.addEventListener("change", render);
-$("btnRefresh").addEventListener("click", load);
-$("btnHome").addEventListener("click", ()=> location.href="./index.html");
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="9" class="small">Aucune commande trouvée (filtre).</td></tr>`;
+        return;
+      }
 
-/*** Auto-load ***/
-load();
+      tbody.innerHTML = filtered.map(x => {
+        const art = String(x.articles || "");
+        const artShort = art.length > 140 ? art.slice(0, 140) + "…" : art;
 
-/*** Petit test écriture (optionnel depuis console):
-    envoyerCommandeTest()
-***/
-window.envoyerCommandeTest = () => {
-  // IMPORTANT: no-cors => pas de réponse lisible, mais la requête part.
-  fetch(WRITE_API_URL, {
-    method:"POST",
-    mode:"no-cors",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body: JSON.stringify({
-      nom:"TEST FINAL",
-      telephone:"111",
-      adresse:"Tunis",
-      articles:[{name:"Produit test", qty:1, price:5}],
-      sousTotal:5, livraison:3, total:8
-    })
-  });
-  console.log("POST envoyé (no-cors). Vérifie la feuille COMMANDES dans 5-10s.");
-};
-</script>
+        return `
+          <tr>
+            <td class="small">${escapeHtml(x.date)}</td>
+            <td>${escapeHtml(x.nom)}</td>
+            <td class="mono">${escapeHtml(x.telephone)}</td>
+            <td>${escapeHtml(x.adresse)}</td>
+            <td class="mono" title="${escapeHtml(art)}">${escapeHtml(artShort)}</td>
+            <td class="right mono">${x.sousTotal.toFixed(2)}</td>
+            <td class="right mono">${x.livraison.toFixed(2)}</td>
+            <td class="right mono">${x.total.toFixed(2)}</td>
+            <td><span class="tag">${escapeHtml(x.statut || "")}</span></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let cur = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const next = text[i + 1];
+
+        if (ch === '"' && inQuotes && next === '"') { cur += '"'; i++; continue; }
+        if (ch === '"') { inQuotes = !inQuotes; continue; }
+
+        if (ch === "," && !inQuotes) { row.push(cur); cur = ""; continue; }
+
+        if ((ch === "\n" || ch === "\r") && !inQuotes) {
+          if (ch === "\r" && next === "\n") i++;
+          row.push(cur); rows.push(row);
+          row = []; cur = "";
+          continue;
+        }
+
+        cur += ch;
+      }
+
+      row.push(cur);
+      rows.push(row);
+      return rows;
+    }
+
+    async function recupererCommandes() {
+      const res = await fetch(READ_CSV_URL, { cache: "no-store" });
+      if (!res.ok) throw new Error("CSV HTTP " + res.status);
+
+      const csvText = await res.text();
+      const rows = parseCsv(csvText);
+      if (!rows.length) return [];
+
+      const headers = rows[0].map(h => (h || "").trim());
+      const data = [];
+
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r || r.every(c => String(c || "").trim() === "")) continue;
+
+        const obj = {};
+        for (let c = 0; c < headers.length; c++) obj[headers[c] || `col_${c}`] = r[c] ?? "";
+        data.push(obj);
+      }
+
+      return data;
+    }
+
+    async function load() {
+      clearMessages();
+      tbody.innerHTML = `<tr><td colspan="9" class="small">Chargement…</td></tr>`;
+
+      try {
+        const rows = await recupererCommandes();
+        all = rows.map(normalizeRow);
+        lastLoad.textContent = "Dernier chargement : " + new Date().toLocaleString();
+        showOk("Connexion OK : commandes chargées.");
+        render();
+      } catch (err) {
+        console.error(err);
+        showError("Erreur connexion API (lecture CSV). Détail: " + (err?.message || err));
+        tbody.innerHTML = `<tr><td colspan="9" class="small">Erreur de chargement.</td></tr>`;
+        lastLoad.textContent = "Erreur de chargement.";
+      }
+    }
+
+    // events
+    q.addEventListener("input", render);
+    status.addEventListener("change", render);
+    sort.addEventListener("change", render);
+    btnRefresh.addEventListener("click", load);
+    btnHome.addEventListener("click", () => { window.location.href = "./index.html"; });
+
+    // auto-load
+    load();
+
+    // outil test d'écriture depuis la console : envoyerCommandeTest()
+    window.envoyerCommandeTest = function () {
+      fetch(WRITE_API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          nom: "TEST",
+          telephone: "111",
+          adresse: "Tunis",
+          articles: [{ name: "Produit test", qty: 1, price: 5 }],
+          sousTotal: 5,
+          livraison: 3,
+          total: 8
+        })
+      });
+      console.log("POST envoyé (no-cors). Vérifie Google Sheet dans 5-10 secondes.");
+    };
+  </script>
 </body>
 </html>
