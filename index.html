@@ -5992,32 +5992,6 @@ try {
   });
   </script>
 
-
-// ===== JSONP helper (ANTI-CORS) =====
-function fetchJsonp(url) {
-  return new Promise((resolve, reject) => {
-    const cb = "cb_" + Math.random().toString(36).slice(2);
-    const script = document.createElement("script");
-
-    window[cb] = (data) => {
-      try { delete window[cb]; } catch(e) {}
-      script.remove();
-      resolve(data);
-    };
-
-    script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
-    script.onerror = () => {
-      try { delete window[cb]; } catch(e) {}
-      script.remove();
-      reject(new Error("JSONP error"));
-    };
-
-    document.body.appendChild(script);
-  });
-}
-// ===== FIN JSONP helper =====
-
-
 // ===== LECTURE DES COMMANDES GOOGLE SHEET =====
 async function loadCommandes() {
   try {
@@ -6320,6 +6294,7 @@ function fetchJsonp(url) {
   
 </body>
 </html>
+
 
 
 
