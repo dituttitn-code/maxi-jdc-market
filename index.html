@@ -5537,31 +5537,22 @@
  let result = null;
 
 try {
-  const response = await fetch(CONFIG.commandeApiUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(dataToSend)
-  });
+  const url =
+    CONFIG.commandeApiUrl +
+    "?action=submit" +
+    "&payload=" + encodeURIComponent(JSON.stringify(dataToSend));
 
-  // Même si HTTP n'est pas OK, on ne casse pas l'app
-  const text = await response.text();
+  const json = await fetchJsonp(url);
 
-  // On essaie de lire du JSON, sinon on affiche le texte
-  try {
-    result = JSON.parse(text);
-  } catch {
-    console.warn("Réponse non-JSON Apps Script:", text);
-    return false;
-  }
+  console.log("Réponse Apps Script (JSONP):", json);
 
-  console.log("Réponse Apps Script:", result);
-
-  return response.ok && result && result.success === true;
-
+  // adapte selon ton retour
+  return json && (json.ok === true || json.success === true);
 } catch (err) {
-  console.error("Erreur fetch Apps Script:", err);
+  console.error("Erreur JSONP Apps Script:", err);
   return false;
 }
+
       
      
     } catch (error) {
@@ -6339,6 +6330,7 @@ function fetchJsonp(url, timeout = 10000) {
   
 </body>
 </html>
+
 
 
 
