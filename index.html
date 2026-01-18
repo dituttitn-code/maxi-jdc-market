@@ -5724,7 +5724,840 @@
     // Note: Pour une implémentation complète, vous devrez intégrer les fonctions existantes
     // de chargement des produits, rendu des catégories, gestion des stocks, etc.
 
+    // ===================== CHARGEMENT DES CATÉGORIES ET ARTICLES =====================
+
+    // Fonction pour charger les données CSV
+    async function loadCSV(filePath) {
+      try {
+        const response = await fetch(filePath);
+        if (!response.ok) {
+          console.warn(`Fichier non trouvé: ${filePath}`);
+          return [];
+        }
+        const text = await response.text();
+        return parseCSV(text);
+      } catch (error) {
+        console.error(`Erreur chargement ${filePath}:`, error);
+        return [];
+      }
+    }
+
+    // Parser CSV
+    function parseCSV(text) {
+      const rows = [];
+      let row = [], field = "", inQuotes = false;
+      
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        const next = text[i + 1];
+        
+        if (c === '"' && inQuotes && next === '"') {
+          field += '"';
+          i++;
+          continue;
+        }
+        
+        if (c === '"') {
+          inQuotes = !inQuotes;
+          continue;
+        }
+        
+        if (c === ',' && !inQuotes) {
+          row.push(field);
+          field = "";
+          continue;
+        }
+        
+        if ((c === '\n' || c === '\r') && !inQuotes) {
+          if (c === '\r' && next === '\n') i++;
+          row.push(field);
+          field = "";
+          if (row.length > 1 || row[0] !== "") rows.push(row);
+          row = [];
+          continue;
+        }
+        
+        field += c;
+      }
+      
+      row.push(field);
+      if (row.length > 1 || row[0] !== "") rows.push(row);
+      
+      const headers = rows.shift().map(h => h.trim());
+      return rows
+        .filter(r => r.some(x => String(x).trim() !== ""))
+        .map(r => {
+          const obj = {};
+          headers.forEach((h, idx) => obj[h] = (r[idx] ?? "").trim());
+          return obj;
+        });
+    }
+
+    // Charger les données d'une catégorie
+    async function loadCategoryData(categoryKey) {
+      try {
+        const category = CATEGORIES.find(c => c.key === categoryKey);
+        if (!category) return [];
+        
+        const products = await loadCSV(category.file);
+        const processedProducts = [];
+        const seen = new Set();
+        
+        products.forEach((product, index) => {
+          const code = product.Code || product.code || product.Article || `ITEM_${index}`;
+          const name = product.Nom || product.name || product.Produit || `Produit ${index}`;
+          let priceStr = product.Prix || product.price || product["Prix unitaire"] || "0";
+          
+          if (!code || !name) return;
+          
+          const productKey = `${code}_${name}`;
+          if (seen.has(productKey)) return;
+          seen.add(productKey);
+          
+          priceStr = priceStr.replace(',', '.').replace(/[^\d.]/g, '');
+          const price = parseFloat(priceStr);
+          
+          if (isNaN(price) || price <= 0) {
+            console.warn(`Prix invalide dans ${categoryKey}: ${code} - ${name} - ${priceStr}`);
+            return;
+          }
+          
+          const googleStock = getStockFromGoogleSheets(code);
+          
+          const productObj = {
+            code,
+            name,
+            price: price,
+            category: category.label,
+            categoryKey: category.key,
+            isPromotion: category.isPromo || false,
+            stock: googleStock,
+            originalStock: googleStock,
+            oldPrice: null,
+            discountPercent: 0
+          };
+          
+          // Pour les promotions, essayer de récupérer l'ancien prix
+          if (category.isPromo && product["Ancien prix"]) {
+            let oldPriceStr = product["Ancien prix"].replace(',', '.').replace(/[^\d.]/g, '');
+            const oldPrice = parseFloat(oldPriceStr);
+            if (!isNaN(oldPrice) && oldPrice > price) {
+              productObj.oldPrice = oldPrice;
+              productObj.discountPercent = Math.round((1 - price / oldPrice) * 100);
+            }
+          }
+          
+          processedProducts.push(productObj);
+          
+          const stockKey = `${category.key}_${code}`;
+          if (!state.productStocks.has(stockKey)) {
+            state.productStocks.set(stockKey, googleStock);
+          }
+        });
+        
+        console.log(`${categoryKey}: ${processedProducts.length} produits chargés`);
+        return processedProducts;
+        
+      } catch (error) {
+        console.error(`Erreur chargement ${categoryKey}:`, error);
+        return [];
+      }
+    }
+
+    // Récupérer le stock depuis Google Sheets
+    function getStockFromGoogleSheets(code) {
+      const item = state.googleSheetsStock.get(code);
+      if (!item) return 99; // Stock par défaut
+      return item.stock || 99;
+    }
+
+    // Charger toutes les catégories
+    async function loadAllProducts() {
+      try {
+        // Charger d'abord les données de stock depuis Google Sheets
+        await loadGoogleSheetsStock();
+        
+        state.products.clear();
+        const allProducts = [];
+        
+        // Charger toutes les catégories
+        for (const category of CATEGORIES) {
+          const products = await loadCategoryData(category.key);
+          if (products.length > 0) {
+            state.products.set(category.key, products);
+            allProducts.push(...products);
+          }
+        }
+        
+        // Identifier les promotions
+        const promotions = state.products.get('promotions') || [];
+        if (promotions.length > 0) {
+          state.promotions = promotions;
+          applyPromotions(allProducts, promotions);
+          showPromoBanner(promotions);
+        }
+        
+        renderCategories();
+        renderProducts();
+        showToast('✅ Produits chargés avec succès');
+        
+      } catch (error) {
+        console.error('Erreur chargement produits:', error);
+        showToast('❌ Erreur lors du chargement des produits', 'error');
+      }
+    }
+
+    // Charger Google Sheets
+    async function loadGoogleSheetsStock() {
+      try {
+        console.log('Chargement du stock depuis Google Sheets...');
+        const response = await fetch(CONFIG.googleSheetsUrl + "&t=" + Date.now(), {
+          cache: "no-store"
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        
+        const text = await response.text();
+        const rows = parseCSV(text);
+        state.googleSheetsStock.clear();
+        
+        rows.forEach(row => {
+          const code = String(row.Article || row.Code || '').trim();
+          const produit = String(row.Produits || row.Nom || '').trim();
+          const stock = parseInt(row.Stock || row.Quantite || 99);
+          
+          if (code) {
+            state.googleSheetsStock.set(code, {
+              stock: stock,
+              produit: produit,
+              code: code
+            });
+          }
+        });
+        
+        console.log(`${state.googleSheetsStock.size} produits chargés depuis Google Sheets`);
+        return true;
+        
+      } catch (error) {
+        console.error('Erreur chargement Google Sheets:', error);
+        return false;
+      }
+    }
+
+    // Appliquer les promotions aux produits
+    function applyPromotions(allProducts, promotions) {
+      console.log('Application des promotions...');
+      const promoMap = new Map();
+      
+      promotions.forEach(promo => {
+        promoMap.set(promo.code, promo);
+      });
+      
+      for (const [catKey, products] of state.products.entries()) {
+        if (catKey === 'promotions') continue;
+        
+        const updatedProducts = products.map(product => {
+          const promo = promoMap.get(product.code);
+          if (promo) {
+            // Vérifier si les noms correspondent (tolérance aux variations)
+            const productNameLower = product.name.toLowerCase();
+            const promoNameLower = promo.name.toLowerCase();
+            
+            if (productNameLower.includes(promoNameLower) || 
+                promoNameLower.includes(productNameLower) ||
+                product.code === promo.code) {
+              return {
+                ...product,
+                oldPrice: promo.oldPrice || product.price,
+                price: promo.price,
+                isPromotion: true,
+                discountPercent: promo.discountPercent
+              };
+            }
+          }
+          return product;
+        });
+        
+        state.products.set(catKey, updatedProducts);
+      }
+      
+      console.log('Promotions appliquées avec succès');
+    }
+
+    // Afficher la bannière promo
+    function showPromoBanner(promotions) {
+      if (!promotions || promotions.length === 0) {
+        document.getElementById('promoBanner').style.display = 'none';
+        return;
+      }
+      
+      document.getElementById('promoTitle').textContent = `🔥 ${promotions.length} PRODUITS EN PROMOTION`;
+      document.getElementById('promoDesc').textContent = 'Profitez de nos offres spéciales !';
+      document.getElementById('promoBanner').style.display = 'flex';
+    }
+
+    // Rendre les catégories
+    function renderCategories() {
+      const container = document.getElementById('categoriesContainer');
+      if (!container) return;
+      
+      container.innerHTML = '';
+      
+      // Bouton "Tous"
+      const allButton = document.createElement('button');
+      allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
+      const allProductsCount = [...state.products.values()].flat().length;
+      allButton.innerHTML = `🌐 Tous <span class="cat-count">${allProductsCount}</span>`;
+      allButton.onclick = () => {
+        state.showAllCategories = true;
+        state.activeCategory = null;
+        state.currentPage = 1;
+        renderProducts();
+        updateCategoriesUI();
+      };
+      container.appendChild(allButton);
+      
+      // Boutons des catégories
+      CATEGORIES.forEach(category => {
+        const products = state.products.get(category.key) || [];
+        if (products.length === 0) return; // Ne pas afficher les catégories vides
+        
+        const button = document.createElement('button');
+        button.className = `cat-btn ${category.isPromo ? 'promo' : ''} ${
+          !state.showAllCategories && state.activeCategory === category.key ? 'active' : ''
+        }`;
+        button.innerHTML = `${category.label} <span class="cat-count">${products.length}</span>`;
+        button.onclick = () => {
+          state.showAllCategories = false;
+          state.activeCategory = category.key;
+          state.currentPage = 1;
+          renderProducts();
+          updateCategoriesUI();
+        };
+        container.appendChild(button);
+      });
+    }
+
+    // Mettre à jour l'UI des catégories
+    function updateCategoriesUI() {
+      const container = document.getElementById('categoriesContainer');
+      if (!container) return;
+      
+      const buttons = container.querySelectorAll('.cat-btn');
+      buttons.forEach(button => button.classList.remove('active'));
+      
+      if (state.showAllCategories) {
+        buttons[0].classList.add('active');
+        document.getElementById('activeCategoryLabel').textContent = 'Tous les produits';
+        document.getElementById('activeCategoryMeta').textContent = 'Toutes catégories';
+      } else {
+        const category = CATEGORIES.find(c => c.key === state.activeCategory);
+        if (category) {
+          const index = CATEGORIES.findIndex(c => c.key === state.activeCategory) + 1;
+          if (buttons[index]) buttons[index].classList.add('active');
+          
+          document.getElementById('activeCategoryLabel').textContent = category.label;
+          
+          if (category.isPromo) {
+            const promoCount = state.products.get('promotions')?.length || 0;
+            document.getElementById('activeCategoryMeta').innerHTML = promoCount > 0
+              ? `<span style="color:#ffcc00;font-weight:700;">🔥 ${promoCount} articles en promotion !</span>`
+              : `${category.key}.csv`;
+          } else {
+            document.getElementById('activeCategoryMeta').textContent = `${category.key}.csv`;
+          }
+        }
+      }
+    }
+
+    // Obtenir les produits filtrés
+    function getFilteredProducts() {
+      let products = [];
+      
+      if (state.showAllCategories) {
+        // Concaténer tous les produits de toutes les catégories
+        for (const [catKey, catProducts] of state.products.entries()) {
+          products.push(...catProducts);
+        }
+      } else {
+        products = state.products.get(state.activeCategory) || [];
+      }
+      
+      if (state.searchQuery) {
+        const query = state.searchQuery.toLowerCase();
+        products = products.filter(p =>
+          p.name.toLowerCase().includes(query) ||
+          p.code.toLowerCase().includes(query) ||
+          p.category.toLowerCase().includes(query)
+        );
+      }
+      
+      // Éliminer les doublons (basés sur code + nom)
+      const seen = new Set();
+      return products.filter(p => {
+        const key = `${p.code}_${p.name}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    // Rendre les produits
+    function renderProducts() {
+      state.filteredProducts = getFilteredProducts();
+      const totalPages = Math.ceil(state.filteredProducts.length / CONFIG.itemsPerPage) || 1;
+      
+      if (state.currentPage > totalPages) state.currentPage = totalPages || 1;
+      
+      // Mettre à jour la pagination
+      document.getElementById('pageInfo').textContent = `Page ${state.currentPage}/${totalPages}`;
+      document.getElementById('pageInfoBottom').textContent = `Page ${state.currentPage}/${totalPages}`;
+      document.getElementById('itemCount').textContent = `${state.filteredProducts.length} article(s)`;
+      
+      document.getElementById('prevPageBtn').disabled = state.currentPage === 1;
+      document.getElementById('nextPageBtn').disabled = state.currentPage === totalPages;
+      document.getElementById('prevPageBottomBtn').disabled = state.currentPage === 1;
+      document.getElementById('nextPageBottomBtn').disabled = state.currentPage === totalPages;
+      
+      const paginationBottom = document.getElementById('paginationBottom');
+      if (paginationBottom) {
+        paginationBottom.style.display = totalPages > 1 ? 'flex' : 'none';
+      }
+      
+      const start = (state.currentPage - 1) * CONFIG.itemsPerPage;
+      const end = start + CONFIG.itemsPerPage;
+      const productsToShow = state.filteredProducts.slice(start, end);
+      const grid = document.getElementById('productsGrid');
+      
+      if (!grid) return;
+      
+      grid.innerHTML = '';
+      
+      if (productsToShow.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">
+            <div style="font-size:48px;margin-bottom:15px;">🔍</div>
+            <h3 style="margin-bottom:10px;color:var(--text);">Aucun produit trouvé</h3>
+            <p>Essayez de modifier votre recherche ou sélectionnez une autre catégorie</p>
+          </div>
+        `;
+        return;
+      }
+      
+      productsToShow.forEach(product => {
+        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+        const stockStatus = getStockStatus(product.stock);
+        
+        const card = document.createElement('div');
+        card.className = `product-card ${product.isPromotion ? 'promo-card' : ''}`;
+        
+        let imagePromoBadge = '';
+        let discountBadge = '';
+        
+        if (product.isPromotion && product.discountPercent > 0) {
+          imagePromoBadge = '<div class="image-promo-badge">PROMO</div>';
+          discountBadge = `<div class="product-discount">-${product.discountPercent}%</div>`;
+        }
+        
+        const priceDisplay = product.isPromotion && product.oldPrice && product.oldPrice > product.price
+          ? `<div class="product-price-container">
+              <div class="product-old-price">${formatPrice(product.oldPrice)}</div>
+              <div class="product-price">${formatPrice(product.price)}</div>
+            </div>`
+          : `<div class="product-price-container">
+              <div class="product-price">${formatPrice(product.price)}</div>
+            </div>`;
+        
+        card.innerHTML = `
+          <div class="product-image">
+            <img src="${imgSrc}"
+              alt="${product.name}"
+              loading="lazy"
+              onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="no-photo">${product.code}</div>
+            ${imagePromoBadge}
+            ${discountBadge}
+          </div>
+          <div class="product-info">
+            <div class="product-name">${product.name}</div>
+            <div class="product-meta">
+              <div>Code: ${product.code}</div>
+              <div>${product.category}</div>
+            </div>
+            ${priceDisplay}
+          </div>
+          <div class="product-stock-tag ${stockStatus.class}">
+            ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
+          </div>
+        `;
+        
+        card.addEventListener('click', () => {
+          if (stockStatus.available) {
+            openProductModal(product);
+          } else {
+            showToast('❌ Ce produit est en rupture de stock', 'error');
+          }
+        });
+        
+        grid.appendChild(card);
+      });
+    }
+
+    // Gestion des stocks
+    function getAvailableStock(product) {
+      if (!product) return 0;
+      const stockKey = `${product.categoryKey}_${product.code}`;
+      return state.productStocks.get(stockKey) || product.stock || 0;
+    }
+
+    function updateProductStock(product, quantity) {
+      if (!product) return 0;
+      
+      const stockKey = `${product.categoryKey}_${product.code}`;
+      const currentStock = state.productStocks.get(stockKey) || product.stock;
+      const newStock = Math.max(0, currentStock - quantity);
+      
+      state.productStocks.set(stockKey, newStock);
+      state.pendingStockUpdates.set(stockKey, newStock);
+      
+      // Mettre à jour le stock dans tous les produits
+      for (const [catKey, products] of state.products.entries()) {
+        const index = products.findIndex(p => p.code === product.code && p.name === product.name);
+        if (index !== -1) {
+          state.products.get(catKey)[index].stock = newStock;
+        }
+      }
+      
+      saveSyncData();
+      return newStock;
+    }
+
+    // Synchronisation
+    function initializeSync() {
+      loadSyncData();
+      state.syncTimer = setInterval(syncStocks, CONFIG.syncInterval);
+      setTimeout(syncStocks, 2000);
+      
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          syncStocks();
+        }
+      });
+    }
+
+    function loadSyncData() {
+      try {
+        const syncData = localStorage.getItem(CONFIG.syncStorageKey);
+        if (syncData) {
+          const data = JSON.parse(syncData);
+          if (data.productStocks) {
+            Object.entries(data.productStocks).forEach(([key, stock]) => {
+              state.productStocks.set(key, stock);
+            });
+          }
+          if (data.salesHistory) {
+            state.orderHistory = [...state.orderHistory, ...data.salesHistory]
+              .filter((order, index, self) =>
+                index === self.findIndex(o => o.id === order.id)
+              )
+              .sort((a, b) => new Date(b.date) - new Date(a.date));
+          }
+          state.lastSyncTime = data.lastSyncTime || null;
+          console.log('Données de synchronisation chargées');
+        }
+      } catch (error) {
+        console.error('Erreur chargement données sync:', error);
+      }
+    }
+
+    function saveSyncData() {
+      try {
+        const syncData = {
+          productStocks: Object.fromEntries(state.productStocks),
+          salesHistory: state.orderHistory,
+          lastSyncTime: new Date().toISOString(),
+          version: '1.0'
+        };
+        localStorage.setItem(CONFIG.syncStorageKey, JSON.stringify(syncData));
+      } catch (error) {
+        console.error('Erreur sauvegarde données sync:', error);
+      }
+    }
+
+    function syncStocks() {
+      try {
+        loadGoogleSheetsStock().then(() => {
+          updateAllProductStocks();
+          renderProducts();
+          console.log('Stocks synchronisés avec Google Sheets');
+        });
+        
+        const syncData = localStorage.getItem(CONFIG.syncStorageKey);
+        if (!syncData) return;
+        
+        const sharedData = JSON.parse(syncData);
+        if (sharedData.productStocks) {
+          Object.entries(sharedData.productStocks).forEach(([key, stock]) => {
+            const currentStock = state.productStocks.get(key) || 0;
+            if (stock < currentStock) {
+              state.productStocks.set(key, stock);
+            }
+          });
+          updateAllProductStocks();
+          renderProducts();
+          state.lastSyncTime = sharedData.lastSyncTime;
+        }
+        
+        if (state.pendingStockUpdates.size > 0) {
+          saveSyncData();
+          state.pendingStockUpdates.clear();
+        }
+        
+      } catch (error) {
+        console.error('Erreur synchronisation:', error);
+      }
+    }
+
+    function updateAllProductStocks() {
+      for (const [catKey, products] of state.products.entries()) {
+        const updatedProducts = products.map(product => {
+          const stockKey = `${product.categoryKey}_${product.code}`;
+          const googleStock = getStockFromGoogleSheets(product.code);
+          const currentStock = state.productStocks.get(stockKey);
+          let finalStock = googleStock;
+          
+          if (currentStock !== undefined && currentStock < googleStock) {
+            finalStock = currentStock;
+          }
+          
+          return {
+            ...product,
+            stock: finalStock
+          };
+        });
+        state.products.set(catKey, updatedProducts);
+      }
+    }
+
+    // Gestion du tableau de stock (admin)
+    function renderStockTable(searchQuery = '') {
+      const tableBody = document.getElementById('stockTableBody');
+      if (!tableBody) return;
+      
+      tableBody.innerHTML = '';
+      let allProducts = [];
+      
+      for (const [catKey, products] of state.products.entries()) {
+        products.forEach(product => {
+          allProducts.push({
+            ...product,
+            fullCategory: catKey
+          });
+        });
+      }
+      
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        allProducts = allProducts.filter(p =>
+          p.code.toLowerCase().includes(query) ||
+          p.name.toLowerCase().includes(query) ||
+          p.category.toLowerCase().includes(query)
+        );
+      }
+      
+      allProducts.sort((a, b) => a.code.localeCompare(b.code));
+      
+      allProducts.forEach(product => {
+        const currentStock = getAvailableStock(product);
+        const row = document.createElement('tr');
+        
+        row.innerHTML = `
+          <td><strong>${product.code}</strong></td>
+          <td>${product.name}</td>
+          <td>${product.category}</td>
+          <td>${formatPrice(product.price)}</td>
+          <td>
+            <span class="${getStockStatus(currentStock).class}" style="padding: 3px 8px; border-radius: 4px;">
+              ${currentStock > 0 ? 'En stock' : 'Rupture'}
+            </span>
+          </td>
+          <td>
+            <input type="number"
+              class="stock-input"
+              data-key="${product.categoryKey}_${product.code}"
+              value="${currentStock}"
+              min="0"
+              max="9999"
+              step="1">
+          </td>
+          <td>
+            <button class="stock-save-btn" data-key="${product.categoryKey}_${product.code}">
+              💾 Sauvegarder
+            </button>
+          </td>
+        `;
+        
+        tableBody.appendChild(row);
+      });
+    }
+
+    function updateStock(productKey, newStock) {
+      const [categoryKey, code] = productKey.split('_');
+      newStock = parseInt(newStock) || 0;
+      
+      state.productStocks.set(productKey, newStock);
+      
+      for (const [catKey, products] of state.products.entries()) {
+        const index = products.findIndex(p => p.code === code);
+        if (index !== -1) {
+          state.products.get(catKey)[index].stock = newStock;
+        }
+      }
+      
+      state.pendingStockUpdates.set(productKey, newStock);
+      saveSyncData();
+      renderProducts();
+      
+      const searchInput = document.getElementById('stockSearchInput');
+      if (searchInput) {
+        renderStockTable(searchInput.value);
+      }
+      
+      showToast(`✅ Stock mis à jour pour ${code}: ${newStock} unités`);
+    }
+
+    // ===================== ARTICLES SIMILAIRES =====================
+
+    function getSimilarProducts(currentProduct) {
+      if (!currentProduct) return [];
+      
+      if (currentProduct.categoryKey === 'promotions') {
+        return state.promotions.filter(p =>
+          p.code !== currentProduct.code
+        ).slice(0, 6);
+      }
+      
+      const sameCategory = state.products.get(currentProduct.categoryKey) || [];
+      return sameCategory.filter(p =>
+        p.code !== currentProduct.code
+      ).slice(0, 6);
+    }
+
+    function renderSimilarProducts(currentProduct) {
+      const similar = getSimilarProducts(currentProduct);
+      const grid = document.getElementById('similarProductsGrid');
+      const count = document.getElementById('similarProductsCount');
+      const section = document.getElementById('similarProductsSection');
+      
+      if (!grid || !count || !section) return;
+      
+      count.textContent = similar.length;
+      
+      if (similar.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+      
+      section.style.display = 'block';
+      grid.innerHTML = '';
+      
+      similar.forEach(product => {
+        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+        const stockStatus = getStockStatus(product.stock);
+        
+        const card = document.createElement('div');
+        card.className = 'similar-product-card';
+        
+        card.innerHTML = `
+          <div class="similar-product-image">
+            <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
+          </div>
+          <div class="similar-product-info">
+            <div class="similar-product-name">${product.name}</div>
+            <div class="similar-product-price">${formatPrice(product.price)}</div>
+            <div class="similar-product-stock ${stockStatus.class}">
+              ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
+            </div>
+          </div>
+        `;
+        
+        card.addEventListener('click', () => {
+          closeProductModal();
+          setTimeout(() => openProductModal(product), 300);
+        });
+        
+        grid.appendChild(card);
+      });
+    }
+
+    // Mettre à jour la fonction openProductModal pour inclure les articles similaires
+    const originalOpenProductModal = window.openProductModal;
+    window.openProductModal = function(product) {
+      if (!product) return;
+      state.currentModalProduct = product;
+      
+      // Mettre à jour l'interface du modal
+      updateProductModalUI(product);
+      
+      // Afficher les articles similaires
+      renderSimilarProducts(product);
+      
+      // Afficher le modal
+      document.getElementById('productModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    };
+
+    // Mettre à jour la fonction init pour appeler loadAllProducts
+    function init() {
+      try {
+        // Charger l'état sauvegardé
+        const saved = localStorage.getItem(CONFIG.localStorageKey);
+        if (saved) {
+          const data = JSON.parse(saved);
+          state.user = data.user || null;
+          state.cart = data.cart || {};
+          state.orderHistory = data.orderHistory || [];
+          updateUserUI();
+          updateCartUI();
+        }
+        
+        // Vérifier le statut admin
+        const adminState = localStorage.getItem(CONFIG.adminPasswordKey);
+        state.isAdmin = adminState === 'true';
+        const adminSection = document.getElementById('adminSection');
+        if (adminSection) {
+          adminSection.classList.toggle('visible', state.isAdmin);
+        }
+        
+        // Configurer la navigation du drawer
+        setupDrawerNavigation();
+        
+        // Configurer les événements
+        setupEventListeners();
+        
+        // Charger les produits
+        loadAllProducts();
+        
+        // Initialiser la synchronisation
+        initializeSync();
+        
+        showToast('👋 Bienvenue sur MAXI JDC MARKET !');
+        
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation:', error);
+        showToast('❌ Erreur d\'initialisation', 'error');
+      }
+    }
+
+    // ===================== LANCEMENT DE L'APPLICATION =====================
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
-
 </html>
+
+    
+ 
+
