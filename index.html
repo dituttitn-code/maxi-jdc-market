@@ -6262,10 +6262,31 @@ function getCartArticles() {
 
 <script>
   console.log("SCRIPT CHARGE OK");
-  const API_URL = "https://script.google.com/macros/s/AKfycbya_NjfouW0nd_A8Y657X34FCbXy71JUtJepJyubni4zZ0Vwt66PN8FpXbw7x8TUs5p/exec";
-
  
-  async function envoyerCommande() {
+function fetchJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = "cb_" + Math.random().toString(36).slice(2);
+    const script = document.createElement("script");
+
+    window[cb] = (data) => {
+      try { delete window[cb]; } catch(e) {}
+      script.remove();
+      resolve(data);
+    };
+
+    script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+    script.onerror = () => {
+      try { delete window[cb]; } catch(e) {}
+      script.remove();
+      reject(new Error("JSONP error"));
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
+  
+   async function envoyerCommande() {
   const payload = {
     nom: document.getElementById("order_nom")?.value || "",
     telephone: document.getElementById("order_telephone")?.value || "",
@@ -6299,6 +6320,7 @@ function getCartArticles() {
   
 </body>
 </html>
+
 
 
 
