@@ -6264,38 +6264,7 @@ function getCartArticles() {
   console.log("SCRIPT CHARGE OK");
   const API_URL = "https://script.google.com/macros/s/AKfycbya_NjfouW0nd_A8Y657X34FCbXy71JUtJepJyubni4zZ0Vwt66PN8FpXbw7x8TUs5p/exec";
 
-function fetchJsonp(url, timeout = 10000) {
-    return new Promise((resolve, reject) => {
-        const callbackName = "jsonp_cb_" + Math.random().toString(36).substr(2, 9);
-        const script = document.createElement("script");
-
-        window[callbackName] = function (data) {
-            resolve(data);
-            cleanup();
-        };
-
-        script.src = url + "&callback=" + callbackName;
-        script.onerror = () => {
-            reject(new Error("JSONP error"));
-            cleanup();
-        };
-
-        const timer = setTimeout(() => {
-            reject(new Error("JSONP timeout"));
-            cleanup();
-        }, timeout);
-
-        function cleanup() {
-            clearTimeout(timer);
-            delete window[callbackName];
-            document.body.removeChild(script);
-        }
-
-        document.body.appendChild(script);
-    });
-}
-
-  
+ 
   async function envoyerCommande() {
   const payload = {
     nom: document.getElementById("order_nom")?.value || "",
@@ -6330,6 +6299,7 @@ function fetchJsonp(url, timeout = 10000) {
   
 </body>
 </html>
+
 
 
 
