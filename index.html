@@ -6274,29 +6274,29 @@ function getCartArticles() {
   const API_URL = "https://script.google.com/macros/s/AKfycbya_NjfouW0nd_A8Y657X34FCbXy71JUtJepJyubni4zZ0Vwt66PN8FpXbw7x8TUs5p/exec";
 
   async function envoyerCommande() {
-    const payload = {
-      nom: document.getElementById("order_nom")?.value || "",
-      telephone: document.getElementById("order_telephone")?.value || "",
-      adresse: document.getElementById("order_adresse")?.value || "",
-      items: JSON.parse(document.getElementById("order_articles")?.value || "[]"),
-      livraison: Number(document.getElementById("order_livraison")?.value || 0)
-    };
+  const payload = {
+    nom: document.getElementById("order_nom")?.value || "",
+    telephone: document.getElementById("order_telephone")?.value || "",
+    adresse: document.getElementById("order_adresse")?.value || "",
+    items: JSON.parse(document.getElementById("order_articles")?.value || "[]"),
+    livraison: Number(document.getElementById("order_livraison")?.value || 0)
+  };
 
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+  // Envoi via GET + JSONP (évite CORS sur mobile)
+  const url = API_BASE + "?action=submit&payload=" + encodeURIComponent(JSON.stringify(payload));
 
-    const json = await res.json();
-    console.log(json);
+  try {
+    const json = await fetchJsonp(url);   // IMPORTANT : fetchJsonp doit exister dans ton index
+    console.log("REPONSE API", json);
 
-    if (json.ok) {
-      alert("✅ Commande envoyée !");
-    } else {
-      alert("❌ Erreur : " + (json.error || "inconnue"));
-    }
+    if (json.ok) alert("✅ Commande envoyée !");
+    else alert("❌ Erreur : " + (json.error || "inconnue"));
+  } catch (e) {
+    console.error(e);
+    alert("❌ Erreur d'enregistrement automatique (réseau/CORS)");
   }
+}
+
 
   document.getElementById("btnCommander")?.addEventListener("click", function(e){
     e.preventDefault();
@@ -6306,6 +6306,7 @@ function getCartArticles() {
   
 </body>
 </html>
+
 
 
 
