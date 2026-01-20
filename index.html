@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
@@ -2141,6 +2140,25 @@
       background: rgba(0, 255, 136, 0.05);
     }
 
+    /* SECTION SUIVI COMMANDE */
+    .suivi-section {
+      background: var(--card2);
+      border-radius: var(--radius);
+      border: 1px solid var(--accent2);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .suivi-section h4 {
+      margin: 0 0 15px;
+      font-size: 16px;
+      color: var(--accent2);
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     /* SECTION HISTORIQUE */
     .history-search-section {
       background: var(--card2);
@@ -2148,7 +2166,6 @@
       border: 1px solid var(--line);
       padding: 20px;
       box-shadow: var(--shadow);
-      margin-bottom: 15px;
     }
 
     .history-search-form {
@@ -2237,7 +2254,6 @@
       border: 1px solid var(--line);
       padding: 20px;
       box-shadow: var(--shadow);
-      margin-top: 15px;
     }
 
     .history-items {
@@ -3410,11 +3426,9 @@
       </section>
 
       <!-- SUIVI DE COMMANDE -->
-      <section class="history-search-section">
-        <div class="section-title">
-          <h4>📍 Suivi de ma commande</h4>
-        </div>
-        <div class="history-search-form">
+      <section class="suivi-section">
+        <h4>📍 Suivi de ma commande</h4>
+        <div class="account-form">
           <div class="form-field">
             <label for="suiviCommandeId">
               🔍 Numéro de commande
@@ -3430,9 +3444,14 @@
               <input type="tel" id="suiviPhone" placeholder="25 600 978">
             </div>
           </div>
-          <button class="search-history-btn" id="suiviCommandeBtn">
-            🔎 Suivre ma commande
-          </button>
+          <div class="form-actions">
+            <button class="form-btn primary" id="suiviCommandeBtn">
+              🔎 Suivre ma commande
+            </button>
+            <button class="form-btn" onclick="window.open('tools/suivi-commandes.html', '_blank')">
+              📄 Page de suivi
+            </button>
+          </div>
         </div>
       </section>
 
@@ -3788,7 +3807,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v33',
+      localStorageKey: 'maxi_jdc_market_app_v34',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -3832,34 +3851,48 @@
     ];
 
     // ===================== GÉNÉRATION NUMÉRO COMMANDE =====================
-    // Stockage des compteurs par jour
-    let orderCounters = {};
+    // Stockage des compteurs par jour dans localStorage
+    function getOrderCounters() {
+      const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const counters = JSON.parse(localStorage.getItem('maxi_jdc_order_counters') || '{}');
+      
+      // Supprimer les anciennes entrées (plus de 30 jours)
+      Object.keys(counters).forEach(date => {
+        if (date < today - 30) {
+          delete counters[date];
+        }
+      });
+      
+      return counters;
+    }
+
+    function saveOrderCounters(counters) {
+      localStorage.setItem('maxi_jdc_order_counters', JSON.stringify(counters));
+    }
 
     function generateOrderId() {
       const now = new Date();
       const dateStr = now.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
-      const today = dateStr; // Format: YYYYMMDD
+      const today = dateStr;
       
-      // Récupérer ou initialiser le compteur pour aujourd'hui
-      if (!orderCounters[today]) {
-        orderCounters[today] = 0;
+      // Récupérer les compteurs
+      const counters = getOrderCounters();
+      
+      // Initialiser ou incrémenter le compteur pour aujourd'hui
+      if (!counters[today]) {
+        counters[today] = 0;
       }
       
-      // Incrémenter le compteur
-      orderCounters[today]++;
+      counters[today]++;
+      
+      // Sauvegarder les compteurs
+      saveOrderCounters(counters);
       
       // Formater le compteur sur 3 chiffres
-      const counter = orderCounters[today].toString().padStart(3, '0');
+      const counter = counters[today].toString().padStart(3, '0');
       
       return `CMD-MAXI-${today}-${counter}`;
     }
-
-    // Exemple d'utilisation :
-    // CMD-MAXI-20260118-001
-    // CMD-MAXI-20260118-002
-    // ...
-    // Le lendemain : CMD-MAXI-20260119-001
-    // etc.
 
     // ===================== ÉTAT GLOBAL =====================
     const state = {
@@ -3885,7 +3918,6 @@
       lastSyncTime: null,
       syncTimer: null,
       googleSheetsStock: new Map(),
-      // Nouveau : stocker le dernier numéro de commande
       lastOrderNumber: null
     };
 
@@ -5267,7 +5299,6 @@
       showToast('🔍 Recherche de votre commande...', 'warning');
       
       try {
-        // Utiliser l'API pour suivre la commande
         const response = await fetch(`${CONFIG.commandeApiUrl}?method=getOrderStatus&commande_id=${encodeURIComponent(commandeId)}&telephone=${encodeURIComponent(telephone)}&t=${Date.now()}`);
         
         if (!response.ok) {
@@ -5280,7 +5311,6 @@
           throw new Error(data.error || 'Commande non trouvée');
         }
         
-        // Afficher les détails de la commande
         let detailsText = `📍 SUIVI DE COMMANDE\n`;
         detailsText += `─`.repeat(40) + `\n`;
         detailsText += `📦 Numéro: ${data.commande_id || commandeId}\n`;
@@ -5413,20 +5443,16 @@
       try {
         showToast('📤 Enregistrement automatique de la commande...', 'warning');
 
-        // Générer un numéro de commande unique
         const orderNumber = generateOrderId();
         state.lastOrderNumber = orderNumber;
 
-        // 1. PRÉPARER LES DONNÉES DANS LE FORMAT ATTENDU PAR LE SERVEUR
         const formData = new URLSearchParams();
         
-        // Données de base - FORMAT CORRECT pour Code.gs
         formData.append('method', 'saveOrder');
         formData.append('nom', state.user.name || '');
         formData.append('telephone', state.user.phone ? state.user.phone.replace(/\D/g, '') : '');
         formData.append('adresse', state.user.address || '');
         
-        // 2. PRÉPARER LES ARTICLES DANS LE FORMAT ATTENDU
         const articles = [];
         Object.values(state.cart).forEach(item => {
             articles.push({
@@ -5435,15 +5461,11 @@
             });
         });
         
-        // 3. ENVOYER LES ARTICLES SOUS FORME DE JSON
         formData.append('articles', JSON.stringify(articles));
-        
-        // 4. TOTAL (format string)
         formData.append('total', orderData.total.toFixed(2));
         
         console.log('📤 Données envoyées au serveur:', Object.fromEntries(formData));
 
-        // 5. ENVOYER VIA POST - FORMAT URL ENCODED
         const response = await fetch(CONFIG.commandeApiUrl, {
             method: 'POST',
             headers: {
@@ -5494,7 +5516,6 @@
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
       const total = subtotal + shippingFee;
 
-      // Générer le numéro de commande
       const orderNumber = generateOrderId();
 
       let orderText = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
@@ -5559,7 +5580,6 @@
       $('orderDetails').textContent = orderText;
       $('orderModal').classList.add('open');
 
-      // ENREGISTREMENT AUTOMATIQUE DE LA COMMANDE
       const orderData = {
         subtotal,
         shipping: shippingFee,
@@ -5568,13 +5588,10 @@
         savingsPercentage: savings.percentage
       };
 
-      // Appeler la fonction d'enregistrement automatique
       const enregistrementReussi = await enregistrerCommandeAutomatique(orderData);
 
-      // Sauvegarder dans l'historique local
       saveOrderToHistory(orderData);
 
-      // Vider le panier après envoi
       state.cart = {};
       updateCartUI();
 
@@ -5883,7 +5900,7 @@
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '33.0'
+        version: '34.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
@@ -5897,5 +5914,4 @@
     });
   </script>
 </body>
-
 </html>
