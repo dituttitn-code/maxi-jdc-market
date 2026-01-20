@@ -21,6 +21,81 @@
       color:var(--txt); min-height:100vh; padding:18px;
     }
     .container{max-width:1400px;margin:0 auto}
+    
+    /* Espaces Admin et Client */
+    .spaces-header {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    
+    .space-section {
+      flex: 1;
+      min-width: 300px;
+      background: var(--card);
+      border-radius: var(--r);
+      border: 2px solid var(--line);
+      padding: 15px;
+      box-shadow: var(--shadow);
+    }
+    
+    .space-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+    }
+    
+    .space-title h2 {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--green);
+    }
+    
+    .space-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+    
+    .space-btn {
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px solid var(--line);
+      background: rgba(255,255,255,.05);
+      color: var(--txt);
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-align: center;
+    }
+    
+    .space-btn:hover {
+      transform: translateY(-2px);
+      border-color: var(--blue);
+      background: rgba(255,255,255,.1);
+    }
+    
+    .space-btn.admin {
+      border-color: var(--orange);
+      background: rgba(255,167,38,.1);
+      color: var(--orange);
+    }
+    
+    .space-btn.client {
+      border-color: var(--blue);
+      background: rgba(0,212,255,.1);
+      color: var(--blue);
+    }
+    
+    /* Header existant */
     .header{
       background:rgba(10,25,47,.95);
       border:2px solid var(--green);
@@ -97,6 +172,38 @@
     }
     td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px}
     tr:hover{background:rgba(255,255,255,.05)}
+    
+    /* Styles pour les menus déroulants de statut */
+    .statut-select {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(255,255,255,.08);
+      color: var(--txt);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }
+    
+    .statut-select:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+    }
+    
+    .statut-select option {
+      background: var(--card);
+      color: var(--txt);
+      padding: 8px;
+    }
+    
+    .statut-en-attente { color: #FFC107; }
+    .statut-en-cours { color: #2196F3; }
+    .statut-livree { color: #4CAF50; }
+    .statut-annulee { color: #F44336; }
 
     .footer{
       margin-top:18px; padding:14px; text-align:center; color:var(--muted);
@@ -112,26 +219,164 @@
     }
     .toast.show{display:block; animation:pop .2s ease}
     @keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+    
+    /* Style pour les articles - réduit l'espace */
+    .articles-cell {
+      max-width: 180px;
+      white-space: pre-line;
+      font-size: 11px;
+      line-height: 1.2;
+      padding: 6px 8px !important;
+    }
+    
+    /* Style pour les statuts */
+    .statut-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 900;
+      text-align: center;
+      display: inline-block;
+      min-width: 80px;
+    }
+    
+    .statut-attente { background: rgba(255, 193, 7, 0.15); color: #FFC107; border: 1px solid rgba(255, 193, 7, 0.3); }
+    .statut-cours { background: rgba(33, 150, 243, 0.15); color: #2196F3; border: 1px solid rgba(33, 150, 243, 0.3); }
+    .statut-livre { background: rgba(76, 175, 80, 0.15); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); }
+    .statut-annule { background: rgba(244, 67, 54, 0.15); color: #F44336; border: 1px solid rgba(244, 67, 54, 0.3); }
+    
+    /* Modal mot de passe */
+    .password-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100000;
+    }
+    
+    .password-modal.active {
+      display: flex;
+    }
+    
+    .password-box {
+      background: var(--card);
+      border: 2px solid var(--green);
+      border-radius: var(--r);
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: var(--shadow);
+    }
+    
+    .password-input {
+      width: 100%;
+      padding: 12px;
+      margin: 15px 0;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.08);
+      color: var(--txt);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+    
+    .password-input:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+    
+    .password-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 2px solid var(--green);
+      background: rgba(0,255,136,.1);
+      color: var(--green);
+      font-weight: 900;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .password-btn:hover {
+      background: rgba(0,255,136,.2);
+    }
   </style>
 </head>
 
 <body>
+  <!-- Modal mot de passe -->
+  <div class="password-modal" id="passwordModal">
+    <div class="password-box">
+      <h2 style="text-align:center; margin-bottom:10px; color:var(--green)">🔒 Accès Administrateur</h2>
+      <p style="text-align:center; color:var(--muted); margin-bottom:20px">Veuillez entrer le mot de passe administrateur</p>
+      <input type="password" class="password-input" id="adminPassword" placeholder="Mot de passe" autocomplete="off">
+      <button class="password-btn" id="submitPassword">🔓 Accéder</button>
+    </div>
+  </div>
+
   <div class="container">
     <header class="header">
       <div class="left">
         <div class="logo">📊</div>
         <div>
           <h1>Tableau de Bord Administratif</h1>
-          <div class="sub">MAXI JDC MARKET — Données en temps réel</div>
+          <div class="sub">MAXI JDC MARKET — Suivi des commandes en temps réel</div>
         </div>
       </div>
 
       <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
         <div class="badge"><span>🔧</span><span>MODE ADMIN</span></div>
         <button class="btn" id="btnRefresh"><span>🔄</span><span>Actualiser</span></button>
+        <button class="btn" onclick="window.location.href='suivi-commande.html'"><span>📍</span><span>Suivi Client</span></button>
         <button class="btn" onclick="window.history.back()"><span>←</span><span>Retour</span></button>
       </div>
     </header>
+
+    <!-- Espaces Admin et Client -->
+    <div class="spaces-header">
+      <div class="space-section">
+        <div class="space-title">
+          <span style="color:var(--orange); font-size:20px">🔧</span>
+          <h2>Espace Administrateur</h2>
+        </div>
+        <div class="space-controls">
+          <button class="space-btn admin" onclick="window.location.href='tdb.html'">
+            📊 Tableau de bord
+          </button>
+          <button class="space-btn admin" onclick="showPasswordModal('stock')">
+            📦 Gérer stock
+          </button>
+          <button class="space-btn admin" onclick="showPasswordModal('settings')">
+            ⚙️ Paramètres
+          </button>
+        </div>
+      </div>
+      
+      <div class="space-section">
+        <div class="space-title">
+          <span style="color:var(--blue); font-size:20px">👤</span>
+          <h2>Espace Client</h2>
+        </div>
+        <div class="space-controls">
+          <button class="space-btn client" onclick="window.location.href='index.html'">
+            👤 Compte
+          </button>
+          <button class="space-btn client" onclick="window.location.href='suivi-commande.html'">
+            📍 Suivi des commandes
+          </button>
+          <button class="space-btn client" onclick="window.location.href='index.html#history'">
+            📋 Historique des commandes
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- STATS -->
     <section class="grid">
@@ -194,11 +439,11 @@
 
       <div class="card">
         <div class="sectionTitle">
-          <h3>🍽️ Répartition par catégorie</h3>
-          <span class="sub">Top 8 catégories</span>
+          <h3>📊 Répartition par statut</h3>
+          <span class="sub">Statut des commandes</span>
         </div>
         <div class="chartBox">
-          <canvas id="categoryChart"></canvas>
+          <canvas id="statusChart"></canvas>
         </div>
       </div>
     </section>
@@ -207,8 +452,38 @@
     <section class="sectionGrid">
       <div class="card">
         <div class="sectionTitle">
+          <h3>📋 Toutes les commandes</h3>
+          <span class="sub">Gestion complète</span>
+        </div>
+        <div class="tableWrap">
+          <table id="allOrdersTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Nom</th>
+                <th>Téléphone</th>
+                <th>Adresse</th>
+                <th>Commande</th>
+                <th>Articles</th>
+                <th>Total</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody id="allOrdersBody">
+              <tr>
+                <td colspan="8" style="text-align:center; padding:30px; color:var(--muted)">
+                  <div>Chargement des commandes...</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sectionTitle">
           <h3>🏆 Top produits</h3>
-          <span class="sub">Quantité / Revenu</span>
+          <span class="sub">Quantité vendue</span>
         </div>
         <div class="tableWrap">
           <table>
@@ -219,27 +494,13 @@
                 <th>Revenu</th>
               </tr>
             </thead>
-            <tbody id="topProductsBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="sectionTitle">
-          <h3>👥 Dernières commandes</h3>
-          <span class="sub">10 dernières</span>
-        </div>
-        <div class="tableWrap">
-          <table>
-            <thead>
+            <tbody id="topProductsBody">
               <tr>
-                <th>Date</th>
-                <th>Client</th>
-                <th>Montant</th>
-                <th>Statut</th>
+                <td colspan="3" style="text-align:center; padding:20px; color:var(--muted)">
+                  Chargement...
+                </td>
               </tr>
-            </thead>
-            <tbody id="recentOrdersBody"></tbody>
+            </tbody>
           </table>
         </div>
       </div>
@@ -253,15 +514,12 @@
 
   <div class="toast" id="toast"></div>
 
-  <script>
-    /* ===================== CONFIG ===================== */
-    // ✅ LECTURE: CSV (compatible GitHub Pages)
-    const READ_CSV_URL =
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnzZS17O7qIf35FOQHZfOXRDS-tZDCBmze4FkEEfw2kY5KdEj4Kj9ycv-1J4y_i-2_YKKnp9P48MFy/pub?gid=1804772268&single=true&output=csv";
-
-    // ✅ ECRITURE: Apps Script (pas utilisé par le dashboard, mais gardé)
-    const WRITE_API_URL =
-      "https://script.google.com/macros/s/AKfycbyt_mSY64KgB3JTLh2nNoPTUpDAuIDV42zjllxGNJrdAhP7a2PE_M7b2JaTb4FsbkkQ/exec";
+  <script type="module">
+    /* ===================== CONFIG API ===================== */
+    // URL de votre API Google Apps Script
+    const API_URL = "https://script.google.com/macros/s/AKfycbz3Vj3vkSiRjI2kZBeFADINIbmykhmVkmXaRc09McI8Q9TAlnQs_THgzrJvjoslF-qY/exec";
+    
+    const ADMIN_PASSWORD = "admin123";
 
     const state = {
       orders: [],
@@ -270,20 +528,19 @@
         totalOrders: 0,
         avgOrderValue: 0,
         topProducts: [],
-        recentOrders: [],
-        categories: {},
+        statusDistribution: {},
         salesByDay: {}
       },
       charts: {
         sales: null,
-        category: null
+        status: null
       }
     };
 
     /* ===================== UI helpers ===================== */
     const $ = (id) => document.getElementById(id);
 
-    function showToast(msg, type="info") {
+    function showToast(msg, type = "info") {
       const el = $("toast");
       const bg = type === "success" ? "#00ff88" : type === "error" ? "#ff6b6b" : "#00d4ff";
       el.style.background = bg;
@@ -303,335 +560,493 @@
       return String(x);
     }
 
-    function parseSheetDate(value) {
-      // format attendu: "16/01/2026 12:55:33"
-      const s = safeText(value).trim();
-      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
-      if (m) {
-        const dd = +m[1], mm = +m[2]-1, yy = +m[3];
-        const hh = +(m[4]||0), mi = +(m[5]||0), ss = +(m[6]||0);
-        return new Date(yy, mm, dd, hh, mi, ss);
-      }
-      const d = new Date(s);
-      return isNaN(d.getTime()) ? null : d;
-    }
-
-    function formatDate(dateValue) {
-      const d = (dateValue instanceof Date) ? dateValue : parseSheetDate(dateValue);
-      if (!d) return safeText(dateValue);
-      return d.toLocaleString("fr-FR", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" });
-    }
-
-    /* ===================== CSV Parser robuste ===================== */
-    function parseCsv(text) {
-      const rows = [];
-      let row = [];
-      let cur = "";
-      let inQuotes = false;
-
-      for (let i = 0; i < text.length; i++) {
-        const ch = text[i];
-        const next = text[i + 1];
-
-        if (ch === '"' && inQuotes && next === '"') { cur += '"'; i++; continue; }
-        if (ch === '"') { inQuotes = !inQuotes; continue; }
-
-        if (ch === "," && !inQuotes) { row.push(cur); cur = ""; continue; }
-
-        if ((ch === "\n" || ch === "\r") && !inQuotes) {
-          if (ch === "\r" && next === "\n") i++;
-          row.push(cur); rows.push(row);
-          row = []; cur = "";
-          continue;
-        }
-        cur += ch;
-      }
-      row.push(cur);
-      rows.push(row);
-      return rows;
-    }
-
-    async function fetchCsvObjects(url) {
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error("CSV HTTP " + res.status);
-
-      const csvText = await res.text();
-      const rows = parseCsv(csvText);
-      if (!rows.length) return [];
-
-      const headers = rows[0].map(h => (h || "").trim());
-      const data = [];
-
-      for (let i = 1; i < rows.length; i++) {
-        const r = rows[i];
-        if (!r || r.every(c => String(c || "").trim() === "")) continue;
-
-        const obj = {};
-        for (let c = 0; c < headers.length; c++) obj[headers[c] || `col_${c}`] = r[c] ?? "";
-        data.push(obj);
-      }
-      return data;
-    }
-
-    /* ===================== Mapping Google Sheet -> orders ===================== */
-    function safeJsonParseArray(str) {
-      const s = safeText(str).trim();
-      if (!s) return [];
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
       try {
-        const v = JSON.parse(s);
-        if (Array.isArray(v)) return v;
-        if (v && typeof v === "object") return [v];
-        return [];
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        return date.toLocaleDateString("fr-FR", { 
+          year: "numeric", 
+          month: "2-digit", 
+          day: "2-digit" 
+        });
       } catch {
-        return [];
+        return dateStr;
       }
     }
-
-    function rowToOrder(row) {
-      // Champs Google Sheet
-      const dateStr = row["Date"] || row["date"] || row["DATE"] || "";
-      const dateObj = parseSheetDate(dateStr) || new Date();
-
-      const total = Number(String(row["Total"] ?? row["total"] ?? 0).replace(",", ".") || 0);
-      const sousTotal = Number(String(row["Sous-total"] ?? row["Sous total"] ?? row["sousTotal"] ?? 0).replace(",", ".") || 0);
-      const livraison = Number(String(row["Livraison"] ?? row["livraison"] ?? 0).replace(",", ".") || 0);
-
-      const clientName = row["Nom"] || row["Client"] || row["clientName"] || "";
-      const clientPhone = row["Téléphone"] || row["Telephone"] || row["clientPhone"] || "";
-      const status = row["Statut"] || row["status"] || "Nouveau";
-
-      // Articles (JSON)
-      const itemsRaw = row["Articles (JSON)"] || row["Articles"] || row["items"] || "[]";
-      const itemsArr = safeJsonParseArray(itemsRaw);
-
-      const items = itemsArr.map((it) => {
-        const name = it.name || it.produit || it.title || "Produit";
-        const quantity = Number(it.qty ?? it.quantity ?? it.quantite ?? 1) || 1;
-        const price = Number(it.price ?? it.prix ?? 0) || 0;
-        const totalItem = Number(it.total ?? (price * quantity)) || 0;
-        return { code: it.code || name, name, quantity, total: totalItem };
-      });
-
-      const id = row["ID"] || row["Id"] || row["id"] || (dateStr + "_" + clientPhone + "_" + total);
-
-      return {
-        id,
-        date: dateObj,
-        dateStr,
-        total,
-        sousTotal,
-        livraison,
-        clientName,
-        clientPhone,
-        status,
-        items
+    
+    function showPasswordModal(action) {
+      const modal = $("passwordModal");
+      modal.classList.add("active");
+      
+      $("adminPassword").focus();
+      
+      const submitBtn = $("submitPassword");
+      submitBtn.onclick = function() {
+        const password = $("adminPassword").value;
+        if (password === ADMIN_PASSWORD) {
+          modal.classList.remove("active");
+          $("adminPassword").value = "";
+          
+          if (action === "stock") {
+            showToast("🔓 Accès autorisé à la gestion des stocks");
+            // Ici vous pouvez rediriger vers la page de gestion des stocks
+            setTimeout(() => {
+              alert("Page de gestion des stocks - À implémenter");
+            }, 500);
+          } else if (action === "settings") {
+            showToast("🔓 Accès autorisé aux paramètres");
+            // Ici vous pouvez rediriger vers la page des paramètres
+            setTimeout(() => {
+              alert("Page des paramètres - À implémenter");
+            }, 500);
+          }
+        } else {
+          showToast("❌ Mot de passe incorrect", "error");
+          $("adminPassword").value = "";
+          $("adminPassword").focus();
+        }
+      };
+      
+      // Enter key support
+      $("adminPassword").onkeypress = function(e) {
+        if (e.key === "Enter") {
+          submitBtn.click();
+        }
       };
     }
 
-    /* ===================== Load Orders (CSV) ===================== */
+    /* ===================== LOAD ORDERS FROM API ===================== */
     async function loadOrders() {
-      const rows = await fetchCsvObjects(READ_CSV_URL);
-      const orders = rows.map(rowToOrder);
-
-      orders.sort((a,b) => (b.date?.getTime?.() || 0) - (a.date?.getTime?.() || 0));
-      state.orders = orders;
-
-      $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
+      try {
+        const response = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
+        
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || "Erreur lors de la récupération des commandes");
+        }
+        
+        // Convertir les données API au format interne
+        state.orders = (data.orders || []).map(order => ({
+          id: order.id,
+          Date: order.date || "",
+          Nom: order.nom || "",
+          Téléphone: order.telephone || "",
+          Adresse: order.adresse || "",
+          Commande: order.commande_id || "",
+          Articles: order.articles || "",
+          Total: order.total || "0",
+          Statut: order.statut || "En attente"
+        }));
+        
+        $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
+        return state.orders;
+        
+      } catch (error) {
+        console.error("Erreur loadOrders:", error);
+        showToast("❌ Erreur de connexion à l'API", "error");
+        return [];
+      }
     }
 
-    /* ===================== Analytics ===================== */
-    function getCategoryFromItemName(name) {
-      const n = (name || "").toLowerCase();
-      if (n.includes("café") || n.includes("the") || n.includes("thé")) return "Café & Thés";
-      if (n.includes("chocolat") || n.includes("biscuit")) return "Chocolats & Biscuits";
-      if (n.includes("eau") || n.includes("boisson") || n.includes("jus")) return "Eaux & Boissons";
-      if (n.includes("lait") || n.includes("œuf") || n.includes("oeuf")) return "Lait & Œufs";
-      if (n.includes("fruit") || n.includes("légume") || n.includes("legume")) return "Fruits & Légumes";
-      if (n.includes("hygiène") || n.includes("hygiene") || n.includes("soin")) return "Hygiène & Soins";
-      return "Autres";
+    /* ===================== ANALYTICS ===================== */
+    function parseArticles(articlesText) {
+      if (!articlesText) return [];
+      
+      try {
+        // Si c'est du JSON
+        if (articlesText.trim().startsWith("[")) {
+          return JSON.parse(articlesText);
+        }
+        
+        // Sinon, parser le format "3x Produit\n5x Autre"
+        const articles = [];
+        const lines = articlesText.split('\n');
+        
+        for (const line of lines) {
+          const match = line.trim().match(/^(\d+)x\s+(.+)$/);
+          if (match) {
+            const quantite = parseInt(match[1]);
+            const produit = match[2].trim();
+            
+            // Chercher un prix dans le produit
+            let prix = 0;
+            const priceMatch = produit.match(/\(([\d.,]+)\s*dt\)$/);
+            if (priceMatch) {
+              prix = parseFloat(priceMatch[1].replace(',', '.'));
+            }
+            
+            articles.push({
+              produit: produit.replace(/\s*\([\d.,]+\s*dt\)$/, ''),
+              quantite: quantite,
+              prix_unitaire: prix,
+              prix_total: prix * quantite
+            });
+          }
+        }
+        
+        return articles;
+      } catch (error) {
+        console.error("Erreur parseArticles:", error);
+        return [];
+      }
     }
 
     function calculateAnalytics() {
       const orders = state.orders || [];
 
-      const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+      // Calcul des statistiques de base
+      const totalRevenue = orders.reduce((sum, order) => {
+        const total = parseFloat(order.Total) || 0;
+        return sum + total;
+      }, 0);
+      
       const totalOrders = orders.length;
-      const avgOrderValue = totalOrders ? (totalRevenue / totalOrders) : 0;
+      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-      const productSales = new Map(); // name -> {name, qty, revenue}
-      const categories = {};          // cat -> {revenue}
-      const salesByDay = {};          // dd/mm/yyyy -> revenue
+      // Distribution des statuts
+      const statusDistribution = {};
+      orders.forEach(order => {
+        const statut = order.Statut || "En attente";
+        statusDistribution[statut] = (statusDistribution[statut] || 0) + 1;
+      });
 
-      for (const order of orders) {
-        const dayKey = order.date ? order.date.toLocaleDateString("fr-FR") : safeText(order.dateStr);
-        salesByDay[dayKey] = (salesByDay[dayKey] || 0) + Number(order.total || 0);
+      // Analyse des produits
+      const productSales = new Map();
+      orders.forEach(order => {
+        const articles = parseArticles(order.Articles);
+        articles.forEach(article => {
+          const productName = article.produit || "Produit";
+          const quantite = article.quantite || 0;
+          const revenu = article.prix_total || 0;
+          
+          if (!productSales.has(productName)) {
+            productSales.set(productName, { name: productName, quantity: 0, revenue: 0 });
+          }
+          
+          const product = productSales.get(productName);
+          product.quantity += quantite;
+          product.revenue += revenu;
+        });
+      });
 
-        for (const it of (order.items || [])) {
-          const key = it.name || "Produit";
-          const qty = Number(it.quantity || 0);
-          const rev = Number(it.total || 0);
+      // Ventes par jour
+      const salesByDay = {};
+      orders.forEach(order => {
+        const dateKey = order.Date ? order.Date.substring(0, 10) : "Date inconnue";
+        const total = parseFloat(order.Total) || 0;
+        salesByDay[dateKey] = (salesByDay[dateKey] || 0) + total;
+      });
 
-          if (!productSales.has(key)) productSales.set(key, { name: key, quantity: 0, revenue: 0 });
-          const obj = productSales.get(key);
-          obj.quantity += qty;
-          obj.revenue += rev;
-
-          const cat = getCategoryFromItemName(it.name);
-          if (!categories[cat]) categories[cat] = { revenue: 0 };
-          categories[cat].revenue += rev;
-        }
-      }
-
+      // Top produits
       const topProducts = Array.from(productSales.values())
-        .sort((a,b) => b.quantity - a.quantity)
+        .sort((a, b) => b.quantity - a.quantity)
         .slice(0, 10);
 
-      const recentOrders = orders.slice(0, 10);
-
+      // Mise à jour du state
       state.analytics.totalRevenue = totalRevenue;
       state.analytics.totalOrders = totalOrders;
       state.analytics.avgOrderValue = avgOrderValue;
       state.analytics.topProducts = topProducts;
-      state.analytics.recentOrders = recentOrders;
-      state.analytics.categories = categories;
+      state.analytics.statusDistribution = statusDistribution;
       state.analytics.salesByDay = salesByDay;
     }
 
-    /* ===================== UI render ===================== */
+    /* ===================== UI RENDER ===================== */
     function updateUI() {
+      // Mise à jour des statistiques
       $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
       $("totalOrders").textContent = String(state.analytics.totalOrders);
       $("avgOrderValue").textContent = formatPrice(state.analytics.avgOrderValue);
 
-      const best = state.analytics.topProducts && state.analytics.topProducts[0];
-      $("topProductName").textContent = best ? `${best.name} (${best.quantity})` : "—";
+      // Produit le plus vendu
+      const bestProduct = state.analytics.topProducts[0];
+      $("topProductName").textContent = bestProduct 
+        ? `${bestProduct.name.substring(0, 20)}${bestProduct.name.length > 20 ? '...' : ''} (${bestProduct.quantity})`
+        : "—";
 
-      // Top produits table
-      const topBody = $("topProductsBody");
-      topBody.innerHTML = "";
-      for (const p of (state.analytics.topProducts || [])) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><div style="font-weight:900">${safeText(p.name)}</div></td>
-          <td style="font-weight:900">${Number(p.quantity||0)}</td>
-          <td style="font-weight:900;color:var(--green)">${formatPrice(p.revenue)}</td>
+      // Tableau de toutes les commandes
+      const allOrdersBody = $("allOrdersBody");
+      allOrdersBody.innerHTML = "";
+      
+      if (state.orders.length === 0) {
+        allOrdersBody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align:center; padding:30px; color:var(--muted)">
+              Aucune commande trouvée
+            </td>
+          </tr>
         `;
-        topBody.appendChild(tr);
-      }
-      if (!topBody.children.length) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td colspan="3" style="color:var(--muted)">Aucune donnée.</td>`;
-        topBody.appendChild(tr);
+      } else {
+        state.orders.forEach(order => {
+          const statutClass = `statut-${order.Statut.toLowerCase().replace(' ', '-')}`;
+          const articlesText = order.Articles ? order.Articles.replace(/\n/g, '<br>') : '';
+          
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${formatDate(order.Date)}</td>
+            <td><strong>${safeText(order.Nom)}</strong></td>
+            <td>${safeText(order.Téléphone)}</td>
+            <td>${safeText(order.Adresse)}</td>
+            <td><strong>${safeText(order.Commande)}</strong></td>
+            <td class="articles-cell">${articlesText}</td>
+            <td><strong>${formatPrice(order.Total)}</strong></td>
+            <td>
+              <select class="statut-select ${statutClass}" 
+                      data-commande="${order.Commande}"
+                      onchange="updateOrderStatus('${order.Commande}', this.value)">
+                <option value="En attente" ${order.Statut === 'En attente' ? 'selected' : ''}>En attente</option>
+                <option value="En cours" ${order.Statut === 'En cours' ? 'selected' : ''}>En cours</option>
+                <option value="Livrée" ${order.Statut === 'Livrée' ? 'selected' : ''}>Livrée</option>
+                <option value="Annulée" ${order.Statut === 'Annulée' ? 'selected' : ''}>Annulée</option>
+              </select>
+            </td>
+          `;
+          allOrdersBody.appendChild(tr);
+        });
       }
 
-      // Recent orders table
-      const recBody = $("recentOrdersBody");
-      recBody.innerHTML = "";
-      for (const o of (state.analytics.recentOrders || [])) {
-        const tr = document.createElement("tr");
-        const status = safeText(o.status || "—");
-        const statusColor = status.toLowerCase().includes("liv") ? "var(--green)" : "var(--orange)";
-        tr.innerHTML = `
-          <td>${formatDate(o.date)}</td>
-          <td>
-            <div style="font-weight:900">${safeText(o.clientName)}</div>
-            <div style="font-size:12px;color:var(--muted)">${safeText(o.clientPhone)}</div>
-          </td>
-          <td style="font-weight:900;color:var(--green)">${formatPrice(o.total)}</td>
-          <td><span style="font-weight:1000;color:${statusColor}">${status}</span></td>
+      // Tableau des top produits
+      const topProductsBody = $("topProductsBody");
+      topProductsBody.innerHTML = "";
+      
+      if (state.analytics.topProducts.length === 0) {
+        topProductsBody.innerHTML = `
+          <tr>
+            <td colspan="3" style="text-align:center; padding:20px; color:var(--muted)">
+              Aucune donnée de produit
+            </td>
+          </tr>
         `;
-        recBody.appendChild(tr);
-      }
-      if (!recBody.children.length) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td colspan="4" style="color:var(--muted)">Aucune commande.</td>`;
-        recBody.appendChild(tr);
+      } else {
+        state.analytics.topProducts.forEach(product => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><div style="font-weight:900">${safeText(product.name)}</div></td>
+            <td style="font-weight:900; color:var(--blue)">${product.quantity}</td>
+            <td style="font-weight:900; color:var(--green)">${formatPrice(product.revenue)}</td>
+          `;
+          topProductsBody.appendChild(tr);
+        });
       }
     }
 
-    /* ===================== Charts ===================== */
+    /* ===================== CHARTS ===================== */
     function initCharts() {
+      // Chart des ventes
       const salesCtx = $("salesChart").getContext("2d");
       state.charts.sales = new Chart(salesCtx, {
         type: "line",
-        data: { labels: [], datasets: [{ label: "Chiffre d'affaires (dt)", data: [], borderWidth: 3, fill: true, tension: .35 }] },
+        data: { 
+          labels: [], 
+          datasets: [{ 
+            label: "Chiffre d'affaires (dt)", 
+            data: [], 
+            borderWidth: 3, 
+            fill: true, 
+            tension: .35,
+            borderColor: "#00ff88",
+            backgroundColor: "rgba(0, 255, 136, 0.1)"
+          }] 
+        },
         options: {
-          responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{ labels:{ color:"#f0f6fc" } } },
-          scales:{
-            x:{ ticks:{ color:"#8b949e" }, grid:{ color:"rgba(255,255,255,.10)" } },
-            y:{ ticks:{ color:"#8b949e", callback:(v)=>formatPrice(v) }, grid:{ color:"rgba(255,255,255,.10)" } }
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { 
+              labels: { 
+                color: "#f0f6fc",
+                font: { size: 12 }
+              } 
+            } 
+          },
+          scales: {
+            x: { 
+              ticks: { 
+                color: "#8b949e",
+                font: { size: 11 }
+              }, 
+              grid: { 
+                color: "rgba(255,255,255,.10)" 
+              } 
+            },
+            y: { 
+              ticks: { 
+                color: "#8b949e", 
+                callback: (v) => formatPrice(v).replace(' dt', '')
+              }, 
+              grid: { 
+                color: "rgba(255,255,255,.10)" 
+              } 
+            }
           }
         }
       });
 
-      const catCtx = $("categoryChart").getContext("2d");
-      state.charts.category = new Chart(catCtx, {
+      // Chart des statuts
+      const statusCtx = $("statusChart").getContext("2d");
+      state.charts.status = new Chart(statusCtx, {
         type: "doughnut",
-        data: { labels: [], datasets: [{ data: [], borderWidth: 2 }] },
+        data: { 
+          labels: [], 
+          datasets: [{ 
+            data: [], 
+            borderWidth: 2,
+            backgroundColor: [
+              "rgba(255, 193, 7, 0.7)",   // En attente
+              "rgba(33, 150, 243, 0.7)",   // En cours
+              "rgba(76, 175, 80, 0.7)",    // Livrée
+              "rgba(244, 67, 54, 0.7)"     // Annulée
+            ],
+            borderColor: [
+              "rgba(255, 193, 7, 1)",
+              "rgba(33, 150, 243, 1)",
+              "rgba(76, 175, 80, 1)",
+              "rgba(244, 67, 54, 1)"
+            ]
+          }] 
+        },
         options: {
-          responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{ position:"right", labels:{ color:"#f0f6fc" } } }
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { 
+              position: "right", 
+              labels: { 
+                color: "#f0f6fc",
+                font: { size: 12 }
+              } 
+            } 
+          }
         }
       });
     }
 
     function updateCharts() {
+      // Chart des ventes
       const period = Number($("salesPeriod").value || 30);
       const salesByDay = state.analytics.salesByDay || {};
-
+      
       const labels = [];
       const values = [];
+      const today = new Date();
+      
       for (let i = period - 1; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const key = d.toLocaleDateString("fr-FR");
-        labels.push(key);
-        values.push(Number(salesByDay[key] || 0));
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toISOString().substring(0, 10);
+        labels.push(date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }));
+        values.push(salesByDay[dateKey] || 0);
       }
-
+      
       if (state.charts.sales) {
         state.charts.sales.data.labels = labels;
         state.charts.sales.data.datasets[0].data = values;
         state.charts.sales.update();
       }
-
-      const cats = Object.entries(state.analytics.categories || {})
-        .sort((a,b) => (b[1].revenue||0) - (a[1].revenue||0))
-        .slice(0, 8);
-
-      if (state.charts.category) {
-        state.charts.category.data.labels = cats.map(([name]) => name);
-        state.charts.category.data.datasets[0].data = cats.map(([,v]) => Number(v.revenue||0));
-        state.charts.category.update();
+      
+      // Chart des statuts
+      const statusDistribution = state.analytics.statusDistribution || {};
+      const statusLabels = ["En attente", "En cours", "Livrée", "Annulée"];
+      const statusData = statusLabels.map(label => statusDistribution[label] || 0);
+      
+      if (state.charts.status) {
+        state.charts.status.data.labels = statusLabels;
+        state.charts.status.data.datasets[0].data = statusData;
+        state.charts.status.update();
       }
     }
 
-    /* ===================== Main ===================== */
+    /* ===================== UPDATE ORDER STATUS ===================== */
+    async function updateOrderStatus(commandeId, nouveauStatut) {
+      try {
+        showToast(`Mise à jour de ${commandeId}...`, "info");
+        
+        const response = await fetch(
+          `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || "Erreur lors de la mise à jour");
+        }
+        
+        // Mettre à jour localement
+        const orderIndex = state.orders.findIndex(order => order.Commande === commandeId);
+        if (orderIndex !== -1) {
+          state.orders[orderIndex].Statut = nouveauStatut;
+          calculateAnalytics();
+          updateUI();
+          updateCharts();
+        }
+        
+        showToast(`✅ Statut mis à jour: ${nouveauStatut}`, "success");
+        
+      } catch (error) {
+        console.error("Erreur updateOrderStatus:", error);
+        showToast(`❌ Erreur: ${error.message}`, "error");
+        
+        // Recharger pour avoir les vraies données
+        refreshAll();
+      }
+    }
+
+    /* ===================== MAIN ===================== */
     async function refreshAll() {
       try {
         $("btnRefresh").disabled = true;
-
-        await loadOrders();          // ✅ CSV
-        calculateAnalytics();        // ✅ calcul stats + top produit
-        updateUI();                  // ✅ UI identique
-        updateCharts();              // ✅ charts identiques
-
-        showToast("✅ Données chargées depuis Google Sheet (CSV)", "success");
-      } catch (e) {
-        console.error(e);
-        showToast("❌ Erreur lecture CSV (vérifie Publish to web + output=csv)", "error");
+        
+        await loadOrders();          // ✅ Charger depuis l'API
+        calculateAnalytics();        // ✅ Calculer les statistiques
+        updateUI();                  // ✅ Mettre à jour l'interface
+        updateCharts();              // ✅ Mettre à jour les graphiques
+        
+        showToast("✅ Données chargées avec succès", "success");
+        
+      } catch (error) {
+        console.error("Erreur refreshAll:", error);
+        showToast("❌ Erreur lors du chargement", "error");
+        
       } finally {
         $("btnRefresh").disabled = false;
       }
     }
 
+    /* ===================== INITIALIZATION ===================== */
     document.addEventListener("DOMContentLoaded", () => {
+      // Initialiser les graphiques
       initCharts();
+      
+      // Événements
       $("salesPeriod").addEventListener("change", () => updateCharts());
       $("btnRefresh").addEventListener("click", () => refreshAll());
-
+      
+      // Fermer modal password quand on clique en dehors
+      $("passwordModal").addEventListener("click", (e) => {
+        if (e.target.id === "passwordModal") {
+          $("passwordModal").classList.remove("active");
+          $("adminPassword").value = "";
+        }
+      });
+      
+      // Exposer la fonction de mise à jour
+      window.updateOrderStatus = updateOrderStatus;
+      window.showPasswordModal = showPasswordModal;
+      
+      // Premier chargement
       refreshAll();
+      
+      // Actualisation automatique toutes les 30 secondes
       setInterval(refreshAll, 30000);
     });
   </script>
