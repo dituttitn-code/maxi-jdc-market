@@ -1,197 +1,356 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi des Commandes - MAXI JDC MARKET</title>
-    <style>
-        :root { --primary: #0a1929; --secondary: #00ff88; --accent: #00d4ff; --light: #f0f6fc; --dark: #1a365d; }
-        body { background: linear-gradient(135deg, var(--primary) 0%, #112240 100%); color: var(--light); min-height: 100vh; margin: 0; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; }
-        h1 { color: var(--secondary); }
-        .filtres { background: var(--dark); padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; }
-        .filtres input, .filtres select, .filtres button { padding: 10px; border-radius: 6px; border: 1px solid var(--accent); background: rgba(255,255,255,0.1); color: white; }
-        .filtres button { background: var(--secondary); color: var(--primary); font-weight: bold; cursor: pointer; border: none; }
-        table { width: 100%; border-collapse: collapse; background: var(--dark); border-radius: 10px; overflow: hidden; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        th { background: rgba(0, 255, 136, 0.1); color: var(--secondary); }
-        tr:hover { background: rgba(255,255,255,0.05); }
-        .statut { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-        .statut-nouvelle { background: #ff6b6b; color: white; }
-        .statut-preparation { background: #ffd93d; color: #000; }
-        .statut-pret { background: #6bcf7f; color: white; }
-        .statut-livree { background: #4d96ff; color: white; }
-        .btn-action { padding: 5px 10px; margin: 0 3px; border: none; border-radius: 4px; cursor: pointer; }
-        .btn-edit { background: var(--accent); color: white; }
-        .btn-delete { background: #ff6b6b; color: white; }
-        .nav { text-align: center; margin-top: 30px; }
-        .nav a { color: var(--accent); margin: 0 15px; }
-        .empty { text-align: center; padding: 50px; color: #ccc; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suivi des Commandes - MAXI JDC MARKET</title>
+  <style>
+    :root {
+      --bg0: #0a1929;
+      --bg1: #112240;
+      --card: #1a365d;
+      --line: rgba(255, 255, 255, .15);
+      --text: #f0f6fc;
+      --muted: #8b949e;
+      --accent: #00ff88;
+      --accent2: #00d4ff;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: rgba(10, 25, 47, 0.8);
+      border-radius: 15px;
+      border: 2px solid var(--accent);
+    }
+    
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    .suivi-form {
+      background: var(--card);
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 25px;
+      border: 1px solid var(--line);
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-size: 16px;
+      outline: none;
+    }
+    
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+    }
+    
+    .btn {
+      background: rgba(0, 255, 136, 0.15);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      padding: 12px 25px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+      background: rgba(0, 255, 136, 0.25);
+      transform: translateY(-2px);
+    }
+    
+    .result {
+      background: var(--card);
+      border-radius: 15px;
+      padding: 25px;
+      border: 1px solid var(--line);
+      display: none;
+    }
+    
+    .result.active {
+      display: block;
+    }
+    
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    
+    .status-label {
+      color: var(--muted);
+    }
+    
+    .status-value {
+      font-weight: 700;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    
+    .status-en-attente {
+      background: rgba(255, 193, 7, 0.15);
+      color: #FFC107;
+    }
+    
+    .status-en-cours {
+      background: rgba(33, 150, 243, 0.15);
+      color: #2196F3;
+    }
+    
+    .status-livree {
+      background: rgba(76, 175, 80, 0.15);
+      color: #4CAF50;
+    }
+    
+    .status-annulee {
+      background: rgba(244, 67, 54, 0.15);
+      color: #F44336;
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>📋 Suivi Détaillé des Commandes</h1>
-        <div style="display: flex; gap: 10px;">
-            <a href="index.html" style="color: var(--light); text-decoration: none; background: rgba(0,255,136,0.1); padding: 10px 15px; border-radius: 6px;">🏠 Accueil</a>
-            <a href="tableau-de-bord.html" style="color: var(--light); text-decoration: none; background: rgba(0,212,255,0.1); padding: 10px 15px; border-radius: 6px;">📊 Tableau de Bord</a>
+  <div class="container">
+    <header class="header">
+      <h1>📍 Suivi de Commandes</h1>
+      <p class="subtitle">MAXI JDC MARKET - Vérifiez l'état de votre commande en temps réel</p>
+    </header>
+    
+    <section class="suivi-form">
+      <div class="form-group">
+        <label for="commandeId">🔢 Numéro de commande</label>
+        <input type="text" id="commandeId" placeholder="Ex: CMD-MAXI-20260118-001">
+      </div>
+      
+      <div class="form-group">
+        <label for="telephone">📱 Numéro de téléphone</label>
+        <input type="tel" id="telephone" placeholder="Ex: 25 600 978">
+      </div>
+      
+      <button class="btn" id="suiviBtn">🔎 Suivre ma commande</button>
+    </section>
+    
+    <section class="result" id="resultSection">
+      <h2 style="margin-bottom: 20px; color: var(--accent);">📦 Informations de votre commande</h2>
+      
+      <div id="resultContent">
+        <div class="status-item">
+          <span class="status-label">Numéro de commande:</span>
+          <span class="status-value" id="commandeNumber">—</span>
         </div>
-    </div>
-
-    <div class="filtres">
-        <select id="filterStatut" onchange="loadCommandes()">
-            <option value="all">Tous les statuts</option>
-            <option value="nouvelle">Nouvelles</option>
-            <option value="preparation">En préparation</option>
-            <option value="pret">Prêtes</option>
-            <option value="livree">Livrées</option>
-        </select>
-        <input type="text" id="filterSearch" placeholder="Rechercher client ou téléphone..." oninput="loadCommandes()">
-        <input type="date" id="filterDate" onchange="loadCommandes()">
-        <button onclick="exporterCSV()">📥 Exporter CSV</button>
-        <button onclick="loadCommandes()" style="background: var(--accent);">🔄 Actualiser</button>
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th width="80">ID</th>
-                <th width="150">Date</th>
-                <th>Client</th>
-                <th width="120">Téléphone</th>
-                <th width="100">Articles</th>
-                <th width="100">Total</th>
-                <th width="120">Statut</th>
-                <th width="120">Source</th>
-                <th width="150">Actions</th>
-            </tr>
-        </thead>
-        <tbody id="commandesBody">
-            <!-- Rempli dynamiquement -->
-        </tbody>
-    </table>
-
-    <div id="emptyState" class="empty" style="display: none;">
-        <h3>Aucune commande enregistrée</h3>
-        <p>Les commandes apparaîtront ici automatiquement lorsqu'elles seront passées sur le site ou en caisse.</p>
-    </div>
-
-    <div class="nav">
-        <a href="commander.html">➕ Ajouter une vente en caisse</a>
-        <a href="index.html">🛒 Passer une commande en ligne</a>
-    </div>
-
-    <script>
-        function loadCommandes() {
-            const commandes = JSON.parse(localStorage.getItem('commandesMaxiJDC')) || [];
-            const filterStatut = document.getElementById('filterStatut').value;
-            const search = document.getElementById('filterSearch').value.toLowerCase();
-            const filterDate = document.getElementById('filterDate').value;
-            
-            const filtered = commandes.filter(cmd => {
-                if (filterStatut !== 'all' && cmd.statut !== filterStatut) return false;
-                if (search && !cmd.client.toLowerCase().includes(search) && !cmd.telephone.toLowerCase().includes(search)) return false;
-                if (filterDate && !cmd.date.includes(filterDate)) return false;
-                return true;
-            }).sort((a, b) => b.id - a.id);
-            
-            const tbody = document.getElementById('commandesBody');
-            const empty = document.getElementById('emptyState');
-            
-            if (filtered.length === 0) {
-                tbody.innerHTML = '';
-                empty.style.display = 'block';
-                return;
+        
+        <div class="status-item">
+          <span class="status-label">Date:</span>
+          <span class="status-value" id="commandeDate">—</span>
+        </div>
+        
+        <div class="status-item">
+          <span class="status-label">Client:</span>
+          <span class="status-value" id="commandeClient">—</span>
+        </div>
+        
+        <div class="status-item">
+          <span class="status-label">Téléphone:</span>
+          <span class="status-value" id="commandePhone">—</span>
+        </div>
+        
+        <div class="status-item">
+          <span class="status-label">Adresse:</span>
+          <span class="status-value" id="commandeAddress">—</span>
+        </div>
+        
+        <div class="status-item">
+          <span class="status-label">Statut:</span>
+          <span class="status-value">
+            <span id="commandeStatus" class="status-badge status-en-attente">—</span>
+          </span>
+        </div>
+        
+        <div class="status-item">
+          <span class="status-label">Total:</span>
+          <span class="status-value" id="commandeTotal">—</span>
+        </div>
+        
+        <div style="margin-top: 25px; padding-top: 15px; border-top: 2px solid var(--accent);">
+          <h3 style="margin-bottom: 15px; color: var(--accent2);">🛒 Articles commandés</h3>
+          <div id="commandeArticles" style="color: var(--text);">
+            Aucun article trouvé
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <footer class="footer">
+      <p>© 2024 MAXI JDC MARKET - Suivi des commandes</p>
+      <p style="margin-top: 8px;">📞 Contact: +216 25 600 978 | 🕒 Heures: 7h - 1h</p>
+      <p style="margin-top: 15px;">
+        <a href="../index.html" style="color: var(--accent); text-decoration: none;">← Retour à l'application</a>
+      </p>
+    </footer>
+  </div>
+  
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbz3Vj3vkSiRjI2kZBeFADINIbmykhmVkmXaRc09McI8Q9TAlnQs_THgzrJvjoslF-qY/exec";
+    
+    const $ = (id) => document.getElementById(id);
+    
+    async function suivreCommande() {
+      const commandeId = $('commandeId').value.trim();
+      const telephone = $('telephone').value.trim();
+      
+      if (!commandeId || !telephone) {
+        alert('Veuillez remplir tous les champs');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_URL}?method=getOrderStatus&commande_id=${encodeURIComponent(commandeId)}&telephone=${encodeURIComponent(telephone)}&t=${Date.now()}`);
+        
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Commande non trouvée');
+        }
+        
+        // Afficher les résultats
+        $('commandeNumber').textContent = data.commande_id || commandeId;
+        $('commandeDate').textContent = data.date || 'Non spécifiée';
+        $('commandeClient').textContent = data.nom || 'Non spécifié';
+        $('commandePhone').textContent = data.telephone || telephone;
+        $('commandeAddress').textContent = data.adresse || 'Non spécifiée';
+        $('commandeTotal').textContent = data.total ? `${data.total} dt` : '0 dt';
+        
+        // Gérer le statut
+        const statut = data.statut || 'En attente';
+        const statusBadge = $('commandeStatus');
+        statusBadge.textContent = statut;
+        
+        // Classes de statut
+        statusBadge.className = 'status-badge';
+        if (statut === 'En attente') {
+          statusBadge.classList.add('status-en-attente');
+        } else if (statut === 'En cours') {
+          statusBadge.classList.add('status-en-cours');
+        } else if (statut === 'Livrée') {
+          statusBadge.classList.add('status-livree');
+        } else if (statut === 'Annulée') {
+          statusBadge.classList.add('status-annulee');
+        }
+        
+        // Afficher les articles
+        const articlesDiv = $('commandeArticles');
+        if (data.articles) {
+          try {
+            const articles = JSON.parse(data.articles);
+            if (Array.isArray(articles) && articles.length > 0) {
+              let html = '<ul style="list-style: none; padding-left: 0;">';
+              articles.forEach(item => {
+                html += `<li style="padding: 8px 0; border-bottom: 1px solid var(--line);">
+                  <strong>${item.quantite || 1}x</strong> ${item.produit || item.nom || 'Produit'}
+                </li>`;
+              });
+              html += '</ul>';
+              articlesDiv.innerHTML = html;
+            } else {
+              articlesDiv.textContent = data.articles;
             }
-            empty.style.display = 'none';
-            
-            tbody.innerHTML = filtered.map(cmd => {
-                const statutClass = `statut-${cmd.statut}`;
-                return `
-                    <tr>
-                        <td>${cmd.id}</td>
-                        <td>${cmd.date}</td>
-                        <td>${cmd.client}</td>
-                        <td>${cmd.telephone}</td>
-                        <td>${cmd.articles.length} article(s)</td>
-                        <td><strong>${cmd.total.toFixed(2)} DT</strong></td>
-                        <td><span class="statut ${statutClass}">${cmd.statutLabel}</span></td>
-                        <td>${cmd.source === 'application_web' ? '🌐 En ligne' : '💵 Caisse'}</td>
-                        <td>
-                            <button class="btn-action btn-edit" onclick="changerStatut(${cmd.id})">🔄</button>
-                            <button class="btn-action btn-delete" onclick="supprimerCommande(${cmd.id})">🗑</button>
-                            <button class="btn-action" onclick="voirDetails(${cmd.id})" style="background:#9b59b6;">👁</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+          } catch (e) {
+            articlesDiv.textContent = data.articles;
+          }
+        } else {
+          articlesDiv.textContent = 'Aucun article trouvé';
         }
-
-        function changerStatut(id) {
-            const commandes = JSON.parse(localStorage.getItem('commandesMaxiJDC')) || [];
-            const index = commandes.findIndex(c => c.id === id);
-            if (index === -1) return;
-            
-            const statuts = ['nouvelle', 'preparation', 'pret', 'livree'];
-            const labels = ['🆕 Nouvelle', '👨‍🍳 En préparation', '✅ Prête', '🚚 Livrée'];
-            const current = statuts.indexOf(commandes[index].statut);
-            const next = (current + 1) % statuts.length;
-            
-            commandes[index].statut = statuts[next];
-            commandes[index].statutLabel = labels[next];
-            localStorage.setItem('commandesMaxiJDC', JSON.stringify(commandes));
-            loadCommandes();
-            alert(`Statut de la commande #${id} mis à jour : ${labels[next]}`);
-        }
-
-        function supprimerCommande(id) {
-            if (!confirm(`Supprimer la commande #${id} ?`)) return;
-            let commandes = JSON.parse(localStorage.getItem('commandesMaxiJDC')) || [];
-            commandes = commandes.filter(c => c.id !== id);
-            localStorage.setItem('commandesMaxiJDC', JSON.stringify(commandes));
-            loadCommandes();
-        }
-
-        function voirDetails(id) {
-            const commandes = JSON.parse(localStorage.getItem('commandesMaxiJDC')) || [];
-            const cmd = commandes.find(c => c.id === id);
-            if (!cmd) return;
-            
-            let details = `Détails Commande #${id}\n\n`;
-            details += `Client: ${cmd.client}\n`;
-            details += `Téléphone: ${cmd.telephone}\n`;
-            details += `Date: ${cmd.date}\n`;
-            details += `Statut: ${cmd.statutLabel}\n`;
-            details += `Source: ${cmd.source}\n\n`;
-            details += `Articles:\n`;
-            cmd.articles.forEach(a => {
-                details += `- ${a.qte}x ${a.nom} @ ${a.prix} DT = ${(a.qte * a.prix).toFixed(2)} DT\n`;
-            });
-            details += `\nTotal: ${cmd.total.toFixed(2)} DT`;
-            alert(details);
-        }
-
-        function exporterCSV() {
-            const commandes = JSON.parse(localStorage.getItem('commandesMaxiJDC')) || [];
-            if (commandes.length === 0) return alert("Aucune donnée à exporter.");
-            
-            let csv = "ID;Date;Client;Telephone;Articles;Total;Statut;Source\n";
-            commandes.forEach(cmd => {
-                const articles = cmd.articles.map(a => `${a.qte}x ${a.nom}`).join(', ');
-                csv += `${cmd.id};"${cmd.date}";"${cmd.client}";"${cmd.telephone}";"${articles}";${cmd.total};"${cmd.statutLabel}";"${cmd.source}"\n`;
-            });
-            
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `commandes-maxi-jdc-${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-            alert(`✅ ${commandes.length} commande(s) exportées en CSV`);
-        }
-
-        // Actualiser automatiquement toutes les 10 secondes
-        window.onload = loadCommandes;
-        setInterval(loadCommandes, 10000);
-    </script>
+        
+        // Afficher la section résultat
+        $('resultSection').classList.add('active');
+        
+      } catch (error) {
+        console.error('Erreur:', error);
+        alert(`Erreur: ${error.message}\n\nVérifiez que:\n• Le numéro de commande est correct\n• Le numéro de téléphone correspond\n• La commande existe dans notre système`);
+      }
+    }
+    
+    $('suiviBtn').addEventListener('click', suivreCommande);
+    
+    // Autoriser Entrée pour soumettre
+    $('commandeId').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') suivreCommande();
+    });
+    
+    $('telephone').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') suivreCommande();
+    });
+  </script>
 </body>
 </html>
