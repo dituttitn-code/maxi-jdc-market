@@ -143,11 +143,6 @@
       padding: 8px;
     }
     
-    .statut-en-attente { color: #FFC107; }
-    .statut-en-cours { color: #2196F3; }
-    .statut-livree { color: #4CAF50; }
-    .statut-annulee { color: #F44336; }
-
     .footer{
       margin-top:18px; padding:14px; text-align:center; color:var(--muted);
       border-top:1px solid var(--line);
@@ -170,21 +165,6 @@
       line-height: 1.4;
     }
     
-    .statut-badge {
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 900;
-      text-align: center;
-      display: inline-block;
-      min-width: 80px;
-    }
-    
-    .statut-attente { background: rgba(255, 193, 7, 0.15); color: #FFC107; border: 1px solid rgba(255, 193, 7, 0.3); }
-    .statut-cours { background: rgba(33, 150, 243, 0.15); color: #2196F3; border: 1px solid rgba(33, 150, 243, 0.3); }
-    .statut-livre { background: rgba(76, 175, 80, 0.15); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); }
-    .statut-annule { background: rgba(244, 67, 54, 0.15); color: #F44336; border: 1px solid rgba(244, 67, 54, 0.3); }
-    
     .chart-container {
       display: flex;
       flex-wrap: wrap;
@@ -205,6 +185,13 @@
         flex: 1 1 100%;
       }
     }
+    
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-style: italic;
+    }
   </style>
 </head>
 
@@ -224,7 +211,7 @@
         <div id="apiStatus" class="api-status api-online"><span>●</span><span>API Connectée</span></div>
         <button class="btn" id="btnRefresh"><span>🔄</span><span>Actualiser</span></button>
         <button class="btn" onclick="window.location.href='suivi-commande.html'"><span>📍</span><span>Suivi Client</span></button>
-        <button class="btn" onclick="window.history.back()"><span>←</span><span>Retour</span></button>
+        <button class="btn" onclick="window.location.href='../index.html'"><span>←</span><span>Accueil</span></button>
       </div>
     </header>
 
@@ -413,6 +400,7 @@
     
     async function recupererCommandes() {
       try {
+        console.log("🔗 Tentative de connexion à l'API...");
         const response = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
         
         if (!response.ok) {
@@ -420,6 +408,7 @@
         }
         
         const data = await response.json();
+        console.log("📦 Réponse API:", data);
         
         if (!data.success) {
           throw new Error(data.error || "Erreur lors de la récupération des commandes");
@@ -439,9 +428,10 @@
           _raw: commande
         }));
         
+        console.log(`✅ ${commandesFormatees.length} commandes chargées`);
         return commandesFormatees;
       } catch (error) {
-        console.error("Erreur dans recupererCommandes:", error);
+        console.error("❌ Erreur dans recupererCommandes:", error);
         return [];
       }
     }
@@ -609,7 +599,7 @@
       const statuses = ["En attente", "En cours", "Livrée", "Annulée"];
       const now = new Date();
       
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < 20; i++) {
         const client = clients[Math.floor(Math.random() * clients.length)];
         const date = new Date(now);
         date.setDate(date.getDate() - Math.floor(Math.random() * 30));
@@ -679,7 +669,7 @@
           state.apiStatus = 'online';
           $("apiStatus").className = "api-status api-online";
           $("apiStatus").innerHTML = '<span>●</span><span>API Connectée</span>';
-          showToast("✅ Données chargées depuis l'API", "success");
+          showToast(`✅ ${apiOrders.length} commandes chargées`, "success");
         } else {
           showToast("📊 Utilisation des données de démonstration", "warning");
           state.orders = generateDemoData();
@@ -838,7 +828,7 @@
       if (state.orders.length === 0) {
         allOrdersBody.innerHTML = `
           <tr>
-            <td colspan="8" style="text-align:center; padding:30px; color:var(--muted)">
+            <td colspan="8" class="no-data">
               Aucune commande trouvée
             </td>
           </tr>
@@ -886,7 +876,7 @@
       if (state.analytics.topProducts.length === 0) {
         topProductsBody.innerHTML = `
           <tr>
-            <td colspan="3" style="text-align:center; padding:20px; color:var(--muted)">
+            <td colspan="3" class="no-data">
               Aucune donnée de produit
             </td>
           </tr>
@@ -912,159 +902,171 @@
       
       // 1. Graphique des ventes (courbe)
       const salesCtx = $("salesChart").getContext("2d");
-      charts.sales = new Chart(salesCtx, {
-        type: "line",
-        data: { 
-          labels: [], 
-          datasets: [{ 
-            label: "Chiffre d'affaires (dt)", 
-            data: [], 
-            borderWidth: 3, 
-            fill: true, 
-            tension: 0.4,
-            borderColor: "#00ff88",
-            backgroundColor: "rgba(0, 255, 136, 0.15)"
-          }] 
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { ticks: { color: "#f0f6fc" } },
-            y: { ticks: { color: "#f0f6fc" } }
+      if (salesCtx) {
+        charts.sales = new Chart(salesCtx, {
+          type: "line",
+          data: { 
+            labels: [], 
+            datasets: [{ 
+              label: "Chiffre d'affaires (dt)", 
+              data: [], 
+              borderWidth: 3, 
+              fill: true, 
+              tension: 0.4,
+              borderColor: "#00ff88",
+              backgroundColor: "rgba(0, 255, 136, 0.15)"
+            }] 
           },
-          plugins: { 
-            legend: { 
-              labels: { 
-                color: "#f0f6fc"
-              } 
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { ticks: { color: "#f0f6fc" } },
+              y: { ticks: { color: "#f0f6fc" } }
+            },
+            plugins: { 
+              legend: { 
+                labels: { 
+                  color: "#f0f6fc"
+                } 
+              }
             }
           }
-        }
-      });
+        });
+      }
 
       // 2. Graphique des statuts (donut)
       const statusCtx = $("statusChart").getContext("2d");
-      charts.status = new Chart(statusCtx, {
-        type: "doughnut",
-        data: { 
-          labels: [], 
-          datasets: [{ 
-            data: [], 
-            borderWidth: 2,
-            backgroundColor: [
-              "rgba(255, 193, 7, 0.8)",   // En attente
-              "rgba(33, 150, 243, 0.8)",   // En cours
-              "rgba(76, 175, 80, 0.8)",    // Livrée
-              "rgba(244, 67, 54, 0.8)"     // Annulée
-            ]
-          }] 
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '60%',
-          plugins: { 
-            legend: { 
-              position: "right", 
-              labels: { 
-                color: "#f0f6fc"
-              } 
+      if (statusCtx) {
+        charts.status = new Chart(statusCtx, {
+          type: "doughnut",
+          data: { 
+            labels: [], 
+            datasets: [{ 
+              data: [], 
+              borderWidth: 2,
+              backgroundColor: [
+                "rgba(255, 193, 7, 0.8)",   // En attente
+                "rgba(33, 150, 243, 0.8)",   // En cours
+                "rgba(76, 175, 80, 0.8)",    // Livrée
+                "rgba(244, 67, 54, 0.8)"     // Annulée
+              ]
+            }] 
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: { 
+              legend: { 
+                position: "right", 
+                labels: { 
+                  color: "#f0f6fc"
+                } 
+              }
             }
           }
-        }
-      });
+        });
+      }
 
       // 3. Graphique des heures (histogramme)
       const hourlyCtx = $("hourlyChart").getContext("2d");
-      charts.hourly = new Chart(hourlyCtx, {
-        type: "bar",
-        data: { 
-          labels: [], 
-          datasets: [{ 
-            label: "Chiffre d'affaires (dt)", 
-            data: [], 
-            backgroundColor: "rgba(0, 212, 255, 0.6)"
-          }] 
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { ticks: { color: "#f0f6fc" } },
-            y: { ticks: { color: "#f0f6fc" } }
+      if (hourlyCtx) {
+        charts.hourly = new Chart(hourlyCtx, {
+          type: "bar",
+          data: { 
+            labels: [], 
+            datasets: [{ 
+              label: "Chiffre d'affaires (dt)", 
+              data: [], 
+              backgroundColor: "rgba(0, 212, 255, 0.6)"
+            }] 
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { ticks: { color: "#f0f6fc" } },
+              y: { ticks: { color: "#f0f6fc" } }
+            }
           }
-        }
-      });
+        });
+      }
 
       // 4. Graphique des produits (histogramme horizontal)
       const productsCtx = $("productsChart").getContext("2d");
-      charts.products = new Chart(productsCtx, {
-        type: "bar",
-        data: { 
-          labels: [], 
-          datasets: [{ 
-            label: "Quantité vendue", 
-            data: [], 
-            backgroundColor: "rgba(255, 167, 38, 0.6)"
-          }] 
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { ticks: { color: "#f0f6fc" } },
-            y: { ticks: { color: "#f0f6fc" } }
+      if (productsCtx) {
+        charts.products = new Chart(productsCtx, {
+          type: "bar",
+          data: { 
+            labels: [], 
+            datasets: [{ 
+              label: "Quantité vendue", 
+              data: [], 
+              backgroundColor: "rgba(255, 167, 38, 0.6)"
+            }] 
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { ticks: { color: "#f0f6fc" } },
+              y: { ticks: { color: "#f0f6fc" } }
+            }
           }
-        }
-      });
+        });
+      }
 
       // 5. Graphique des jours de semaine (histogramme)
       const weekdayCtx = $("weekdayChart").getContext("2d");
-      charts.weekday = new Chart(weekdayCtx, {
-        type: "bar",
-        data: { 
-          labels: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"], 
-          datasets: [{ 
-            label: "Chiffre d'affaires (dt)", 
-            data: [0, 0, 0, 0, 0, 0, 0], 
-            backgroundColor: "rgba(147, 51, 234, 0.6)"
-          }] 
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { ticks: { color: "#f0f6fc" } },
-            y: { ticks: { color: "#f0f6fc" } }
+      if (weekdayCtx) {
+        charts.weekday = new Chart(weekdayCtx, {
+          type: "bar",
+          data: { 
+            labels: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"], 
+            datasets: [{ 
+              label: "Chiffre d'affaires (dt)", 
+              data: [0, 0, 0, 0, 0, 0, 0], 
+              backgroundColor: "rgba(147, 51, 234, 0.6)"
+            }] 
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { ticks: { color: "#f0f6fc" } },
+              y: { ticks: { color: "#f0f6fc" } }
+            }
           }
-        }
-      });
+        });
+      }
 
       // 6. Graphique de l'évolution du panier moyen (courbe)
       const avgCtx = $("avgChart").getContext("2d");
-      charts.avg = new Chart(avgCtx, {
-        type: "line",
-        data: { 
-          labels: [], 
-          datasets: [{ 
-            label: "Panier moyen (dt)", 
-            data: [], 
-            borderWidth: 3, 
-            borderColor: "#ff6b6b",
-            backgroundColor: "rgba(255, 107, 107, 0.1)"
-          }] 
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { ticks: { color: "#f0f6fc" } },
-            y: { ticks: { color: "#f0f6fc" } }
+      if (avgCtx) {
+        charts.avg = new Chart(avgCtx, {
+          type: "line",
+          data: { 
+            labels: [], 
+            datasets: [{ 
+              label: "Panier moyen (dt)", 
+              data: [], 
+              borderWidth: 3, 
+              borderColor: "#ff6b6b",
+              backgroundColor: "rgba(255, 107, 107, 0.1)"
+            }] 
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { ticks: { color: "#f0f6fc" } },
+              y: { ticks: { color: "#f0f6fc" } }
+            }
           }
-        }
-      });
+        });
+      }
     }
 
     // ===================== MISE À JOUR DES GRAPHIQUES =====================
@@ -1080,6 +1082,8 @@
     }
 
     function updateSalesChart(period = 30) {
+      if (!state.charts.sales) return;
+      
       const labels = [];
       const data = [];
       const today = new Date();
@@ -1092,14 +1096,14 @@
         data.push(state.analytics.salesByDay[dateKey] || 0);
       }
       
-      if (state.charts.sales) {
-        state.charts.sales.data.labels = labels;
-        state.charts.sales.data.datasets[0].data = data;
-        state.charts.sales.update();
-      }
+      state.charts.sales.data.labels = labels;
+      state.charts.sales.data.datasets[0].data = data;
+      state.charts.sales.update();
     }
 
     function updateStatusChart() {
+      if (!state.charts.status) return;
+      
       const statusOrder = ["En attente", "En cours", "Livrée", "Annulée"];
       const labels = [];
       const data = [];
@@ -1112,14 +1116,14 @@
         }
       });
       
-      if (state.charts.status) {
-        state.charts.status.data.labels = labels;
-        state.charts.status.data.datasets[0].data = data;
-        state.charts.status.update();
-      }
+      state.charts.status.data.labels = labels;
+      state.charts.status.data.datasets[0].data = data;
+      state.charts.status.update();
     }
 
     function updateHourlyChart() {
+      if (!state.charts.hourly) return;
+      
       const labels = [];
       const data = [];
       
@@ -1128,39 +1132,39 @@
         data.push(state.analytics.salesByHour[hour] || 0);
       }
       
-      if (state.charts.hourly) {
-        state.charts.hourly.data.labels = labels;
-        state.charts.hourly.data.datasets[0].data = data;
-        state.charts.hourly.update();
-      }
+      state.charts.hourly.data.labels = labels;
+      state.charts.hourly.data.datasets[0].data = data;
+      state.charts.hourly.update();
     }
 
     function updateProductsChart() {
+      if (!state.charts.products) return;
+      
       const topProducts = state.analytics.topProducts.slice(0, 10);
       const labels = topProducts.map(p => p.name);
       const data = topProducts.map(p => p.quantity);
       
-      if (state.charts.products) {
-        state.charts.products.data.labels = labels;
-        state.charts.products.data.datasets[0].data = data;
-        state.charts.products.update();
-      }
+      state.charts.products.data.labels = labels;
+      state.charts.products.data.datasets[0].data = data;
+      state.charts.products.update();
     }
 
     function updateWeekdayChart() {
+      if (!state.charts.weekday) return;
+      
       const data = [];
       
       for (let i = 0; i < 7; i++) {
         data.push(state.analytics.salesByWeekday[i] || 0);
       }
       
-      if (state.charts.weekday) {
-        state.charts.weekday.data.datasets[0].data = data;
-        state.charts.weekday.update();
-      }
+      state.charts.weekday.data.datasets[0].data = data;
+      state.charts.weekday.update();
     }
 
     function updateAvgChart() {
+      if (!state.charts.avg) return;
+      
       const weeks = Object.keys(state.analytics.avgByWeek)
         .map(key => parseInt(key))
         .sort((a, b) => b - a)
@@ -1173,11 +1177,9 @@
         return weekData.count > 0 ? weekData.total / weekData.count : 0;
       });
       
-      if (state.charts.avg) {
-        state.charts.avg.data.labels = labels;
-        state.charts.avg.data.datasets[0].data = data;
-        state.charts.avg.update();
-      }
+      state.charts.avg.data.labels = labels;
+      state.charts.avg.data.datasets[0].data = data;
+      state.charts.avg.update();
     }
 
     // ===================== MISE À JOUR DU STATUT =====================
@@ -1244,23 +1246,36 @@
 
     // ===================== INITIALISATION =====================
     document.addEventListener("DOMContentLoaded", () => {
-      initCharts();
+      console.log("🚀 Initialisation du tableau de bord...");
       
-      $("salesPeriod").addEventListener("change", () => updateCharts());
-      $("btnRefresh").addEventListener("click", () => refreshAll());
+      // Vérifier si Chart.js est chargé
+      if (typeof Chart === 'undefined') {
+        console.error("❌ Chart.js n'est pas chargé!");
+        showToast("❌ Erreur: Chart.js non chargé", "error");
+        return;
+      }
       
-      // Exposer la fonction globalement
-      window.updateOrderStatus = updateOrderStatus;
-      
-      refreshAll();
-      
-      setInterval(refreshAll, 30000);
-      
-      document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
-          refreshAll();
-        }
-      });
+      try {
+        initCharts();
+        
+        $("salesPeriod").addEventListener("change", () => updateCharts());
+        $("btnRefresh").addEventListener("click", () => refreshAll());
+        
+        // Exposer la fonction globalement
+        window.updateOrderStatus = updateOrderStatus;
+        
+        // Lancer le chargement initial
+        setTimeout(() => refreshAll(), 500);
+        
+        // Actualisation automatique toutes les 30 secondes
+        setInterval(refreshAll, 30000);
+        
+        console.log("✅ Tableau de bord initialisé avec succès");
+        
+      } catch (error) {
+        console.error("❌ Erreur lors de l'initialisation:", error);
+        showToast("❌ Erreur d'initialisation: " + error.message, "error");
+      }
     });
   </script>
 </body>
