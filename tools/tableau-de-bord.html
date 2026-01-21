@@ -406,10 +406,11 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // URL de l'API Google Apps Script
+    // URL de l'API Google Apps Script (celle de votre fichier api-commandes.js)
     const API_URL = "https://script.google.com/macros/s/AKfycbyokEi5GQ7kcZ5Rq-ZG4Z6LBYSgne8LKXr3pU4qEXSB9JIJkrYSGOA6Z-zocqW6JGip/exec";
 
-    // Fonctions API
+    // ===================== FONCTIONS API =====================
+    
     async function recupererCommandes() {
       try {
         const response = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
@@ -424,6 +425,7 @@
           throw new Error(data.error || "Erreur lors de la récupération des commandes");
         }
         
+        // Formater selon les 8 colonnes du tableau
         const commandesFormatees = (data.orders || []).map(commande => ({
           Date: commande.date || "",
           Nom: commande.nom || "",
@@ -471,22 +473,27 @@
       if (!articles) return "";
       
       try {
+        // Si articles est déjà formaté "3x Produit\n5x Autre"
         if (typeof articles === "string" && articles.includes("x ")) {
           return articles;
         }
         
         let articlesArray = [];
         
+        // Si c'est une chaîne JSON
         if (typeof articles === "string") {
           try {
             articlesArray = JSON.parse(articles);
           } catch (e) {
-            return articles;
+            return articles; // Retourne la chaîne telle quelle
           }
-        } else if (Array.isArray(articles)) {
+        }
+        // Si c'est déjà un tableau
+        else if (Array.isArray(articles)) {
           articlesArray = articles;
         }
         
+        // Formater chaque article
         return articlesArray.map(item => {
           const quantite = item.quantite || item.qty || 1;
           const produit = item.produit || item.nom || "Produit";
@@ -499,7 +506,7 @@
       }
     }
 
-    // État de l'application
+    // ===================== CONFIGURATION TDB =====================
     const state = {
       orders: [],
       analytics: {
@@ -524,8 +531,8 @@
       apiStatus: 'checking'
     };
 
-    // Utilitaires
-    function $(id) { return document.getElementById(id); }
+    // ===================== UTILITAIRES =====================
+    const $ = (id) => document.getElementById(id);
 
     function showToast(msg, type = "info") {
       const el = $("toast");
@@ -566,7 +573,7 @@
       }
     }
 
-    // Données de démonstration
+    // ===================== DONNÉES DE DÉMONSTRATION =====================
     function generateDemoData() {
       console.log("🔄 Génération des données de démonstration...");
       
@@ -661,7 +668,7 @@
       return demoOrders;
     }
 
-    // Chargement des données
+    // ===================== CHARGEMENT DES DONNÉES =====================
     async function loadOrders() {
       try {
         showToast("🔗 Connexion à l'API...", "info");
@@ -700,7 +707,7 @@
       }
     }
 
-    // Analytics
+    // ===================== ANALYTICS =====================
     function parseArticles(articlesText) {
       if (!articlesText) return [];
       
@@ -808,7 +815,7 @@
         .slice(0, 10);
     }
 
-    // Mise à jour de l'interface
+    // ===================== AFFICHAGE UI =====================
     function updateUI() {
       $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
       $("totalOrders").textContent = state.analytics.totalOrders;
@@ -887,11 +894,11 @@
       $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
     }
 
-    // Initialisation des graphiques
+    // ===================== INITIALISATION DES GRAPHIQUES =====================
     function initCharts() {
       const charts = state.charts;
       
-      // Graphique des ventes
+      // 1. Graphique des ventes (courbe)
       const salesCtx = $("salesChart").getContext("2d");
       charts.sales = new Chart(salesCtx, {
         type: "line",
@@ -909,11 +916,18 @@
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { 
+              labels: { 
+                color: "#f0f6fc"
+              } 
+            }
+          }
         }
       });
 
-      // Graphique des statuts
+      // 2. Graphique des statuts (donut)
       const statusCtx = $("statusChart").getContext("2d");
       charts.status = new Chart(statusCtx, {
         type: "doughnut",
@@ -921,21 +935,31 @@
           labels: [], 
           datasets: [{ 
             data: [], 
+            borderWidth: 2,
             backgroundColor: [
-              "rgba(255, 193, 7, 0.8)",
-              "rgba(33, 150, 243, 0.8)",
-              "rgba(76, 175, 80, 0.8)",
-              "rgba(244, 67, 54, 0.8)"
+              "rgba(255, 193, 7, 0.8)",   // En attente
+              "rgba(33, 150, 243, 0.8)",   // En cours
+              "rgba(76, 175, 80, 0.8)",    // Livrée
+              "rgba(244, 67, 54, 0.8)"     // Annulée
             ]
           }] 
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false
+          maintainAspectRatio: false,
+          cutout: '60%',
+          plugins: { 
+            legend: { 
+              position: "right", 
+              labels: { 
+                color: "#f0f6fc"
+              } 
+            }
+          }
         }
       });
 
-      // Graphique des heures
+      // 3. Graphique des heures (histogramme)
       const hourlyCtx = $("hourlyChart").getContext("2d");
       charts.hourly = new Chart(hourlyCtx, {
         type: "bar",
@@ -953,7 +977,7 @@
         }
       });
 
-      // Graphique des produits
+      // 4. Graphique des produits (histogramme horizontal)
       const productsCtx = $("productsChart").getContext("2d");
       charts.products = new Chart(productsCtx, {
         type: "bar",
@@ -972,7 +996,7 @@
         }
       });
 
-      // Graphique des jours
+      // 5. Graphique des jours de semaine (histogramme)
       const weekdayCtx = $("weekdayChart").getContext("2d");
       charts.weekday = new Chart(weekdayCtx, {
         type: "bar",
@@ -990,7 +1014,7 @@
         }
       });
 
-      // Graphique du panier moyen
+      // 6. Graphique de l'évolution du panier moyen (courbe)
       const avgCtx = $("avgChart").getContext("2d");
       charts.avg = new Chart(avgCtx, {
         type: "line",
@@ -1010,7 +1034,7 @@
       });
     }
 
-    // Mise à jour des graphiques
+    // ===================== MISE À JOUR DES GRAPHIQUES =====================
     function updateCharts() {
       const period = parseInt($("salesPeriod").value || 30);
       
@@ -1123,7 +1147,7 @@
       }
     }
 
-    // Mise à jour du statut
+    // ===================== MISE À JOUR DU STATUT =====================
     async function updateOrderStatus(commandeId, nouveauStatut) {
       try {
         showToast(`⏳ Mise à jour de ${commandeId}...`, "info");
@@ -1162,7 +1186,7 @@
       }
     }
 
-    // Rechargement
+    // ===================== RECHARGEMENT COMPLET =====================
     async function refreshAll() {
       try {
         $("btnRefresh").disabled = true;
@@ -1185,13 +1209,14 @@
       }
     }
 
-    // Initialisation
+    // ===================== INITIALISATION =====================
     document.addEventListener("DOMContentLoaded", () => {
       initCharts();
       
       $("salesPeriod").addEventListener("change", () => updateCharts());
       $("btnRefresh").addEventListener("click", () => refreshAll());
       
+      // Exposer la fonction globalement
       window.updateOrderStatus = updateOrderStatus;
       
       refreshAll();
