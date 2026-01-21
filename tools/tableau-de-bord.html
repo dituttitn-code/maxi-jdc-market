@@ -411,10 +411,111 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    /* ===================== CONFIGURATION ===================== */
+    /* ===================== INTÉGRATION DIRECTE DE L'API ===================== */
+    
+    // URL de l'API Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbyokEi5GQ7kcZ5Rq-ZG4Z6LBYSgne8LKXr3pU4qEXSB9JIJkrYSGOA6Z-zocqW6JGip/exec";
-    const USE_DEMO_DATA = true; // Passer à false quand l'API fonctionne
 
+    /* ===================== FONCTIONS API (reprise de votre fichier) ===================== */
+    
+    async function recupererCommandes() {
+      try {
+        const response = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
+        
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || "Erreur lors de la récupération des commandes");
+        }
+        
+        // Formater selon les 8 colonnes du tableau
+        const commandesFormatees = (data.orders || []).map(commande => ({
+          // Les 8 colonnes exactes
+          Date: commande.date || "",
+          Nom: commande.nom || "",
+          Téléphone: commande.telephone || "",
+          Adresse: commande.adresse || "",
+          Commande: commande.commande_id || "",
+          Articles: commande.articles || "",
+          Total: commande.total || "0",
+          Statut: commande.statut || "En attente",
+          // Données supplémentaires pour le traitement interne
+          _id: commande.id,
+          _raw: commande
+        }));
+        
+        return commandesFormatees;
+      } catch (error) {
+        console.error("Erreur dans recupererCommandes:", error);
+        return [];
+      }
+    }
+
+    async function mettreAJourStatut(commandeId, nouveauStatut) {
+      try {
+        const response = await fetch(
+          `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || "Erreur lors de la mise à jour");
+        }
+        
+        return data;
+      } catch (error) {
+        console.error("Erreur dans mettreAJourStatut:", error);
+        throw error;
+      }
+    }
+
+    function formaterArticles(articles) {
+      if (!articles) return "";
+      
+      try {
+        // Si articles est déjà formaté "3x Produit\n5x Autre"
+        if (typeof articles === "string" && articles.includes("x ")) {
+          return articles;
+        }
+        
+        let articlesArray = [];
+        
+        // Si c'est une chaîne JSON
+        if (typeof articles === "string") {
+          try {
+            articlesArray = JSON.parse(articles);
+          } catch (e) {
+            return articles; // Retourne la chaîne telle quelle
+          }
+        }
+        // Si c'est déjà un tableau
+        else if (Array.isArray(articles)) {
+          articlesArray = articles;
+        }
+        
+        // Formater chaque article
+        return articlesArray.map(item => {
+          const quantite = item.quantite || item.qty || 1;
+          const produit = item.produit || item.nom || "Produit";
+          return `${quantite}x ${produit}`;
+        }).join("\n");
+        
+      } catch (error) {
+        console.error("Erreur lors du formatage des articles:", error);
+        return String(articles || "");
+      }
+    }
+
+    /* ===================== CONFIGURATION TDB ===================== */
     const state = {
       orders: [],
       analytics: {
@@ -584,58 +685,27 @@
     async function loadOrders() {
       try {
         // Tester d'abord la connexion API
-        if (!USE_DEMO_DATA) {
-          showToast("🔗 Test de connexion à l'API...", "info");
-          
-          const testResponse = await fetch(`${API_URL}?method=ping&t=${Date.now()}`, {
-            timeout: 5000
-          }).catch(() => null);
-          
-          if (testResponse && testResponse.ok) {
-            // API fonctionnelle - charger les vraies données
-            showToast("📡 Chargement des données depuis l'API...", "info");
-            
-            const response = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
-            
-            if (!response.ok) {
-              throw new Error(`Erreur HTTP: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            
-            if (!data.success) {
-              throw new Error(data.error || "Erreur API");
-            }
-            
-            state.orders = (data.orders || []).map(order => ({
-              id: order.id,
-              Date: order.date || "",
-              Nom: order.nom || "",
-              Téléphone: order.telephone || "",
-              Adresse: order.adresse || "",
-              Commande: order.commande_id || "",
-              Articles: order.articles || "",
-              Total: order.total || "0",
-              Statut: order.statut || "En attente",
-              _raw: order
-            }));
-            
-            $("dataSourceInfo").textContent = "Source des données : API Google Sheets";
-            state.apiStatus = 'online';
-            $("apiStatus").className = "api-status api-online";
-            $("apiStatus").innerHTML = '<span>●</span><span>API Connectée</span>';
-            
-            return state.orders;
-          }
-        }
+        showToast("🔗 Connexion à l'API...", "info");
         
-        // Utiliser les données de démonstration
-        showToast("📊 Utilisation des données de démonstration", "warning");
-        state.orders = generateDemoData();
-        $("dataSourceInfo").textContent = "Source des données : Démonstration (API non disponible)";
-        state.apiStatus = 'demo';
-        $("apiStatus").className = "api-status api-offline";
-        $("apiStatus").innerHTML = '<span>●</span><span>Mode Démo</span>';
+        // Essayer de charger depuis l'API
+        const apiOrders = await recupererCommandes();
+        
+        if (apiOrders && apiOrders.length > 0) {
+          state.orders = apiOrders;
+          $("dataSourceInfo").textContent = "Source des données : API Google Sheets";
+          state.apiStatus = 'online';
+          $("apiStatus").className = "api-status api-online";
+          $("apiStatus").innerHTML = '<span>●</span><span>API Connectée</span>';
+          showToast("✅ Données chargées depuis l'API", "success");
+        } else {
+          // Utiliser les données de démonstration
+          showToast("📊 Utilisation des données de démonstration", "warning");
+          state.orders = generateDemoData();
+          $("dataSourceInfo").textContent = "Source des données : Démonstration";
+          state.apiStatus = 'demo';
+          $("apiStatus").className = "api-status api-offline";
+          $("apiStatus").innerHTML = '<span>●</span><span>Mode Démo</span>';
+        }
         
         return state.orders;
         
@@ -1318,34 +1388,22 @@
         }
         
         // Sinon, appeler l'API
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: `method=updateStatus&commande=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}`
-        });
+        const result = await mettreAJourStatut(commandeId, nouveauStatut);
         
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
+        if (result && result.success) {
+          // Mettre à jour localement
+          const orderIndex = state.orders.findIndex(order => order.Commande === commandeId);
+          if (orderIndex !== -1) {
+            state.orders[orderIndex].Statut = nouveauStatut;
+            calculateAnalytics();
+            updateUI();
+            updateCharts();
+          }
+          
+          showToast(`✅ Statut mis à jour: ${nouveauStatut}`, "success");
+        } else {
+          throw new Error("Erreur API");
         }
-        
-        const data = await response.json();
-        
-        if (!data.success) {
-          throw new Error(data.error || "Erreur lors de la mise à jour");
-        }
-        
-        // Mettre à jour localement
-        const orderIndex = state.orders.findIndex(order => order.Commande === commandeId);
-        if (orderIndex !== -1) {
-          state.orders[orderIndex].Statut = nouveauStatut;
-          calculateAnalytics();
-          updateUI();
-          updateCharts();
-        }
-        
-        showToast(`✅ Statut mis à jour: ${nouveauStatut}`, "success");
         
       } catch (error) {
         console.error("Erreur updateOrderStatus:", error);
