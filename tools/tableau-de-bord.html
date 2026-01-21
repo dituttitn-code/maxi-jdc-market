@@ -55,6 +55,25 @@
       color:var(--orange); padding:8px 12px; border-radius:999px; font-weight:900; font-size:13px;
       display:flex; gap:8px; align-items:center;
     }
+    .api-status {
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .api-online {
+      background: rgba(0, 255, 136, 0.15);
+      color: var(--green);
+      border: 1px solid var(--green);
+    }
+    .api-offline {
+      background: rgba(255, 107, 107, 0.15);
+      color: var(--red);
+      border: 1px solid var(--red);
+    }
 
     .grid{
       display:grid; gap:16px; margin-top:18px;
@@ -207,6 +226,7 @@
 
       <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
         <div class="badge"><span>🔧</span><span>MODE ADMIN</span></div>
+        <div id="apiStatus" class="api-status api-online"><span>●</span><span>API Connectée</span></div>
         <button class="btn" id="btnRefresh"><span>🔄</span><span>Actualiser</span></button>
         <button class="btn" onclick="window.location.href='suivi-commande.html'"><span>📍</span><span>Suivi Client</span></button>
         <button class="btn" onclick="window.history.back()"><span>←</span><span>Retour</span></button>
@@ -384,14 +404,16 @@
     <footer class="footer">
       <div>© 2024 MAXI JDC MARKET — Tableau de bord administratif</div>
       <div style="margin-top:6px; font-size:12px;">Dernière mise à jour : <span id="lastUpdate">—</span></div>
+      <div style="margin-top:6px; font-size:11px; color:var(--orange);" id="dataSourceInfo"></div>
     </footer>
   </div>
 
   <div class="toast" id="toast"></div>
 
   <script>
-    /* ===================== CONFIG API ===================== */
+    /* ===================== CONFIGURATION ===================== */
     const API_URL = "https://script.google.com/macros/s/AKfycbyokEi5GQ7kcZ5Rq-ZG4Z6LBYSgne8LKXr3pU4qEXSB9JIJkrYSGOA6Z-zocqW6JGip/exec";
+    const USE_DEMO_DATA = true; // Passer à false quand l'API fonctionne
 
     const state = {
       orders: [],
@@ -413,15 +435,18 @@
         products: null,
         weekday: null,
         avg: null
-      }
+      },
+      apiStatus: 'checking'
     };
 
-    /* ===================== UI helpers ===================== */
+    /* ===================== UTILITAIRES ===================== */
     const $ = (id) => document.getElementById(id);
 
     function showToast(msg, type = "info") {
       const el = $("toast");
-      const bg = type === "success" ? "#00ff88" : type === "error" ? "#ff6b6b" : "#00d4ff";
+      const bg = type === "success" ? "#00ff88" : 
+                  type === "error" ? "#ff6b6b" : 
+                  type === "warning" ? "#ffa726" : "#00d4ff";
       el.style.background = bg;
       el.textContent = msg;
       el.classList.add("show");
@@ -456,105 +481,177 @@
       }
     }
 
-    /* ===================== LOAD ORDERS FROM API ===================== */
-    async function loadOrders() {
-      try {
-        showToast("🔄 Chargement des données...", "info");
-        
-        // Utiliser fetch avec mode 'no-cors' si nécessaire
-        const response = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`, {
-          mode: 'cors',
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (!data.success) {
-          throw new Error(data.error || "Erreur lors de la récupération des commandes");
-        }
-        
-        // Convertir les données API au format interne
-        state.orders = (data.orders || []).map(order => ({
-          id: order.id,
-          Date: order.date || "",
-          Nom: order.nom || "",
-          Téléphone: order.telephone || "",
-          Adresse: order.adresse || "",
-          Commande: order.commande_id || "",
-          Articles: order.articles || "",
-          Total: parseFloat(order.total) || 0,
-          Statut: order.statut || "En attente"
-        }));
-        
-        $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
-        console.log(`${state.orders.length} commandes chargées`);
-        return state.orders;
-        
-      } catch (error) {
-        console.error("Erreur loadOrders:", error);
-        showToast("❌ Erreur de connexion à l'API", "error");
-        
-        // Données de démonstration si l'API échoue
-        return loadDemoData();
-      }
-    }
-
-    /* ===================== DONNÉES DE DÉMO ===================== */
-    function loadDemoData() {
-      console.log("Chargement des données de démonstration...");
+    /* ===================== DONNÉES DE DÉMONSTRATION ===================== */
+    function generateDemoData() {
+      console.log("🔄 Génération des données de démonstration...");
       
-      // Générer des données de démonstration
       const demoOrders = [];
       const products = [
-        "Pizza Margherita", "Pizza Pepperoni", "Pizza 4 Fromages", 
-        "Pizza Végétarienne", "Pizza Chicken", "Pizza Fruits de Mer",
-        "Burger Classique", "Burger Double", "Burger Végétarien",
-        "Frites", "Salade César", "Soda", "Eau minérale"
+        { name: "Pizza Margherita", price: 18.5 },
+        { name: "Pizza Pepperoni", price: 22.0 },
+        { name: "Pizza 4 Fromages", price: 20.5 },
+        { name: "Pizza Végétarienne", price: 19.5 },
+        { name: "Pizza Chicken", price: 21.0 },
+        { name: "Burger Classique", price: 15.0 },
+        { name: "Burger Double", price: 18.0 },
+        { name: "Frites", price: 7.5 },
+        { name: "Salade César", price: 12.0 },
+        { name: "Soda", price: 5.0 },
+        { name: "Eau minérale", price: 3.0 },
+        { name: "Tiramisu", price: 8.5 }
+      ];
+      
+      const clients = [
+        { nom: "Mohamed Ali", tel: "051234567", adr: "123 Avenue Habib Bourguiba, Tunis" },
+        { nom: "Fatima Ben", tel: "052345678", adr: "45 Rue de la Liberté, Sfax" },
+        { nom: "Karim Said", tel: "053456789", adr: "78 Avenue Mohammed V, Sousse" },
+        { nom: "Leila Ahmed", tel: "054567890", adr: "90 Rue Hedi Chaker, Bizerte" },
+        { nom: "Youssef Mohamed", tel: "055678901", adr: "12 Avenue Habib Thameur, Gabès" },
+        { nom: "Amina Hassan", tel: "056789012", adr: "34 Rue Ali Belhouane, Nabeul" },
+        { nom: "Hassan Farid", tel: "057890123", adr: "56 Avenue Taieb Mhiri, Monastir" },
+        { nom: "Samira Karem", tel: "058901234", adr: "78 Rue Ibn Khaldoun, Kairouan" },
+        { nom: "Bilel Nouri", tel: "059012345", adr: "90 Avenue Farhat Hached, Mahdia" },
+        { nom: "Nour Chen", tel: "051112233", adr: "11 Rue Abou El Kacem Chebbi, Tozeur" }
       ];
       
       const statuses = ["En attente", "En cours", "Livrée", "Annulée"];
       const now = new Date();
       
+      // Générer 50 commandes sur les 30 derniers jours
       for (let i = 0; i < 50; i++) {
+        const client = clients[Math.floor(Math.random() * clients.length)];
         const date = new Date(now);
         date.setDate(date.getDate() - Math.floor(Math.random() * 30));
         date.setHours(Math.floor(Math.random() * 24));
         date.setMinutes(Math.floor(Math.random() * 60));
         
-        const numItems = Math.floor(Math.random() * 5) + 1;
-        let articles = "";
+        // Générer 1-4 articles par commande
+        const numItems = Math.floor(Math.random() * 4) + 1;
+        let articles = [];
         let total = 0;
         
         for (let j = 0; j < numItems; j++) {
           const product = products[Math.floor(Math.random() * products.length)];
           const quantity = Math.floor(Math.random() * 3) + 1;
-          const price = Math.random() * 20 + 5;
-          articles += `${quantity}x ${product} (${price.toFixed(2)} dt)\n`;
-          total += quantity * price;
+          const lineTotal = product.price * quantity;
+          
+          articles.push({
+            produit: product.name,
+            quantite: quantity,
+            prix_unitaire: product.price,
+            prix_total: lineTotal
+          });
+          
+          total += lineTotal;
         }
         
+        // Formater les articles en texte
+        const articlesText = articles.map(item => 
+          `${item.quantite}x ${item.produit} (${item.prix_unitaire.toFixed(2)} dt)`
+        ).join('\n');
+        
+        // Statut aléatoire
+        const statut = statuses[Math.floor(Math.random() * statuses.length)];
+        
         demoOrders.push({
-          id: i + 1,
+          id: `demo_${i + 1000}`,
           Date: date.toISOString(),
-          Nom: `Client ${i + 1}`,
-          Téléphone: `05${Math.floor(Math.random() * 90000000) + 10000000}`,
-          Adresse: `Adresse ${i + 1}, Tunis`,
+          Nom: client.nom,
+          Téléphone: client.tel,
+          Adresse: client.adr,
           Commande: `CMD${1000 + i}`,
-          Articles: articles.trim(),
+          Articles: articlesText,
           Total: total.toFixed(2),
-          Statut: statuses[Math.floor(Math.random() * statuses.length)]
+          Statut: statut,
+          _raw: {
+            date: date.toISOString(),
+            nom: client.nom,
+            telephone: client.tel,
+            adresse: client.adr,
+            commande_id: `CMD${1000 + i}`,
+            articles: articlesText,
+            total: total.toFixed(2),
+            statut: statut
+          }
         });
       }
       
-      state.orders = demoOrders;
-      showToast("✅ Données de démonstration chargées", "success");
+      console.log(`✅ ${demoOrders.length} commandes de démonstration générées`);
       return demoOrders;
+    }
+
+    /* ===================== CHARGEMENT DES DONNÉES ===================== */
+    async function loadOrders() {
+      try {
+        // Tester d'abord la connexion API
+        if (!USE_DEMO_DATA) {
+          showToast("🔗 Test de connexion à l'API...", "info");
+          
+          const testResponse = await fetch(`${API_URL}?method=ping&t=${Date.now()}`, {
+            timeout: 5000
+          }).catch(() => null);
+          
+          if (testResponse && testResponse.ok) {
+            // API fonctionnelle - charger les vraies données
+            showToast("📡 Chargement des données depuis l'API...", "info");
+            
+            const response = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
+            
+            if (!response.ok) {
+              throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+              throw new Error(data.error || "Erreur API");
+            }
+            
+            state.orders = (data.orders || []).map(order => ({
+              id: order.id,
+              Date: order.date || "",
+              Nom: order.nom || "",
+              Téléphone: order.telephone || "",
+              Adresse: order.adresse || "",
+              Commande: order.commande_id || "",
+              Articles: order.articles || "",
+              Total: order.total || "0",
+              Statut: order.statut || "En attente",
+              _raw: order
+            }));
+            
+            $("dataSourceInfo").textContent = "Source des données : API Google Sheets";
+            state.apiStatus = 'online';
+            $("apiStatus").className = "api-status api-online";
+            $("apiStatus").innerHTML = '<span>●</span><span>API Connectée</span>';
+            
+            return state.orders;
+          }
+        }
+        
+        // Utiliser les données de démonstration
+        showToast("📊 Utilisation des données de démonstration", "warning");
+        state.orders = generateDemoData();
+        $("dataSourceInfo").textContent = "Source des données : Démonstration (API non disponible)";
+        state.apiStatus = 'demo';
+        $("apiStatus").className = "api-status api-offline";
+        $("apiStatus").innerHTML = '<span>●</span><span>Mode Démo</span>';
+        
+        return state.orders;
+        
+      } catch (error) {
+        console.error("Erreur loadOrders:", error);
+        
+        // Utiliser les données de démonstration en cas d'erreur
+        showToast("⚠️ Utilisation des données de démonstration", "warning");
+        state.orders = generateDemoData();
+        $("dataSourceInfo").textContent = "Source des données : Démonstration (Erreur API)";
+        state.apiStatus = 'error';
+        $("apiStatus").className = "api-status api-offline";
+        $("apiStatus").innerHTML = '<span>●</span><span>Erreur API</span>';
+        
+        return state.orders;
+      }
     }
 
     /* ===================== ANALYTICS ===================== */
@@ -678,7 +775,7 @@
         .slice(0, 10);
     }
 
-    /* ===================== UI RENDER ===================== */
+    /* ===================== AFFICHAGE UI ===================== */
     function updateUI() {
       // Mise à jour des statistiques
       $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
@@ -758,6 +855,9 @@
           topProductsBody.appendChild(tr);
         });
       }
+      
+      // Mise à jour de la date
+      $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
     }
 
     /* ===================== INITIALISATION DES GRAPHIQUES ===================== */
@@ -792,11 +892,6 @@
                 color: "#f0f6fc",
                 font: { size: 12 }
               } 
-            },
-            tooltip: {
-              backgroundColor: 'rgba(0,0,0,0.8)',
-              titleColor: '#00ff88',
-              bodyColor: '#fff'
             }
           },
           scales: {
@@ -860,15 +955,6 @@
                 font: { size: 12 },
                 padding: 20
               } 
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = Math.round((context.parsed / total) * 100);
-                  return `${context.label}: ${context.parsed} (${percentage}%)`;
-                }
-              }
             }
           }
         }
@@ -881,7 +967,7 @@
         data: { 
           labels: [], 
           datasets: [{ 
-            label: "Commandes par heure", 
+            label: "Chiffre d'affaires (dt)", 
             data: [], 
             borderWidth: 1,
             backgroundColor: "rgba(0, 212, 255, 0.6)",
@@ -1195,9 +1281,9 @@
     function updateAvgChart() {
       const weeks = Object.keys(state.analytics.avgByWeek)
         .map(key => parseInt(key))
-        .sort((a, b) => b - a) // Les plus récentes en premier
-        .slice(0, 8) // 8 dernières semaines
-        .reverse(); // Chronologique
+        .sort((a, b) => b - a)
+        .slice(0, 8)
+        .reverse();
       
       const labels = weeks.map(week => `S${Math.abs(week)}`);
       const data = weeks.map(week => {
@@ -1212,11 +1298,26 @@
       }
     }
 
-    /* ===================== UPDATE ORDER STATUS ===================== */
+    /* ===================== MISE À JOUR DU STATUT ===================== */
     async function updateOrderStatus(commandeId, nouveauStatut) {
       try {
         showToast(`⏳ Mise à jour de ${commandeId}...`, "info");
         
+        // Si on est en mode démo, mettre à jour localement seulement
+        if (state.apiStatus === 'demo' || state.apiStatus === 'error') {
+          // Mettre à jour localement
+          const orderIndex = state.orders.findIndex(order => order.Commande === commandeId);
+          if (orderIndex !== -1) {
+            state.orders[orderIndex].Statut = nouveauStatut;
+            calculateAnalytics();
+            updateUI();
+            updateCharts();
+            showToast(`✅ Statut mis à jour en local: ${nouveauStatut}`, "success");
+          }
+          return;
+        }
+        
+        // Sinon, appeler l'API
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: {
@@ -1249,16 +1350,14 @@
       } catch (error) {
         console.error("Erreur updateOrderStatus:", error);
         showToast(`❌ Erreur: ${error.message}`, "error");
-        
-        // Recharger pour avoir les vraies données
-        refreshAll();
       }
     }
 
-    /* ===================== MAIN ===================== */
+    /* ===================== RECHARGEMENT COMPLET ===================== */
     async function refreshAll() {
       try {
         $("btnRefresh").disabled = true;
+        $("btnRefresh").innerHTML = '<span>⏳</span><span>Chargement...</span>';
         
         await loadOrders();
         calculateAnalytics();
@@ -1273,10 +1372,11 @@
         
       } finally {
         $("btnRefresh").disabled = false;
+        $("btnRefresh").innerHTML = '<span>🔄</span><span>Actualiser</span>';
       }
     }
 
-    /* ===================== INITIALIZATION ===================== */
+    /* ===================== INITIALISATION ===================== */
     document.addEventListener("DOMContentLoaded", () => {
       // Initialiser les graphiques
       initCharts();
