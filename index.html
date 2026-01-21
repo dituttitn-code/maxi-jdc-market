@@ -1708,7 +1708,7 @@
       gap: 20px;
     }
 
-    /* SECTION ADMIN */
+    /* SECTION ADMIN - MASQUÉE PAR DÉFAUT */
     .admin-section {
       background: var(--card2);
       border-radius: var(--radius);
@@ -1716,11 +1716,11 @@
       padding: 15px;
       box-shadow: var(--shadow);
       margin-bottom: 15px;
-      display: none;
+      display: none; /* MASQUÉE PAR DÉFAUT */
     }
 
     .admin-section.visible {
-      display: block;
+      display: block; /* VISIBLE UNIQUEMENT EN MODE ADMIN */
     }
 
     .admin-header {
@@ -3321,37 +3321,7 @@
       <button class="drawer-close" id="closeDrawerBtn">×</button>
     </div>
     <div class="drawer-content">
-      <!-- ADMIN -->
-      <section class="admin-section" id="adminSection">
-        <div class="admin-header">
-          <h4>🔧 Espace Administrateur</h4>
-          <span class="admin-badge">ADMIN</span>
-        </div>
-        <div class="admin-controls-grid">
-          <button class="admin-btn dashboard" id="adminDashboardBtn">
-            <span class="admin-icon">📊</span>
-            <span class="admin-label">Tableau de bord</span>
-          </button>
-          <button class="admin-btn promo" id="adminPromoBtn">
-            <span class="admin-icon">📢</span>
-            <span class="admin-label">Gérer promotions</span>
-          </button>
-          <button class="admin-btn stock" id="adminStockBtn">
-            <span class="admin-icon">📦</span>
-            <span class="admin-label">Gérer stock</span>
-          </button>
-          <button class="admin-btn stats" id="adminStatsBtn">
-            <span class="admin-icon">📈</span>
-            <span class="admin-label">Statistiques</span>
-          </button>
-          <button class="admin-btn settings" id="adminSettingsBtn">
-            <span class="admin-icon">⚙️</span>
-            <span class="admin-label">Paramètres</span>
-          </button>
-        </div>
-      </section>
-
-      <!-- COMPTE -->
+      <!-- COMPTE CLIENT (TOUJOURS VISIBLE) -->
       <section class="account-section">
         <div class="section-title">
           <h4>👤 Mon Compte</h4>
@@ -3409,7 +3379,7 @@
         </div>
       </section>
 
-      <!-- HISTORIQUE -->
+      <!-- HISTORIQUE CLIENT (TOUJOURS VISIBLE) -->
       <section class="history-search-section">
         <div class="section-title">
           <h4>📋 Historique des commandes</h4>
@@ -3432,7 +3402,7 @@
         </div>
       </section>
 
-      <!-- HISTORIQUE COMMANDES -->
+      <!-- HISTORIQUE COMMANDES CLIENT (TOUJOURS VISIBLE) -->
       <section class="order-history-section" id="orderHistorySection" style="display:none">
         <div class="section-title">
           <h4>📜 Vos commandes</h4>
@@ -3444,7 +3414,37 @@
         </div>
       </section>
 
-      <!-- PANIER -->
+      <!-- SECTION ADMIN (MASQUÉE PAR DÉFAUT) -->
+      <section class="admin-section" id="adminSection">
+        <div class="admin-header">
+          <h4>🔧 Espace Administrateur</h4>
+          <span class="admin-badge">ADMIN</span>
+        </div>
+        <div class="admin-controls-grid">
+          <button class="admin-btn dashboard" id="adminDashboardBtn">
+            <span class="admin-icon">📊</span>
+            <span class="admin-label">Tableau de bord</span>
+          </button>
+          <button class="admin-btn promo" id="adminPromoBtn">
+            <span class="admin-icon">📢</span>
+            <span class="admin-label">Gérer promotions</span>
+          </button>
+          <button class="admin-btn stock" id="adminStockBtn">
+            <span class="admin-icon">📦</span>
+            <span class="admin-label">Gérer stock</span>
+          </button>
+          <button class="admin-btn stats" id="adminStatsBtn">
+            <span class="admin-icon">📈</span>
+            <span class="admin-label">Statistiques</span>
+          </button>
+          <button class="admin-btn settings" id="adminSettingsBtn">
+            <span class="admin-icon">⚙️</span>
+            <span class="admin-label">Paramètres</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- PANIER CLIENT (TOUJOURS VISIBLE) -->
       <section class="cart-section">
         <div class="section-title">
           <h4>🧺 Mon Panier</h4>
@@ -3843,7 +3843,7 @@
       orderHistory: [],
       promotions: [],
       tempMapCoords: null,
-      isAdmin: false,
+      isAdmin: false, // MODE ADMIN DÉSACTIVÉ PAR DÉFAUT
       map: null,
       mapMarker: null,
       productStocks: new Map(),
@@ -5474,9 +5474,12 @@
           updateUserUI();
           updateCartUI();
         }
+        
+        // CHARGER L'ÉTAT ADMIN
         const adminState = localStorage.getItem(CONFIG.adminPasswordKey);
         state.isAdmin = adminState === 'true';
         $('adminSection').classList.toggle('visible', state.isAdmin);
+        
       } catch (e) {
         console.warn('Erreur chargement état:', e);
       }
@@ -5770,4 +5773,3 @@
 </body>
 
 </html>
-
