@@ -371,7 +371,7 @@
           <button class="space-btn client" onclick="window.location.href='suivi-commande.html'">
             📍 Suivi des commandes
           </button>
-          <button class="space-btn client" onclick="window.location.href='index.html#history'">
+          <button class="space-btn client" onclick="window.location.href='index.html'">
             📋 Historique des commandes
           </button>
         </div>
@@ -516,7 +516,6 @@
 
   <script type="module">
     /* ===================== CONFIG API ===================== */
-    // URL de votre API Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbyokEi5GQ7kcZ5Rq-ZG4Z6LBYSgne8LKXr3pU4qEXSB9JIJkrYSGOA6Z-zocqW6JGip/exec";
     
     const ADMIN_PASSWORD = "admin123";
@@ -534,6 +533,10 @@
       charts: {
         sales: null,
         status: null
+      },
+      commandeCounter: {
+        lastDate: null,
+        count: 0
       }
     };
 
@@ -590,13 +593,11 @@
           
           if (action === "stock") {
             showToast("🔓 Accès autorisé à la gestion des stocks");
-            // Ici vous pouvez rediriger vers la page de gestion des stocks
             setTimeout(() => {
               alert("Page de gestion des stocks - À implémenter");
             }, 500);
           } else if (action === "settings") {
             showToast("🔓 Accès autorisé aux paramètres");
-            // Ici vous pouvez rediriger vers la page des paramètres
             setTimeout(() => {
               alert("Page des paramètres - À implémenter");
             }, 500);
@@ -614,6 +615,32 @@
           submitBtn.click();
         }
       };
+    }
+
+    /* ===================== COMPTEUR DE COMMANDES ===================== */
+    function updateCommandeCounter() {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      
+      if (state.commandeCounter.lastDate !== today) {
+        // Nouveau jour, réinitialiser le compteur
+        state.commandeCounter.lastDate = today;
+        state.commandeCounter.count = 0;
+      }
+      
+      // Compter les commandes d'aujourd'hui
+      const todayOrders = state.orders.filter(order => {
+        if (!order.date) return false;
+        const orderDate = new Date(order.date).toISOString().split('T')[0];
+        return orderDate === today;
+      });
+      
+      state.commandeCounter.count = todayOrders.length;
+      
+      // Mettre à jour l'affichage si nécessaire
+      const counterElement = document.getElementById('commandeCounter');
+      if (counterElement) {
+        counterElement.textContent = `Commandes aujourd'hui: ${state.commandeCounter.count}`;
+      }
     }
 
     /* ===================== LOAD ORDERS FROM API ===================== */
@@ -643,6 +670,9 @@
           Total: order.total || "0",
           Statut: order.statut || "En attente"
         }));
+        
+        // Mettre à jour le compteur
+        updateCommandeCounter();
         
         $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
         return state.orders;
@@ -866,23 +896,26 @@
             } 
           },
           scales: {
-            x: { 
+                       x: { 
               ticks: { 
                 color: "#8b949e",
                 font: { size: 11 }
-              }, 
-              grid: { 
-                color: "rgba(255,255,255,.10)" 
-              } 
+              },
+              grid: {
+                color: "rgba(255,255,255,0.05)"
+              }
             },
-            y: { 
+            y: {
               ticks: { 
-                color: "#8b949e", 
-                callback: (v) => formatPrice(v).replace(' dt', '')
-              }, 
-              grid: { 
-                color: "rgba(255,255,255,.10)" 
-              } 
+                color: "#8b949e",
+                font: { size: 11 },
+                callback: function(value) {
+                  return value.toFixed(0) + " dt";
+                }
+              },
+              grid: {
+                color: "rgba(255,255,255,0.05)"
+              }
             }
           }
         }
@@ -892,84 +925,133 @@
       const statusCtx = $("statusChart").getContext("2d");
       state.charts.status = new Chart(statusCtx, {
         type: "doughnut",
-        data: { 
-          labels: [], 
-          datasets: [{ 
-            data: [], 
-            borderWidth: 2,
+        data: {
+          labels: [],
+          datasets: [{
+            data: [],
             backgroundColor: [
-              "rgba(255, 193, 7, 0.7)",   // En attente
-              "rgba(33, 150, 243, 0.7)",   // En cours
-              "rgba(76, 175, 80, 0.7)",    // Livrée
-              "rgba(244, 67, 54, 0.7)"     // Annulée
+              "rgba(255, 193, 7, 0.8)",   // En attente - jaune
+              "rgba(33, 150, 243, 0.8)",   // En cours - bleu
+              "rgba(76, 175, 80, 0.8)",    // Livrée - vert
+              "rgba(244, 67, 54, 0.8)"     // Annulée - rouge
             ],
             borderColor: [
               "rgba(255, 193, 7, 1)",
               "rgba(33, 150, 243, 1)",
               "rgba(76, 175, 80, 1)",
               "rgba(244, 67, 54, 1)"
-            ]
-          }] 
+            ],
+            borderWidth: 2
+          }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { 
-            legend: { 
-              position: "right", 
-              labels: { 
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
                 color: "#f0f6fc",
-                font: { size: 12 }
-              } 
-            } 
+                font: { size: 11 },
+                padding: 15,
+                usePointStyle: true
+              }
+            }
           }
         }
       });
     }
 
     function updateCharts() {
-      // Chart des ventes
-      const period = Number($("salesPeriod").value || 30);
-      const salesByDay = state.analytics.salesByDay || {};
-      
-      const labels = [];
-      const values = [];
-      const today = new Date();
-      
-      for (let i = period - 1; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const dateKey = date.toISOString().substring(0, 10);
-        labels.push(date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }));
-        values.push(salesByDay[dateKey] || 0);
-      }
+      // 1. Ventes par jour (derniers 30 jours)
+      const salesPeriod = parseInt($("salesPeriod").value);
+      const salesData = getSalesData(salesPeriod);
       
       if (state.charts.sales) {
-        state.charts.sales.data.labels = labels;
-        state.charts.sales.data.datasets[0].data = values;
+        state.charts.sales.data.labels = salesData.labels;
+        state.charts.sales.data.datasets[0].data = salesData.values;
         state.charts.sales.update();
       }
-      
-      // Chart des statuts
-      const statusDistribution = state.analytics.statusDistribution || {};
-      const statusLabels = ["En attente", "En cours", "Livrée", "Annulée"];
-      const statusData = statusLabels.map(label => statusDistribution[label] || 0);
+
+      // 2. Répartition par statut
+      const statusData = getStatusData();
       
       if (state.charts.status) {
-        state.charts.status.data.labels = statusLabels;
-        state.charts.status.data.datasets[0].data = statusData;
+        state.charts.status.data.labels = statusData.labels;
+        state.charts.status.data.datasets[0].data = statusData.values;
         state.charts.status.update();
       }
     }
 
-    /* ===================== UPDATE ORDER STATUS ===================== */
-    async function updateOrderStatus(commandeId, nouveauStatut) {
-      try {
-        showToast(`Mise à jour de ${commandeId}...`, "info");
+    function getSalesData(days = 30) {
+      const orders = state.orders;
+      const now = new Date();
+      const data = {};
+      
+      // Initialiser les jours
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toISOString().split('T')[0];
+        data[dateKey] = 0;
+      }
+      
+      // Remplir avec les données réelles
+      orders.forEach(order => {
+        if (!order.Date) return;
         
-        const response = await fetch(
-          `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
-        );
+        const orderDate = new Date(order.Date);
+        if (isNaN(orderDate.getTime())) return;
+        
+        const orderDateKey = orderDate.toISOString().split('T')[0];
+        const daysDiff = Math.floor((now - orderDate) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff < days && daysDiff >= 0) {
+          data[orderDateKey] = (data[orderDateKey] || 0) + (parseFloat(order.Total) || 0);
+        }
+      });
+      
+      // Formater pour le chart
+      const labels = Object.keys(data).map(dateStr => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+      });
+      
+      const values = Object.values(data);
+      
+      return { labels, values };
+    }
+
+    function getStatusData() {
+      const distribution = state.analytics.statusDistribution;
+      
+      // Statuts dans l'ordre souhaité
+      const statusOrder = ["En attente", "En cours", "Livrée", "Annulée"];
+      const labels = [];
+      const values = [];
+      
+      statusOrder.forEach(status => {
+        if (distribution[status] > 0) {
+          labels.push(status);
+          values.push(distribution[status]);
+        }
+      });
+      
+      return { labels, values };
+    }
+
+    /* ===================== UPDATE ORDER STATUS ===================== */
+    async function updateOrderStatus(commandeId, newStatus) {
+      try {
+        showToast("⏳ Mise à jour du statut...");
+        
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: `method=updateStatus&commande=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(newStatus)}`
+        });
         
         if (!response.ok) {
           throw new Error(`Erreur HTTP: ${response.status}`);
@@ -977,78 +1059,94 @@
         
         const data = await response.json();
         
-        if (!data.success) {
+        if (data.success) {
+          // Mettre à jour localement
+          const order = state.orders.find(o => o.Commande === commandeId);
+          if (order) {
+            order.Statut = newStatus;
+            
+            // Mettre à jour l'UI
+            const selectElement = document.querySelector(`select[data-commande="${commandeId}"]`);
+            if (selectElement) {
+              selectElement.value = newStatus;
+              selectElement.className = `statut-select statut-${newStatus.toLowerCase().replace(' ', '-')}`;
+            }
+            
+            // Recalculer les analytics et charts
+            calculateAnalytics();
+            updateUI();
+            updateCharts();
+            
+            showToast(`✅ Statut mis à jour: ${newStatus}`, "success");
+          }
+        } else {
           throw new Error(data.error || "Erreur lors de la mise à jour");
         }
-        
-        // Mettre à jour localement
-        const orderIndex = state.orders.findIndex(order => order.Commande === commandeId);
-        if (orderIndex !== -1) {
-          state.orders[orderIndex].Statut = nouveauStatut;
-          calculateAnalytics();
-          updateUI();
-          updateCharts();
-        }
-        
-        showToast(`✅ Statut mis à jour: ${nouveauStatut}`, "success");
-        
       } catch (error) {
         console.error("Erreur updateOrderStatus:", error);
-        showToast(`❌ Erreur: ${error.message}`, "error");
+        showToast("❌ Erreur lors de la mise à jour", "error");
         
-        // Recharger pour avoir les vraies données
-        refreshAll();
+        // Recharger les données pour éviter les incohérences
+        refreshData();
       }
     }
 
-    /* ===================== MAIN ===================== */
-    async function refreshAll() {
+    /* ===================== DATA REFRESH ===================== */
+    async function refreshData() {
+      showToast("🔄 Actualisation des données...");
+      
       try {
-        $("btnRefresh").disabled = true;
+        await loadOrders();
+        calculateAnalytics();
+        updateUI();
+        updateCharts();
         
-        await loadOrders();          // ✅ Charger depuis l'API
-        calculateAnalytics();        // ✅ Calculer les statistiques
-        updateUI();                  // ✅ Mettre à jour l'interface
-        updateCharts();              // ✅ Mettre à jour les graphiques
-        
-        showToast("✅ Données chargées avec succès", "success");
-        
+        showToast("✅ Données actualisées", "success");
       } catch (error) {
-        console.error("Erreur refreshAll:", error);
-        showToast("❌ Erreur lors du chargement", "error");
-        
-      } finally {
-        $("btnRefresh").disabled = false;
+        console.error("Erreur refreshData:", error);
+        showToast("❌ Erreur lors de l'actualisation", "error");
       }
     }
 
     /* ===================== INITIALIZATION ===================== */
-    document.addEventListener("DOMContentLoaded", () => {
-      // Initialiser les graphiques
+    async function init() {
+      // Initialiser les charts
       initCharts();
       
-      // Événements
-      $("salesPeriod").addEventListener("change", () => updateCharts());
-      $("btnRefresh").addEventListener("click", () => refreshAll());
+      // Charger les données
+      await refreshData();
       
-      // Fermer modal password quand on clique en dehors
-      $("passwordModal").addEventListener("click", (e) => {
-        if (e.target.id === "passwordModal") {
-          $("passwordModal").classList.remove("active");
-          $("adminPassword").value = "";
+      // Événements
+      $("btnRefresh").addEventListener("click", refreshData);
+      $("salesPeriod").addEventListener("change", function() {
+        updateCharts();
+      });
+      
+      // Rafraîchissement automatique toutes les 2 minutes
+      setInterval(refreshData, 2 * 60 * 1000);
+      
+      // Fermer modal avec Escape
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          const modal = $("passwordModal");
+          if (modal.classList.contains('active')) {
+            modal.classList.remove('active");
+            $("adminPassword").value = "";
+          }
         }
       });
       
-      // Exposer la fonction de mise à jour
-      window.updateOrderStatus = updateOrderStatus;
-      window.showPasswordModal = showPasswordModal;
-      
-      // Premier chargement
-      refreshAll();
-      
-      // Actualisation automatique toutes les 30 secondes
-      setInterval(refreshAll, 30000);
-    });
+      // Fermer modal en cliquant à l'extérieur
+      $("passwordModal").addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.classList.remove('active');
+          $("adminPassword").value = "";
+        }
+      });
+    }
+
+    // Démarrer l'application
+    document.addEventListener("DOMContentLoaded", init);
   </script>
 </body>
 </html>
