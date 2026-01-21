@@ -117,7 +117,6 @@
     td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px}
     tr:hover{background:rgba(255,255,255,.05)}
     
-    /* Styles pour les menus déroulants de statut */
     .statut-select {
       padding: 6px 10px;
       border: 1px solid var(--line);
@@ -164,7 +163,6 @@
     .toast.show{display:block; animation:pop .2s ease}
     @keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
     
-    /* Style pour les articles */
     .articles-cell {
       max-width: 200px;
       white-space: pre-line;
@@ -172,7 +170,6 @@
       line-height: 1.4;
     }
     
-    /* Style pour les statuts */
     .statut-badge {
       padding: 4px 10px;
       border-radius: 12px;
@@ -188,7 +185,6 @@
     .statut-livre { background: rgba(76, 175, 80, 0.15); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); }
     .statut-annule { background: rgba(244, 67, 54, 0.15); color: #F44336; border: 1px solid rgba(244, 67, 54, 0.3); }
     
-    /* Styles pour les nouveaux graphiques */
     .chart-container {
       display: flex;
       flex-wrap: wrap;
@@ -201,7 +197,6 @@
       min-width: 300px;
     }
     
-    /* Responsive */
     @media (max-width: 768px) {
       .sectionGrid {
         grid-template-columns: 1fr;
@@ -276,7 +271,7 @@
       </div>
     </section>
 
-    <!-- NOUVEAUX GRAPHIQUES - COURBES ET HISTOGRAMMES -->
+    <!-- NOUVEAUX GRAPHIQUES -->
     <div class="chart-container">
       <div class="card chart-card">
         <div class="sectionTitle">
@@ -411,13 +406,10 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    /* ===================== INTÉGRATION DIRECTE DE L'API ===================== */
-    
     // URL de l'API Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbyokEi5GQ7kcZ5Rq-ZG4Z6LBYSgne8LKXr3pU4qEXSB9JIJkrYSGOA6Z-zocqW6JGip/exec";
 
-    /* ===================== FONCTIONS API (reprise de votre fichier) ===================== */
-    
+    // Fonctions API
     async function recupererCommandes() {
       try {
         const response = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
@@ -432,9 +424,7 @@
           throw new Error(data.error || "Erreur lors de la récupération des commandes");
         }
         
-        // Formater selon les 8 colonnes du tableau
         const commandesFormatees = (data.orders || []).map(commande => ({
-          // Les 8 colonnes exactes
           Date: commande.date || "",
           Nom: commande.nom || "",
           Téléphone: commande.telephone || "",
@@ -443,7 +433,6 @@
           Articles: commande.articles || "",
           Total: commande.total || "0",
           Statut: commande.statut || "En attente",
-          // Données supplémentaires pour le traitement interne
           _id: commande.id,
           _raw: commande
         }));
@@ -482,27 +471,22 @@
       if (!articles) return "";
       
       try {
-        // Si articles est déjà formaté "3x Produit\n5x Autre"
         if (typeof articles === "string" && articles.includes("x ")) {
           return articles;
         }
         
         let articlesArray = [];
         
-        // Si c'est une chaîne JSON
         if (typeof articles === "string") {
           try {
             articlesArray = JSON.parse(articles);
           } catch (e) {
-            return articles; // Retourne la chaîne telle quelle
+            return articles;
           }
-        }
-        // Si c'est déjà un tableau
-        else if (Array.isArray(articles)) {
+        } else if (Array.isArray(articles)) {
           articlesArray = articles;
         }
         
-        // Formater chaque article
         return articlesArray.map(item => {
           const quantite = item.quantite || item.qty || 1;
           const produit = item.produit || item.nom || "Produit";
@@ -515,7 +499,7 @@
       }
     }
 
-    /* ===================== CONFIGURATION TDB ===================== */
+    // État de l'application
     const state = {
       orders: [],
       analytics: {
@@ -540,8 +524,8 @@
       apiStatus: 'checking'
     };
 
-    /* ===================== UTILITAIRES ===================== */
-    const $ = (id) => document.getElementById(id);
+    // Utilitaires
+    function $(id) { return document.getElementById(id); }
 
     function showToast(msg, type = "info") {
       const el = $("toast");
@@ -582,7 +566,7 @@
       }
     }
 
-    /* ===================== DONNÉES DE DÉMONSTRATION ===================== */
+    // Données de démonstration
     function generateDemoData() {
       console.log("🔄 Génération des données de démonstration...");
       
@@ -618,7 +602,6 @@
       const statuses = ["En attente", "En cours", "Livrée", "Annulée"];
       const now = new Date();
       
-      // Générer 50 commandes sur les 30 derniers jours
       for (let i = 0; i < 50; i++) {
         const client = clients[Math.floor(Math.random() * clients.length)];
         const date = new Date(now);
@@ -626,7 +609,6 @@
         date.setHours(Math.floor(Math.random() * 24));
         date.setMinutes(Math.floor(Math.random() * 60));
         
-        // Générer 1-4 articles par commande
         const numItems = Math.floor(Math.random() * 4) + 1;
         let articles = [];
         let total = 0;
@@ -646,12 +628,10 @@
           total += lineTotal;
         }
         
-        // Formater les articles en texte
         const articlesText = articles.map(item => 
           `${item.quantite}x ${item.produit} (${item.prix_unitaire.toFixed(2)} dt)`
         ).join('\n');
         
-        // Statut aléatoire
         const statut = statuses[Math.floor(Math.random() * statuses.length)];
         
         demoOrders.push({
@@ -681,13 +661,11 @@
       return demoOrders;
     }
 
-    /* ===================== CHARGEMENT DES DONNÉES ===================== */
+    // Chargement des données
     async function loadOrders() {
       try {
-        // Tester d'abord la connexion API
         showToast("🔗 Connexion à l'API...", "info");
         
-        // Essayer de charger depuis l'API
         const apiOrders = await recupererCommandes();
         
         if (apiOrders && apiOrders.length > 0) {
@@ -698,7 +676,6 @@
           $("apiStatus").innerHTML = '<span>●</span><span>API Connectée</span>';
           showToast("✅ Données chargées depuis l'API", "success");
         } else {
-          // Utiliser les données de démonstration
           showToast("📊 Utilisation des données de démonstration", "warning");
           state.orders = generateDemoData();
           $("dataSourceInfo").textContent = "Source des données : Démonstration";
@@ -712,7 +689,6 @@
       } catch (error) {
         console.error("Erreur loadOrders:", error);
         
-        // Utiliser les données de démonstration en cas d'erreur
         showToast("⚠️ Utilisation des données de démonstration", "warning");
         state.orders = generateDemoData();
         $("dataSourceInfo").textContent = "Source des données : Démonstration (Erreur API)";
@@ -724,24 +700,21 @@
       }
     }
 
-    /* ===================== ANALYTICS ===================== */
+    // Analytics
     function parseArticles(articlesText) {
       if (!articlesText) return [];
       
       try {
-        // Si c'est du JSON
         if (articlesText.trim().startsWith("[")) {
           return JSON.parse(articlesText);
         }
         
-        // Sinon, parser le format "3x Produit (15.50 dt)"
         const articles = [];
         const lines = articlesText.split('\n');
         
         for (const line of lines) {
           if (!line.trim()) continue;
           
-          // Format: "2x Pizza Margherita (12.50 dt)"
           const match = line.trim().match(/^(\d+)x\s+(.+?)\s*\(([\d.,]+)\s*dt\)$/);
           if (match) {
             const quantite = parseInt(match[1]);
@@ -767,7 +740,6 @@
     function calculateAnalytics() {
       const orders = state.orders || [];
       
-      // Réinitialiser les statistiques
       state.analytics = {
         totalRevenue: 0,
         totalOrders: 0,
@@ -780,19 +752,16 @@
         avgByWeek: {}
       };
 
-      // Calcul des statistiques de base
       state.analytics.totalRevenue = orders.reduce((sum, order) => sum + (parseFloat(order.Total) || 0), 0);
       state.analytics.totalOrders = orders.length;
       state.analytics.avgOrderValue = state.analytics.totalOrders > 0 ? 
         state.analytics.totalRevenue / state.analytics.totalOrders : 0;
 
-      // Distribution des statuts
       orders.forEach(order => {
         const statut = order.Statut || "En attente";
         state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
       });
 
-      // Analyse des produits et calculs par période
       const productSales = new Map();
       const now = new Date();
       
@@ -802,19 +771,15 @@
         const orderDate = new Date(order.Date);
         if (isNaN(orderDate.getTime())) return;
         
-        // Ventes par jour
         const dateKey = orderDate.toISOString().split('T')[0];
         state.analytics.salesByDay[dateKey] = (state.analytics.salesByDay[dateKey] || 0) + (parseFloat(order.Total) || 0);
         
-        // Ventes par heure
         const hourKey = orderDate.getHours();
         state.analytics.salesByHour[hourKey] = (state.analytics.salesByHour[hourKey] || 0) + (parseFloat(order.Total) || 0);
         
-        // Ventes par jour de semaine (0=dimanche, 1=lundi, etc.)
         const weekdayKey = orderDate.getDay();
         state.analytics.salesByWeekday[weekdayKey] = (state.analytics.salesByWeekday[weekdayKey] || 0) + (parseFloat(order.Total) || 0);
         
-        // Moyenne par semaine
         const weekKey = Math.floor((now - orderDate) / (7 * 24 * 60 * 60 * 1000));
         if (!state.analytics.avgByWeek[weekKey]) {
           state.analytics.avgByWeek[weekKey] = { total: 0, count: 0 };
@@ -822,7 +787,6 @@
         state.analytics.avgByWeek[weekKey].total += parseFloat(order.Total) || 0;
         state.analytics.avgByWeek[weekKey].count += 1;
         
-        // Analyse des produits
         const articles = parseArticles(order.Articles);
         articles.forEach(article => {
           const productName = article.produit || "Produit";
@@ -839,26 +803,22 @@
         });
       });
 
-      // Top produits
       state.analytics.topProducts = Array.from(productSales.values())
         .sort((a, b) => b.quantity - a.quantity)
         .slice(0, 10);
     }
 
-    /* ===================== AFFICHAGE UI ===================== */
+    // Mise à jour de l'interface
     function updateUI() {
-      // Mise à jour des statistiques
       $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
       $("totalOrders").textContent = state.analytics.totalOrders;
       $("avgOrderValue").textContent = formatPrice(state.analytics.avgOrderValue);
 
-      // Produit le plus vendu
       const bestProduct = state.analytics.topProducts[0];
       $("topProductName").textContent = bestProduct 
         ? `${bestProduct.name.substring(0, 20)}${bestProduct.name.length > 20 ? '...' : ''} (${bestProduct.quantity})`
         : "—";
 
-      // Tableau de toutes les commandes
       const allOrdersBody = $("allOrdersBody");
       allOrdersBody.innerHTML = "";
       
@@ -871,7 +831,6 @@
           </tr>
         `;
       } else {
-        // Trier par date (plus récent en premier)
         const sortedOrders = [...state.orders].sort((a, b) => new Date(b.Date) - new Date(a.Date));
         
         sortedOrders.forEach(order => {
@@ -902,7 +861,6 @@
         });
       }
 
-      // Tableau des top produits
       const topProductsBody = $("topProductsBody");
       topProductsBody.innerHTML = "";
       
@@ -926,15 +884,16 @@
         });
       }
       
-      // Mise à jour de la date
       $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
     }
 
-    /* ===================== INITIALISATION DES GRAPHIQUES ===================== */
+    // Initialisation des graphiques
     function initCharts() {
-      // 1. Graphique des ventes (courbe)
+      const charts = state.charts;
+      
+      // Graphique des ventes
       const salesCtx = $("salesChart").getContext("2d");
-      state.charts.sales = new Chart(salesCtx, {
+      charts.sales = new Chart(salesCtx, {
         type: "line",
         data: { 
           labels: [], 
@@ -945,246 +904,95 @@
             fill: true, 
             tension: 0.4,
             borderColor: "#00ff88",
-            backgroundColor: "rgba(0, 255, 136, 0.15)",
-            pointBackgroundColor: "#00ff88",
-            pointBorderColor: "#fff",
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6
+            backgroundColor: "rgba(0, 255, 136, 0.15)"
           }] 
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
-          plugins: { 
-            legend: { 
-              labels: { 
-                color: "#f0f6fc",
-                font: { size: 12 }
-              } 
-            }
-          },
-          scales: {
-            x: { 
-              ticks: { 
-                color: "#8b949e",
-                font: { size: 11 }
-              }, 
-              grid: { 
-                color: "rgba(255,255,255,.1)" 
-              } 
-            },
-            y: { 
-              beginAtZero: true,
-              ticks: { 
-                color: "#8b949e",
-                callback: function(value) {
-                  return value + " dt";
-                }
-              }, 
-              grid: { 
-                color: "rgba(255,255,255,.1)" 
-              } 
-            }
-          }
+          maintainAspectRatio: false
         }
       });
 
-      // 2. Graphique des statuts (donut)
+      // Graphique des statuts
       const statusCtx = $("statusChart").getContext("2d");
-      state.charts.status = new Chart(statusCtx, {
+      charts.status = new Chart(statusCtx, {
         type: "doughnut",
         data: { 
           labels: [], 
           datasets: [{ 
             data: [], 
-            borderWidth: 2,
             backgroundColor: [
-              "rgba(255, 193, 7, 0.8)",   // En attente
-              "rgba(33, 150, 243, 0.8)",   // En cours
-              "rgba(76, 175, 80, 0.8)",    // Livrée
-              "rgba(244, 67, 54, 0.8)"     // Annulée
-            ],
-            borderColor: [
-              "rgba(255, 193, 7, 1)",
-              "rgba(33, 150, 243, 1)",
-              "rgba(76, 175, 80, 1)",
-              "rgba(244, 67, 54, 1)"
+              "rgba(255, 193, 7, 0.8)",
+              "rgba(33, 150, 243, 0.8)",
+              "rgba(76, 175, 80, 0.8)",
+              "rgba(244, 67, 54, 0.8)"
             ]
           }] 
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
-          cutout: '60%',
-          plugins: { 
-            legend: { 
-              position: "right", 
-              labels: { 
-                color: "#f0f6fc",
-                font: { size: 12 },
-                padding: 20
-              } 
-            }
-          }
+          maintainAspectRatio: false
         }
       });
 
-      // 3. Graphique des heures (histogramme)
+      // Graphique des heures
       const hourlyCtx = $("hourlyChart").getContext("2d");
-      state.charts.hourly = new Chart(hourlyCtx, {
+      charts.hourly = new Chart(hourlyCtx, {
         type: "bar",
         data: { 
           labels: [], 
           datasets: [{ 
             label: "Chiffre d'affaires (dt)", 
             data: [], 
-            borderWidth: 1,
-            backgroundColor: "rgba(0, 212, 255, 0.6)",
-            borderColor: "rgba(0, 212, 255, 1)",
-            borderRadius: 4
+            backgroundColor: "rgba(0, 212, 255, 0.6)"
           }] 
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
-          plugins: { 
-            legend: { 
-              labels: { 
-                color: "#f0f6fc",
-                font: { size: 12 }
-              } 
-            }
-          },
-          scales: {
-            x: { 
-              ticks: { 
-                color: "#8b949e",
-                font: { size: 11 }
-              }, 
-              grid: { 
-                color: "rgba(255,255,255,.1)" 
-              } 
-            },
-            y: { 
-              beginAtZero: true,
-              ticks: { 
-                color: "#8b949e"
-              }, 
-              grid: { 
-                color: "rgba(255,255,255,.1)" 
-              } 
-            }
-          }
+          maintainAspectRatio: false
         }
       });
 
-      // 4. Graphique des produits (histogramme horizontal)
+      // Graphique des produits
       const productsCtx = $("productsChart").getContext("2d");
-      state.charts.products = new Chart(productsCtx, {
+      charts.products = new Chart(productsCtx, {
         type: "bar",
         data: { 
           labels: [], 
           datasets: [{ 
             label: "Quantité vendue", 
             data: [], 
-            borderWidth: 1,
-            backgroundColor: "rgba(255, 167, 38, 0.6)",
-            borderColor: "rgba(255, 167, 38, 1)",
-            borderRadius: 4
+            backgroundColor: "rgba(255, 167, 38, 0.6)"
           }] 
         },
         options: {
           indexAxis: 'y',
           responsive: true,
-          maintainAspectRatio: false,
-          plugins: { 
-            legend: { 
-              labels: { 
-                color: "#f0f6fc",
-                font: { size: 12 }
-              } 
-            }
-          },
-          scales: {
-            x: { 
-              beginAtZero: true,
-              ticks: { 
-                color: "#8b949e",
-                font: { size: 11 }
-              }, 
-              grid: { 
-                color: "rgba(255,255,255,.1)" 
-              } 
-            },
-            y: { 
-              ticks: { 
-                color: "#8b949e",
-                font: { size: 11 }
-              }, 
-              grid: { 
-                color: "rgba(255,255,255,.1)" 
-              } 
-            }
-          }
+          maintainAspectRatio: false
         }
       });
 
-      // 5. Graphique des jours de semaine (histogramme)
+      // Graphique des jours
       const weekdayCtx = $("weekdayChart").getContext("2d");
-      state.charts.weekday = new Chart(weekdayCtx, {
+      charts.weekday = new Chart(weekdayCtx, {
         type: "bar",
         data: { 
-          labels: ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"], 
+          labels: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"], 
           datasets: [{ 
             label: "Chiffre d'affaires (dt)", 
             data: [], 
-            borderWidth: 1,
-            backgroundColor: "rgba(147, 51, 234, 0.6)",
-            borderColor: "rgba(147, 51, 234, 1)",
-            borderRadius: 4
+            backgroundColor: "rgba(147, 51, 234, 0.6)"
           }] 
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
-          plugins: { 
-            legend: { 
-              labels: { 
-                color: "#f0f6fc",
-                font: { size: 12 }
-              } 
-            }
-          },
-          scales: {
-            x: { 
-              ticks: { 
-                color: "#8b949e",
-                font: { size: 11 }
-              }, 
-              grid: { 
-                color: "rgba(255,255,255,.1)" 
-              } 
-            },
-            y: { 
-              beginAtZero: true,
-              ticks: { 
-                color: "#8b949e",
-                callback: function(value) {
-                  return value + " dt";
-                }
-              }, 
-              grid: { 
-                color: "rgba(255,255,255,.1)" 
-              } 
-            }
-          }
+          maintainAspectRatio: false
         }
       });
 
-      // 6. Graphique de l'évolution du panier moyen (courbe)
+      // Graphique du panier moyen
       const avgCtx = $("avgChart").getContext("2d");
-      state.charts.avg = new Chart(avgCtx, {
+      charts.avg = new Chart(avgCtx, {
         type: "line",
         data: { 
           labels: [], 
@@ -1192,75 +1000,25 @@
             label: "Panier moyen (dt)", 
             data: [], 
             borderWidth: 3, 
-            fill: false,
-            tension: 0.4,
-            borderColor: "#ff6b6b",
-            backgroundColor: "rgba(255, 107, 107, 0.1)",
-            pointBackgroundColor: "#ff6b6b",
-            pointBorderColor: "#fff",
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6
+            borderColor: "#ff6b6b"
           }] 
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
-          plugins: { 
-            legend: { 
-              labels: { 
-                color: "#f0f6fc",
-                font: { size: 12 }
-              } 
-            }
-          },
-          scales: {
-            x: { 
-              ticks: { 
-                color: "#8b949e",
-                font: { size: 11 }
-              }, 
-              grid: { 
-                color: "rgba(255,255,255,.1)" 
-              } 
-            },
-            y: { 
-              beginAtZero: true,
-              ticks: { 
-                color: "#8b949e",
-                callback: function(value) {
-                  return value + " dt";
-                }
-              }, 
-              grid: { 
-                color: "rgba(255,255,255,.1)" 
-              } 
-            }
-          }
+          maintainAspectRatio: false
         }
       });
     }
 
-    /* ===================== MISE À JOUR DES GRAPHIQUES ===================== */
+    // Mise à jour des graphiques
     function updateCharts() {
       const period = parseInt($("salesPeriod").value || 30);
       
-      // 1. Ventes par jour (courbe)
       updateSalesChart(period);
-      
-      // 2. Répartition par statut (donut)
       updateStatusChart();
-      
-      // 3. Commandes par heure (histogramme)
       updateHourlyChart();
-      
-      // 4. Top produits (histogramme horizontal)
       updateProductsChart();
-      
-      // 5. Ventes par jour de semaine (histogramme)
       updateWeekdayChart();
-      
-      // 6. Évolution du panier moyen (courbe)
       updateAvgChart();
     }
 
@@ -1308,7 +1066,6 @@
       const labels = [];
       const data = [];
       
-      // Préparer les données pour les 24 heures
       for (let hour = 0; hour < 24; hour++) {
         labels.push(`${hour}h`);
         data.push(state.analytics.salesByHour[hour] || 0);
@@ -1334,7 +1091,6 @@
     }
 
     function updateWeekdayChart() {
-      const weekdays = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
       const data = [];
       
       for (let i = 0; i < 7; i++) {
@@ -1342,7 +1098,6 @@
       }
       
       if (state.charts.weekday) {
-        state.charts.weekday.data.labels = weekdays;
         state.charts.weekday.data.datasets[0].data = data;
         state.charts.weekday.update();
       }
@@ -1368,14 +1123,12 @@
       }
     }
 
-    /* ===================== MISE À JOUR DU STATUT ===================== */
+    // Mise à jour du statut
     async function updateOrderStatus(commandeId, nouveauStatut) {
       try {
         showToast(`⏳ Mise à jour de ${commandeId}...`, "info");
         
-        // Si on est en mode démo, mettre à jour localement seulement
         if (state.apiStatus === 'demo' || state.apiStatus === 'error') {
-          // Mettre à jour localement
           const orderIndex = state.orders.findIndex(order => order.Commande === commandeId);
           if (orderIndex !== -1) {
             state.orders[orderIndex].Statut = nouveauStatut;
@@ -1387,11 +1140,9 @@
           return;
         }
         
-        // Sinon, appeler l'API
         const result = await mettreAJourStatut(commandeId, nouveauStatut);
         
         if (result && result.success) {
-          // Mettre à jour localement
           const orderIndex = state.orders.findIndex(order => order.Commande === commandeId);
           if (orderIndex !== -1) {
             state.orders[orderIndex].Statut = nouveauStatut;
@@ -1411,7 +1162,7 @@
       }
     }
 
-    /* ===================== RECHARGEMENT COMPLET ===================== */
+    // Rechargement
     async function refreshAll() {
       try {
         $("btnRefresh").disabled = true;
@@ -1434,25 +1185,19 @@
       }
     }
 
-    /* ===================== INITIALISATION ===================== */
+    // Initialisation
     document.addEventListener("DOMContentLoaded", () => {
-      // Initialiser les graphiques
       initCharts();
       
-      // Événements
       $("salesPeriod").addEventListener("change", () => updateCharts());
       $("btnRefresh").addEventListener("click", () => refreshAll());
       
-      // Exposer les fonctions globalement
       window.updateOrderStatus = updateOrderStatus;
       
-      // Premier chargement
       refreshAll();
       
-      // Actualisation automatique toutes les 30 secondes
       setInterval(refreshAll, 30000);
       
-      // Rafraîchir au retour sur la page
       document.addEventListener('visibilitychange', function() {
         if (!document.hidden) {
           refreshAll();
