@@ -1,963 +1,814 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi des Commandes - MAXI JDC MARKET</title>
-    <style>
-        :root { 
-            --primary: #0a1929; 
-            --secondary: #00ff88; 
-            --accent: #00d4ff; 
-            --light: #f0f6fc; 
-            --dark: #1a365d; 
-            --card: #162447;
-            --muted: #8b949e;
-            --line: rgba(255,255,255,0.15);
-            --shadow: 0 10px 40px rgba(0,0,0,0.45);
-            --radius: 12px;
-        }
-        
-        body { 
-            background: linear-gradient(135deg, var(--primary) 0%, #112240 100%); 
-            color: var(--light); 
-            min-height: 100vh; 
-            margin: 0; 
-            padding: 20px;
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif;
-        }
-        
-        .header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 30px; 
-            flex-wrap: wrap; 
-            background: var(--card);
-            padding: 20px;
-            border-radius: var(--radius);
-            border: 2px solid var(--secondary);
-            box-shadow: var(--shadow);
-        }
-        
-        h1 { 
-            color: var(--secondary); 
-            margin: 0;
-            font-size: 24px;
-            font-weight: 900;
-        }
-        
-        .subtitle {
-            color: var(--muted);
-            font-size: 14px;
-            margin-top: 4px;
-        }
-        
-        .nav-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .nav-btn {
-            padding: 12px 20px;
-            border-radius: 8px;
-            border: 2px solid;
-            background: rgba(255,255,255,0.08);
-            color: var(--light);
-            text-decoration: none;
-            font-weight: 900;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        
-        .nav-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        
-        .nav-btn.home {
-            border-color: var(--secondary);
-            background: rgba(0, 255, 136, 0.15);
-        }
-        
-        .nav-btn.dashboard {
-            border-color: var(--accent);
-            background: rgba(0, 212, 255, 0.15);
-        }
-        
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .stat-card {
-            background: var(--card);
-            padding: 15px;
-            border-radius: var(--radius);
-            border: 1px solid var(--line);
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 28px;
-            font-weight: 1000;
-            color: var(--secondary);
-            margin: 5px 0;
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            color: var(--muted);
-            font-weight: 700;
-        }
-        
-        .filtres { 
-            background: var(--card); 
-            padding: 20px; 
-            border-radius: var(--radius); 
-            margin-bottom: 20px; 
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            border: 1px solid var(--accent);
-            box-shadow: var(--shadow);
-        }
-        
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .filter-label {
-            font-size: 12px;
-            color: var(--muted);
-            font-weight: 700;
-        }
-        
-        .filtres input, .filtres select { 
-            padding: 12px; 
-            border-radius: 8px; 
-            border: 1px solid var(--accent); 
-            background: rgba(255,255,255,0.1); 
-            color: white; 
-            font-size: 14px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        .filtres input:focus, .filtres select:focus {
-            outline: none;
-            border-color: var(--secondary);
-            box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-        }
-        
-        .btn-action {
-            padding: 12px 20px;
-            border-radius: 8px;
-            border: none;
-            background: var(--secondary);
-            color: var(--primary);
-            font-weight: 900;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-        }
-        
-        .btn-action:hover {
-            background: #00e676;
-            transform: translateY(-2px);
-        }
-        
-        .btn-export {
-            background: var(--accent);
-            color: white;
-        }
-        
-        .btn-export:hover {
-            background: #00b8d4;
-        }
-        
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            background: var(--card); 
-            border-radius: var(--radius); 
-            overflow: hidden; 
-            border: 1px solid var(--line);
-            margin-top: 20px;
-            box-shadow: var(--shadow);
-        }
-        
-        th, td { 
-            padding: 15px; 
-            text-align: left; 
-            border-bottom: 1px solid var(--line); 
-        }
-        
-        th { 
-            background: rgba(0, 255, 136, 0.15); 
-            color: var(--secondary); 
-            font-weight: 900;
-            font-size: 13px;
-            position: sticky;
-            top: 0;
-        }
-        
-        tr:hover { 
-            background: rgba(255,255,255,0.05); 
-        }
-        
-        .statut { 
-            padding: 8px 12px; 
-            border-radius: 20px; 
-            font-size: 12px; 
-            font-weight: 900; 
-            text-align: center;
-            display: inline-block;
-            min-width: 100px;
-        }
-        
-        .statut-en-attente { 
-            background: rgba(255, 193, 7, 0.15); 
-            color: #FFC107; 
-            border: 1px solid rgba(255, 193, 7, 0.3);
-        }
-        
-        .statut-en-cours { 
-            background: rgba(33, 150, 243, 0.15); 
-            color: #2196F3; 
-            border: 1px solid rgba(33, 150, 243, 0.3);
-        }
-        
-        .statut-livree { 
-            background: rgba(76, 175, 80, 0.15); 
-            color: #4CAF50; 
-            border: 1px solid rgba(76, 175, 80, 0.3);
-        }
-        
-        .statut-annulee { 
-            background: rgba(244, 67, 54, 0.15); 
-            color: #F44336; 
-            border: 1px solid rgba(244, 67, 54, 0.3);
-        }
-        
-        .btn-cell-action { 
-            padding: 8px 12px; 
-            margin: 0 3px; 
-            border: none; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-weight: 900;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 12px;
-        }
-        
-        .btn-edit { 
-            background: var(--accent); 
-            color: white; 
-        }
-        
-        .btn-edit:hover {
-            background: #00b8d4;
-            transform: translateY(-1px);
-        }
-        
-        .btn-view { 
-            background: rgba(0, 255, 136, 0.15); 
-            color: var(--secondary);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-        }
-        
-        .btn-view:hover {
-            background: rgba(0, 255, 136, 0.25);
-            transform: translateY(-1px);
-        }
-        
-        .empty { 
-            text-align: center; 
-            padding: 50px; 
-            color: var(--muted); 
-            font-size: 16px;
-            background: var(--card);
-            border-radius: var(--radius);
-            border: 2px dashed var(--line);
-            margin-top: 20px;
-        }
-        
-        .articles-cell {
-            max-width: 200px;
-            white-space: pre-line;
-            font-size: 12px;
-            line-height: 1.4;
-        }
-        
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: 900;
-            background: var(--secondary);
-            color: var(--primary);
-            box-shadow: var(--shadow);
-            display: none;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal-content {
-            background: var(--card);
-            padding: 30px;
-            border-radius: var(--radius);
-            border: 2px solid var(--secondary);
-            width: 90%;
-            max-width: 500px;
-            box-shadow: var(--shadow);
-        }
-        
-        @media (max-width: 768px) {
-            .filtres {
-                grid-template-columns: 1fr;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            table {
-                display: block;
-                overflow-x: auto;
-            }
-            
-            .header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-            
-            .nav-buttons {
-                justify-content: center;
-            }
-            
-            .stats-bar {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        /* Styles pour le modal de statut */
-        .status-options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin: 20px 0;
-        }
-        
-        .status-option {
-            padding: 15px;
-            border-radius: 8px;
-            border: 2px solid var(--line);
-            background: rgba(255,255,255,0.05);
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .status-option:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent);
-        }
-        
-        .status-option.selected {
-            border-color: var(--secondary);
-            background: rgba(0, 255, 136, 0.1);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tableau de Bord - MAXI JDC MARKET</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      --bg1:#0a1929; --bg2:#112240; --card:#162447; --line:rgba(255,255,255,.15);
+      --txt:#f0f6fc; --muted:#8b949e; --green:#00ff88; --blue:#00d4ff; --orange:#ffa726; --red:#ff6b6b;
+      --shadow:0 10px 40px rgba(0,0,0,.45); --r:14px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background:linear-gradient(135deg,var(--bg1),var(--bg2));
+      color:var(--txt); min-height:100vh; padding:18px;
+    }
+    .container{max-width:1400px;margin:0 auto}
+    .header{
+      background:rgba(10,25,47,.95);
+      border:2px solid var(--green);
+      border-radius:var(--r);
+      padding:18px 22px;
+      display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      box-shadow:var(--shadow);
+    }
+    .left{display:flex; align-items:center; gap:14px}
+    .logo{
+      width:56px;height:56px;border-radius:12px;
+      border:3px solid var(--green);
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(0,255,136,.12); font-size:22px; font-weight:900;
+    }
+    h1{
+      font-size:22px;font-weight:900;
+      background:linear-gradient(90deg,var(--green),var(--blue));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      margin-bottom:4px;
+    }
+    .sub{color:var(--muted);font-size:13px}
+    .btn{
+      background:rgba(255,255,255,.10); border:2px solid var(--line);
+      color:var(--txt); padding:10px 14px; border-radius:10px; font-weight:800;
+      cursor:pointer; transition:.2s;
+      display:flex; gap:8px; align-items:center;
+    }
+    .btn:hover{transform:translateY(-2px); border-color:var(--blue); background:rgba(255,255,255,.15)}
+    .badge{
+      background:rgba(255,167,38,.18); border:2px solid var(--orange);
+      color:var(--orange); padding:8px 12px; border-radius:999px; font-weight:900; font-size:13px;
+      display:flex; gap:8px; align-items:center;
+    }
+
+    .grid{
+      display:grid; gap:16px; margin-top:18px;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    }
+    .card{
+      background:var(--card);
+      border:2px solid var(--line);
+      border-radius:var(--r);
+      box-shadow:var(--shadow);
+      padding:18px;
+      transition:.2s;
+    }
+    .card:hover{border-color:var(--green); transform:translateY(-3px)}
+    .statTop{display:flex; justify-content:space-between; align-items:center; gap:10px}
+    .icon{
+      width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+      font-size:22px; background:rgba(255,255,255,.06); border:1px solid var(--line);
+    }
+    .value{font-size:30px; font-weight:1000; margin-top:2px}
+    .label{font-size:13px; color:var(--muted); font-weight:700}
+
+    .sectionGrid{
+      display:grid; gap:18px; margin-top:18px;
+      grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+    }
+    .sectionTitle{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px}
+    .sectionTitle h3{font-size:16px; font-weight:1000; color:var(--green)}
+    .chartBox{height:300px; position:relative}
+    .tableWrap{border:1px solid var(--line); border-radius:12px; overflow:auto; max-height:420px}
+    table{width:100%; border-collapse:collapse}
+    th{
+      position:sticky; top:0;
+      background:rgba(0,212,255,.10);
+      color:var(--blue);
+      text-align:left;
+      padding:12px;
+      border-bottom:2px solid var(--blue);
+      font-size:13px; font-weight:1000;
+    }
+    td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px}
+    tr:hover{background:rgba(255,255,255,.05)}
+    
+    /* Styles pour les menus déroulants de statut */
+    .statut-select {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(255,255,255,.08);
+      color: var(--txt);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }
+    
+    .statut-select:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+    }
+    
+    .statut-select option {
+      background: var(--card);
+      color: var(--txt);
+      padding: 8px;
+    }
+    
+    .statut-en-attente { color: #FFC107; }
+    .statut-en-cours { color: #2196F3; }
+    .statut-livree { color: #4CAF50; }
+    .statut-annulee { color: #F44336; }
+
+    .footer{
+      margin-top:18px; padding:14px; text-align:center; color:var(--muted);
+      border-top:1px solid var(--line);
+      font-size:13px;
+    }
+
+    .toast{
+      position:fixed; top:18px; right:18px; z-index:99999;
+      padding:12px 16px; border-radius:12px; font-weight:900; color:#0a1929;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+      display:none;
+    }
+    .toast.show{display:block; animation:pop .2s ease}
+    @keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+    
+    /* Style pour les articles */
+    .articles-cell {
+      max-width: 200px;
+      white-space: pre-line;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    
+    /* Style pour les statuts */
+    .statut-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 900;
+      text-align: center;
+      display: inline-block;
+      min-width: 80px;
+    }
+    
+    .statut-attente { background: rgba(255, 193, 7, 0.15); color: #FFC107; border: 1px solid rgba(255, 193, 7, 0.3); }
+    .statut-cours { background: rgba(33, 150, 243, 0.15); color: #2196F3; border: 1px solid rgba(33, 150, 243, 0.3); }
+    .statut-livre { background: rgba(76, 175, 80, 0.15); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); }
+    .statut-annule { background: rgba(244, 67, 54, 0.15); color: #F44336; border: 1px solid rgba(244, 67, 54, 0.3); }
+  </style>
 </head>
+
 <body>
-    <div class="header">
+  <div class="container">
+    <header class="header">
+      <div class="left">
+        <div class="logo">📊</div>
         <div>
-            <h1>📋 Suivi Détaillé des Commandes</h1>
-            <div class="subtitle">MAXI JDC MARKET — Suivi en temps réel de toutes les commandes</div>
+          <h1>Tableau de Bord Administratif</h1>
+          <div class="sub">MAXI JDC MARKET — Suivi des commandes en temps réel</div>
         </div>
-        <div class="nav-buttons">
-            <a href="index.html" class="nav-btn home">
-                🏠 Accueil
-            </a>
-            <a href="tdb.html" class="nav-btn dashboard">
-                📊 Tableau de Bord Admin
-            </a>
-        </div>
-    </div>
+      </div>
 
-    <!-- Barre de statistiques -->
-    <div class="stats-bar">
-        <div class="stat-card">
-            <div class="stat-label">TOTAL COMMANDES</div>
-            <div class="stat-value" id="totalCommandes">0</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">CHIFFRE D'AFFAIRES</div>
-            <div class="stat-value" id="chiffreAffaires">0 dt</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">COMMANDES AUJOURD'HUI</div>
-            <div class="stat-value" id="commandesAujourdhui">0</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">PANIER MOYEN</div>
-            <div class="stat-value" id="panierMoyen">0 dt</div>
-        </div>
-    </div>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <div class="badge"><span>🔧</span><span>MODE ADMIN</span></div>
+        <button class="btn" id="btnRefresh"><span>🔄</span><span>Actualiser</span></button>
+        <button class="btn" onclick="window.location.href='suivi-commande.html'"><span>📍</span><span>Suivi Client</span></button>
+        <button class="btn" onclick="window.history.back()"><span>←</span><span>Retour</span></button>
+      </div>
+    </header>
 
-    <!-- Filtres -->
-    <div class="filtres">
-        <div class="filter-group">
-            <div class="filter-label">Statut</div>
-            <select id="filterStatut" onchange="filtrerCommandes()">
-                <option value="all">Tous les statuts</option>
-                <option value="En attente">En attente</option>
-                <option value="En cours">En cours</option>
-                <option value="Livrée">Livrée</option>
-                <option value="Annulée">Annulée</option>
-            </select>
+    <!-- STATS -->
+    <section class="grid">
+      <div class="card">
+        <div class="statTop">
+          <div>
+            <div class="value" id="totalRevenue">0,00 dt</div>
+            <div class="label">Chiffre d'affaires total</div>
+          </div>
+          <div class="icon">💰</div>
         </div>
-        
-        <div class="filter-group">
-            <div class="filter-label">Recherche</div>
-            <input type="text" id="filterSearch" placeholder="Client, téléphone, n° commande..." oninput="filtrerCommandes()">
-        </div>
-        
-        <div class="filter-group">
-            <div class="filter-label">Date</div>
-            <input type="date" id="filterDate" onchange="filtrerCommandes()">
-        </div>
-        
-        <div class="filter-group">
-            <div class="filter-label">Période</div>
-            <select id="filterPeriode" onchange="filtrerCommandes()">
-                <option value="all">Toute période</option>
-                <option value="today">Aujourd'hui</option>
-                <option value="week">Cette semaine</option>
-                <option value="month">Ce mois</option>
-            </select>
-        </div>
-        
-        <div class="action-buttons">
-            <button class="btn-action btn-export" onclick="exporterCSV()">
-                📥 Exporter CSV
-            </button>
-            <button class="btn-action" onclick="rafraichirDonnees()">
-                🔄 Actualiser
-            </button>
-        </div>
-    </div>
+      </div>
 
-    <!-- Tableau des commandes -->
-    <div id="commandesContainer">
-        <table>
+      <div class="card">
+        <div class="statTop">
+          <div>
+            <div class="value" id="totalOrders">0</div>
+            <div class="label">Commandes totales</div>
+          </div>
+          <div class="icon">📦</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="statTop">
+          <div>
+            <div class="value" id="avgOrderValue">0,00 dt</div>
+            <div class="label">Panier moyen</div>
+          </div>
+          <div class="icon">🛒</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="statTop">
+          <div>
+            <div class="value" id="topProductName">—</div>
+            <div class="label">Produit le + vendu</div>
+          </div>
+          <div class="icon">🏆</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHARTS -->
+    <section class="sectionGrid">
+      <div class="card">
+        <div class="sectionTitle">
+          <h3>📈 Ventes (30 derniers jours)</h3>
+          <select class="btn" id="salesPeriod" style="padding:8px 10px; border-radius:10px;">
+            <option value="7">7 jours</option>
+            <option value="30" selected>30 jours</option>
+            <option value="90">90 jours</option>
+          </select>
+        </div>
+        <div class="chartBox">
+          <canvas id="salesChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sectionTitle">
+          <h3>📊 Répartition par statut</h3>
+          <span class="sub">Statut des commandes</span>
+        </div>
+        <div class="chartBox">
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- TABLES -->
+    <section class="sectionGrid">
+      <div class="card">
+        <div class="sectionTitle">
+          <h3>📋 Toutes les commandes</h3>
+          <span class="sub">Gestion complète</span>
+        </div>
+        <div class="tableWrap">
+          <table id="allOrdersTable">
             <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Client</th>
-                    <th>Téléphone</th>
-                    <th>Adresse</th>
-                    <th>N° Commande</th>
-                    <th>Articles</th>
-                    <th>Total</th>
-                    <th>Statut</th>
-                    <th>Actions</th>
-                </tr>
+              <tr>
+                <th>Date</th>
+                <th>Nom</th>
+                <th>Téléphone</th>
+                <th>Adresse</th>
+                <th>Commande</th>
+                <th>Articles</th>
+                <th>Total</th>
+                <th>Statut</th>
+              </tr>
             </thead>
-            <tbody id="commandesBody">
-                <!-- Rempli dynamiquement -->
+            <tbody id="allOrdersBody">
+              <tr>
+                <td colspan="8" style="text-align:center; padding:30px; color:var(--muted)">
+                  <div>Chargement des commandes...</div>
+                </td>
+              </tr>
             </tbody>
-        </table>
-    </div>
-
-    <div id="emptyState" class="empty" style="display: none;">
-        <div style="font-size: 48px; margin-bottom: 20px;">📭</div>
-        <h3>Aucune commande trouvée</h3>
-        <p>Les commandes apparaîtront ici lorsqu'elles seront passées.</p>
-        <button onclick="rafraichirDonnees()" style="margin-top: 20px; padding: 10px 20px; background: var(--secondary); border: none; border-radius: 6px; color: var(--primary); font-weight: bold; cursor: pointer;">
-            🔄 Actualiser
-        </button>
-    </div>
-
-    <!-- Modal pour changer le statut -->
-    <div class="modal" id="statusModal">
-        <div class="modal-content">
-            <h3 style="color: var(--secondary); margin-bottom: 20px;">🔧 Changer le statut de la commande</h3>
-            <p id="modalCommandeInfo" style="margin-bottom: 20px; color: var(--muted);"></p>
-            
-            <div class="status-options">
-                <div class="status-option" data-status="En attente" onclick="selectionnerStatut(this)">
-                    <div style="font-size: 24px;">⏳</div>
-                    <div style="font-weight: 900; margin: 5px 0;">En attente</div>
-                    <div style="font-size: 11px; color: var(--muted);">Commande reçue</div>
-                </div>
-                
-                <div class="status-option" data-status="En cours" onclick="selectionnerStatut(this)">
-                    <div style="font-size: 24px;">🚚</div>
-                    <div style="font-weight: 900; margin: 5px 0;">En cours</div>
-                    <div style="font-size: 11px; color: var(--muted);">En préparation</div>
-                </div>
-                
-                <div class="status-option" data-status="Livrée" onclick="selectionnerStatut(this)">
-                    <div style="font-size: 24px;">✅</div>
-                    <div style="font-weight: 900; margin: 5px 0;">Livrée</div>
-                    <div style="font-size: 11px; color: var(--muted);">Commande livrée</div>
-                </div>
-                
-                <div class="status-option" data-status="Annulée" onclick="selectionnerStatut(this)">
-                    <div style="font-size: 24px;">❌</div>
-                    <div style="font-weight: 900; margin: 5px 0;">Annulée</div>
-                    <div style="font-size: 11px; color: var(--muted);">Commande annulée</div>
-                </div>
-            </div>
-            
-            <div style="display: flex; gap: 10px; margin-top: 30px;">
-                <button onclick="fermerModal()" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,0.05); color: var(--light); font-weight: 900; cursor: pointer;">
-                    Annuler
-                </button>
-                <button onclick="appliquerStatut()" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: var(--secondary); color: var(--primary); font-weight: 900; cursor: pointer;">
-                    Appliquer
-                </button>
-            </div>
+          </table>
         </div>
-    </div>
+      </div>
 
-    <!-- Toast -->
-    <div class="toast" id="toast"></div>
+      <div class="card">
+        <div class="sectionTitle">
+          <h3>🏆 Top produits</h3>
+          <span class="sub">Quantité vendue</span>
+        </div>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Quantité</th>
+                <th>Revenu</th>
+              </tr>
+            </thead>
+            <tbody id="topProductsBody">
+              <tr>
+                <td colspan="3" style="text-align:center; padding:20px; color:var(--muted)">
+                  Chargement...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyokEi5GQ7kcZ5Rq-ZG4Z6LBYSgne8LKXr3pU4qEXSB9JIJkrYSGOA6Z-zocqW6JGip/exec";
-        
-        let allCommandes = [];
-        let commandesFiltrees = [];
-        let commandeEnCours = null;
-        let statutSelectionne = null;
-        
-        // ============== FONCTIONS PRINCIPALES ==============
-        
-        async function rafraichirDonnees() {
-            try {
-                afficherChargement();
-                
-                const response = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
-                
-                if (!response.ok) {
-                    throw new Error(`Erreur HTTP: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (!data.success) {
-                    throw new Error(data.error || "Erreur lors de la récupération des commandes");
-                }
-                
-                allCommandes = data.orders || [];
-                mettreAJourStats(allCommandes);
-                filtrerCommandes();
-                afficherToast('✅ Données actualisées', 'success');
-                
-            } catch (error) {
-                console.error("Erreur rafraichirDonnees:", error);
-                document.getElementById('commandesBody').innerHTML = `
-                    <tr>
-                        <td colspan="9" style="text-align:center; padding:30px; color:#ff6b6b">
-                            ❌ Erreur de chargement: ${error.message}
-                        </td>
-                    </tr>
-                `;
-                afficherToast('❌ Erreur de connexion', 'error');
-            }
-        }
-        
-        function mettreAJourStats(commandes) {
-            const totalCommandes = commandes.length;
-            const chiffreAffaires = commandes.reduce((sum, cmd) => sum + (parseFloat(cmd.total) || 0), 0);
-            
-            // Commandes aujourd'hui
-            const aujourdhui = new Date().toISOString().split('T')[0];
-            const commandesAujourdhui = commandes.filter(cmd => 
-                cmd.date && cmd.date.startsWith(aujourdhui)
-            ).length;
-            
-            // Panier moyen
-            const panierMoyen = totalCommandes > 0 ? chiffreAffaires / totalCommandes : 0;
-            
-            // Mise à jour de l'UI
-            document.getElementById('totalCommandes').textContent = totalCommandes;
-            document.getElementById('chiffreAffaires').textContent = formaterPrix(chiffreAffaires);
-            document.getElementById('commandesAujourdhui').textContent = commandesAujourdhui;
-            document.getElementById('panierMoyen').textContent = formaterPrix(panierMoyen);
-        }
-        
-        function filtrerCommandes() {
-            const filterStatut = document.getElementById('filterStatut').value;
-            const search = document.getElementById('filterSearch').value.toLowerCase();
-            const filterDate = document.getElementById('filterDate').value;
-            const filterPeriode = document.getElementById('filterPeriode').value;
-            
-            commandesFiltrees = allCommandes.filter(cmd => {
-                // Filtre par statut
-                if (filterStatut !== 'all' && cmd.statut !== filterStatut) return false;
-                
-                // Filtre par recherche
-                if (search) {
-                    const searchText = `
-                        ${cmd.nom || ''}
-                        ${cmd.telephone || ''}
-                        ${cmd.commande_id || ''}
-                        ${cmd.adresse || ''}
-                        ${cmd.articles || ''}
-                    `.toLowerCase();
-                    
-                    if (!searchText.includes(search)) return false;
-                }
-                
-                // Filtre par date spécifique
-                if (filterDate && cmd.date && !cmd.date.startsWith(filterDate)) return false;
-                
-                // Filtre par période
-                if (filterPeriode !== 'all' && cmd.date) {
-                    const cmdDate = new Date(cmd.date);
-                    const aujourdhui = new Date();
-                    
-                    switch(filterPeriode) {
-                        case 'today':
-                            const todayStr = aujourdhui.toISOString().split('T')[0];
-                            if (!cmd.date.startsWith(todayStr)) return false;
-                            break;
-                        case 'week':
-                            const semaineDebut = new Date(aujourdhui);
-                            semaineDebut.setDate(aujourdhui.getDate() - aujourdhui.getDay());
-                            if (cmdDate < semaineDebut) return false;
-                            break;
-                        case 'month':
-                            if (cmdDate.getMonth() !== aujourdhui.getMonth() || 
-                                cmdDate.getFullYear() !== aujourdhui.getFullYear()) return false;
-                            break;
-                    }
-                }
-                
-                return true;
-            }).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-            
-            afficherCommandes(commandesFiltrees);
-        }
-        
-        function afficherCommandes(commandes) {
-            const tbody = document.getElementById('commandesBody');
-            const empty = document.getElementById('emptyState');
-            const container = document.getElementById('commandesContainer');
-            
-            if (commandes.length === 0) {
-                container.style.display = 'none';
-                empty.style.display = 'block';
-                return;
-            }
-            
-            container.style.display = 'block';
-            empty.style.display = 'none';
-            
-            tbody.innerHTML = commandes.map(cmd => {
-                const statutClass = `statut-${cmd.statut ? cmd.statut.toLowerCase().replace(' ', '-') : 'en-attente'}`;
-                const articlesText = cmd.articles ? cmd.articles.replace(/\n/g, '<br>') : '';
-                
-                return `
-                    <tr>
-                        <td>${formaterDate(cmd.date)}</td>
-                        <td><strong>${echapperHtml(cmd.nom || '')}</strong></td>
-                        <td>${echapperHtml(cmd.telephone || '')}</td>
-                        <td>${echapperHtml(cmd.adresse || '')}</td>
-                        <td><strong style="color: var(--accent);">${echapperHtml(cmd.commande_id || '')}</strong></td>
-                        <td class="articles-cell">${articlesText}</td>
-                        <td><strong>${formaterPrix(cmd.total)}</strong></td>
-                        <td>
-                            <span class="statut ${statutClass}">
-                                ${cmd.statut || 'En attente'}
-                            </span>
-                        </td>
-                        <td>
-                            <button class="btn-cell-action btn-view" onclick="voirDetails('${echapperHtml(cmd.commande_id || '')}')">
-                                👁️ Voir
-                            </button>
-                            <button class="btn-cell-action btn-edit" onclick="ouvrirModalStatut('${echapperHtml(cmd.commande_id || '')}')">
-                                🔄 Modifier
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-        
-        function afficherChargement() {
-            document.getElementById('commandesBody').innerHTML = `
-                <tr>
-                    <td colspan="9" style="text-align:center; padding:40px;">
-                        <div style="display:inline-block; padding:20px; background:rgba(255,255,255,0.05); border-radius:10px; max-width:300px;">
-                            <div style="font-size:32px; margin-bottom:15px; animation: spin 1s linear infinite;">🔄</div>
-                            <div style="font-weight:900; margin-bottom:10px;">Chargement des commandes...</div>
-                            <div style="font-size:12px; color:var(--muted);">Veuillez patienter</div>
-                        </div>
-                    </td>
-                </tr>
-            `;
-            
-            // Animation de rotation
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-        
-        // ============== MODAL STATUT ==============
-        
-        function ouvrirModalStatut(commandeId) {
-            const commande = allCommandes.find(c => c.commande_id === commandeId);
-            if (!commande) return;
-            
-            commandeEnCours = commande;
-            statutSelectionne = commande.statut || 'En attente';
-            
-            // Mettre à jour les informations
-            document.getElementById('modalCommandeInfo').innerHTML = `
-                Commande: <strong>${commande.commande_id}</strong><br>
-                Client: ${commande.nom}<br>
-                Total: ${formaterPrix(commande.total)}
-            `;
-            
-            // Mettre en surbrillance le statut actuel
-            document.querySelectorAll('.status-option').forEach(option => {
-                option.classList.remove('selected');
-                if (option.dataset.status === statutSelectionne) {
-                    option.classList.add('selected');
-                }
-            });
-            
-            document.getElementById('statusModal').style.display = 'flex';
-        }
-        
-        function selectionnerStatut(element) {
-            document.querySelectorAll('.status-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            element.classList.add('selected');
-            statutSelectionne = element.dataset.status;
-        }
-        
-        async function appliquerStatut() {
-            if (!commandeEnCours || !statutSelectionne) return;
-            
-            try {
-                afficherToast('⏳ Mise à jour en cours...', 'info');
-                
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `method=updateStatus&commande=${encodeURIComponent(commandeEnCours.commande_id)}&statut=${encodeURIComponent(statutSelectionne)}`
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Erreur HTTP: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (!data.success) {
-                    throw new Error(data.error || "Erreur lors de la mise à jour");
-                }
-                
-                // Mettre à jour localement
-                commandeEnCours.statut = statutSelectionne;
-                filtrerCommandes();
-                mettreAJourStats(allCommandes);
-                
-                fermerModal();
-                afficherToast(`✅ Statut mis à jour: ${statutSelectionne}`, 'success');
-                
-            } catch (error) {
-                console.error("Erreur appliquerStatut:", error);
-                afficherToast('❌ Erreur lors de la mise à jour', 'error');
-            }
-        }
-        
-        function fermerModal() {
-            document.getElementById('statusModal').style.display = 'none';
-            commandeEnCours = null;
-            statutSelectionne = null;
-        }
-        
-        function voirDetails(commandeId) {
-            const commande = allCommandes.find(c => c.commande_id === commandeId);
-            if (!commande) return;
-            
-            const details = `
-📋 DÉTAILS DE LA COMMANDE
+    <footer class="footer">
+      <div>© 2024 MAXI JDC MARKET — Tableau de bord administratif</div>
+      <div style="margin-top:6px; font-size:12px;">Dernière mise à jour : <span id="lastUpdate">—</span></div>
+    </footer>
+  </div>
 
-📊 N° Commande: ${commande.commande_id}
-👤 Client: ${commande.nom}
-📞 Téléphone: ${commande.telephone}
-📍 Adresse: ${commande.adresse}
-📅 Date: ${formaterDate(commande.date)}
-💰 Total: ${formaterPrix(commande.total)}
+  <div class="toast" id="toast"></div>
 
-🛒 ARTICLES:
-${commande.articles || 'Aucun détail'}
+  <script type="module">
+    /* ===================== CONFIG API ===================== */
+    // URL de votre API Google Apps Script
+    const API_URL = "https://script.google.com/macros/s/AKfycbz3Vj3vkSiRjI2kZBeFADINIbmykhmVkmXaRc09McI8Q9TAlnQs_THgzrJvjoslF-qY/exec";
 
-📝 STATUT: ${commande.statut || 'En attente'}
-            `;
-            
-            alert(details);
+    const state = {
+      orders: [],
+      analytics: {
+        totalRevenue: 0,
+        totalOrders: 0,
+        avgOrderValue: 0,
+        topProducts: [],
+        statusDistribution: {},
+        salesByDay: {}
+      },
+      charts: {
+        sales: null,
+        status: null
+      }
+    };
+
+    /* ===================== UI helpers ===================== */
+    const $ = (id) => document.getElementById(id);
+
+    function showToast(msg, type = "info") {
+      const el = $("toast");
+      const bg = type === "success" ? "#00ff88" : type === "error" ? "#ff6b6b" : "#00d4ff";
+      el.style.background = bg;
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
+    }
+
+    function formatPrice(amount) {
+      const n = Number(amount || 0);
+      return n.toFixed(2).replace(".", ",") + " dt";
+    }
+
+    function safeText(x) {
+      if (x === null || x === undefined) return "";
+      return String(x);
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        return date.toLocaleDateString("fr-FR", { 
+          year: "numeric", 
+          month: "2-digit", 
+          day: "2-digit" 
+        });
+      } catch {
+        return dateStr;
+      }
+    }
+
+    /* ===================== LOAD ORDERS FROM API ===================== */
+    async function loadOrders() {
+      try {
+        const response = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
+        
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
         }
         
-        // ============== EXPORT CSV ==============
+        const data = await response.json();
         
-        function exporterCSV() {
-            if (commandesFiltrees.length === 0) {
-                afficherToast('⚠️ Aucune donnée à exporter', 'info');
-                return;
+        if (!data.success) {
+          throw new Error(data.error || "Erreur lors de la récupération des commandes");
+        }
+        
+        // Convertir les données API au format interne
+        state.orders = (data.orders || []).map(order => ({
+          id: order.id,
+          Date: order.date || "",
+          Nom: order.nom || "",
+          Téléphone: order.telephone || "",
+          Adresse: order.adresse || "",
+          Commande: order.commande_id || "",
+          Articles: order.articles || "",
+          Total: order.total || "0",
+          Statut: order.statut || "En attente"
+        }));
+        
+        $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
+        return state.orders;
+        
+      } catch (error) {
+        console.error("Erreur loadOrders:", error);
+        showToast("❌ Erreur de connexion à l'API", "error");
+        return [];
+      }
+    }
+
+    /* ===================== ANALYTICS ===================== */
+    function parseArticles(articlesText) {
+      if (!articlesText) return [];
+      
+      try {
+        // Si c'est du JSON
+        if (articlesText.trim().startsWith("[")) {
+          return JSON.parse(articlesText);
+        }
+        
+        // Sinon, parser le format "3x Produit\n5x Autre"
+        const articles = [];
+        const lines = articlesText.split('\n');
+        
+        for (const line of lines) {
+          const match = line.trim().match(/^(\d+)x\s+(.+)$/);
+          if (match) {
+            const quantite = parseInt(match[1]);
+            const produit = match[2].trim();
+            
+            // Chercher un prix dans le produit
+            let prix = 0;
+            const priceMatch = produit.match(/\(([\d.,]+)\s*dt\)$/);
+            if (priceMatch) {
+              prix = parseFloat(priceMatch[1].replace(',', '.'));
             }
             
-            let csv = "Date;Heure;Client;Téléphone;Adresse;N° Commande;Articles;Total;Statut\n";
-            
-            commandesFiltrees.forEach(cmd => {
-                const dateObj = new Date(cmd.date);
-                const date = dateObj.toLocaleDateString('fr-FR');
-                const heure = dateObj.toLocaleTimeString('fr-FR');
-                const articles = cmd.articles ? 
-                    cmd.articles.replace(/;/g, ',').replace(/\n/g, ' | ') : '';
-                
-                csv += `"${date}";"${heure}";"${cmd.nom || ''}";"${cmd.telephone || ''}";"${cmd.adresse || ''}";"${cmd.commande_id || ''}";"${articles}";${cmd.total || '0'};"${cmd.statut || 'En attente'}"\n`;
+            articles.push({
+              produit: produit.replace(/\s*\([\d.,]+\s*dt\)$/, ''),
+              quantite: quantite,
+              prix_unitaire: prix,
+              prix_total: prix * quantite
             });
-            
-            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `commandes-maxi-jdc-${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-            
-            afficherToast(`✅ ${commandesFiltrees.length} commande(s) exportées`, 'success');
+          }
         }
         
-        // ============== UTILITAIRES ==============
-        
-        function formaterDate(dateStr) {
-            if (!dateStr) return '—';
-            try {
-                const date = new Date(dateStr);
-                if (isNaN(date.getTime())) return dateStr;
-                return date.toLocaleDateString('fr-FR', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            } catch {
-                return dateStr;
+        return articles;
+      } catch (error) {
+        console.error("Erreur parseArticles:", error);
+        return [];
+      }
+    }
+
+    function calculateAnalytics() {
+      const orders = state.orders || [];
+
+      // Calcul des statistiques de base
+      const totalRevenue = orders.reduce((sum, order) => {
+        const total = parseFloat(order.Total) || 0;
+        return sum + total;
+      }, 0);
+      
+      const totalOrders = orders.length;
+      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+      // Distribution des statuts
+      const statusDistribution = {};
+      orders.forEach(order => {
+        const statut = order.Statut || "En attente";
+        statusDistribution[statut] = (statusDistribution[statut] || 0) + 1;
+      });
+
+      // Analyse des produits
+      const productSales = new Map();
+      orders.forEach(order => {
+        const articles = parseArticles(order.Articles);
+        articles.forEach(article => {
+          const productName = article.produit || "Produit";
+          const quantite = article.quantite || 0;
+          const revenu = article.prix_total || 0;
+          
+          if (!productSales.has(productName)) {
+            productSales.set(productName, { name: productName, quantity: 0, revenue: 0 });
+          }
+          
+          const product = productSales.get(productName);
+          product.quantity += quantite;
+          product.revenue += revenu;
+        });
+      });
+
+      // Ventes par jour
+      const salesByDay = {};
+      orders.forEach(order => {
+        const dateKey = order.Date ? order.Date.substring(0, 10) : "Date inconnue";
+        const total = parseFloat(order.Total) || 0;
+        salesByDay[dateKey] = (salesByDay[dateKey] || 0) + total;
+      });
+
+      // Top produits
+      const topProducts = Array.from(productSales.values())
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 10);
+
+      // Mise à jour du state
+      state.analytics.totalRevenue = totalRevenue;
+      state.analytics.totalOrders = totalOrders;
+      state.analytics.avgOrderValue = avgOrderValue;
+      state.analytics.topProducts = topProducts;
+      state.analytics.statusDistribution = statusDistribution;
+      state.analytics.salesByDay = salesByDay;
+    }
+
+    /* ===================== UI RENDER ===================== */
+    function updateUI() {
+      // Mise à jour des statistiques
+      $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
+      $("totalOrders").textContent = String(state.analytics.totalOrders);
+      $("avgOrderValue").textContent = formatPrice(state.analytics.avgOrderValue);
+
+      // Produit le plus vendu
+      const bestProduct = state.analytics.topProducts[0];
+      $("topProductName").textContent = bestProduct 
+        ? `${bestProduct.name.substring(0, 20)}${bestProduct.name.length > 20 ? '...' : ''} (${bestProduct.quantity})`
+        : "—";
+
+      // Tableau de toutes les commandes
+      const allOrdersBody = $("allOrdersBody");
+      allOrdersBody.innerHTML = "";
+      
+      if (state.orders.length === 0) {
+        allOrdersBody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align:center; padding:30px; color:var(--muted)">
+              Aucune commande trouvée
+            </td>
+          </tr>
+        `;
+      } else {
+        state.orders.forEach(order => {
+          const statutClass = `statut-${order.Statut.toLowerCase().replace(' ', '-')}`;
+          const articlesText = order.Articles ? order.Articles.replace(/\n/g, '<br>') : '';
+          
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${formatDate(order.Date)}</td>
+            <td><strong>${safeText(order.Nom)}</strong></td>
+            <td>${safeText(order.Téléphone)}</td>
+            <td>${safeText(order.Adresse)}</td>
+            <td><strong>${safeText(order.Commande)}</strong></td>
+            <td class="articles-cell">${articlesText}</td>
+            <td><strong>${formatPrice(order.Total)}</strong></td>
+            <td>
+              <select class="statut-select ${statutClass}" 
+                      data-commande="${order.Commande}"
+                      onchange="updateOrderStatus('${order.Commande}', this.value)">
+                <option value="En attente" ${order.Statut === 'En attente' ? 'selected' : ''}>En attente</option>
+                <option value="En cours" ${order.Statut === 'En cours' ? 'selected' : ''}>En cours</option>
+                <option value="Livrée" ${order.Statut === 'Livrée' ? 'selected' : ''}>Livrée</option>
+                <option value="Annulée" ${order.Statut === 'Annulée' ? 'selected' : ''}>Annulée</option>
+              </select>
+            </td>
+          `;
+          allOrdersBody.appendChild(tr);
+        });
+      }
+
+      // Tableau des top produits
+      const topProductsBody = $("topProductsBody");
+      topProductsBody.innerHTML = "";
+      
+      if (state.analytics.topProducts.length === 0) {
+        topProductsBody.innerHTML = `
+          <tr>
+            <td colspan="3" style="text-align:center; padding:20px; color:var(--muted)">
+              Aucune donnée de produit
+            </td>
+          </tr>
+        `;
+      } else {
+        state.analytics.topProducts.forEach(product => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><div style="font-weight:900">${safeText(product.name)}</div></td>
+            <td style="font-weight:900; color:var(--blue)">${product.quantity}</td>
+            <td style="font-weight:900; color:var(--green)">${formatPrice(product.revenue)}</td>
+          `;
+          topProductsBody.appendChild(tr);
+        });
+      }
+    }
+
+    /* ===================== CHARTS ===================== */
+    function initCharts() {
+      // Chart des ventes
+      const salesCtx = $("salesChart").getContext("2d");
+      state.charts.sales = new Chart(salesCtx, {
+        type: "line",
+        data: { 
+          labels: [], 
+          datasets: [{ 
+            label: "Chiffre d'affaires (dt)", 
+            data: [], 
+            borderWidth: 3, 
+            fill: true, 
+            tension: .35,
+            borderColor: "#00ff88",
+            backgroundColor: "rgba(0, 255, 136, 0.1)"
+          }] 
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { 
+              labels: { 
+                color: "#f0f6fc",
+                font: { size: 12 }
+              } 
+            } 
+          },
+          scales: {
+            x: { 
+              ticks: { 
+                color: "#8b949e",
+                font: { size: 11 }
+              }, 
+              grid: { 
+                color: "rgba(255,255,255,.10)" 
+              } 
+            },
+            y: { 
+              ticks: { 
+                color: "#8b949e", 
+                callback: (v) => formatPrice(v).replace(' dt', '')
+              }, 
+              grid: { 
+                color: "rgba(255,255,255,.10)" 
+              } 
             }
+          }
+        }
+      });
+
+      // Chart des statuts
+      const statusCtx = $("statusChart").getContext("2d");
+      state.charts.status = new Chart(statusCtx, {
+        type: "doughnut",
+        data: { 
+          labels: [], 
+          datasets: [{ 
+            data: [], 
+            borderWidth: 2,
+            backgroundColor: [
+              "rgba(255, 193, 7, 0.7)",   // En attente
+              "rgba(33, 150, 243, 0.7)",   // En cours
+              "rgba(76, 175, 80, 0.7)",    // Livrée
+              "rgba(244, 67, 54, 0.7)"     // Annulée
+            ],
+            borderColor: [
+              "rgba(255, 193, 7, 1)",
+              "rgba(33, 150, 243, 1)",
+              "rgba(76, 175, 80, 1)",
+              "rgba(244, 67, 54, 1)"
+            ]
+          }] 
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { 
+              position: "right", 
+              labels: { 
+                color: "#f0f6fc",
+                font: { size: 12 }
+              } 
+            } 
+          }
+        }
+      });
+    }
+
+    function updateCharts() {
+      // Chart des ventes
+      const period = Number($("salesPeriod").value || 30);
+      const salesByDay = state.analytics.salesByDay || {};
+      
+      const labels = [];
+      const values = [];
+      const today = new Date();
+      
+      for (let i = period - 1; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toISOString().substring(0, 10);
+        labels.push(date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }));
+        values.push(salesByDay[dateKey] || 0);
+      }
+      
+      if (state.charts.sales) {
+        state.charts.sales.data.labels = labels;
+        state.charts.sales.data.datasets[0].data = values;
+        state.charts.sales.update();
+      }
+      
+      // Chart des statuts
+      const statusDistribution = state.analytics.statusDistribution || {};
+      const statusLabels = ["En attente", "En cours", "Livrée", "Annulée"];
+      const statusData = statusLabels.map(label => statusDistribution[label] || 0);
+      
+      if (state.charts.status) {
+        state.charts.status.data.labels = statusLabels;
+        state.charts.status.data.datasets[0].data = statusData;
+        state.charts.status.update();
+      }
+    }
+
+    /* ===================== UPDATE ORDER STATUS ===================== */
+    async function updateOrderStatus(commandeId, nouveauStatut) {
+      try {
+        showToast(`Mise à jour de ${commandeId}...`, "info");
+        
+        const response = await fetch(
+          `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
         }
         
-        function formaterPrix(amount) {
-            const n = Number(amount || 0);
-            return n.toFixed(2).replace('.', ',') + ' dt';
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || "Erreur lors de la mise à jour");
         }
         
-        function echapperHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        // Mettre à jour localement
+        const orderIndex = state.orders.findIndex(order => order.Commande === commandeId);
+        if (orderIndex !== -1) {
+          state.orders[orderIndex].Statut = nouveauStatut;
+          calculateAnalytics();
+          updateUI();
+          updateCharts();
         }
         
-        function afficherToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.style.background = type === 'success' ? '#00ff88' : 
-                                  type === 'error' ? '#ff6b6b' : '#00d4ff';
-            toast.style.color = type === 'success' ? '#0a1929' : 'white';
-            toast.style.display = 'block';
-            
-            clearTimeout(afficherToast.timeout);
-            afficherToast.timeout = setTimeout(() => {
-                toast.style.display = 'none';
-            }, 3000);
-        }
+        showToast(`✅ Statut mis à jour: ${nouveauStatut}`, "success");
         
-        // ============== INITIALISATION ==============
+      } catch (error) {
+        console.error("Erreur updateOrderStatus:", error);
+        showToast(`❌ Erreur: ${error.message}`, "error");
         
-        window.onload = function() {
-            // Initialiser la date d'aujourd'hui par défaut
-            document.getElementById('filterDate').value = new Date().toISOString().split('T')[0];
-            
-            // Charger les données
-            rafraichirDonnees();
-            
-            // Rafraîchir automatiquement toutes les 30 secondes
-            setInterval(rafraichirDonnees, 30000);
-            
-            // Fermer le modal avec Escape
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    fermerModal();
-                }
-            });
-            
-            // Fermer le modal en cliquant à l'extérieur
-            document.getElementById('statusModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    fermerModal();
-                }
-            });
-        };
-    </script>
+        // Recharger pour avoir les vraies données
+        refreshAll();
+      }
+    }
+
+    /* ===================== MAIN ===================== */
+    async function refreshAll() {
+      try {
+        $("btnRefresh").disabled = true;
+        
+        await loadOrders();          // ✅ Charger depuis l'API
+        calculateAnalytics();        // ✅ Calculer les statistiques
+        updateUI();                  // ✅ Mettre à jour l'interface
+        updateCharts();              // ✅ Mettre à jour les graphiques
+        
+        showToast("✅ Données chargées avec succès", "success");
+        
+      } catch (error) {
+        console.error("Erreur refreshAll:", error);
+        showToast("❌ Erreur lors du chargement", "error");
+        
+      } finally {
+        $("btnRefresh").disabled = false;
+      }
+    }
+
+    /* ===================== INITIALIZATION ===================== */
+    document.addEventListener("DOMContentLoaded", () => {
+      // Initialiser les graphiques
+      initCharts();
+      
+      // Événements
+      $("salesPeriod").addEventListener("change", () => updateCharts());
+      $("btnRefresh").addEventListener("click", () => refreshAll());
+      
+      // Exposer la fonction de mise à jour
+      window.updateOrderStatus = updateOrderStatus;
+      
+      // Premier chargement
+      refreshAll();
+      
+      // Actualisation automatique toutes les 30 secondes
+      setInterval(refreshAll, 30000);
+    });
+  </script>
 </body>
 </html>
