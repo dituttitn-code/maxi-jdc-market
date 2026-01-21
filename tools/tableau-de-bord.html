@@ -406,7 +406,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // URL de l'API Google Apps Script (celle de votre fichier api-commandes.js)
+    // URL de l'API Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbyokEi5GQ7kcZ5Rq-ZG4Z6LBYSgne8LKXr3pU4qEXSB9JIJkrYSGOA6Z-zocqW6JGip/exec";
 
     // ===================== FONCTIONS API =====================
@@ -635,9 +635,7 @@
           total += lineTotal;
         }
         
-        const articlesText = articles.map(item => 
-          `${item.quantite}x ${item.produit} (${item.prix_unitaire.toFixed(2)} dt)`
-        ).join('\n');
+        const articlesText = JSON.stringify(articles);
         
         const statut = statuses[Math.floor(Math.random() * statuses.length)];
         
@@ -712,8 +710,12 @@
       if (!articlesText) return [];
       
       try {
-        if (articlesText.trim().startsWith("[")) {
+        if (typeof articlesText === 'string' && articlesText.trim().startsWith("[")) {
           return JSON.parse(articlesText);
+        }
+        
+        if (Array.isArray(articlesText)) {
+          return articlesText;
         }
         
         const articles = [];
@@ -722,17 +724,16 @@
         for (const line of lines) {
           if (!line.trim()) continue;
           
-          const match = line.trim().match(/^(\d+)x\s+(.+?)\s*\(([\d.,]+)\s*dt\)$/);
+          const match = line.trim().match(/^(\d+)x\s+(.+)$/);
           if (match) {
             const quantite = parseInt(match[1]);
             const produit = match[2].trim();
-            const prix = parseFloat(match[3].replace(',', '.'));
             
             articles.push({
               produit: produit,
               quantite: quantite,
-              prix_unitaire: prix,
-              prix_total: prix * quantite
+              prix_unitaire: 0,
+              prix_total: 0
             });
           }
         }
@@ -764,41 +765,46 @@
       state.analytics.avgOrderValue = state.analytics.totalOrders > 0 ? 
         state.analytics.totalRevenue / state.analytics.totalOrders : 0;
 
-      orders.forEach(order => {
-        const statut = order.Statut || "En attente";
-        state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
-      });
-
       const productSales = new Map();
-      const now = new Date();
       
       orders.forEach(order => {
-        if (!order.Date) return;
-        
-        const orderDate = new Date(order.Date);
-        if (isNaN(orderDate.getTime())) return;
-        
-        const dateKey = orderDate.toISOString().split('T')[0];
-        state.analytics.salesByDay[dateKey] = (state.analytics.salesByDay[dateKey] || 0) + (parseFloat(order.Total) || 0);
-        
-        const hourKey = orderDate.getHours();
-        state.analytics.salesByHour[hourKey] = (state.analytics.salesByHour[hourKey] || 0) + (parseFloat(order.Total) || 0);
-        
-        const weekdayKey = orderDate.getDay();
-        state.analytics.salesByWeekday[weekdayKey] = (state.analytics.salesByWeekday[weekdayKey] || 0) + (parseFloat(order.Total) || 0);
-        
-        const weekKey = Math.floor((now - orderDate) / (7 * 24 * 60 * 60 * 1000));
-        if (!state.analytics.avgByWeek[weekKey]) {
-          state.analytics.avgByWeek[weekKey] = { total: 0, count: 0 };
+        // Distribution des statuts
+        const statut = order.Statut || "En attente";
+        state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
+
+        // Traitement de la date
+        if (order.Date) {
+          try {
+            const orderDate = new Date(order.Date);
+            if (!isNaN(orderDate.getTime())) {
+              const dateKey = orderDate.toISOString().split('T')[0];
+              state.analytics.salesByDay[dateKey] = (state.analytics.salesByDay[dateKey] || 0) + (parseFloat(order.Total) || 0);
+              
+              const hourKey = orderDate.getHours();
+              state.analytics.salesByHour[hourKey] = (state.analytics.salesByHour[hourKey] || 0) + (parseFloat(order.Total) || 0);
+              
+              const weekdayKey = orderDate.getDay();
+              state.analytics.salesByWeekday[weekdayKey] = (state.analytics.salesByWeekday[weekdayKey] || 0) + (parseFloat(order.Total) || 0);
+              
+              const now = new Date();
+              const weekKey = Math.floor((now - orderDate) / (7 * 24 * 60 * 60 * 1000));
+              if (!state.analytics.avgByWeek[weekKey]) {
+                state.analytics.avgByWeek[weekKey] = { total: 0, count: 0 };
+              }
+              state.analytics.avgByWeek[weekKey].total += parseFloat(order.Total) || 0;
+              state.analytics.avgByWeek[weekKey].count += 1;
+            }
+          } catch (e) {
+            console.warn("Erreur de traitement de date:", e);
+          }
         }
-        state.analytics.avgByWeek[weekKey].total += parseFloat(order.Total) || 0;
-        state.analytics.avgByWeek[weekKey].count += 1;
-        
+
+        // Traitement des produits
         const articles = parseArticles(order.Articles);
         articles.forEach(article => {
           const productName = article.produit || "Produit";
           const quantite = article.quantite || 0;
-          const revenu = article.prix_total || 0;
+          const revenu = article.prix_total || (article.prix_unitaire || 0) * quantite;
           
           if (!productSales.has(productName)) {
             productSales.set(productName, { name: productName, quantity: 0, revenue: 0 });
@@ -838,11 +844,17 @@
           </tr>
         `;
       } else {
-        const sortedOrders = [...state.orders].sort((a, b) => new Date(b.Date) - new Date(a.Date));
+        const sortedOrders = [...state.orders].sort((a, b) => {
+          try {
+            return new Date(b.Date || 0) - new Date(a.Date || 0);
+          } catch {
+            return 0;
+          }
+        });
         
         sortedOrders.forEach(order => {
           const statutClass = order.Statut ? `statut-${order.Statut.toLowerCase().replace(' ', '-')}` : '';
-          const articlesText = order.Articles ? order.Articles.replace(/\n/g, '<br>') : '';
+          const articlesText = formaterArticles(order.Articles).replace(/\n/g, '<br>');
           
           const tr = document.createElement("tr");
           tr.innerHTML = `
@@ -917,6 +929,10 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: "#f0f6fc" } },
+            y: { ticks: { color: "#f0f6fc" } }
+          },
           plugins: { 
             legend: { 
               labels: { 
@@ -973,7 +989,11 @@
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: "#f0f6fc" } },
+            y: { ticks: { color: "#f0f6fc" } }
+          }
         }
       });
 
@@ -992,7 +1012,11 @@
         options: {
           indexAxis: 'y',
           responsive: true,
-          maintainAspectRatio: false
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: "#f0f6fc" } },
+            y: { ticks: { color: "#f0f6fc" } }
+          }
         }
       });
 
@@ -1004,13 +1028,17 @@
           labels: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"], 
           datasets: [{ 
             label: "Chiffre d'affaires (dt)", 
-            data: [], 
+            data: [0, 0, 0, 0, 0, 0, 0], 
             backgroundColor: "rgba(147, 51, 234, 0.6)"
           }] 
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: "#f0f6fc" } },
+            y: { ticks: { color: "#f0f6fc" } }
+          }
         }
       });
 
@@ -1024,12 +1052,17 @@
             label: "Panier moyen (dt)", 
             data: [], 
             borderWidth: 3, 
-            borderColor: "#ff6b6b"
+            borderColor: "#ff6b6b",
+            backgroundColor: "rgba(255, 107, 107, 0.1)"
           }] 
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: "#f0f6fc" } },
+            y: { ticks: { color: "#f0f6fc" } }
+          }
         }
       });
     }
