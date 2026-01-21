@@ -1,1267 +1,266 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tableau de Bord - MAXI JDC MARKET</title>
-
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau de Bord - Test Simple</title>
   <style>
-    :root{
-      --bg1:#0a1929; --bg2:#112240; --card:#162447; --line:rgba(255,255,255,.15);
-      --txt:#f0f6fc; --muted:#8b949e; --green:#00ff88; --blue:#00d4ff; --orange:#ffa726; --red:#ff6b6b;
-      --shadow:0 10px 40px rgba(0,0,0,.45); --r:14px;
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
-      background:linear-gradient(135deg,var(--bg1),var(--bg2));
-      color:var(--txt); min-height:100vh; padding:18px;
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    .container{max-width:1400px;margin:0 auto}
-    .header{
-      background:rgba(10,25,47,.95);
-      border:2px solid var(--green);
-      border-radius:var(--r);
-      padding:18px 22px;
-      display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap;
-      box-shadow:var(--shadow);
+    h1 {
+      color: #333;
     }
-    .left{display:flex; align-items:center; gap:14px}
-    .logo{
-      width:56px;height:56px;border-radius:12px;
-      border:3px solid var(--green);
-      display:flex;align-items:center;justify-content:center;
-      background:rgba(0,255,136,.12); font-size:22px; font-weight:900;
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
     }
-    h1{
-      font-size:22px;font-weight:900;
-      background:linear-gradient(90deg,var(--green),var(--blue));
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-      margin-bottom:4px;
+    .online {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
     }
-    .sub{color:var(--muted);font-size:13px}
-    .btn{
-      background:rgba(255,255,255,.10); border:2px solid var(--line);
-      color:var(--txt); padding:10px 14px; border-radius:10px; font-weight:800;
-      cursor:pointer; transition:.2s;
-      display:flex; gap:8px; align-items:center;
+    .offline {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
     }
-    .btn:hover{transform:translateY(-2px); border-color:var(--blue); background:rgba(255,255,255,.15)}
-    .badge{
-      background:rgba(255,167,38,.18); border:2px solid var(--orange);
-      color:var(--orange); padding:8px 12px; border-radius:999px; font-weight:900; font-size:13px;
-      display:flex; gap:8px; align-items:center;
+    .demo {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
     }
-    .api-status {
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .api-online {
-      background: rgba(0, 255, 136, 0.15);
-      color: var(--green);
-      border: 1px solid var(--green);
-    }
-    .api-offline {
-      background: rgba(255, 107, 107, 0.15);
-      color: var(--red);
-      border: 1px solid var(--red);
-    }
-
-    .grid{
-      display:grid; gap:16px; margin-top:18px;
-      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    }
-    .card{
-      background:var(--card);
-      border:2px solid var(--line);
-      border-radius:var(--r);
-      box-shadow:var(--shadow);
-      padding:18px;
-      transition:.2s;
-    }
-    .card:hover{border-color:var(--green); transform:translateY(-3px)}
-    .statTop{display:flex; justify-content:space-between; align-items:center; gap:10px}
-    .icon{
-      width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center;
-      font-size:22px; background:rgba(255,255,255,.06); border:1px solid var(--line);
-    }
-    .value{font-size:30px; font-weight:1000; margin-top:2px}
-    .label{font-size:13px; color:var(--muted); font-weight:700}
-
-    .sectionGrid{
-      display:grid; gap:18px; margin-top:18px;
-      grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
-    }
-    .sectionTitle{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px}
-    .sectionTitle h3{font-size:16px; font-weight:1000; color:var(--green)}
-    .chartBox{height:300px; position:relative}
-    .tableWrap{border:1px solid var(--line); border-radius:12px; overflow:auto; max-height:420px}
-    table{width:100%; border-collapse:collapse}
-    th{
-      position:sticky; top:0;
-      background:rgba(0,212,255,.10);
-      color:var(--blue);
-      text-align:left;
-      padding:12px;
-      border-bottom:2px solid var(--blue);
-      font-size:13px; font-weight:1000;
-    }
-    td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px}
-    tr:hover{background:rgba(255,255,255,.05)}
-    
-    .statut-select {
-      padding: 6px 10px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: rgba(255,255,255,.08);
-      color: var(--txt);
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
+    table {
       width: 100%;
-      box-sizing: border-box;
-      transition: all 0.2s;
-    }
-    
-    .statut-select:focus {
-      outline: none;
-      border-color: var(--green);
-      box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
-    }
-    
-    .statut-select option {
-      background: var(--card);
-      color: var(--txt);
-      padding: 8px;
-    }
-    
-    .statut-en-attente { color: #FFC107; }
-    .statut-en-cours { color: #2196F3; }
-    .statut-livree { color: #4CAF50; }
-    .statut-annulee { color: #F44336; }
-
-    .footer{
-      margin-top:18px; padding:14px; text-align:center; color:var(--muted);
-      border-top:1px solid var(--line);
-      font-size:13px;
-    }
-
-    .toast{
-      position:fixed; top:18px; right:18px; z-index:99999;
-      padding:12px 16px; border-radius:12px; font-weight:900; color:#0a1929;
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-      display:none;
-    }
-    .toast.show{display:block; animation:pop .2s ease}
-    @keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
-    
-    .articles-cell {
-      max-width: 200px;
-      white-space: pre-line;
-      font-size: 12px;
-      line-height: 1.4;
-    }
-    
-    .statut-badge {
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 900;
-      text-align: center;
-      display: inline-block;
-      min-width: 80px;
-    }
-    
-    .statut-attente { background: rgba(255, 193, 7, 0.15); color: #FFC107; border: 1px solid rgba(255, 193, 7, 0.3); }
-    .statut-cours { background: rgba(33, 150, 243, 0.15); color: #2196F3; border: 1px solid rgba(33, 150, 243, 0.3); }
-    .statut-livre { background: rgba(76, 175, 80, 0.15); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); }
-    .statut-annule { background: rgba(244, 67, 54, 0.15); color: #F44336; border: 1px solid rgba(244, 67, 54, 0.3); }
-    
-    .chart-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
+      border-collapse: collapse;
       margin-top: 20px;
     }
-    
-    .chart-card {
-      flex: 1 1 calc(50% - 20px);
-      min-width: 300px;
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
     }
-    
-    @media (max-width: 768px) {
-      .sectionGrid {
-        grid-template-columns: 1fr;
-      }
-      .chart-card {
-        flex: 1 1 100%;
-      }
+    th {
+      background: #f8f9fa;
+      font-weight: bold;
+    }
+    .btn {
+      padding: 10px 15px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .btn:hover {
+      background: #0056b3;
     }
   </style>
 </head>
-
 <body>
   <div class="container">
-    <header class="header">
-      <div class="left">
-        <div class="logo">📊</div>
-        <div>
-          <h1>Tableau de Bord Administratif</h1>
-          <div class="sub">MAXI JDC MARKET — Suivi des commandes en temps réel</div>
-        </div>
-      </div>
-
-      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-        <div class="badge"><span>🔧</span><span>MODE ADMIN</span></div>
-        <div id="apiStatus" class="api-status api-online"><span>●</span><span>API Connectée</span></div>
-        <button class="btn" id="btnRefresh"><span>🔄</span><span>Actualiser</span></button>
-        <button class="btn" onclick="window.location.href='suivi-commande.html'"><span>📍</span><span>Suivi Client</span></button>
-        <button class="btn" onclick="window.history.back()"><span>←</span><span>Retour</span></button>
-      </div>
-    </header>
-
-    <!-- STATS -->
-    <section class="grid">
-      <div class="card">
-        <div class="statTop">
-          <div>
-            <div class="value" id="totalRevenue">0,00 dt</div>
-            <div class="label">Chiffre d'affaires total</div>
-          </div>
-          <div class="icon">💰</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="statTop">
-          <div>
-            <div class="value" id="totalOrders">0</div>
-            <div class="label">Commandes totales</div>
-          </div>
-          <div class="icon">📦</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="statTop">
-          <div>
-            <div class="value" id="avgOrderValue">0,00 dt</div>
-            <div class="label">Panier moyen</div>
-          </div>
-          <div class="icon">🛒</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="statTop">
-          <div>
-            <div class="value" id="topProductName">—</div>
-            <div class="label">Produit le + vendu</div>
-          </div>
-          <div class="icon">🏆</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- NOUVEAUX GRAPHIQUES -->
-    <div class="chart-container">
-      <div class="card chart-card">
-        <div class="sectionTitle">
-          <h3>📈 Ventes par jour (30 derniers jours)</h3>
-          <select class="statut-select" id="salesPeriod" style="width: auto;">
-            <option value="7">7 jours</option>
-            <option value="30" selected>30 jours</option>
-            <option value="90">90 jours</option>
-          </select>
-        </div>
-        <div class="chartBox">
-          <canvas id="salesChart"></canvas>
-        </div>
-      </div>
-
-      <div class="card chart-card">
-        <div class="sectionTitle">
-          <h3>📊 Répartition par statut</h3>
-          <span class="sub">Statut des commandes</span>
-        </div>
-        <div class="chartBox">
-          <canvas id="statusChart"></canvas>
-        </div>
-      </div>
-
-      <div class="card chart-card">
-        <div class="sectionTitle">
-          <h3>📦 Commandes par heure</h3>
-          <span class="sub">Heures les plus actives</span>
-        </div>
-        <div class="chartBox">
-          <canvas id="hourlyChart"></canvas>
-        </div>
-      </div>
-
-      <div class="card chart-card">
-        <div class="sectionTitle">
-          <h3>🏆 Top 10 produits</h3>
-          <span class="sub">Quantités vendues</span>
-        </div>
-        <div class="chartBox">
-          <canvas id="productsChart"></canvas>
-        </div>
-      </div>
-
-      <div class="card chart-card">
-        <div class="sectionTitle">
-          <h3>📅 Ventes par jour de semaine</h3>
-          <span class="sub">Moyenne par jour</span>
-        </div>
-        <div class="chartBox">
-          <canvas id="weekdayChart"></canvas>
-        </div>
-      </div>
-
-      <div class="card chart-card">
-        <div class="sectionTitle">
-          <h3>💰 Évolution du panier moyen</h3>
-          <span class="sub">Tendances hebdomadaires</span>
-        </div>
-        <div class="chartBox">
-          <canvas id="avgChart"></canvas>
-        </div>
-      </div>
+    <h1>Tableau de Bord - Test Simple</h1>
+    
+    <div id="apiStatus" class="status">Test de connexion à l'API...</div>
+    
+    <div>
+      <button class="btn" onclick="testAPI()">Tester l'API</button>
+      <button class="btn" onclick="loadDemoData()">Charger données démo</button>
+      <button class="btn" onclick="checkConfig()">Vérifier configuration</button>
     </div>
-
-    <!-- TABLES -->
-    <section class="sectionGrid">
-      <div class="card">
-        <div class="sectionTitle">
-          <h3>📋 Toutes les commandes</h3>
-          <span class="sub">Gestion complète</span>
-        </div>
-        <div class="tableWrap">
-          <table id="allOrdersTable">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Nom</th>
-                <th>Téléphone</th>
-                <th>Adresse</th>
-                <th>Commande</th>
-                <th>Articles</th>
-                <th>Total</th>
-                <th>Statut</th>
-              </tr>
-            </thead>
-            <tbody id="allOrdersBody">
-              <tr>
-                <td colspan="8" style="text-align:center; padding:30px; color:var(--muted)">
-                  <div>Chargement des commandes...</div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="sectionTitle">
-          <h3>🏆 Top produits</h3>
-          <span class="sub">Quantité vendue</span>
-        </div>
-        <div class="tableWrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Produit</th>
-                <th>Quantité</th>
-                <th>Revenu</th>
-              </tr>
-            </thead>
-            <tbody id="topProductsBody">
-              <tr>
-                <td colspan="3" style="text-align:center; padding:20px; color:var(--muted)">
-                  Chargement...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <footer class="footer">
-      <div>© 2024 MAXI JDC MARKET — Tableau de bord administratif</div>
-      <div style="margin-top:6px; font-size:12px;">Dernière mise à jour : <span id="lastUpdate">—</span></div>
-      <div style="margin-top:6px; font-size:11px; color:var(--orange);" id="dataSourceInfo"></div>
-    </footer>
+    
+    <div id="results"></div>
+    
+    <h2>Configuration actuelle :</h2>
+    <pre id="configInfo"></pre>
+    
+    <h2>Instructions :</h2>
+    <ol>
+      <li>Cliquez sur "Tester l'API" pour vérifier la connexion</li>
+      <li>Si l'API échoue, utilisez "Charger données démo"</li>
+      <li>Vérifiez que l'URL de l'API est correcte</li>
+    </ol>
   </div>
 
-  <div class="toast" id="toast"></div>
-
   <script>
-    // URL de l'API Google Apps Script
+    // URL de votre API
     const API_URL = "https://script.google.com/macros/s/AKfycbyokEi5GQ7kcZ5Rq-ZG4Z6LBYSgne8LKXr3pU4qEXSB9JIJkrYSGOA6Z-zocqW6JGip/exec";
-
-    // ===================== FONCTIONS API =====================
     
-    async function recupererCommandes() {
-      try {
-        const response = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
-        
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (!data.success) {
-          throw new Error(data.error || "Erreur lors de la récupération des commandes");
-        }
-        
-        // Formater selon les 8 colonnes du tableau
-        const commandesFormatees = (data.orders || []).map(commande => ({
-          Date: commande.date || "",
-          Nom: commande.nom || "",
-          Téléphone: commande.telephone || "",
-          Adresse: commande.adresse || "",
-          Commande: commande.commande_id || "",
-          Articles: commande.articles || "",
-          Total: commande.total || "0",
-          Statut: commande.statut || "En attente",
-          _id: commande.id,
-          _raw: commande
-        }));
-        
-        return commandesFormatees;
-      } catch (error) {
-        console.error("Erreur dans recupererCommandes:", error);
-        return [];
-      }
+    function showStatus(message, type) {
+      const statusDiv = document.getElementById('apiStatus');
+      statusDiv.textContent = message;
+      statusDiv.className = `status ${type}`;
     }
-
-    async function mettreAJourStatut(commandeId, nouveauStatut) {
-      try {
-        const response = await fetch(
-          `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
-        );
-        
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (!data.success) {
-          throw new Error(data.error || "Erreur lors de la mise à jour");
-        }
-        
-        return data;
-      } catch (error) {
-        console.error("Erreur dans mettreAJourStatut:", error);
-        throw error;
-      }
+    
+    function showResults(html) {
+      document.getElementById('results').innerHTML = html;
     }
-
-    function formaterArticles(articles) {
-      if (!articles) return "";
+    
+    function updateConfigInfo() {
+      const config = {
+        API_URL: API_URL,
+        Timestamp: new Date().toLocaleString(),
+        UserAgent: navigator.userAgent,
+        Platform: navigator.platform
+      };
+      
+      document.getElementById('configInfo').textContent = JSON.stringify(config, null, 2);
+    }
+    
+    async function testAPI() {
+      showStatus("⏳ Test de connexion à l'API en cours...", "demo");
       
       try {
-        // Si articles est déjà formaté "3x Produit\n5x Autre"
-        if (typeof articles === "string" && articles.includes("x ")) {
-          return articles;
+        // Test 1: Récupérer toutes les commandes
+        const testUrl = `${API_URL}?method=getAllOrders&t=${Date.now()}`;
+        showResults(`<p>Tentative de connexion à : <code>${testUrl}</code></p>`);
+        
+        const response = await fetch(testUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status} ${response.statusText}`);
         }
         
-        let articlesArray = [];
+        const data = await response.json();
         
-        // Si c'est une chaîne JSON
-        if (typeof articles === "string") {
-          try {
-            articlesArray = JSON.parse(articles);
-          } catch (e) {
-            return articles; // Retourne la chaîne telle quelle
+        showStatus("✅ API connectée avec succès !", "online");
+        
+        let html = `<h3>Résultat du test API :</h3>`;
+        html += `<p><strong>Success:</strong> ${data.success}</p>`;
+        html += `<p><strong>Message:</strong> ${data.message || 'Aucun message'}</p>`;
+        
+        if (data.orders && Array.isArray(data.orders)) {
+          html += `<p><strong>Nombre de commandes:</strong> ${data.orders.length}</p>`;
+          
+          // Afficher quelques commandes
+          if (data.orders.length > 0) {
+            html += `<h4>Premières commandes :</h4><table>`;
+            html += `<tr><th>ID</th><th>Nom</th><th>Téléphone</th><th>Total</th><th>Statut</th></tr>`;
+            
+            data.orders.slice(0, 5).forEach(order => {
+              html += `<tr>
+                <td>${order.commande_id || order.id || 'N/A'}</td>
+                <td>${order.nom || ''}</td>
+                <td>${order.telephone || ''}</td>
+                <td>${order.total || '0'} dt</td>
+                <td>${order.statut || 'En attente'}</td>
+              </tr>`;
+            });
+            
+            html += `</table>`;
           }
-        }
-        // Si c'est déjà un tableau
-        else if (Array.isArray(articles)) {
-          articlesArray = articles;
+        } else {
+          html += `<p><strong>Structure de données :</strong></p>`;
+          html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
         }
         
-        // Formater chaque article
-        return articlesArray.map(item => {
-          const quantite = item.quantite || item.qty || 1;
-          const produit = item.produit || item.nom || "Produit";
-          return `${quantite}x ${produit}`;
-        }).join("\n");
+        showResults(html);
         
       } catch (error) {
-        console.error("Erreur lors du formatage des articles:", error);
-        return String(articles || "");
+        showStatus(`❌ Erreur API: ${error.message}`, "offline");
+        
+        let html = `<h3>Erreur détaillée :</h3>`;
+        html += `<p><strong>Message :</strong> ${error.message}</p>`;
+        html += `<p><strong>Conseil :</strong> Vérifiez que :</p>`;
+        html += `<ol>
+          <li>L'URL de l'API est correcte</li>
+          <li>Le script Google Apps est déployé en tant qu'application web</li>
+          <li>Les autorisations sont configurées pour "Tout le monde, même anonyme"</li>
+          <li>Votre navigateur n'est pas en mode CORS restrictif</li>
+        </ol>`;
+        
+        showResults(html);
       }
     }
-
-    // ===================== CONFIGURATION TDB =====================
-    const state = {
-      orders: [],
-      analytics: {
-        totalRevenue: 0,
-        totalOrders: 0,
-        avgOrderValue: 0,
-        topProducts: [],
-        statusDistribution: {},
-        salesByDay: {},
-        salesByHour: {},
-        salesByWeekday: {},
-        avgByWeek: {}
-      },
-      charts: {
-        sales: null,
-        status: null,
-        hourly: null,
-        products: null,
-        weekday: null,
-        avg: null
-      },
-      apiStatus: 'checking'
-    };
-
-    // ===================== UTILITAIRES =====================
-    const $ = (id) => document.getElementById(id);
-
-    function showToast(msg, type = "info") {
-      const el = $("toast");
-      const bg = type === "success" ? "#00ff88" : 
-                  type === "error" ? "#ff6b6b" : 
-                  type === "warning" ? "#ffa726" : "#00d4ff";
-      el.style.background = bg;
-      el.textContent = msg;
-      el.classList.add("show");
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
-    }
-
-    function formatPrice(amount) {
-      const n = Number(amount || 0);
-      return n.toFixed(2).replace(".", ",") + " dt";
-    }
-
-    function safeText(x) {
-      if (x === null || x === undefined) return "";
-      return String(x);
-    }
-
-    function formatDate(dateStr) {
-      if (!dateStr) return "";
-      try {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return dateStr;
-        return date.toLocaleDateString("fr-FR", { 
-          year: "numeric", 
-          month: "2-digit", 
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit"
-        });
-      } catch {
-        return dateStr;
-      }
-    }
-
-    // ===================== DONNÉES DE DÉMONSTRATION =====================
-    function generateDemoData() {
-      console.log("🔄 Génération des données de démonstration...");
+    
+    function loadDemoData() {
+      showStatus("📊 Chargement des données de démonstration", "demo");
       
+      // Générer des données de démonstration
       const demoOrders = [];
       const products = [
-        { name: "Pizza Margherita", price: 18.5 },
-        { name: "Pizza Pepperoni", price: 22.0 },
-        { name: "Pizza 4 Fromages", price: 20.5 },
-        { name: "Pizza Végétarienne", price: 19.5 },
-        { name: "Pizza Chicken", price: 21.0 },
-        { name: "Burger Classique", price: 15.0 },
-        { name: "Burger Double", price: 18.0 },
-        { name: "Frites", price: 7.5 },
-        { name: "Salade César", price: 12.0 },
-        { name: "Soda", price: 5.0 },
-        { name: "Eau minérale", price: 3.0 },
-        { name: "Tiramisu", price: 8.5 }
+        "Pizza Margherita", "Pizza Pepperoni", "Pizza 4 Fromages", "Burger Classique", "Frites"
       ];
-      
       const clients = [
-        { nom: "Mohamed Ali", tel: "051234567", adr: "123 Avenue Habib Bourguiba, Tunis" },
-        { nom: "Fatima Ben", tel: "052345678", adr: "45 Rue de la Liberté, Sfax" },
-        { nom: "Karim Said", tel: "053456789", adr: "78 Avenue Mohammed V, Sousse" },
-        { nom: "Leila Ahmed", tel: "054567890", adr: "90 Rue Hedi Chaker, Bizerte" },
-        { nom: "Youssef Mohamed", tel: "055678901", adr: "12 Avenue Habib Thameur, Gabès" },
-        { nom: "Amina Hassan", tel: "056789012", adr: "34 Rue Ali Belhouane, Nabeul" },
-        { nom: "Hassan Farid", tel: "057890123", adr: "56 Avenue Taieb Mhiri, Monastir" },
-        { nom: "Samira Karem", tel: "058901234", adr: "78 Rue Ibn Khaldoun, Kairouan" },
-        { nom: "Bilel Nouri", tel: "059012345", adr: "90 Avenue Farhat Hached, Mahdia" },
-        { nom: "Nour Chen", tel: "051112233", adr: "11 Rue Abou El Kacem Chebbi, Tozeur" }
+        { nom: "Mohamed Ali", tel: "051234567" },
+        { nom: "Fatima Ben", tel: "052345678" },
+        { nom: "Karim Said", tel: "053456789" }
       ];
       
-      const statuses = ["En attente", "En cours", "Livrée", "Annulée"];
-      const now = new Date();
-      
-      for (let i = 0; i < 50; i++) {
+      for (let i = 1; i <= 10; i++) {
         const client = clients[Math.floor(Math.random() * clients.length)];
-        const date = new Date(now);
-        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
-        date.setHours(Math.floor(Math.random() * 24));
-        date.setMinutes(Math.floor(Math.random() * 60));
-        
-        const numItems = Math.floor(Math.random() * 4) + 1;
-        let articles = [];
-        let total = 0;
-        
-        for (let j = 0; j < numItems; j++) {
-          const product = products[Math.floor(Math.random() * products.length)];
-          const quantity = Math.floor(Math.random() * 3) + 1;
-          const lineTotal = product.price * quantity;
-          
-          articles.push({
-            produit: product.name,
-            quantite: quantity,
-            prix_unitaire: product.price,
-            prix_total: lineTotal
-          });
-          
-          total += lineTotal;
-        }
-        
-        const articlesText = JSON.stringify(articles);
-        
-        const statut = statuses[Math.floor(Math.random() * statuses.length)];
+        const product = products[Math.floor(Math.random() * products.length)];
+        const quantity = Math.floor(Math.random() * 3) + 1;
+        const total = (15 + Math.random() * 20).toFixed(2);
         
         demoOrders.push({
-          id: `demo_${i + 1000}`,
-          Date: date.toISOString(),
-          Nom: client.nom,
-          Téléphone: client.tel,
-          Adresse: client.adr,
-          Commande: `CMD${1000 + i}`,
-          Articles: articlesText,
-          Total: total.toFixed(2),
-          Statut: statut,
-          _raw: {
-            date: date.toISOString(),
-            nom: client.nom,
-            telephone: client.tel,
-            adresse: client.adr,
-            commande_id: `CMD${1000 + i}`,
-            articles: articlesText,
-            total: total.toFixed(2),
-            statut: statut
-          }
+          id: `demo_${i}`,
+          commande_id: `CMD${1000 + i}`,
+          date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+          nom: client.nom,
+          telephone: client.tel,
+          adresse: "Adresse démo",
+          articles: `${quantity}x ${product}`,
+          total: total,
+          statut: ["En attente", "En cours", "Livrée"][Math.floor(Math.random() * 3)]
         });
       }
       
-      console.log(`✅ ${demoOrders.length} commandes de démonstration générées`);
-      return demoOrders;
-    }
-
-    // ===================== CHARGEMENT DES DONNÉES =====================
-    async function loadOrders() {
-      try {
-        showToast("🔗 Connexion à l'API...", "info");
-        
-        const apiOrders = await recupererCommandes();
-        
-        if (apiOrders && apiOrders.length > 0) {
-          state.orders = apiOrders;
-          $("dataSourceInfo").textContent = "Source des données : API Google Sheets";
-          state.apiStatus = 'online';
-          $("apiStatus").className = "api-status api-online";
-          $("apiStatus").innerHTML = '<span>●</span><span>API Connectée</span>';
-          showToast("✅ Données chargées depuis l'API", "success");
-        } else {
-          showToast("📊 Utilisation des données de démonstration", "warning");
-          state.orders = generateDemoData();
-          $("dataSourceInfo").textContent = "Source des données : Démonstration";
-          state.apiStatus = 'demo';
-          $("apiStatus").className = "api-status api-offline";
-          $("apiStatus").innerHTML = '<span>●</span><span>Mode Démo</span>';
-        }
-        
-        return state.orders;
-        
-      } catch (error) {
-        console.error("Erreur loadOrders:", error);
-        
-        showToast("⚠️ Utilisation des données de démonstration", "warning");
-        state.orders = generateDemoData();
-        $("dataSourceInfo").textContent = "Source des données : Démonstration (Erreur API)";
-        state.apiStatus = 'error';
-        $("apiStatus").className = "api-status api-offline";
-        $("apiStatus").innerHTML = '<span>●</span><span>Erreur API</span>';
-        
-        return state.orders;
-      }
-    }
-
-    // ===================== ANALYTICS =====================
-    function parseArticles(articlesText) {
-      if (!articlesText) return [];
+      let html = `<h3>Données de démonstration chargées :</h3>`;
+      html += `<p><strong>Nombre de commandes :</strong> ${demoOrders.length}</p>`;
+      html += `<table>`;
+      html += `<tr><th>ID</th><th>Date</th><th>Nom</th><th>Total</th><th>Statut</th></tr>`;
       
-      try {
-        if (typeof articlesText === 'string' && articlesText.trim().startsWith("[")) {
-          return JSON.parse(articlesText);
-        }
-        
-        if (Array.isArray(articlesText)) {
-          return articlesText;
-        }
-        
-        const articles = [];
-        const lines = articlesText.split('\n');
-        
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          
-          const match = line.trim().match(/^(\d+)x\s+(.+)$/);
-          if (match) {
-            const quantite = parseInt(match[1]);
-            const produit = match[2].trim();
-            
-            articles.push({
-              produit: produit,
-              quantite: quantite,
-              prix_unitaire: 0,
-              prix_total: 0
-            });
-          }
-        }
-        
-        return articles;
-      } catch (error) {
-        console.error("Erreur parseArticles:", error);
-        return [];
-      }
-    }
-
-    function calculateAnalytics() {
-      const orders = state.orders || [];
-      
-      state.analytics = {
-        totalRevenue: 0,
-        totalOrders: 0,
-        avgOrderValue: 0,
-        topProducts: [],
-        statusDistribution: {},
-        salesByDay: {},
-        salesByHour: {},
-        salesByWeekday: {},
-        avgByWeek: {}
-      };
-
-      state.analytics.totalRevenue = orders.reduce((sum, order) => sum + (parseFloat(order.Total) || 0), 0);
-      state.analytics.totalOrders = orders.length;
-      state.analytics.avgOrderValue = state.analytics.totalOrders > 0 ? 
-        state.analytics.totalRevenue / state.analytics.totalOrders : 0;
-
-      const productSales = new Map();
-      
-      orders.forEach(order => {
-        // Distribution des statuts
-        const statut = order.Statut || "En attente";
-        state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
-
-        // Traitement de la date
-        if (order.Date) {
-          try {
-            const orderDate = new Date(order.Date);
-            if (!isNaN(orderDate.getTime())) {
-              const dateKey = orderDate.toISOString().split('T')[0];
-              state.analytics.salesByDay[dateKey] = (state.analytics.salesByDay[dateKey] || 0) + (parseFloat(order.Total) || 0);
-              
-              const hourKey = orderDate.getHours();
-              state.analytics.salesByHour[hourKey] = (state.analytics.salesByHour[hourKey] || 0) + (parseFloat(order.Total) || 0);
-              
-              const weekdayKey = orderDate.getDay();
-              state.analytics.salesByWeekday[weekdayKey] = (state.analytics.salesByWeekday[weekdayKey] || 0) + (parseFloat(order.Total) || 0);
-              
-              const now = new Date();
-              const weekKey = Math.floor((now - orderDate) / (7 * 24 * 60 * 60 * 1000));
-              if (!state.analytics.avgByWeek[weekKey]) {
-                state.analytics.avgByWeek[weekKey] = { total: 0, count: 0 };
-              }
-              state.analytics.avgByWeek[weekKey].total += parseFloat(order.Total) || 0;
-              state.analytics.avgByWeek[weekKey].count += 1;
-            }
-          } catch (e) {
-            console.warn("Erreur de traitement de date:", e);
-          }
-        }
-
-        // Traitement des produits
-        const articles = parseArticles(order.Articles);
-        articles.forEach(article => {
-          const productName = article.produit || "Produit";
-          const quantite = article.quantite || 0;
-          const revenu = article.prix_total || (article.prix_unitaire || 0) * quantite;
-          
-          if (!productSales.has(productName)) {
-            productSales.set(productName, { name: productName, quantity: 0, revenue: 0 });
-          }
-          
-          const product = productSales.get(productName);
-          product.quantity += quantite;
-          product.revenue += revenu;
-        });
-      });
-
-      state.analytics.topProducts = Array.from(productSales.values())
-        .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, 10);
-    }
-
-    // ===================== AFFICHAGE UI =====================
-    function updateUI() {
-      $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
-      $("totalOrders").textContent = state.analytics.totalOrders;
-      $("avgOrderValue").textContent = formatPrice(state.analytics.avgOrderValue);
-
-      const bestProduct = state.analytics.topProducts[0];
-      $("topProductName").textContent = bestProduct 
-        ? `${bestProduct.name.substring(0, 20)}${bestProduct.name.length > 20 ? '...' : ''} (${bestProduct.quantity})`
-        : "—";
-
-      const allOrdersBody = $("allOrdersBody");
-      allOrdersBody.innerHTML = "";
-      
-      if (state.orders.length === 0) {
-        allOrdersBody.innerHTML = `
-          <tr>
-            <td colspan="8" style="text-align:center; padding:30px; color:var(--muted)">
-              Aucune commande trouvée
-            </td>
-          </tr>
-        `;
-      } else {
-        const sortedOrders = [...state.orders].sort((a, b) => {
-          try {
-            return new Date(b.Date || 0) - new Date(a.Date || 0);
-          } catch {
-            return 0;
-          }
-        });
-        
-        sortedOrders.forEach(order => {
-          const statutClass = order.Statut ? `statut-${order.Statut.toLowerCase().replace(' ', '-')}` : '';
-          const articlesText = formaterArticles(order.Articles).replace(/\n/g, '<br>');
-          
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${formatDate(order.Date)}</td>
-            <td><strong>${safeText(order.Nom)}</strong></td>
-            <td>${safeText(order.Téléphone)}</td>
-            <td>${safeText(order.Adresse)}</td>
-            <td><strong>${safeText(order.Commande)}</strong></td>
-            <td class="articles-cell">${articlesText}</td>
-            <td><strong>${formatPrice(order.Total)}</strong></td>
-            <td>
-              <select class="statut-select ${statutClass}" 
-                      data-commande="${order.Commande}"
-                      onchange="updateOrderStatus('${order.Commande}', this.value)">
-                <option value="En attente" ${order.Statut === 'En attente' ? 'selected' : ''}>En attente</option>
-                <option value="En cours" ${order.Statut === 'En cours' ? 'selected' : ''}>En cours</option>
-                <option value="Livrée" ${order.Statut === 'Livrée' ? 'selected' : ''}>Livrée</option>
-                <option value="Annulée" ${order.Statut === 'Annulée' ? 'selected' : ''}>Annulée</option>
-              </select>
-            </td>
-          `;
-          allOrdersBody.appendChild(tr);
-        });
-      }
-
-      const topProductsBody = $("topProductsBody");
-      topProductsBody.innerHTML = "";
-      
-      if (state.analytics.topProducts.length === 0) {
-        topProductsBody.innerHTML = `
-          <tr>
-            <td colspan="3" style="text-align:center; padding:20px; color:var(--muted)">
-              Aucune donnée de produit
-            </td>
-          </tr>
-        `;
-      } else {
-        state.analytics.topProducts.forEach(product => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td><div style="font-weight:900">${safeText(product.name)}</div></td>
-            <td style="font-weight:900; color:var(--blue)">${product.quantity}</td>
-            <td style="font-weight:900; color:var(--green)">${formatPrice(product.revenue)}</td>
-          `;
-          topProductsBody.appendChild(tr);
-        });
-      }
-      
-      $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
-    }
-
-    // ===================== INITIALISATION DES GRAPHIQUES =====================
-    function initCharts() {
-      const charts = state.charts;
-      
-      // 1. Graphique des ventes (courbe)
-      const salesCtx = $("salesChart").getContext("2d");
-      charts.sales = new Chart(salesCtx, {
-        type: "line",
-        data: { 
-          labels: [], 
-          datasets: [{ 
-            label: "Chiffre d'affaires (dt)", 
-            data: [], 
-            borderWidth: 3, 
-            fill: true, 
-            tension: 0.4,
-            borderColor: "#00ff88",
-            backgroundColor: "rgba(0, 255, 136, 0.15)"
-          }] 
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { ticks: { color: "#f0f6fc" } },
-            y: { ticks: { color: "#f0f6fc" } }
-          },
-          plugins: { 
-            legend: { 
-              labels: { 
-                color: "#f0f6fc"
-              } 
-            }
-          }
-        }
-      });
-
-      // 2. Graphique des statuts (donut)
-      const statusCtx = $("statusChart").getContext("2d");
-      charts.status = new Chart(statusCtx, {
-        type: "doughnut",
-        data: { 
-          labels: [], 
-          datasets: [{ 
-            data: [], 
-            borderWidth: 2,
-            backgroundColor: [
-              "rgba(255, 193, 7, 0.8)",   // En attente
-              "rgba(33, 150, 243, 0.8)",   // En cours
-              "rgba(76, 175, 80, 0.8)",    // Livrée
-              "rgba(244, 67, 54, 0.8)"     // Annulée
-            ]
-          }] 
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '60%',
-          plugins: { 
-            legend: { 
-              position: "right", 
-              labels: { 
-                color: "#f0f6fc"
-              } 
-            }
-          }
-        }
-      });
-
-      // 3. Graphique des heures (histogramme)
-      const hourlyCtx = $("hourlyChart").getContext("2d");
-      charts.hourly = new Chart(hourlyCtx, {
-        type: "bar",
-        data: { 
-          labels: [], 
-          datasets: [{ 
-            label: "Chiffre d'affaires (dt)", 
-            data: [], 
-            backgroundColor: "rgba(0, 212, 255, 0.6)"
-          }] 
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { ticks: { color: "#f0f6fc" } },
-            y: { ticks: { color: "#f0f6fc" } }
-          }
-        }
-      });
-
-      // 4. Graphique des produits (histogramme horizontal)
-      const productsCtx = $("productsChart").getContext("2d");
-      charts.products = new Chart(productsCtx, {
-        type: "bar",
-        data: { 
-          labels: [], 
-          datasets: [{ 
-            label: "Quantité vendue", 
-            data: [], 
-            backgroundColor: "rgba(255, 167, 38, 0.6)"
-          }] 
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { ticks: { color: "#f0f6fc" } },
-            y: { ticks: { color: "#f0f6fc" } }
-          }
-        }
-      });
-
-      // 5. Graphique des jours de semaine (histogramme)
-      const weekdayCtx = $("weekdayChart").getContext("2d");
-      charts.weekday = new Chart(weekdayCtx, {
-        type: "bar",
-        data: { 
-          labels: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"], 
-          datasets: [{ 
-            label: "Chiffre d'affaires (dt)", 
-            data: [0, 0, 0, 0, 0, 0, 0], 
-            backgroundColor: "rgba(147, 51, 234, 0.6)"
-          }] 
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { ticks: { color: "#f0f6fc" } },
-            y: { ticks: { color: "#f0f6fc" } }
-          }
-        }
-      });
-
-      // 6. Graphique de l'évolution du panier moyen (courbe)
-      const avgCtx = $("avgChart").getContext("2d");
-      charts.avg = new Chart(avgCtx, {
-        type: "line",
-        data: { 
-          labels: [], 
-          datasets: [{ 
-            label: "Panier moyen (dt)", 
-            data: [], 
-            borderWidth: 3, 
-            borderColor: "#ff6b6b",
-            backgroundColor: "rgba(255, 107, 107, 0.1)"
-          }] 
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { ticks: { color: "#f0f6fc" } },
-            y: { ticks: { color: "#f0f6fc" } }
-          }
-        }
-      });
-    }
-
-    // ===================== MISE À JOUR DES GRAPHIQUES =====================
-    function updateCharts() {
-      const period = parseInt($("salesPeriod").value || 30);
-      
-      updateSalesChart(period);
-      updateStatusChart();
-      updateHourlyChart();
-      updateProductsChart();
-      updateWeekdayChart();
-      updateAvgChart();
-    }
-
-    function updateSalesChart(period = 30) {
-      const labels = [];
-      const data = [];
-      const today = new Date();
-      
-      for (let i = period - 1; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const dateKey = date.toISOString().substring(0, 10);
-        labels.push(date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }));
-        data.push(state.analytics.salesByDay[dateKey] || 0);
-      }
-      
-      if (state.charts.sales) {
-        state.charts.sales.data.labels = labels;
-        state.charts.sales.data.datasets[0].data = data;
-        state.charts.sales.update();
-      }
-    }
-
-    function updateStatusChart() {
-      const statusOrder = ["En attente", "En cours", "Livrée", "Annulée"];
-      const labels = [];
-      const data = [];
-      
-      statusOrder.forEach(status => {
-        const count = state.analytics.statusDistribution[status] || 0;
-        if (count > 0) {
-          labels.push(status);
-          data.push(count);
-        }
+      demoOrders.forEach(order => {
+        html += `<tr>
+          <td>${order.commande_id}</td>
+          <td>${new Date(order.date).toLocaleDateString()}</td>
+          <td>${order.nom}</td>
+          <td>${order.total} dt</td>
+          <td>${order.statut}</td>
+        </tr>`;
       });
       
-      if (state.charts.status) {
-        state.charts.status.data.labels = labels;
-        state.charts.status.data.datasets[0].data = data;
-        state.charts.status.update();
-      }
+      html += `</table>`;
+      
+      showResults(html);
     }
-
-    function updateHourlyChart() {
-      const labels = [];
-      const data = [];
+    
+    function checkConfig() {
+      updateConfigInfo();
+      showStatus("🔧 Configuration vérifiée", "demo");
       
-      for (let hour = 0; hour < 24; hour++) {
-        labels.push(`${hour}h`);
-        data.push(state.analytics.salesByHour[hour] || 0);
-      }
+      let html = `<h3>Vérification de configuration :</h3>`;
+      html += `<p>URL de l'API : <code>${API_URL}</code></p>`;
+      html += `<p>Longueur de l'URL : ${API_URL.length} caractères</p>`;
+      html += `<p>Le script doit être déployé avec :</p>`;
+      html += `<ul>
+        <li>Type de déploiement : Application web</li>
+        <li>Exécuté en tant que : Moi</li>
+        <li>Qui a accès : Tout le monde</li>
+      </ul>`;
       
-      if (state.charts.hourly) {
-        state.charts.hourly.data.labels = labels;
-        state.charts.hourly.data.datasets[0].data = data;
-        state.charts.hourly.update();
-      }
+      showResults(html);
     }
-
-    function updateProductsChart() {
-      const topProducts = state.analytics.topProducts.slice(0, 10);
-      const labels = topProducts.map(p => p.name);
-      const data = topProducts.map(p => p.quantity);
-      
-      if (state.charts.products) {
-        state.charts.products.data.labels = labels;
-        state.charts.products.data.datasets[0].data = data;
-        state.charts.products.update();
-      }
-    }
-
-    function updateWeekdayChart() {
-      const data = [];
-      
-      for (let i = 0; i < 7; i++) {
-        data.push(state.analytics.salesByWeekday[i] || 0);
-      }
-      
-      if (state.charts.weekday) {
-        state.charts.weekday.data.datasets[0].data = data;
-        state.charts.weekday.update();
-      }
-    }
-
-    function updateAvgChart() {
-      const weeks = Object.keys(state.analytics.avgByWeek)
-        .map(key => parseInt(key))
-        .sort((a, b) => b - a)
-        .slice(0, 8)
-        .reverse();
-      
-      const labels = weeks.map(week => `S${Math.abs(week)}`);
-      const data = weeks.map(week => {
-        const weekData = state.analytics.avgByWeek[week];
-        return weekData.count > 0 ? weekData.total / weekData.count : 0;
-      });
-      
-      if (state.charts.avg) {
-        state.charts.avg.data.labels = labels;
-        state.charts.avg.data.datasets[0].data = data;
-        state.charts.avg.update();
-      }
-    }
-
-    // ===================== MISE À JOUR DU STATUT =====================
-    async function updateOrderStatus(commandeId, nouveauStatut) {
-      try {
-        showToast(`⏳ Mise à jour de ${commandeId}...`, "info");
-        
-        if (state.apiStatus === 'demo' || state.apiStatus === 'error') {
-          const orderIndex = state.orders.findIndex(order => order.Commande === commandeId);
-          if (orderIndex !== -1) {
-            state.orders[orderIndex].Statut = nouveauStatut;
-            calculateAnalytics();
-            updateUI();
-            updateCharts();
-            showToast(`✅ Statut mis à jour en local: ${nouveauStatut}`, "success");
-          }
-          return;
-        }
-        
-        const result = await mettreAJourStatut(commandeId, nouveauStatut);
-        
-        if (result && result.success) {
-          const orderIndex = state.orders.findIndex(order => order.Commande === commandeId);
-          if (orderIndex !== -1) {
-            state.orders[orderIndex].Statut = nouveauStatut;
-            calculateAnalytics();
-            updateUI();
-            updateCharts();
-          }
-          
-          showToast(`✅ Statut mis à jour: ${nouveauStatut}`, "success");
-        } else {
-          throw new Error("Erreur API");
-        }
-        
-      } catch (error) {
-        console.error("Erreur updateOrderStatus:", error);
-        showToast(`❌ Erreur: ${error.message}`, "error");
-      }
-    }
-
-    // ===================== RECHARGEMENT COMPLET =====================
-    async function refreshAll() {
-      try {
-        $("btnRefresh").disabled = true;
-        $("btnRefresh").innerHTML = '<span>⏳</span><span>Chargement...</span>';
-        
-        await loadOrders();
-        calculateAnalytics();
-        updateUI();
-        updateCharts();
-        
-        showToast("✅ Données actualisées", "success");
-        
-      } catch (error) {
-        console.error("Erreur refreshAll:", error);
-        showToast("❌ Erreur lors du chargement", "error");
-        
-      } finally {
-        $("btnRefresh").disabled = false;
-        $("btnRefresh").innerHTML = '<span>🔄</span><span>Actualiser</span>';
-      }
-    }
-
-    // ===================== INITIALISATION =====================
-    document.addEventListener("DOMContentLoaded", () => {
-      initCharts();
-      
-      $("salesPeriod").addEventListener("change", () => updateCharts());
-      $("btnRefresh").addEventListener("click", () => refreshAll());
-      
-      // Exposer la fonction globalement
-      window.updateOrderStatus = updateOrderStatus;
-      
-      refreshAll();
-      
-      setInterval(refreshAll, 30000);
-      
-      document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
-          refreshAll();
-        }
-      });
-    });
+    
+    // Initialisation
+    updateConfigInfo();
+    showStatus("Prêt pour les tests", "demo");
+    
+    // Tester automatiquement l'API au chargement
+    setTimeout(testAPI, 1000);
   </script>
 </body>
 </html>
