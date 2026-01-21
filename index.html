@@ -1708,7 +1708,7 @@
       gap: 20px;
     }
 
-    /* SECTION ADMIN - MASQUÉE PAR DÉFAUT */
+    /* SECTION ADMIN - EN HAUT DU PANIER */
     .admin-section {
       background: var(--card2);
       border-radius: var(--radius);
@@ -1753,7 +1753,7 @@
 
     .admin-controls-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       margin-top: 10px;
     }
@@ -1782,7 +1782,7 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
-    .admin-btn.promo {
+    .admin-btn.dashboard {
       border-color: var(--accent);
       background: rgba(0, 255, 136, 0.1);
       color: var(--accent);
@@ -1794,22 +1794,10 @@
       color: var(--accent2);
     }
 
-    .admin-btn.stats {
-      border-color: #ff6b6b;
-      background: rgba(255, 107, 107, 0.1);
-      color: #ff6b6b;
-    }
-
     .admin-btn.settings {
       border-color: #ffa726;
       background: rgba(255, 167, 38, 0.1);
       color: #ffa726;
-    }
-
-    .admin-btn.dashboard {
-      border-color: #9c27b0;
-      background: rgba(156, 39, 176, 0.1);
-      color: #9c27b0;
     }
 
     .admin-icon {
@@ -1817,6 +1805,102 @@
     }
 
     .admin-label {
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    /* SECTION CLIENT - EN BAS DU PANIER */
+    .client-section {
+      background: var(--card2);
+      border-radius: var(--radius);
+      border: 2px solid var(--accent2);
+      padding: 15px;
+      box-shadow: var(--shadow);
+      margin-top: 15px;
+    }
+
+    .client-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--accent2);
+    }
+
+    .client-header h4 {
+      margin: 0;
+      font-size: 14px;
+      color: var(--accent2);
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .client-badge {
+      background: rgba(0, 212, 255, 0.2);
+      color: var(--accent2);
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .client-controls-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .client-btn {
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      text-align: center;
+      min-height: 70px;
+    }
+
+    .client-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .client-btn.compte {
+      border-color: var(--accent);
+      background: rgba(0, 255, 136, 0.1);
+      color: var(--accent);
+    }
+
+    .client-btn.suivi {
+      border-color: var(--accent2);
+      background: rgba(0, 212, 255, 0.1);
+      color: var(--accent2);
+    }
+
+    .client-btn.historique {
+      border-color: #9c27b0;
+      background: rgba(156, 39, 176, 0.1);
+      color: #9c27b0;
+    }
+
+    .client-icon {
+      font-size: 20px;
+    }
+
+    .client-label {
       font-size: 10px;
       font-weight: 900;
     }
@@ -3056,6 +3140,11 @@
       .stock-input {
         width: 60px;
       }
+
+      .admin-controls-grid,
+      .client-controls-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     @media (max-width: 480px) {
@@ -3149,7 +3238,8 @@
         gap: 10px;
       }
 
-      .admin-controls-grid {
+      .admin-controls-grid,
+      .client-controls-grid {
         grid-template-columns: repeat(1, 1fr);
       }
 
@@ -3321,8 +3411,52 @@
       <button class="drawer-close" id="closeDrawerBtn">×</button>
     </div>
     <div class="drawer-content">
-      <!-- COMPTE CLIENT (TOUJOURS VISIBLE) -->
-      <section class="account-section">
+      <!-- SECTION ADMIN (EN HAUT - MASQUÉE PAR DÉFAUT) -->
+      <section class="admin-section" id="adminSection">
+        <div class="admin-header">
+          <h4>🔧 Espace Administrateur</h4>
+          <span class="admin-badge">ADMIN</span>
+        </div>
+        <div class="admin-controls-grid">
+          <button class="admin-btn dashboard" id="adminDashboardBtn">
+            <span class="admin-icon">📊</span>
+            <span class="admin-label">Tableau de bord</span>
+          </button>
+          <button class="admin-btn stock" id="adminStockBtn">
+            <span class="admin-icon">📦</span>
+            <span class="admin-label">Gérer stock</span>
+          </button>
+          <button class="admin-btn settings" id="adminSettingsBtn">
+            <span class="admin-icon">⚙️</span>
+            <span class="admin-label">Paramètres</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- SECTION CLIENT (EN BAS - TOUJOURS VISIBLE) -->
+      <section class="client-section">
+        <div class="client-header">
+          <h4>👤 Espace Client</h4>
+          <span class="client-badge">CLIENT</span>
+        </div>
+        <div class="client-controls-grid">
+          <button class="client-btn compte" id="clientCompteBtn">
+            <span class="client-icon">👤</span>
+            <span class="client-label">Compte</span>
+          </button>
+          <button class="client-btn suivi" id="clientSuiviBtn">
+            <span class="client-icon">📍</span>
+            <span class="client-label">Suivi des commandes</span>
+          </button>
+          <button class="client-btn historique" id="clientHistoriqueBtn">
+            <span class="client-icon">📋</span>
+            <span class="client-label">Historique des commandes</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- COMPTE CLIENT (AFFICHÉ QUAND BOUTON COMPTE CLIQUE) -->
+      <section class="account-section" id="accountSection" style="display:none">
         <div class="section-title">
           <h4>👤 Mon Compte</h4>
           <span class="account-status" id="accountStatus">Nouveau</span>
@@ -3379,8 +3513,47 @@
         </div>
       </section>
 
-      <!-- HISTORIQUE CLIENT (TOUJOURS VISIBLE) -->
-      <section class="history-search-section">
+      <!-- SUIVI COMMANDES (AFFICHÉ QUAND BOUTON SUIVI CLIQUE) -->
+      <section class="history-search-section" id="suiviSection" style="display:none">
+        <div class="section-title">
+          <h4>📍 Suivi des commandes</h4>
+        </div>
+        <div class="history-search-form">
+          <div class="form-field">
+            <label for="searchCommandeId">
+              🔍 Entrez votre numéro de commande
+            </label>
+            <input type="text" id="searchCommandeId" placeholder="Ex: CMD-MAXI-20250122-001" maxlength="30">
+          </div>
+          <div class="form-field">
+            <label for="searchSuiviPhone">
+              📱 Entrez votre numéro de téléphone
+            </label>
+            <div class="tel-input-wrapper">
+              <span class="tel-prefix">+216</span>
+              <input type="tel" id="searchSuiviPhone" placeholder="25 600 978" pattern="[0-9\s]{8,12}"
+                inputmode="numeric" maxlength="12">
+            </div>
+          </div>
+          <button class="search-history-btn" id="searchSuiviBtn">
+            🔎 Suivre ma commande
+          </button>
+        </div>
+      </section>
+
+      <!-- RÉSULTAT SUIVI COMMANDE -->
+      <section class="order-history-section" id="suiviResultSection" style="display:none">
+        <div class="section-title">
+          <h4>📦 Détails de votre commande</h4>
+          <span class="account-status" id="suiviStatut">En attente</span>
+        </div>
+        <div class="suivi-details" id="suiviDetails">
+          <!-- Les détails de la commande seront affichés ici -->
+        </div>
+      </section>
+
+      <!-- HISTORIQUE COMMANDES (AFFICHÉ QUAND BOUTON HISTORIQUE CLIQUE) -->
+      <section class="history-search-section" id="historiqueSection" style="display:none">
         <div class="section-title">
           <h4>📋 Historique des commandes</h4>
         </div>
@@ -3402,7 +3575,7 @@
         </div>
       </section>
 
-      <!-- HISTORIQUE COMMANDES CLIENT (TOUJOURS VISIBLE) -->
+      <!-- HISTORIQUE COMMANDES CLIENT -->
       <section class="order-history-section" id="orderHistorySection" style="display:none">
         <div class="section-title">
           <h4>📜 Vos commandes</h4>
@@ -3414,38 +3587,8 @@
         </div>
       </section>
 
-      <!-- SECTION ADMIN (MASQUÉE PAR DÉFAUT) -->
-      <section class="admin-section" id="adminSection">
-        <div class="admin-header">
-          <h4>🔧 Espace Administrateur</h4>
-          <span class="admin-badge">ADMIN</span>
-        </div>
-        <div class="admin-controls-grid">
-          <button class="admin-btn dashboard" id="adminDashboardBtn">
-            <span class="admin-icon">📊</span>
-            <span class="admin-label">Tableau de bord</span>
-          </button>
-          <button class="admin-btn promo" id="adminPromoBtn">
-            <span class="admin-icon">📢</span>
-            <span class="admin-label">Gérer promotions</span>
-          </button>
-          <button class="admin-btn stock" id="adminStockBtn">
-            <span class="admin-icon">📦</span>
-            <span class="admin-label">Gérer stock</span>
-          </button>
-          <button class="admin-btn stats" id="adminStatsBtn">
-            <span class="admin-icon">📈</span>
-            <span class="admin-label">Statistiques</span>
-          </button>
-          <button class="admin-btn settings" id="adminSettingsBtn">
-            <span class="admin-icon">⚙️</span>
-            <span class="admin-label">Paramètres</span>
-          </button>
-        </div>
-      </section>
-
       <!-- PANIER CLIENT (TOUJOURS VISIBLE) -->
-      <section class="cart-section">
+      <section class="cart-section" id="cartSection">
         <div class="section-title">
           <h4>🧺 Mon Panier</h4>
           <span class="account-status" id="cartItemsCount">0 article(s)</span>
@@ -3741,7 +3884,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v33',
+      localStorageKey: 'maxi_jdc_market_app_v34',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -3753,9 +3896,9 @@
         lng: 10.301234
       },
       syncInterval: 30000,
-      dashboardUrl: 'tools/tableau-de-bord.html',
+      dashboardUrl: 'tdb.html',
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
-      // NOUVEAU LIEN GOOGLE APPS SCRIPT POUR L'ENREGISTREMENT AUTOMATIQUE DES COMMANDES
+      // LIEN GOOGLE APPS SCRIPT POUR L'ENREGISTREMENT AUTOMATIQUE DES COMMANDES
       commandeApiUrl: "https://script.google.com/macros/s/AKfycbyokEi5GQ7kcZ5Rq-ZG4Z6LBYSgne8LKXr3pU4qEXSB9JIJkrYSGOA6Z-zocqW6JGip/exec",
     };
 
@@ -3843,14 +3986,15 @@
       orderHistory: [],
       promotions: [],
       tempMapCoords: null,
-      isAdmin: false, // MODE ADMIN DÉSACTIVÉ PAR DÉFAUT
+      isAdmin: false,
       map: null,
       mapMarker: null,
       productStocks: new Map(),
       pendingStockUpdates: new Map(),
       lastSyncTime: null,
       syncTimer: null,
-      googleSheetsStock: new Map()
+      googleSheetsStock: new Map(),
+      currentSection: 'cart' // 'cart', 'account', 'suivi', 'historique'
     };
 
     // ===================== UTILITAIRES =====================
@@ -5055,6 +5199,123 @@
       );
     }
 
+    // ===================== GESTION DES SECTIONS =====================
+    function showSection(sectionName) {
+      // Cacher toutes les sections
+      $('accountSection').style.display = 'none';
+      $('suiviSection').style.display = 'none';
+      $('suiviResultSection').style.display = 'none';
+      $('historiqueSection').style.display = 'none';
+      $('orderHistorySection').style.display = 'none';
+      $('cartSection').style.display = 'none';
+
+      // Afficher la section demandée
+      state.currentSection = sectionName;
+      
+      switch(sectionName) {
+        case 'account':
+          $('accountSection').style.display = 'block';
+          break;
+        case 'suivi':
+          $('suiviSection').style.display = 'block';
+          break;
+        case 'historique':
+          $('historiqueSection').style.display = 'block';
+          break;
+        case 'cart':
+        default:
+          $('cartSection').style.display = 'block';
+          break;
+      }
+    }
+
+    // ===================== SUIVI DES COMMANDES =====================
+    async function suivreCommande() {
+      const commandeId = $('searchCommandeId').value.trim();
+      const telephone = $('searchSuiviPhone').value.trim().replace(/\D/g, '');
+
+      if (!commandeId) {
+        showToast('❌ Veuillez entrer un numéro de commande', 'error');
+        return;
+      }
+
+      if (!telephone || telephone.length < 8) {
+        showToast('❌ Veuillez entrer un numéro de téléphone valide', 'error');
+        return;
+      }
+
+      try {
+        showToast('🔍 Recherche de votre commande...', 'warning');
+        
+        // Appeler l'API Google Apps Script
+        const response = await fetch(
+          `${CONFIG.commandeApiUrl}?method=getOrderStatus&commande_id=${encodeURIComponent(commandeId)}&telephone=${encodeURIComponent(telephone)}&t=${Date.now()}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || "Commande non trouvée");
+        }
+
+        // Afficher les résultats
+        $('suiviStatut').textContent = data.statut || 'En attente';
+        $('suiviStatut').className = 'account-status';
+        
+        let statutClass = 'statut-en-attente';
+        if (data.statut === 'En cours') statutClass = 'statut-en-cours';
+        else if (data.statut === 'Livrée') statutClass = 'statut-livree';
+        else if (data.statut === 'Annulée') statutClass = 'statut-annulee';
+        
+        $('suiviStatut').classList.add(statutClass);
+        
+        const dateFormatted = data.date ? new Date(data.date).toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }) : 'Date inconnue';
+        
+        $('suiviDetails').innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div>
+              <strong>📅 Date:</strong> ${dateFormatted}
+            </div>
+            <div>
+              <strong>👤 Client:</strong> ${data.nom || 'Non spécifié'}
+            </div>
+            <div>
+              <strong>📱 Téléphone:</strong> +216 ${data.telephone || ''}
+            </div>
+            <div>
+              <strong>📍 Adresse:</strong> ${data.adresse || 'Non spécifiée'}
+            </div>
+            <div>
+              <strong>📦 Articles:</strong>
+              <div style="margin-top: 5px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; font-size: 12px;">
+                ${data.articles ? data.articles.replace(/\n/g, '<br>') : 'Aucun détail'}
+              </div>
+            </div>
+            <div>
+              <strong>💰 Total:</strong> ${formatPrice(data.total || 0)}
+            </div>
+          </div>
+        `;
+        
+        $('suiviResultSection').style.display = 'block';
+        showToast('✅ Commande trouvée !', 'success');
+        
+      } catch (error) {
+        console.error('Erreur suivi commande:', error);
+        showToast(`❌ ${error.message}`, 'error');
+      }
+    }
+
     // ===================== HISTORIQUE COMMANDES =====================
     function saveOrderToHistory(orderDetails) {
       if (!state.user || !state.user.phone) {
@@ -5107,12 +5368,58 @@
       }
     }
 
-    function loadHistoryForPhone(phone) {
+    async function loadHistoryForPhone(phone) {
       const cleanPhone = phone.replace(/\D/g, '');
-      const userHistory = state.orderHistory.filter(order =>
+      
+      // D'abord vérifier l'historique local
+      const localHistory = state.orderHistory.filter(order =>
         order.clientPhone && order.clientPhone.replace(/\D/g, '') === cleanPhone
       );
-      return userHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      try {
+        // Ensuite essayer de récupérer depuis l'API
+        showToast('🔍 Recherche de votre historique...', 'warning');
+        
+        const response = await fetch(
+          `${CONFIG.commandeApiUrl}?method=getOrderHistory&telephone=${encodeURIComponent(cleanPhone)}&t=${Date.now()}`
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.history) {
+            // Fusionner avec l'historique local
+            const apiHistory = data.history.map(apiOrder => ({
+              id: apiOrder.commande_id || Date.now(),
+              date: apiOrder.date || new Date().toISOString(),
+              clientPhone: cleanPhone,
+              clientName: apiOrder.nom || '',
+              items: [],
+              subtotal: parseFloat(apiOrder.total || 0),
+              shipping: 0,
+              total: parseFloat(apiOrder.total || 0),
+              savings: 0,
+              savingsPercentage: 0,
+              address: apiOrder.adresse || '',
+              coords: null,
+              apiData: apiOrder
+            }));
+            
+            // Combiner et dédupliquer
+            const combinedHistory = [...localHistory, ...apiHistory]
+              .filter((order, index, self) =>
+                index === self.findIndex(o => o.id === order.id)
+              )
+              .sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            return combinedHistory;
+          }
+        }
+      } catch (error) {
+        console.error('Erreur chargement historique API:', error);
+        // Continuer avec l'historique local seulement
+      }
+      
+      return localHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
 
     function renderHistory(history) {
@@ -5120,16 +5427,20 @@
       const historyEmptyMessage = $('historyEmptyMessage');
       const historyCount = $('historyCount');
       const orderHistorySection = $('orderHistorySection');
+      
       if (!history || history.length === 0) {
         historyItemsList.innerHTML = '';
         historyEmptyMessage.style.display = 'block';
         historyCount.textContent = '0 commande(s)';
+        orderHistorySection.style.display = 'block';
         return;
       }
+      
       historyEmptyMessage.style.display = 'none';
       orderHistorySection.style.display = 'block';
       historyCount.textContent = `${history.length} commande(s)`;
       historyItemsList.innerHTML = '';
+      
       history.forEach(order => {
         const orderDate = new Date(order.date);
         const formattedDate = orderDate.toLocaleDateString('fr-FR', {
@@ -5139,8 +5450,10 @@
           hour: '2-digit',
           minute: '2-digit'
         });
-        const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
-        const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
+        
+        const itemCount = order.items ? order.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+        const orderSavings = order.items ? order.items.reduce((sum, item) => sum + (item.saving || 0), 0) : 0;
+        
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
         historyItem.innerHTML = `
@@ -5154,10 +5467,13 @@
               💰 Économies: ${formatPrice(orderSavings)}
             </div>
           ` : ''}
+          ${order.apiData ? '<div style="font-size:9px;color:#00d4ff;margin-top:2px;">📡 Données en ligne</div>' : ''}
         `;
+        
         historyItem.addEventListener('click', () => {
           showOrderDetails(order);
         });
+        
         historyItemsList.appendChild(historyItem);
       });
     }
@@ -5175,40 +5491,54 @@
       detailsText += `👤 ${order.clientName}\n`;
       detailsText += `📱 ${order.clientPhone}\n`;
       detailsText += `📍 ${order.address}\n\n`;
-      detailsText += `🛒 ARTICLES :\n`;
-      detailsText += '─'.repeat(50) + '\n';
-      let totalSavingsInOrder = 0;
-      let totalOriginalInOrder = 0;
-      order.items.forEach(item => {
-        const itemTotal = item.price * item.quantity;
-        const originalTotal = item.oldPrice * item.quantity;
-        const itemSaving = item.saving || 0;
-        totalSavingsInOrder += itemSaving;
-        totalOriginalInOrder += originalTotal;
-        detailsText += `${item.quantity}x ${item.name} (${item.code})\n`;
-        if (itemSaving > 0) {
-          detailsText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}\n`;
-          detailsText += ` 💰 ÉCONOMIE: ${formatPrice(itemSaving)}`;
-          if (item.discountPercent) {
-            detailsText += ` (-${item.discountPercent}%)`;
+      
+      if (order.apiData && order.apiData.articles) {
+        detailsText += `🛒 ARTICLES :\n`;
+        detailsText += '─'.repeat(50) + '\n';
+        detailsText += order.apiData.articles + '\n';
+      } else if (order.items && order.items.length > 0) {
+        detailsText += `🛒 ARTICLES :\n`;
+        detailsText += '─'.repeat(50) + '\n';
+        let totalSavingsInOrder = 0;
+        let totalOriginalInOrder = 0;
+        
+        order.items.forEach(item => {
+          const itemTotal = item.price * item.quantity;
+          const originalTotal = item.oldPrice * item.quantity;
+          const itemSaving = item.saving || 0;
+          totalSavingsInOrder += itemSaving;
+          totalOriginalInOrder += originalTotal;
+          
+          detailsText += `${item.quantity}x ${item.name} (${item.code})\n`;
+          if (itemSaving > 0) {
+            detailsText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}\n`;
+            detailsText += ` 💰 ÉCONOMIE: ${formatPrice(itemSaving)}`;
+            if (item.discountPercent) {
+              detailsText += ` (-${item.discountPercent}%)`;
+            }
+            detailsText += `\n ⚡ Ancien: ${formatPrice(originalTotal)}\n`;
+          } else {
+            detailsText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}\n`;
           }
-          detailsText += `\n ⚡ Ancien: ${formatPrice(originalTotal)}\n`;
-        } else {
-          detailsText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}\n`;
+        });
+        
+        detailsText += '─'.repeat(50) + '\n';
+        
+        if (totalSavingsInOrder > 0) {
+          const savingsPercentage = totalOriginalInOrder > 0 ?
+            Math.round((totalSavingsInOrder / totalOriginalInOrder) * 100) : 0;
+          detailsText += `💰 ÉCONOMIES TOTALES: ${formatPrice(totalSavingsInOrder)} (${savingsPercentage}%)\n`;
         }
-      });
-      detailsText += '─'.repeat(50) + '\n';
-      detailsText += `Sous-total: ${formatPrice(order.subtotal)}\n`;
-      if (totalSavingsInOrder > 0) {
-        const savingsPercentage = totalOriginalInOrder > 0 ?
-          Math.round((totalSavingsInOrder / totalOriginalInOrder) * 100) : 0;
-        detailsText += `💰 ÉCONOMIES TOTALES: ${formatPrice(totalSavingsInOrder)} (${savingsPercentage}%)\n`;
       }
+      
+      detailsText += `Sous-total: ${formatPrice(order.subtotal)}\n`;
       detailsText += `Livraison: ${order.shipping === 0 ? 'GRATUIT' : formatPrice(order.shipping)}\n`;
       detailsText += `TOTAL: ${formatPrice(order.total)}\n`;
-      if (totalSavingsInOrder > 0) {
-        detailsText += `\n🎉 Vous avez économisé ${formatPrice(totalSavingsInOrder)} sur cette commande !`;
+      
+      if (order.savings && order.savings > 0) {
+        detailsText += `\n🎉 Vous avez économisé ${formatPrice(order.savings)} sur cette commande !`;
       }
+      
       orderDetails.textContent = detailsText;
       $('orderModal').classList.add('open');
     }
@@ -5360,7 +5690,7 @@
     async function placeOrder() {
       if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
         showToast('❌ Veuillez compléter vos informations personnelles', 'error');
-        $('cartTopBtn').click();
+        showSection('account');
         return;
       }
 
@@ -5489,6 +5819,7 @@
         $('drawerOverlay').classList.add('open');
         document.body.classList.add('drawer-open');
         document.body.style.overflow = 'hidden';
+        showSection('cart');
       };
 
       $('closeDrawerBtn').onclick = () => {
@@ -5582,6 +5913,10 @@
       $('adminDashboardBtn').onclick = openDashboard;
       $('adminStockBtn').onclick = openStockManagement;
 
+      $('clientCompteBtn').onclick = () => showSection('account');
+      $('clientSuiviBtn').onclick = () => showSection('suivi');
+      $('clientHistoriqueBtn').onclick = () => showSection('historique');
+
       $('clearCartBtn').onclick = () => {
         if (Object.keys(state.cart).length === 0) return;
         if (confirm('Voulez-vous vraiment vider tout votre panier ?')) {
@@ -5649,13 +5984,13 @@
         $('closeMapModalBtn').click();
       };
 
-      $('searchHistoryBtn').onclick = () => {
+      $('searchHistoryBtn').onclick = async () => {
         const phone = $('searchHistoryPhone').value.trim();
         if (!phone) {
           showToast('❌ Veuillez entrer votre numéro de téléphone', 'error');
           return;
         }
-        const history = loadHistoryForPhone(phone);
+        const history = await loadHistoryForPhone(phone);
         renderHistory(history);
         if (history.length === 0) {
           showToast('📭 Aucune commande trouvée pour ce numéro', 'warning');
@@ -5663,6 +5998,8 @@
           showToast(`📜 ${history.length} commande(s) trouvée(s)`);
         }
       };
+
+      $('searchSuiviBtn').onclick = suivreCommande;
 
       $('placeOrderBtn').onclick = placeOrder;
 
@@ -5757,7 +6094,7 @@
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '33.0'
+        version: '34.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
@@ -5771,5 +6108,4 @@
     });
   </script>
 </body>
-
 </html>
