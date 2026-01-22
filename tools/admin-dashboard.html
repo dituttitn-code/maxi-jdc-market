@@ -8,13 +8,15 @@
     <style>
         :root {
             --bg-dark: #112240;
-            --text-light: #ff6fc7;
+            --bg-darker: #0a1929;
+            --text-light: #f0f6fc;
             --text-muted: #8b949e;
             --accent-green: #00ff88;
             --accent-blue: #00d4ff;
             --warning: #ffa726;
             --danger: #ff6b6b;
-            --success: #4ca5f0;
+            --success: #00ff88;
+            --card-bg: rgba(26, 54, 93, 0.8);
         }
         
         * {
@@ -25,7 +27,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, var(--bg-dark) 0%, #aa1929 100%);
+            background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
             color: var(--text-light);
             min-height: 100vh;
             padding: 20px;
@@ -41,162 +43,233 @@
             text-align: center;
             margin-bottom: 40px;
             padding: 30px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
-            border: 3px solid var(--accent-blue);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+            background: rgba(10, 25, 41, 0.8);
+            border-radius: 15px;
+            border: 2px solid var(--accent-blue);
+            backdrop-filter: blur(10px);
         }
         
         .header h1 {
             color: var(--accent-blue);
-            font-size: 2.8em;
+            font-size: 2.5em;
             margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0, 212, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
         }
         
         .header p {
             color: var(--text-muted);
-            font-size: 1.2em;
+            font-size: 1.1em;
         }
         
         .back-btn {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            margin-top: 25px;
-            padding: 15px 30px;
+            margin: 20px 0;
+            padding: 12px 25px;
             background: var(--accent-blue);
-            color: #112240;
+            color: var(--bg-darker);
             text-decoration: none;
-            border-radius: 12px;
+            border-radius: 8px;
             font-weight: bold;
-            font-size: 1.1em;
             transition: all 0.3s;
-            border: 2px solid transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
         }
         
         .back-btn:hover {
             background: var(--accent-green);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
         }
         
-        .stats-grid {
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 25px;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
         }
         
-        .stat-card {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 30px;
-            border-radius: 15px;
-            border-left: 6px solid var(--accent-green);
+        .dashboard-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
             transition: all 0.3s;
-            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
         }
         
-        .stat-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 30px rgba(0, 255, 136, 0.15);
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
         }
         
-        .stat-card h3 {
-            color: var(--text-muted);
-            font-size: 1.1em;
-            margin-bottom: 15px;
+        .dashboard-card h3 {
+            color: var(--accent-blue);
+            font-size: 1.2em;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
         .stat-value {
-            font-size: 3em;
+            font-size: 2.8em;
             font-weight: bold;
             color: var(--accent-green);
-            text-shadow: 0 2px 10px rgba(0, 255, 136, 0.3);
+            margin: 15px 0;
         }
         
-        .stat-icon {
-            font-size: 2.2em;
-            margin-bottom: 15px;
+        .stat-trend {
+            font-size: 0.9em;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .stat-trend.up {
+            color: var(--success);
+        }
+        
+        .stat-trend.down {
+            color: var(--danger);
+        }
+        
+        .chart-container {
+            height: 200px;
+            margin-top: 20px;
+            position: relative;
+        }
+        
+        .chart-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+        }
+        
+        .actions-section {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .actions-section h2 {
             color: var(--accent-blue);
+            margin-bottom: 25px;
+            font-size: 1.5em;
         }
         
-        .section-title {
-            color: var(--accent-blue);
-            font-size: 1.8em;
-            margin: 40px 0 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--accent-blue);
-        }
-        
-        .quick-actions {
+        .actions-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
-            margin-top: 30px;
         }
         
-        .action-btn {
-            padding: 20px;
-            border-radius: 12px;
-            border: 2px solid var(--accent-blue);
-            background: rgba(0, 212, 255, 0.15);
-            color: var(--accent-blue);
-            font-weight: bold;
+        .action-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid;
             text-decoration: none;
-            text-align: center;
             transition: all 0.3s;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
-            font-size: 1.1em;
-        }
-        
-        .action-btn:hover {
-            background: rgba(0, 212, 255, 0.25);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
-        }
-        
-        .action-icon {
-            font-size: 2em;
-        }
-        
-        .live-update {
-            background: rgba(255, 167, 38, 0.1);
-            border: 2px solid var(--warning);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 30px;
             text-align: center;
+            gap: 15px;
         }
         
-        .live-update span {
-            color: var(--warning);
+        .action-card i {
+            font-size: 2.5em;
+        }
+        
+        .action-card h4 {
+            font-size: 1.1em;
+            color: var(--text-light);
+        }
+        
+        .action-card p {
+            color: var(--text-muted);
+            font-size: 0.9em;
+        }
+        
+        .action-card.stats { border-color: var(--accent-blue); color: var(--accent-blue); }
+        .action-card.orders { border-color: var(--accent-green); color: var(--accent-green); }
+        .action-card.stock { border-color: var(--warning); color: var(--warning); }
+        .action-card.reports { border-color: #9c27b0; color: #9c27b0; }
+        
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .recent-orders {
+            margin-top: 40px;
+        }
+        
+        .orders-table {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .orders-table th {
+            background: rgba(0, 212, 255, 0.1);
+            padding: 15px;
+            text-align: left;
+            color: var(--accent-blue);
             font-weight: bold;
-            animation: pulse 2s infinite;
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+        .orders-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
+        
+        .orders-table tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .status-new { background: rgba(0, 212, 255, 0.2); color: var(--accent-blue); }
+        .status-processing { background: rgba(255, 167, 38, 0.2); color: var(--warning); }
+        .status-delivered { background: rgba(0, 255, 136, 0.2); color: var(--accent-green); }
         
         @media (max-width: 768px) {
             .header h1 {
-                font-size: 2em;
+                font-size: 1.8em;
             }
             
-            .stats-grid {
+            .dashboard-grid {
                 grid-template-columns: 1fr;
             }
             
-            .stat-value {
-                font-size: 2.5em;
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .orders-table {
+                font-size: 0.9em;
             }
         }
     </style>
@@ -204,132 +277,301 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-tachometer-alt"></i> Tableau de Bord Admin</h1>
-            <p>MAXI JDC MARKET - Analytics & Management en temps réel</p>
-            <a href="index.html" class="back-btn">
+            <h1><i class="fas fa-tachometer-alt"></i> Tableau de Bord Administrateur</h1>
+            <p>MAXI JDC MARKET - Analyse et gestion en temps réel</p>
+            <button onclick="window.location.href='index.html'" class="back-btn">
                 <i class="fas fa-arrow-left"></i> Retour à l'application
-            </a>
+            </button>
         </div>
         
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-shopping-cart"></i>
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h3><i class="fas fa-shopping-cart"></i> Commandes aujourd'hui</h3>
+                <div class="stat-value" id="ordersToday">0</div>
+                <div class="stat-trend up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="ordersTrend">Chargement...</span>
                 </div>
-                <h3>🛒 Commandes aujourd'hui</h3>
-                <div class="stat-value" id="ordersToday">24</div>
+                <div class="chart-container">
+                    <div class="chart-placeholder">
+                        <i class="fas fa-chart-line"></i> Graphique des commandes
+                    </div>
+                </div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
+            <div class="dashboard-card">
+                <h3><i class="fas fa-chart-line"></i> Chiffre d'affaires</h3>
+                <div class="stat-value" id="revenue">0 DT</div>
+                <div class="stat-trend up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="revenueTrend">Chargement...</span>
                 </div>
-                <h3>👥 Nouveaux clients</h3>
-                <div class="stat-value" id="newClients">9</div>
+                <div class="chart-container">
+                    <div class="chart-placeholder">
+                        <i class="fas fa-money-bill-wave"></i> Évolution du CA
+                    </div>
+                </div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-chart-line"></i>
+            <div class="dashboard-card">
+                <h3><i class="fas fa-users"></i> Nouveaux clients</h3>
+                <div class="stat-value" id="newClients">0</div>
+                <div class="stat-trend up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="clientsTrend">Chargement...</span>
                 </div>
-                <h3>💰 Chiffre d'affaires</h3>
-                <div class="stat-value" id="revenue">2.8k€</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-box"></i>
+                <div class="chart-container">
+                    <div class="chart-placeholder">
+                        <i class="fas fa-user-plus"></i> Acquisition clients
+                    </div>
                 </div>
-                <h3>📦 Stock alerte</h3>
-                <div class="stat-value" id="lowStock">12</div>
             </div>
         </div>
         
-        <h2 class="section-title">📈 Statistiques détaillées</h2>
-        
-        <div class="quick-actions">
-            <a href="#" class="action-btn" onclick="showSection('sales')">
-                <span class="action-icon">📊</span>
-                <span>Ventes détaillées</span>
-            </a>
-            <a href="#" class="action-btn" onclick="showSection('products')">
-                <span class="action-icon">📦</span>
-                <span>Gestion produits</span>
-            </a>
-            <a href="#" class="action-btn" onclick="showSection('clients')">
-                <span class="action-icon">👥</span>
-                <span>Clients actifs</span>
-            </a>
-            <a href="#" class="action-btn" onclick="showSection('reports')">
-                <span class="action-icon">📋</span>
-                <span>Rapports</span>
-            </a>
+        <div class="actions-section">
+            <h2><i class="fas fa-bolt"></i> Actions Rapides</h2>
+            <div class="actions-grid">
+                <a href="#" class="action-card stats" onclick="viewStatistics()">
+                    <i class="fas fa-chart-bar"></i>
+                    <h4>Statistiques détaillées</h4>
+                    <p>Analyses et rapports complets</p>
+                </a>
+                
+                <a href="#" class="action-card orders" onclick="viewOrders()">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h4>Gérer les commandes</h4>
+                    <p>Suivi et traitement des commandes</p>
+                </a>
+                
+                <a href="#" class="action-card stock" onclick="manageStock()">
+                    <i class="fas fa-boxes"></i>
+                    <h4>Gestion du stock</h4>
+                    <p>Inventaire et alertes stock</p>
+                </a>
+                
+                <a href="#" class="action-card reports" onclick="generateReports()">
+                    <i class="fas fa-file-excel"></i>
+                    <h4>Rapports Excel</h4>
+                    <p>Exporter les données</p>
+                </a>
+            </div>
         </div>
         
-        <div class="live-update">
-            <p><i class="fas fa-sync-alt"></i> <span>Mise à jour automatique toutes les 30 secondes</span></p>
-        </div>
-        
-        <div id="salesSection" class="section-content" style="display:none; margin-top:30px; padding:20px; background:rgba(0,0,0,0.3); border-radius:12px;">
-            <h3>📊 Détails des ventes</h3>
-            <p>Données des ventes en temps réel...</p>
-        </div>
-        
-        <div id="productsSection" class="section-content" style="display:none; margin-top:30px; padding:20px; background:rgba(0,0,0,0.3); border-radius:12px;">
-            <h3>📦 Gestion des produits</h3>
-            <p>Gestion du stock et des produits...</p>
+        <div class="recent-orders">
+            <h2><i class="fas fa-history"></i> Commandes Récentes</h2>
+            <table class="orders-table" id="recentOrdersTable">
+                <thead>
+                    <tr>
+                        <th>ID Commande</th>
+                        <th>Client</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            <i class="fas fa-spinner fa-spin"></i> Chargement des commandes...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
     
     <script>
-        // Fonction pour mettre à jour les stats
-        function updateStats() {
-            // Simuler des données aléatoires
-            const orders = Math.floor(20 + Math.random() * 15);
-            const clients = Math.floor(5 + Math.random() * 10);
-            const revenue = (2.5 + Math.random() * 1.5).toFixed(1);
-            const stock = Math.floor(8 + Math.random() * 10);
-            
-            document.getElementById('ordersToday').textContent = orders;
-            document.getElementById('newClients').textContent = clients;
-            document.getElementById('revenue').textContent = revenue + 'k€';
-            document.getElementById('lowStock').textContent = stock;
-            
-            // Animation
-            document.querySelectorAll('.stat-value').forEach(el => {
-                el.classList.add('pulse');
-                setTimeout(() => el.classList.remove('pulse'), 1000);
-            });
-            
-            console.log('📊 Statistiques mises à jour:', { orders, clients, revenue, stock });
-        }
+        // Configuration
+        const API_URL = "https://script.google.com/macros/s/AKfycbxvCaw20Esx8UMTP2ENSGnnjDI4ltyitaqp59jXy8ULsmMjjq4xKnPt8bNe0p5bkBAl/exec";
         
-        // Fonction pour montrer les sections
-        function showSection(sectionId) {
-            // Cacher toutes les sections
-            document.querySelectorAll('.section-content').forEach(el => {
-                el.style.display = 'none';
-            });
-            
-            // Montrer la section demandée
-            const section = document.getElementById(sectionId + 'Section');
-            if (section) {
-                section.style.display = 'block';
+        // Charger les données du tableau de bord
+        async function loadDashboardData() {
+            try {
+                console.log('📊 Chargement des données du tableau de bord...');
+                
+                // Récupérer les statistiques
+                const statsResponse = await fetch(`${API_URL}?method=getDashboardStats&t=${Date.now()}`);
+                if (statsResponse.ok) {
+                    const statsData = await statsResponse.json();
+                    updateDashboardStats(statsData);
+                }
+                
+                // Récupérer les commandes récentes
+                const ordersResponse = await fetch(`${API_URL}?method=getRecentOrders&t=${Date.now()}`);
+                if (ordersResponse.ok) {
+                    const ordersData = await ordersResponse.json();
+                    updateRecentOrders(ordersData);
+                }
+                
+            } catch (error) {
+                console.error('Erreur chargement dashboard:', error);
+                showMockData();
             }
-            
-            return false; // Empêcher le comportement du lien
         }
         
-        // Mettre à jour toutes les 30 secondes
-        setInterval(updateStats, 30000);
+        // Mettre à jour les statistiques
+        function updateDashboardStats(data) {
+            if (data && data.success) {
+                document.getElementById('ordersToday').textContent = data.ordersToday || '0';
+                document.getElementById('revenue').textContent = (data.revenueToday || '0') + ' DT';
+                document.getElementById('newClients').textContent = data.newClients || '0';
+                
+                // Tendances
+                document.getElementById('ordersTrend').textContent = data.ordersChange || '+0%';
+                document.getElementById('revenueTrend').textContent = data.revenueChange || '+0%';
+                document.getElementById('clientsTrend').textContent = data.clientsChange || '+0%';
+            } else {
+                showMockData();
+            }
+        }
         
-        // Mettre à jour immédiatement au chargement
-        updateStats();
+        // Mettre à jour les commandes récentes
+        function updateRecentOrders(data) {
+            const tableBody = document.querySelector('#recentOrdersTable tbody');
+            
+            if (data && data.success && data.orders && data.orders.length > 0) {
+                tableBody.innerHTML = '';
+                
+                data.orders.forEach(order => {
+                    const row = document.createElement('tr');
+                    
+                    // Formatage du statut
+                    let statusClass = 'status-new';
+                    let statusText = 'Nouveau';
+                    
+                    if (order.statut === 'En cours') {
+                        statusClass = 'status-processing';
+                        statusText = 'En cours';
+                    } else if (order.statut === 'Livrée') {
+                        statusClass = 'status-delivered';
+                        statusText = 'Livrée';
+                    }
+                    
+                    // Formatage de la date
+                    const orderDate = new Date(order.date || order.timestamp);
+                    const formattedDate = orderDate.toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    row.innerHTML = `
+                        <td>${order.commande_id || 'N/A'}</td>
+                        <td>${order.client_nom || 'Client'}</td>
+                        <td>${order.total ? parseFloat(order.total).toFixed(2) + ' DT' : '0.00 DT'}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${formattedDate}</td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+            } else {
+                showMockOrders();
+            }
+        }
         
-        // Mettre à jour toutes les 5 secondes (pour le test)
-        setInterval(updateStats, 5000);
+        // Données simulées pour démo
+        function showMockData() {
+            document.getElementById('ordersToday').textContent = '18';
+            document.getElementById('revenue').textContent = '2,845.75 DT';
+            document.getElementById('newClients').textContent = '7';
+            document.getElementById('ordersTrend').textContent = '+12%';
+            document.getElementById('revenueTrend').textContent = '+8%';
+            document.getElementById('clientsTrend').textContent = '+5%';
+            
+            showMockOrders();
+        }
         
-        console.log('✅ Tableau de bord admin chargé avec succès');
+        function showMockOrders() {
+            const tableBody = document.querySelector('#recentOrdersTable tbody');
+            tableBody.innerHTML = '';
+            
+            const mockOrders = [
+                { id: 'CMD-001', client: 'Mohamed Ali', amount: 156.50, status: 'new', date: '2024-01-15 14:30' },
+                { id: 'CMD-002', client: 'Fatma Ben', amount: 89.99, status: 'processing', date: '2024-01-15 12:15' },
+                { id: 'CMD-003', client: 'Karim Trabelsi', amount: 234.75, status: 'delivered', date: '2024-01-14 18:45' },
+                { id: 'CMD-004', client: 'Samira Khaled', amount: 67.25, status: 'new', date: '2024-01-14 16:20' },
+                { id: 'CMD-005', client: 'Hassan Mahmoud', amount: 189.00, status: 'processing', date: '2024-01-14 11:10' }
+            ];
+            
+            mockOrders.forEach(order => {
+                const row = document.createElement('tr');
+                
+                let statusClass = 'status-new';
+                let statusText = 'Nouveau';
+                
+                if (order.status === 'processing') {
+                    statusClass = 'status-processing';
+                    statusText = 'En cours';
+                } else if (order.status === 'delivered') {
+                    statusClass = 'status-delivered';
+                    statusText = 'Livrée';
+                }
+                
+                row.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.client}</td>
+                    <td>${order.amount.toFixed(2)} DT</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td>${order.date}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Fonctions d'action
+        function viewStatistics() {
+            alert('Statistiques détaillées - Cette fonctionnalité est en cours de développement.');
+        }
+        
+        function viewOrders() {
+            alert('Gestion des commandes - Redirection vers l\'interface de gestion.');
+        }
+        
+        function manageStock() {
+            alert('Gestion du stock - Ouverture du gestionnaire d\'inventaire.');
+        }
+        
+        function generateReports() {
+            // Exporter les données
+            const reportData = {
+                title: 'Rapport MAXI JDC MARKET',
+                date: new Date().toLocaleDateString('fr-FR'),
+                stats: {
+                    orders: document.getElementById('ordersToday').textContent,
+                    revenue: document.getElementById('revenue').textContent,
+                    clients: document.getElementById('newClients').textContent
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rapport-maxi-jdc-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('Rapport généré avec succès !');
+        }
+        
+        // Rafraîchir les données toutes les 30 secondes
+        function startAutoRefresh() {
+            setInterval(() => {
+                loadDashboardData();
+            }, 30000);
+        }
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Tableau de bord admin initialisé');
+            loadDashboardData();
+            startAutoRefresh();
+        });
     </script>
 </body>
 </html>
