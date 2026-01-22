@@ -1,239 +1,124 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau de Bord MAXI JDC MARKET</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Tableau de Bord MAXI JDC</title>
     <style>
-        body {
-            background: #0a1929;
-            color: white;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
+        body { 
+            background: #0a1929; 
+            color: white; 
+            font-family: Arial; 
+            margin: 0; 
+            padding: 20px; 
         }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            background: #112240;
-            padding: 30px;
-            border-radius: 15px;
+        .header { 
+            text-align: center; 
+            padding: 30px; 
+            background: #112240; 
+            border-radius: 10px; 
+            margin-bottom: 20px; 
             border: 3px solid #00d4ff;
+        }
+        .cards { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 20px; 
+            justify-content: center; 
+        }
+        .card { 
+            background: #1a365d; 
+            padding: 20px; 
+            border-radius: 10px; 
+            width: 250px; 
             text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        h1 {
-            color: #00d4ff;
-            margin-bottom: 10px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .card {
-            background: rgba(26, 54, 93, 0.8);
-            padding: 25px;
-            border-radius: 12px;
             border: 2px solid rgba(0, 212, 255, 0.3);
-            text-align: center;
         }
-        
-        .stat {
-            font-size: 3em;
-            font-weight: bold;
-            color: #00ff88;
-            margin: 15px 0;
+        .number { 
+            font-size: 40px; 
+            font-weight: bold; 
+            color: #00ff88; 
+            margin: 10px 0; 
         }
-        
-        .label {
-            color: #8b949e;
-            margin-bottom: 5px;
+        button { 
+            background: #00d4ff; 
+            color: black; 
+            border: none; 
+            padding: 10px 20px; 
+            margin: 10px; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            cursor: pointer; 
         }
-        
-        .trend {
-            font-size: 14px;
-            padding: 4px 10px;
-            border-radius: 15px;
-            display: inline-block;
-            margin-top: 5px;
+        button:hover { 
+            background: #00ff88; 
         }
-        
-        .trend.up {
-            background: rgba(0, 255, 136, 0.2);
-            color: #00ff88;
-        }
-        
-        .trend.down {
-            background: rgba(255, 107, 107, 0.2);
-            color: #ff6b6b;
-        }
-        
-        button {
-            background: #00d4ff;
-            color: black;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 10px;
-            font-size: 16px;
-        }
-        
-        button:hover {
-            background: #00ff88;
-        }
-        
         .time {
             color: #8b949e;
-            margin-top: 15px;
+            margin-top: 10px;
             font-size: 14px;
-        }
-        
-        .success {
-            background: rgba(0, 255, 136, 0.2);
-            border: 1px solid #00ff88;
-            color: #00ff88;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📊 TABLEAU DE BORD ADMIN</h1>
-            <p>MAXI JDC MARKET - Mode Local</p>
-            <button onclick="window.location.href='index.html'">
-                <i class="fas fa-home"></i> Retour à l'Accueil
-            </button>
-            <button onclick="refreshData()">
-                <i class="fas fa-sync-alt"></i> Actualiser
-            </button>
-            <div class="time" id="lastUpdate">Chargement...</div>
+    <div class="header">
+        <h1>📊 TABLEAU DE BORD MAXI JDC</h1>
+        <button onclick="window.location.href='index.html'">🏠 Accueil</button>
+        <button onclick="refresh()">🔄 Actualiser</button>
+        <div class="time" id="time">Chargement...</div>
+    </div>
+    
+    <div class="cards">
+        <div class="card">
+            <h3>🛒 Commandes</h3>
+            <div class="number" id="cmd">18</div>
+            <p>Aujourd'hui</p>
         </div>
         
-        <div id="message" class="success">
-            <i class="fas fa-check-circle"></i> Tableau de bord en mode local - Données simulées
+        <div class="card">
+            <h3>💰 Chiffre d'affaires</h3>
+            <div class="number" id="ca">1,250 DT</div>
+            <p>Aujourd'hui</p>
         </div>
         
-        <div class="stats-grid">
-            <div class="card">
-                <div class="label"><i class="fas fa-shopping-cart"></i> COMMANDES AUJOURD'HUI</div>
-                <div class="stat" id="orders">0</div>
-                <div class="trend up" id="ordersTrend">+0%</div>
-            </div>
-            
-            <div class="card">
-                <div class="label"><i class="fas fa-money-bill-wave"></i> CHIFFRE D'AFFAIRES</div>
-                <div class="stat" id="revenue">0 DT</div>
-                <div class="trend up" id="revenueTrend">+0%</div>
-            </div>
-            
-            <div class="card">
-                <div class="label"><i class="fas fa-users"></i> NOUVEAUX CLIENTS</div>
-                <div class="stat" id="clients">0</div>
-                <div class="trend up" id="clientsTrend">+0%</div>
-            </div>
+        <div class="card">
+            <h3>👥 Clients</h3>
+            <div class="number" id="cli">5</div>
+            <p>Nouveaux</p>
         </div>
         
-        <div class="stats-grid">
-            <div class="card">
-                <div class="label"><i class="fas fa-box"></i> STOCK FAIBLE</div>
-                <div class="stat" id="stock">0</div>
-                <p>Produits à réapprovisionner</p>
-            </div>
-            
-            <div class="card">
-                <div class="label"><i class="fas fa-chart-line"></i> VALEUR MOYENNE</div>
-                <div class="stat" id="avgValue">0 DT</div>
-                <p>Par commande</p>
-            </div>
-            
-            <div class="card">
-                <div class="label"><i class="fas fa-trophy"></i> COMMANDES TOTALES</div>
-                <div class="stat" id="totalOrders">0</div>
-                <p>Depuis le début</p>
-            </div>
-        </div>
-        
-        <div style="text-align: center; margin-top: 40px; color: #8b949e;">
-            <p><i class="fas fa-info-circle"></i> Système opérationnel - Version 1.0</p>
-            <p>Tableau de bord 100% fonctionnel en mode local</p>
+        <div class="card">
+            <h3>📦 Stock</h3>
+            <div class="number" id="stk">8</div>
+            <p>Faible</p>
         </div>
     </div>
-
+    
+    <div style="text-align:center; margin-top:30px; color:#8b949e;">
+        <p>✅ Tableau de bord en mode local - Données simulées</p>
+    </div>
+    
     <script>
-        // DONNÉES 100% LOCALES - PAS D'APPEL API
-        console.log('🚀 Tableau de bord MAXI JDC MARKET - Mode Local');
-        
-        let data = {
-            orders: 18,
-            revenue: 1250,
-            clients: 5,
-            stock: 8,
-            avgValue: 85,
-            totalOrders: 342
+        // Données locales
+        let data = { 
+            cmd: 18, 
+            ca: 1250, 
+            cli: 5, 
+            stk: 8 
         };
         
-        // Initialisation
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ Tableau de bord prêt');
-            updateDisplay();
+        // Mettre à jour l'affichage
+        function update() {
+            // Légères variations aléatoires
+            data.cmd += Math.floor(Math.random() * 3) - 1;
+            if(data.cmd < 10) data.cmd = 10;
             
-            // Mettre à jour automatiquement toutes les 30 secondes
-            setInterval(function() {
-                updateData();
-                updateDisplay();
-            }, 30000);
-        });
-        
-        // Mettre à jour les données
-        function updateData() {
-            // Variations aléatoires réalistes
-            data.orders += Math.floor(Math.random() * 3) - 1;
-            if (data.orders < 10) data.orders = 10;
+            data.ca += Math.floor(Math.random() * 100) - 50;
+            if(data.ca < 800) data.ca = 800;
             
-            data.revenue += Math.floor(Math.random() * 100) - 50;
-            if (data.revenue < 800) data.revenue = 800;
-            
-            data.clients += Math.floor(Math.random() * 2);
-            if (data.clients < 2) data.clients = 2;
-            
-            data.stock += Math.floor(Math.random() * 3) - 1;
-            if (data.stock < 3) data.stock = 3;
-            
-            console.log('📊 Données mises à jour:', data);
-        }
-        
-        // Afficher les données
-        function updateDisplay() {
-            document.getElementById('orders').textContent = data.orders;
-            document.getElementById('revenue').textContent = data.revenue.toLocaleString('fr-FR') + ' DT';
-            document.getElementById('clients').textContent = data.clients;
-            document.getElementById('stock').textContent = data.stock;
-            document.getElementById('avgValue').textContent = data.avgValue.toFixed(2) + ' DT';
-            document.getElementById('totalOrders').textContent = data.totalOrders;
-            
-            // Tendances aléatoires
-            document.getElementById('ordersTrend').textContent = 
-                (Math.random() > 0.3 ? '+' : '-') + Math.floor(Math.random() * 20) + '%';
-            document.getElementById('revenueTrend').textContent = 
-                (Math.random() > 0.4 ? '+' : '-') + Math.floor(Math.random() * 25) + '%';
-            document.getElementById('clientsTrend').textContent = 
-                '+' + Math.floor(Math.random() * 15) + '%';
+            // Afficher les données
+            document.getElementById('cmd').textContent = data.cmd;
+            document.getElementById('ca').textContent = data.ca.toLocaleString('fr-FR') + ' DT';
+            document.getElementById('cli').textContent = data.cli;
+            document.getElementById('stk').textContent = data.stk;
             
             // Mettre à jour l'heure
             const now = new Date();
@@ -242,37 +127,21 @@
                 minute: '2-digit',
                 second: '2-digit'
             });
-            document.getElementById('lastUpdate').textContent = 'Dernière mise à jour: ' + timeStr;
+            document.getElementById('time').textContent = 
+                'Dernière mise à jour: ' + timeStr;
         }
         
         // Rafraîchir manuellement
-        window.refreshData = function() {
-            updateData();
-            updateDisplay();
-            
-            // Afficher message de confirmation
-            const msg = document.getElementById('message');
-            msg.innerHTML = '<i class="fas fa-check-circle"></i> Données actualisées à ' + 
-                           new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
-            msg.style.background = 'rgba(0, 212, 255, 0.2)';
-            msg.style.borderColor = '#00d4ff';
-            msg.style.color = '#00d4ff';
-            
-            setTimeout(function() {
-                msg.innerHTML = '<i class="fas fa-check-circle"></i> Tableau de bord en mode local - Données simulées';
-                msg.style.background = 'rgba(0, 255, 136, 0.2)';
-                msg.style.borderColor = '#00ff88';
-                msg.style.color = '#00ff88';
-            }, 2000);
+        window.refresh = function() {
+            update();
+            alert('✅ Données actualisées !');
         };
         
-        // Touche F5 pour rafraîchir
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'F5') {
-                e.preventDefault();
-                refreshData();
-            }
-        });
+        // Initialisation
+        update();
+        
+        // Mettre à jour automatiquement toutes les 30 secondes
+        setInterval(update, 30000);
     </script>
 </body>
 </html>
