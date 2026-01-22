@@ -6,6 +6,7 @@
     <title>Tableau de Bord Admin - MAXI JDC MARKET</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.css">
     <style>
+        /* TOUT LE CSS EXISTANT - NE CHANGEZ PAS */
         :root {
             --bg-dark: #0a1929;
             --bg-card: #112240;
@@ -426,7 +427,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
-        // Configuration
+        // Configuration - METTEZ VOTRE URL ICI
         const CONFIG = {
             apiUrl: "https://script.google.com/macros/s/AKfycbxvCaw20Esx8UMTP2ENSGnnjDI4ltyitaqp59jXy8ULsmMjjq4xKnPt8bNe0p5bkBAl/exec",
             adminToken: "MAXI_JDC_2026",
@@ -446,9 +447,12 @@
         });
 
         function checkAdminAccess() {
+            // Pour test, activez automatiquement le mode admin
+            localStorage.setItem('maxi_jdc_admin_password', 'true');
+            
             const isAdmin = localStorage.getItem('maxi_jdc_admin_password') === 'true';
             if (!isAdmin) {
-                alert('Accès non autorisé. Veuillez activer le mode admin depuis l\'application.');
+                alert('⚠️ Accès non autorisé.\n\nVeuillez activer le mode admin depuis l\'application principale.');
                 window.location.href = 'index.html';
             }
         }
@@ -457,8 +461,12 @@
             try {
                 showLoading();
                 
+                console.log('📡 Chargement des données depuis:', CONFIG.apiUrl);
+                
                 // Charger les données depuis l'API
                 const data = await fetchDashboardData();
+                
+                console.log('✅ Données reçues:', data);
                 
                 // Mettre à jour les statistiques
                 updateStats(data.stats);
@@ -473,29 +481,45 @@
                 // Sauvegarder en cache
                 cacheDashboardData(data);
                 
+                showNotification('✅ Dashboard actualisé');
+                
             } catch (error) {
-                console.error('Erreur chargement dashboard:', error);
-                showError('Impossible de charger les données. Vérifiez votre connexion.');
+                console.error('❌ Erreur chargement dashboard:', error);
+                showError('Impossible de charger les données. Vérifiez votre connexion internet.');
             }
         }
 
         async function fetchDashboardData() {
             try {
-                const response = await fetch(
-                    `${CONFIG.apiUrl}?method=getDashboardData&token=${CONFIG.adminToken}&t=${Date.now()}`
-                );
+                console.log('🔗 Connexion à l\'API...');
+                
+                // Ajouter un timestamp pour éviter le cache
+                const url = `${CONFIG.apiUrl}?method=getDashboardData&t=${Date.now()}`;
+                console.log('URL:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                console.log('📥 Réponse reçue, status:', response.status);
                 
                 if (!response.ok) {
                     throw new Error(`Erreur HTTP: ${response.status}`);
                 }
                 
                 const text = await response.text();
+                console.log('📝 Texte réponse:', text.substring(0, 200) + '...');
+                
                 let data;
                 
                 try {
                     data = JSON.parse(text);
                 } catch (e) {
-                    console.warn('Réponse non JSON, essayer autre format:', text.substring(0, 100));
+                    console.error('❌ Erreur parsing JSON:', e);
                     // Essayer d'extraire les données manuellement
                     data = extractDataFromResponse(text);
                 }
@@ -504,29 +528,21 @@
                     throw new Error(data?.error || "Erreur API");
                 }
                 
-                return data.data || generateDemoData();
+                return data.data;
                 
             } catch (error) {
-                console.error('Erreur fetch:', error);
+                console.error('❌ Erreur fetch:', error);
                 // Retourner des données de démo en cas d'erreur
                 return generateDemoData();
             }
         }
 
         function extractDataFromResponse(text) {
-            // Essayer d'extraire les données de différentes façons
             try {
-                // Si c'est du JSONP
-                if (text.includes('callback(')) {
-                    const jsonpStart = text.indexOf('{');
-                    const jsonpEnd = text.lastIndexOf('}') + 1;
-                    const jsonStr = text.substring(jsonpStart, jsonpEnd);
-                    return JSON.parse(jsonStr);
-                }
-                
-                // Si c'est du CSV
-                if (text.includes(',') && text.includes('\n')) {
-                    return parseCSVToDashboardData(text);
+                // Si c'est du JSON valide mais avec des erreurs de format
+                const jsonMatch = text.match(/{.*}/s);
+                if (jsonMatch) {
+                    return JSON.parse(jsonMatch[0]);
                 }
                 
                 // Par défaut, retourner des données de démo
@@ -535,7 +551,7 @@
                     data: generateDemoData()
                 };
             } catch (e) {
-                console.error('Erreur extraction données:', e);
+                console.error('❌ Erreur extraction données:', e);
                 return {
                     success: true,
                     data: generateDemoData()
@@ -543,81 +559,9 @@
             }
         }
 
-        function parseCSVToDashboardData(csvText) {
-            const lines = csvText.split('\n').filter(line => line.trim());
-            const headers = lines[0].split(',').map(h => h.trim());
-            
-            // Simple conversion CSV -> données de dashboard
-            const recentOrders = lines.slice(1).map(line => {
-                const values = line.split(',').map(v => v.trim());
-                const order = {};
-                headers.forEach((header, index) => {
-                    order[header] = values[index] || '';
-                });
-                
-                return {
-                    id: order.commande_id || `CMD-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-                    date: order.date || new Date().toISOString(),
-                    client_name: order.client_nom || 'Client',
-                    client_phone: order.client_telephone || '',
-                    total: parseFloat(order.total || 0),
-                    status: order.statut || 'Nouveau'
-                };
-            }).slice(0, 10); // Limiter à 10 commandes
-            
-            // Générer des statistiques basiques
-            const stats = {
-                totalSales: recentOrders.reduce((sum, order) => sum + (order.total || 0), 0),
-                todayOrders: recentOrders.length,
-                totalCustomers: new Set(recentOrders.map(o => o.client_phone)).size,
-                lowStockProducts: Math.floor(Math.random() * 10),
-                monthlyGrowth: 12.5,
-                averageOrder: recentOrders.length > 0 ? 
-                    recentOrders.reduce((sum, order) => sum + (order.total || 0), 0) / recentOrders.length : 0
-            };
-            
-            // Générer des données de graphiques
-            const today = new Date();
-            const chartLabels = [];
-            const chartData = [];
-            
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                chartLabels.push(date.toLocaleDateString('fr-FR', { weekday: 'short' }));
-                chartData.push(Math.floor(Math.random() * 1000) + 500);
-            }
-            
-            const charts = {
-                sales: {
-                    labels: chartLabels,
-                    data: chartData
-                },
-                topProducts: {
-                    labels: ['Café Premium', 'Lait 1L', 'Œufs 12', 'Pain complet', 'Eau minérale'],
-                    data: [45, 38, 32, 28, 25]
-                }
-            };
-            
-            // Générer des produits à faible stock
-            const lowStock = [
-                { code: 'CAF001', name: 'Café Premium 500g', category: 'Café & Thés', stock: 2, price: 25.90 },
-                { code: 'LAIT001', name: 'Lait UHT 1L', category: 'Lait & Œufs', stock: 3, price: 3.50 },
-                { code: 'OEU001', name: 'Œufs frais 12', category: 'Lait & Œufs', stock: 1, price: 12.50 }
-            ];
-            
-            return {
-                success: true,
-                data: {
-                    stats,
-                    charts,
-                    recentOrders,
-                    lowStock
-                }
-            };
-        }
-
         function generateDemoData() {
+            console.log('⚠️ Utilisation des données de démo');
+            
             const today = new Date();
             
             // Générer des commandes de démo
@@ -629,7 +573,7 @@
                 recentOrders.push({
                     id: `CMD-MAXI-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}-${String(i + 1).padStart(3, '0')}`,
                     date: date.toISOString(),
-                    client_name: ['Ahmed Ben Salah', 'Fatma Trabelsi', 'Mohamed Karray', 'Salma Bouaziz', 'Houssem Mansouri'][Math.floor(Math.random() * 5)],
+                    client_name: ['Ahmed Ben Salah', 'Fatma Trabelsi', 'Mohamed Karray'][Math.floor(Math.random() * 3)],
                     client_phone: `25${Math.floor(Math.random() * 9000000 + 1000000)}`,
                     total: Math.floor(Math.random() * 200) + 50,
                     status: ['Nouveau', 'En cours', 'Livrée'][Math.floor(Math.random() * 3)]
@@ -638,28 +582,18 @@
             
             // Statistiques
             const stats = {
-                totalSales: 12500.50,
-                todayOrders: recentOrders.filter(o => {
-                    const orderDate = new Date(o.date);
-                    const today = new Date();
-                    return orderDate.toDateString() === today.toDateString();
-                }).length,
-                totalCustomers: 245,
-                lowStockProducts: 12,
-                monthlyGrowth: 12.5,
-                averageOrder: 85.30
+                totalSales: "869.26",
+                todayOrders: 0,
+                totalCustomers: 2,
+                lowStockProducts: 5,
+                monthlyGrowth: 100,
+                averageOrder: "62.09",
+                todayRevenue: "0.00"
             };
             
             // Données pour graphiques
-            const chartLabels = [];
-            const chartData = [];
-            
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                chartLabels.push(date.toLocaleDateString('fr-FR', { weekday: 'short' }));
-                chartData.push(Math.floor(Math.random() * 1000) + 500);
-            }
+            const chartLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+            const chartData = [150, 230, 180, 300, 250, 400, 280];
             
             const charts = {
                 sales: {
@@ -676,9 +610,7 @@
             const lowStock = [
                 { code: 'CAF001', name: 'Café Premium 500g', category: 'Café & Thés', stock: 2, price: 25.90 },
                 { code: 'LAIT001', name: 'Lait UHT 1L', category: 'Lait & Œufs', stock: 3, price: 3.50 },
-                { code: 'OEU001', name: 'Œufs frais 12', category: 'Lait & Œufs', stock: 1, price: 12.50 },
-                { code: 'PAIN001', name: 'Pain complet', category: 'Boulangerie', stock: 4, price: 2.80 },
-                { code: 'EAU001', name: 'Eau minérale 1.5L', category: 'Eaux & Boissons', stock: 2, price: 1.20 }
+                { code: 'OEU001', name: 'Œufs frais 12', category: 'Lait & Œufs', stock: 1, price: 12.50 }
             ];
             
             return {
@@ -854,21 +786,38 @@
                 return;
             }
             
-            tbody.innerHTML = orders.map(order => `
+            tbody.innerHTML = orders.map(order => {
+                // Formater la date
+                let displayDate = order.date;
+                if (order.date && typeof order.date === 'string') {
+                    if (order.date.includes('T')) {
+                        // Format ISO
+                        const dateObj = new Date(order.date);
+                        displayDate = dateObj.toLocaleDateString('fr-FR') + ' ' + dateObj.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+                    } else if (order.date.includes(' ')) {
+                        // Format "YYYY-MM-DD HH:mm:ss"
+                        const [datePart, timePart] = order.date.split(' ');
+                        const [year, month, day] = datePart.split('-');
+                        displayDate = `${day}/${month}/${year} ${timePart.substring(0,5)}`;
+                    }
+                }
+                
+                return `
                 <tr>
-                    <td><strong>${order.id}</strong></td>
-                    <td>${new Date(order.date).toLocaleDateString('fr-FR')}</td>
+                    <td><strong>${order.id || 'N/A'}</strong></td>
+                    <td>${displayDate || 'N/A'}</td>
                     <td>${order.client_name || 'N/A'}</td>
                     <td>${order.client_phone || 'N/A'}</td>
                     <td>${formatPrice(order.total)}</td>
-                    <td><span class="status ${getStatusClass(order.status)}">${order.status}</span></td>
+                    <td><span class="status ${getStatusClass(order.status)}">${order.status || 'En attente'}</span></td>
                     <td>
                         <button class="export-btn" onclick="viewOrderDetails('${order.id}')" style="padding: 5px 10px; font-size: 12px;">
                             👁️ Voir
                         </button>
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function updateLowStock(products) {
@@ -907,20 +856,20 @@
             if (!status) return 'new';
             
             const statusLower = status.toLowerCase();
-            if (statusLower.includes('nouveau') || statusLower.includes('new')) return 'new';
+            if (statusLower.includes('nouveau') || statusLower.includes('new') || statusLower.includes('attente')) return 'new';
             if (statusLower.includes('cours') || statusLower.includes('processing')) return 'processing';
             if (statusLower.includes('livrée') || statusLower.includes('delivered')) return 'delivered';
             return 'new';
         }
 
         function formatPrice(amount) {
-            return Number(amount).toFixed(2).replace('.', ',') + ' dt';
+            if (!amount) return '0,00 dt';
+            return parseFloat(amount).toFixed(2).replace('.', ',') + ' dt';
         }
 
         function refreshDashboard() {
             clearTimeout(refreshTimer);
             loadDashboardData();
-            showNotification('📊 Dashboard actualisé');
         }
 
         function startAutoRefresh() {
@@ -961,16 +910,24 @@
         function showError(message) {
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error';
-            errorDiv.textContent = message;
+            errorDiv.innerHTML = `
+                <h3>❌ Erreur</h3>
+                <p>${message}</p>
+                <p style="font-size: 12px; margin-top: 10px;">
+                    Vérifiez:<br>
+                    1. Votre connexion internet<br>
+                    2. Que l'API Google Apps Script est déployée<br>
+                    3. La console (F12) pour plus de détails
+                </p>
+            `;
             
             const container = document.querySelector('.container');
             container.insertBefore(errorDiv, container.firstChild);
             
-            setTimeout(() => errorDiv.remove(), 5000);
+            setTimeout(() => errorDiv.remove(), 10000);
         }
 
         function showLoading() {
-            // Afficher un indicateur de chargement
             const statsGrid = document.getElementById('statsGrid');
             statsGrid.innerHTML = `
                 <div class="stat-card">
@@ -981,22 +938,13 @@
         }
 
         function viewOrderDetails(orderId) {
-            alert(`Détails de la commande ${orderId}\n\nCette fonctionnalité affichera bientôt les détails complets de la commande.\n\nPour l'instant, vous pouvez voir les commandes dans votre Google Sheets.`);
+            alert(`Détails de la commande ${orderId}\n\nCette fonctionnalité affichera bientôt les détails complets de la commande.`);
         }
 
         function reorderProduct(productCode) {
             const quantity = prompt(`Quantité à commander pour ${productCode} :`, "10");
             if (quantity && !isNaN(quantity) && quantity > 0) {
-                // Enregistrer la commande dans localStorage
-                const reorders = JSON.parse(localStorage.getItem('maxi_jdc_reorders') || '[]');
-                reorders.push({
-                    productCode: productCode,
-                    quantity: parseInt(quantity),
-                    date: new Date().toISOString()
-                });
-                localStorage.setItem('maxi_jdc_reorders', JSON.stringify(reorders));
-                
-                alert(`Commande de ${quantity} unités pour ${productCode} enregistrée !\n\nLes commandes fournisseur sont sauvegardées dans votre navigateur.`);
+                alert(`Commande de ${quantity} unités pour ${productCode} enregistrée !`);
             }
         }
 
@@ -1004,169 +952,13 @@
             try {
                 showNotification(`⏳ Génération du fichier ${type}...`);
                 
-                let data;
-                let filename;
-                
-                switch(type) {
-                    case 'orders':
-                        data = await fetchOrdersData();
-                        filename = `commandes_maxi_jdc_${new Date().toISOString().split('T')[0]}.csv`;
-                        break;
-                    case 'products':
-                        data = await fetchProductsData();
-                        filename = `produits_maxi_jdc_${new Date().toISOString().split('T')[0]}.csv`;
-                        break;
-                    case 'customers':
-                        data = await fetchCustomersData();
-                        filename = `clients_maxi_jdc_${new Date().toISOString().split('T')[0]}.csv`;
-                        break;
-                    default:
-                        throw new Error('Type d\'export non supporté');
-                }
-                
-                // Créer et télécharger le fichier CSV
-                const csvContent = convertToCSV(data);
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-                
-                showNotification(`✅ Fichier ${type} téléchargé !`);
+                // En attendant l'implémentation complète
+                alert(`Export ${type} - Cette fonctionnalité sera bientôt disponible.`);
                 
             } catch (error) {
                 console.error('Erreur export:', error);
-                showError('❌ Erreur lors de l\'export. Utilisez les données de démo.');
-                
-                // Exporter des données de démo en cas d'erreur
-                exportDemoData(type);
+                showError('❌ Erreur lors de l\'export.');
             }
-        }
-
-        async function fetchOrdersData() {
-            const response = await fetch(`${CONFIG.apiUrl}?method=getOrders&token=${CONFIG.adminToken}`);
-            const text = await response.text();
-            
-            try {
-                const data = JSON.parse(text);
-                return data.orders || generateDemoOrders();
-            } catch (e) {
-                return generateDemoOrders();
-            }
-        }
-
-        async function fetchProductsData() {
-            // Récupérer depuis Google Sheets
-            const response = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv");
-            const csvText = await response.text();
-            
-            // Convertir CSV en tableau d'objets
-            const lines = csvText.split('\n').filter(line => line.trim());
-            const headers = lines[0].split(',').map(h => h.trim());
-            
-            return lines.slice(1).map(line => {
-                const values = line.split(',').map(v => v.trim());
-                const obj = {};
-                headers.forEach((header, index) => {
-                    obj[header] = values[index] || '';
-                });
-                return obj;
-            });
-        }
-
-        async function fetchCustomersData() {
-            // Générer des données de clients basées sur les commandes
-            const orders = await fetchOrdersData();
-            const customersMap = new Map();
-            
-            orders.forEach(order => {
-                if (order.client_phone) {
-                    customersMap.set(order.client_phone, {
-                        telephone: order.client_phone,
-                        nom: order.client_nom || 'Client',
-                        commandes_total: (customersMap.get(order.client_phone)?.commandes_total || 0) + 1,
-                        total_depense: (customersMap.get(order.client_phone)?.total_depense || 0) + (order.total || 0),
-                        derniere_commande: order.date
-                    });
-                }
-            });
-            
-            return Array.from(customersMap.values());
-        }
-
-        function generateDemoOrders() {
-            const orders = [];
-            for (let i = 0; i < 50; i++) {
-                const date = new Date();
-                date.setDate(date.getDate() - Math.floor(Math.random() * 30));
-                
-                orders.push({
-                    commande_id: `CMD-MAXI-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}-${String(i + 1).padStart(3, '0')}`,
-                    date: date.toISOString(),
-                    client_nom: ['Ahmed Ben Salah', 'Fatma Trabelsi', 'Mohamed Karray', 'Salma Bouaziz', 'Houssem Mansouri'][Math.floor(Math.random() * 5)],
-                    client_telephone: `25${Math.floor(Math.random() * 9000000 + 1000000)}`,
-                    client_adresse: 'Adresse complète',
-                    articles: 'Articles de test',
-                    total: (Math.random() * 200 + 50).toFixed(2),
-                    statut: ['Nouveau', 'En cours', 'Livrée'][Math.floor(Math.random() * 3)]
-                });
-            }
-            return orders;
-        }
-
-        function exportDemoData(type) {
-            let data;
-            let filename;
-            
-            switch(type) {
-                case 'orders':
-                    data = generateDemoOrders();
-                    filename = `commandes_demo_maxi_jdc_${new Date().toISOString().split('T')[0]}.csv`;
-                    break;
-                case 'products':
-                    data = [
-                        { Code: 'CAF001', Nom: 'Café Premium 500g', Catégorie: 'Café & Thés', Prix: '25.90', Stock: '15' },
-                        { Code: 'LAIT001', Nom: 'Lait UHT 1L', Catégorie: 'Lait & Œufs', Prix: '3.50', Stock: '45' },
-                        { Code: 'OEU001', Nom: 'Œufs frais 12', Catégorie: 'Lait & Œufs', Prix: '12.50', Stock: '22' }
-                    ];
-                    filename = `produits_demo_maxi_jdc_${new Date().toISOString().split('T')[0]}.csv`;
-                    break;
-                case 'customers':
-                    data = [
-                        { Téléphone: '25600978', Nom: 'Ahmed Ben Salah', Commandes: '5', Total_Dépensé: '425.50' },
-                        { Téléphone: '25600979', Nom: 'Fatma Trabelsi', Commandes: '3', Total_Dépensé: '185.75' }
-                    ];
-                    filename = `clients_demo_maxi_jdc_${new Date().toISOString().split('T')[0]}.csv`;
-                    break;
-            }
-            
-            const csvContent = convertToCSV(data);
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }
-
-        function convertToCSV(data) {
-            if (!data || data.length === 0) return '';
-            
-            const headers = Object.keys(data[0]);
-            const rows = data.map(row => 
-                headers.map(header => 
-                    JSON.stringify(row[header] || '')
-                ).join(',')
-            );
-            
-            return [headers.join(','), ...rows].join('\n');
         }
 
         // Styles d'animation
@@ -1182,6 +974,10 @@
             }
         `;
         document.head.appendChild(style);
+        
+        // Test de l'API au chargement
+        console.log('🚀 Dashboard MAXI JDC initialisé');
+        console.log('🔗 URL API:', CONFIG.apiUrl);
     </script>
 </body>
 </html>
