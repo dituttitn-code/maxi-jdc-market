@@ -20,7 +20,11 @@
             --card-bg: rgba(26, 54, 93, 0.8);
         }
         
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -31,7 +35,10 @@
             padding: 20px;
         }
         
-        .container { max-width: 1400px; margin: 0 auto; }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
         
         .header {
             text-align: center;
@@ -109,8 +116,13 @@
             transition: all 0.3s;
         }
         
-        .refresh-btn:hover { background: rgba(0, 212, 255, 0.3); }
-        .refresh-btn.spinning i { animation: spin 1s linear infinite; }
+        .refresh-btn:hover {
+            background: rgba(0, 212, 255, 0.3);
+        }
+        
+        .refresh-btn.spinning i {
+            animation: spin 1s linear infinite;
+        }
         
         @keyframes spin {
             from { transform: rotate(0deg); }
@@ -182,62 +194,29 @@
             position: relative;
         }
         
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 10px;
-        }
-        
-        .tab-btn {
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .loading {
+            text-align: center;
+            padding: 40px;
             color: var(--text-muted);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
         }
         
-        .tab-btn.active {
-            background: rgba(0, 212, 255, 0.2);
-            border-color: var(--accent-blue);
-            color: var(--accent-blue);
+        .loading i {
+            font-size: 2em;
+            margin-bottom: 15px;
+            animation: spin 2s linear infinite;
         }
         
-        .tab-btn:hover:not(.active) { background: rgba(255, 255, 255, 0.1); }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        .table-container {
-            background: var(--card-bg);
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        th {
-            background: rgba(0, 212, 255, 0.1);
+        .error-message {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
             padding: 15px;
-            text-align: left;
-            color: var(--accent-blue);
-            font-weight: bold;
-            border-bottom: 2px solid var(--accent-blue);
+            border-radius: 8px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        tr:hover { background: rgba(255, 255, 255, 0.03); }
         
         .success-message {
             background: rgba(0, 255, 136, 0.1);
@@ -252,8 +231,13 @@
         }
         
         @media (max-width: 768px) {
-            .header h1 { font-size: 1.8em; }
-            .dashboard-grid { grid-template-columns: 1fr; }
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -268,12 +252,12 @@
                     <i class="fas fa-arrow-left"></i> Retour à l'application
                 </button>
                 
-                <button onclick="refreshData()" class="refresh-btn" id="refreshBtn">
+                <button onclick="loadDashboardData()" class="refresh-btn" id="refreshBtn">
                     <i class="fas fa-sync-alt"></i> Actualiser
                 </button>
                 
                 <span class="status-badge status-online" id="statusBadge">
-                    <i class="fas fa-circle"></i> Mode Démo
+                    <i class="fas fa-circle"></i> Connecté
                 </span>
             </div>
             
@@ -282,17 +266,17 @@
             </div>
         </div>
         
+        <!-- Messages d'état -->
         <div id="messageContainer"></div>
         
+        <!-- Statistiques principales -->
         <div class="dashboard-grid">
             <div class="dashboard-card">
                 <h3><i class="fas fa-shopping-cart"></i> Commandes aujourd'hui</h3>
                 <div class="stat-value" id="ordersToday">0</div>
                 <div class="stat-details">
-                    <span id="ordersChange" class="stat-trend trend-up">+0%</span> vs hier
-                </div>
-                <div class="chart-container">
-                    <canvas id="ordersChart"></canvas>
+                    <span id="ordersChange" class="stat-trend trend-up">+0%</span>
+                    vs hier
                 </div>
             </div>
             
@@ -300,10 +284,8 @@
                 <h3><i class="fas fa-chart-line"></i> Chiffre d'affaires</h3>
                 <div class="stat-value" id="revenueToday">0 DT</div>
                 <div class="stat-details">
-                    <span id="revenueChange" class="stat-trend trend-up">+0%</span> vs hier
-                </div>
-                <div class="chart-container">
-                    <canvas id="revenueChart"></canvas>
+                    <span id="revenueChange" class="stat-trend trend-up">+0%</span>
+                    vs hier
                 </div>
             </div>
             
@@ -311,195 +293,230 @@
                 <h3><i class="fas fa-users"></i> Nouveaux clients</h3>
                 <div class="stat-value" id="newClients">0</div>
                 <div class="stat-details">
-                    <span id="clientsChange" class="stat-trend trend-up">+0%</span> croissance
+                    <span id="clientsChange" class="stat-trend trend-up">+0%</span>
+                    croissance
                 </div>
-                <div class="chart-container">
-                    <canvas id="clientsChart"></canvas>
-                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <h3><i class="fas fa-box"></i> Stock faible</h3>
+                <div class="stat-value" id="lowStockCount">0</div>
+                <div class="stat-details">Produits à réapprovisionner</div>
             </div>
         </div>
         
         <div class="dashboard-grid">
             <div class="dashboard-card">
-                <h3><i class="fas fa-chart-pie"></i> Répartition des commandes</h3>
+                <h3><i class="fas fa-chart-pie"></i> Répartition</h3>
                 <div class="chart-container">
                     <canvas id="statusChart"></canvas>
                 </div>
             </div>
             
             <div class="dashboard-card">
-                <h3><i class="fas fa-box"></i> État du stock</h3>
-                <div class="stat-value" id="lowStockCount">0</div>
-                <div class="stat-details">Produits avec stock faible</div>
-            </div>
-            
-            <div class="dashboard-card">
                 <h3><i class="fas fa-trophy"></i> Performances</h3>
-                <div style="display: grid; gap: 15px;">
+                <div style="display: grid; gap: 15px; margin-top: 20px;">
                     <div>
                         <div style="color: var(--text-muted); font-size: 0.9em;">Valeur moyenne commande</div>
                         <div style="font-size: 1.5em; color: var(--accent-green);" id="avgOrderValue">0 DT</div>
                     </div>
                     <div>
-                        <div style="color: var(--text-muted); font-size: 0.9em;">Commandes journalières moy.</div>
-                        <div style="font-size: 1.5em; color: var(--accent-blue);" id="avgDailyOrders">0</div>
+                        <div style="color: var(--text-muted); font-size: 0.9em;">Commandes totales</div>
+                        <div style="font-size: 1.5em; color: var(--accent-blue);" id="totalOrders">0</div>
                     </div>
                     <div>
-                        <div style="color: var(--text-muted); font-size: 0.9em;">CA journalier moyen</div>
-                        <div style="font-size: 1.5em; color: var(--success);" id="avgDailyRevenue">0 DT</div>
+                        <div style="color: var(--text-muted); font-size: 0.9em;">CA total</div>
+                        <div style="font-size: 1.5em; color: var(--success);" id="totalRevenue">0 DT</div>
                     </div>
                 </div>
             </div>
         </div>
         
         <div style="text-align: center; margin-top: 40px; color: var(--text-muted);">
-            <p><i class="fas fa-info-circle"></i> Tableau de bord en mode démo - Données simulées</p>
+            <p><i class="fas fa-info-circle"></i> Tableau de bord en mode local</p>
+            <p style="font-size: 0.9em;">Données simulées pour démonstration</p>
         </div>
     </div>
-
+    
     <script>
-        // Données initiales
-        let data = {
-            ordersToday: 15,
-            revenueToday: '1,250.50',
-            newClients: 8,
-            lowStock: 12,
+        // SUPPRIMEZ CETTE LIGNE D'API :
+        // const API_URL = "https://script.google.com/macros/s/AKfycbwjYm0ybKD33MljjkF8QM0KblXuntAG7cHJ2ZkUD4Rf3e0tX6b5MupEn_pgcgP9Z3iz/exec";
+        
+        // Variables globales
+        let charts = {};
+        let dashboardData = {
+            ordersToday: 18,
+            revenueToday: 1250.50,
+            newClients: 5,
+            lowStock: 8,
+            totalOrders: 328,
+            totalRevenue: 45280.75,
+            avgOrderValue: 82.50,
             ordersChange: '+12%',
             revenueChange: '+18%',
-            clientsChange: '+5%',
-            avgOrderValue: '82.50',
-            avgDailyOrders: '14.3',
-            avgDailyRevenue: '1,180.75'
+            clientsChange: '+8%',
+            statusDistribution: {
+                new: 12,
+                processing: 8,
+                delivered: 285,
+                cancelled: 3
+            }
         };
         
         // Initialisation
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Tableau de bord initialisé en mode démo');
-            loadData();
-            createCharts();
-            startAutoRefresh();
+            console.log('Tableau de bord initialisé en mode local');
+            loadDashboardData();
+            setInterval(loadDashboardData, 30000); // Rafraîchissement auto
         });
         
-        // Charger les données
-        function loadData() {
-            // Mettre à jour les valeurs
-            updateValues();
-            updateLastUpdated();
-            showMessage('Mode démo - Données simulées', 'success');
+        // Charger les données LOCALES
+        function loadDashboardData() {
+            showLoading();
+            
+            // SIMULER un chargement
+            setTimeout(() => {
+                // Ajouter des variations aléatoires réalistes
+                dashboardData.ordersToday = Math.max(5, dashboardData.ordersToday + Math.floor(Math.random() * 5) - 2);
+                dashboardData.revenueToday = Math.max(800, dashboardData.revenueToday + (Math.random() * 100) - 50);
+                dashboardData.newClients = Math.max(0, dashboardData.newClients + Math.floor(Math.random() * 3) - 1);
+                
+                // Mettre à jour l'interface
+                updateDashboardUI(dashboardData);
+                createCharts(dashboardData);
+                updateLastUpdated();
+                showSuccess('Données mises à jour (Mode local)');
+                
+                hideLoading();
+            }, 500); // Petit délai pour simuler le chargement
         }
         
-        // Mettre à jour les valeurs avec variations aléatoires
-        function updateValues() {
-            // Ajouter de petites variations aléatoires
-            data.ordersToday = Math.max(5, data.ordersToday + Math.floor(Math.random() * 5) - 2);
-            data.newClients = Math.max(1, data.newClients + Math.floor(Math.random() * 3) - 1);
-            data.lowStock = Math.max(3, data.lowStock + Math.floor(Math.random() * 4) - 2);
-            
-            // Mettre à jour l'interface
+        // Mettre à jour l'interface
+        function updateDashboardUI(data) {
+            // Statistiques principales
             document.getElementById('ordersToday').textContent = data.ordersToday;
-            document.getElementById('revenueToday').textContent = data.revenueToday + ' DT';
+            document.getElementById('revenueToday').textContent = data.revenueToday.toFixed(2) + ' DT';
             document.getElementById('newClients').textContent = data.newClients;
             document.getElementById('lowStockCount').textContent = data.lowStock;
-            document.getElementById('avgOrderValue').textContent = data.avgOrderValue + ' DT';
-            document.getElementById('avgDailyOrders').textContent = data.avgDailyOrders;
-            document.getElementById('avgDailyRevenue').textContent = data.avgDailyRevenue + ' DT';
+            document.getElementById('totalOrders').textContent = data.totalOrders;
+            document.getElementById('totalRevenue').textContent = data.totalRevenue.toFixed(2) + ' DT';
+            document.getElementById('avgOrderValue').textContent = data.avgOrderValue.toFixed(2) + ' DT';
             
-            // Tendances avec petites variations
+            // Tendances
             updateTrend('ordersChange', data.ordersChange);
             updateTrend('revenueChange', data.revenueChange);
             updateTrend('clientsChange', data.clientsChange);
         }
         
-        function updateTrend(elementId, value) {
-            const el = document.getElementById(elementId);
-            el.textContent = value;
-            el.className = 'stat-trend ' + (value.includes('+') ? 'trend-up' : value.includes('-') ? 'trend-down' : 'trend-neutral');
+        function updateTrend(elementId, trendValue) {
+            const element = document.getElementById(elementId);
+            const trend = trendValue.toString();
+            
+            element.textContent = trend;
+            element.className = 'stat-trend ';
+            
+            if (trend.includes('+')) {
+                element.classList.add('trend-up');
+            } else if (trend.includes('-')) {
+                element.classList.add('trend-down');
+            } else {
+                element.classList.add('trend-neutral');
+            }
         }
         
         // Créer les graphiques
-        function createCharts() {
-            // Graphique des commandes
-            const ordersCtx = document.getElementById('ordersChart').getContext('2d');
-            new Chart(ordersCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
-                    datasets: [{
-                        label: 'Commandes',
-                        data: [12, 15, 10, 18, 22, 25, 20],
-                        borderColor: 'rgba(0, 255, 136, 1)',
-                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' } },
-                        x: { grid: { color: 'rgba(255,255,255,0.1)' } }
-                    }
-                }
-            });
+        function createCharts(data) {
+            const ctx = document.getElementById('statusChart').getContext('2d');
             
-            // Graphique de répartition
-            const statusCtx = document.getElementById('statusChart').getContext('2d');
-            new Chart(statusCtx, {
+            if (charts.statusChart) {
+                charts.statusChart.destroy();
+            }
+            
+            charts.statusChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Nouveau', 'En traitement', 'Livré'],
+                    labels: ['Nouveau', 'En traitement', 'Livré', 'Annulé'],
                     datasets: [{
-                        data: [8, 5, 2],
+                        data: [
+                            data.statusDistribution.new || 0,
+                            data.statusDistribution.processing || 0,
+                            data.statusDistribution.delivered || 0,
+                            data.statusDistribution.cancelled || 0
+                        ],
                         backgroundColor: [
                             'rgba(0, 212, 255, 0.8)',
                             'rgba(255, 167, 38, 0.8)',
-                            'rgba(0, 255, 136, 0.8)'
-                        ]
+                            'rgba(0, 255, 136, 0.8)',
+                            'rgba(255, 107, 107, 0.8)'
+                        ],
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } }
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: 'rgba(255,255,255,0.7)' }
+                        }
+                    }
                 }
             });
         }
         
-        // Rafraîchir les données
-        function refreshData() {
+        // Données de secours (déjà intégrées)
+        
+        // Fonctions utilitaires
+        function showLoading() {
             document.getElementById('refreshBtn').classList.add('spinning');
+            document.getElementById('statusBadge').className = 'status-badge status-warning';
+            document.getElementById('statusBadge').innerHTML = '<i class="fas fa-circle"></i> Chargement...';
+        }
+        
+        function hideLoading() {
+            document.getElementById('refreshBtn').classList.remove('spinning');
+            document.getElementById('statusBadge').className = 'status-badge status-online';
+            document.getElementById('statusBadge').innerHTML = '<i class="fas fa-circle"></i> Connecté';
+        }
+        
+        function showError(message) {
+            const container = document.getElementById('messageContainer');
+            container.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
             setTimeout(() => {
-                loadData();
-                document.getElementById('refreshBtn').classList.remove('spinning');
-            }, 500);
+                container.innerHTML = '';
+            }, 5000);
         }
         
-        // Mettre à jour l'heure
-        function updateLastUpdated() {
-            const now = new Date();
-            const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('lastUpdated').textContent = `Dernière mise à jour: ${time}`;
-        }
-        
-        // Afficher un message
-        function showMessage(msg, type) {
+        function showSuccess(message) {
             const container = document.getElementById('messageContainer');
             container.innerHTML = `
                 <div class="success-message">
-                    <i class="fas fa-check-circle"></i> ${msg}
+                    <i class="fas fa-check-circle"></i>
+                    <span>${message}</span>
                 </div>
             `;
-            setTimeout(() => container.innerHTML = '', 3000);
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 3000);
         }
         
-        // Rafraîchissement automatique
-        function startAutoRefresh() {
-            setInterval(() => {
-                updateValues();
-                updateLastUpdated();
-            }, 30000);
+        function updateLastUpdated() {
+            const now = new Date();
+            const formatted = now.toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            document.getElementById('lastUpdated').textContent = `Dernière mise à jour: ${formatted}`;
         }
     </script>
 </body>
