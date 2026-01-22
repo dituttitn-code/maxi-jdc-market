@@ -1,5 +1,5 @@
 // api-commandes.js - MAXI JDC MARKET
-const COMMANDE_API_URL = 'https://script.google.com/macros/s/AKfycbxvCaw20Esx8UMTP2ENSGnnjDI4ltyitaqp59jXy8ULsmMjjq4xKnPt8bNe0p5bkBAl/exec';
+const COMMANDE_API_URL = 'https://script.google.com/macros/s/AKfycbxEWUPEZheffRy-reuGbYTSYInYYu0ENwWCTD8Gt896cxmGwO_jaZtWMnoSuQ5AHBH0/exec';
 
 // ===================== FONCTIONS API =====================
 
