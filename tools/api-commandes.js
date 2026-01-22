@@ -1,621 +1,733 @@
-/*********************************
- * CONFIGURATION API
- *********************************/
+// api-commandes.js - Backend Google Apps Script pour MAXI JDC MARKET
 
-// URL de l'API Google Apps Script
-const API_URL = "https://script.google.com/macros/s/AKfycbxvCaw20Esx8UMTP2ENSGnnjDI4ltyitaqp59jXy8ULsmMjjq4xKnPt8bNe0p5bkBAl/exec";
+// Configuration
+const CONFIG = {
+  spreadsheetId: '1A2B3C4D5E6F7G8H9I0J', // À REMPLACER AVEC VOTRE ID DE SPREADSHEET
+  sheets: {
+    commandes: 'Commandes',
+    produits: 'Produits',
+    clients: 'Clients',
+    stats: 'Statistiques'
+  },
+  password: 'MAXI_JDC_2026'
+};
 
-/*********************************
- * ENVOYER UNE COMMANDE (ECRITURE)
- *********************************/
-export async function envoyerCommande(dataCommande) {
-  if (!dataCommande || typeof dataCommande !== "object") {
-    throw new Error("Données de commande invalides.");
-  }
+// Fonction principale pour traiter les requêtes
+function doGet(e) {
+  return handleRequest(e);
+}
 
-  // Formatage des articles selon la nouvelle structure
-  let articlesFormat = [];
-  
-  if (Array.isArray(dataCommande.articles)) {
-    articlesFormat = dataCommande.articles.map(item => ({
-      produit: item.produit || item.nom || "",
-      quantite: item.quantite || item.qty || 1,
-      prix_unitaire: item.prix_unitaire || item.prix || 0,
-      prix_total: item.prix_total || ((item.quantite || 1) * (item.prix_unitaire || 0))
-    }));
-  } else if (typeof dataCommande.articles === 'string') {
-    try {
-      articlesFormat = JSON.parse(dataCommande.articles);
-    } catch (e) {
-      articlesFormat = [];
+function doPost(e) {
+  return handleRequest(e);
+}
+
+function handleRequest(e) {
+  try {
+    const method = e.parameter.method || e.parameter.action || 'getDashboardData';
+    const token = e.parameter.token || e.parameter.password;
+    
+    // Vérifier le token
+    if (token !== CONFIG.password) {
+      return createResponse(false, 'Accès non autorisé', null, 401);
     }
+    
+    let result;
+    
+    switch(method) {
+      case 'getDashboardData':
+        result = getDashboardData();
+        break;
+      case 'getOrderStatus':
+        result = getOrderStatus(e.parameter.commande_id, e.parameter.telephone);
+        break;
+      case 'getOrderHistory':
+        result = getOrderHistory(e.parameter.telephone);
+        break;
+      case 'submitOrder':
+        result = submitOrder(e.parameter.payload);
+        break;
+      case 'updateStock':
+        result = updateStock(e.parameter.product_code, e.parameter.new_stock);
+        break;
+      case 'getLowStock':
+        result = getLowStock();
+        break;
+      case 'getRecentOrders':
+        result = getRecentOrders();
+        break;
+      case 'getSalesStats':
+        result = getSalesStats();
+        break;
+      default:
+        result = { success: false, error: 'Méthode non reconnue' };
+    }
+    
+    return createResponse(true, 'Requête traitée avec succès', result);
+    
+  } catch (error) {
+    console.error('Erreur API:', error);
+    return createResponse(false, error.toString(), null, 500);
   }
+}
 
-  const payload = {
-    method: "saveOrder",
-    nom: dataCommande.nom || dataCommande.client_nom || "",
-    telephone: dataCommande.telephone || dataCommande.client_telephone || "",
-    adresse: dataCommande.adresse || dataCommande.client_adresse || "",
-    articles: JSON.stringify(articlesFormat),
-    total: String(dataCommande.total || dataCommande.sousTotal || 0)
+// Récupérer les données du tableau de bord
+function getDashboardData() {
+  const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+  
+  // Récupérer les statistiques
+  const stats = getSalesStats();
+  
+  // Récupérer les commandes récentes
+  const recentOrders = getRecentOrders();
+  
+  // Récupérer les produits à faible stock
+  const lowStock = getLowStock();
+  
+  // Préparer les données pour les graphiques
+  const charts = {
+    sales: getSalesChartData(),
+    topProducts: getTopProductsChartData()
   };
-
-  console.log("Envoi de la commande:", payload);
-
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(payload).toString()
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    console.log("Réponse API:", result);
-    
-    return result;
-  } catch (error) {
-    console.error("Erreur dans envoyerCommande:", error);
-    
-    // Fallback pour no-cors
-    return fetch(API_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(payload).toString()
-    });
-  }
-}
-
-/*********************************
- * RECUPERER TOUTES LES COMMANDES (Admin)
- * Retourne le tableau avec les 8 colonnes
- *********************************/
-export async function recupererCommandes() {
-  try {
-    const response = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
-    
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (!data.success) {
-      throw new Error(data.error || "Erreur lors de la récupération des commandes");
-    }
-    
-    // Formater selon les 8 colonnes du tableau
-    const commandesFormatees = (data.orders || []).map(commande => ({
-      // Les 8 colonnes exactes
-      Date: commande.date || "",
-      Nom: commande.nom || "",
-      Téléphone: commande.telephone || "",
-      Adresse: commande.adresse || "",
-      Commande: commande.commande_id || "",
-      Articles: commande.articles || "",
-      Total: commande.total || "0",
-      Statut: commande.statut || "En attente",
-      // Données supplémentaires pour le traitement interne
-      _id: commande.id,
-      _raw: commande
-    }));
-    
-    return commandesFormatees;
-  } catch (error) {
-    console.error("Erreur dans recupererCommandes:", error);
-    return [];
-  }
-}
-
-/*********************************
- * SUIVRE UNE COMMANDE (Client)
- * Pour la fonctionnalité de suivi
- *********************************/
-export async function suivreCommande(commandeId, telephone) {
-  try {
-    const response = await fetch(
-      `${API_URL}?method=getOrderStatus&commande_id=${encodeURIComponent(commandeId)}&telephone=${encodeURIComponent(telephone)}&t=${Date.now()}`
-    );
-    
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (!data.success) {
-      throw new Error(data.error || "Commande non trouvée");
-    }
-    
-    // Formater selon les 8 colonnes
-    return {
-      // Les 8 colonnes exactes
-      Date: data.date || "",
-      Nom: data.nom || "",
-      Téléphone: data.telephone || "",
-      Adresse: data.adresse || "",
-      Commande: data.commande_id || "",
-      Articles: data.articles || "",
-      Total: data.total || "0",
-      Statut: data.statut || "En attente",
-      // Données complètes
-      ...data
-    };
-  } catch (error) {
-    console.error("Erreur dans suivreCommande:", error);
-    throw error;
-  }
-}
-
-/*********************************
- * RECUPERER L'HISTORIQUE D'UN CLIENT
- * Pour la fonctionnalité historique
- *********************************/
-export async function recupererHistorique(telephone) {
-  try {
-    const response = await fetch(
-      `${API_URL}?method=getOrderHistory&telephone=${encodeURIComponent(telephone)}&t=${Date.now()}`
-    );
-    
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (!data.success) {
-      throw new Error(data.error || "Erreur lors de la récupération de l'historique");
-    }
-    
-    // Formater selon les 8 colonnes
-    const historiqueFormate = (data.history || []).map(commande => ({
-      // Les 8 colonnes exactes
-      Date: commande.date || "",
-      Nom: "", // Le nom n'est pas dans l'historique, mais on garde la structure
-      Téléphone: telephone,
-      Adresse: "", // L'adresse n'est pas dans l'historique
-      Commande: commande.commande_id || "",
-      Articles: commande.articles || "",
-      Total: commande.total || "0",
-      Statut: commande.statut || "",
-      // Données originales
-      _raw: commande
-    }));
-    
-    return historiqueFormate;
-  } catch (error) {
-    console.error("Erreur dans recupererHistorique:", error);
-    return [];
-  }
-}
-
-/*********************************
- * METTRE A JOUR LE STATUT D'UNE COMMANDE
- * Pour le tableau de bord admin
- *********************************/
-export async function mettreAJourStatut(commandeId, nouveauStatut) {
-  try {
-    const response = await fetch(
-      `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
-    );
-    
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (!data.success) {
-      throw new Error(data.error || "Erreur lors de la mise à jour");
-    }
-    
-    return data;
-  } catch (error) {
-    console.error("Erreur dans mettreAJourStatut:", error);
-    throw error;
-  }
-}
-
-/*********************************
- * FORMATER LES ARTICLES POUR L'AFFICHAGE
- * Convertit JSON en format "quantité x produit"
- *********************************/
-export function formaterArticles(articles) {
-  if (!articles) return "";
   
-  try {
-    // Si articles est déjà formaté "3x Produit\n5x Autre"
-    if (typeof articles === "string" && articles.includes("x ")) {
-      return articles;
-    }
-    
-    let articlesArray = [];
-    
-    // Si c'est une chaîne JSON
-    if (typeof articles === "string") {
-      try {
-        articlesArray = JSON.parse(articles);
-      } catch (e) {
-        return articles; // Retourne la chaîne telle quelle
-      }
-    }
-    // Si c'est déjà un tableau
-    else if (Array.isArray(articles)) {
-      articlesArray = articles;
-    }
-    
-    // Formater chaque article
-    return articlesArray.map(item => {
-      const quantite = item.quantite || item.qty || 1;
-      const produit = item.produit || item.nom || "Produit";
-      return `${quantite}x ${produit}`;
-    }).join("\n");
-    
-  } catch (error) {
-    console.error("Erreur lors du formatage des articles:", error);
-    return String(articles || "");
-  }
+  return {
+    stats: stats,
+    charts: charts,
+    recentOrders: recentOrders,
+    lowStock: lowStock
+  };
 }
 
-/*********************************
- * PARSER LES ARTICLES DEPUIS LE TEXTE
- * Convertit "3x Produit" en JSON
- *********************************/
-export function parserArticles(texteArticles) {
-  if (!texteArticles) return [];
+// Récupérer le statut d'une commande
+function getOrderStatus(commandeId, telephone) {
+  const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+  const sheet = ss.getSheetByName(CONFIG.sheets.commandes);
   
-  const lignes = texteArticles.split('\n');
-  const articles = [];
+  if (!sheet) {
+    return { success: false, error: 'Feuille Commandes non trouvée' };
+  }
   
-  for (const ligne of lignes) {
-    const match = ligne.trim().match(/^(\d+)x\s+(.+)$/);
-    if (match) {
-      articles.push({
-        produit: match[2].trim(),
-        quantite: parseInt(match[1]),
-        prix_unitaire: 0,
-        prix_total: 0
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  
+  // Trouver les index des colonnes
+  const idIndex = headers.indexOf('ID_Commande');
+  const telIndex = headers.indexOf('Telephone');
+  const nomIndex = headers.indexOf('Nom_Client');
+  const dateIndex = headers.indexOf('Date');
+  const statutIndex = headers.indexOf('Statut');
+  const totalIndex = headers.indexOf('Total');
+  const articlesIndex = headers.indexOf('Articles');
+  const adresseIndex = headers.indexOf('Adresse');
+  
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const rowId = row[idIndex];
+    const rowTel = row[telIndex] ? row[telIndex].toString().replace(/\D/g, '') : '';
+    const searchTel = telephone.replace(/\D/g, '');
+    
+    if (rowId === commandeId && rowTel === searchTel) {
+      return {
+        success: true,
+        commande_id: rowId,
+        date: row[dateIndex],
+        nom: row[nomIndex],
+        telephone: row[telIndex],
+        adresse: row[adresseIndex],
+        articles: row[articlesIndex],
+        total: row[totalIndex],
+        statut: row[statutIndex] || 'En attente'
+      };
+    }
+  }
+  
+  return { success: false, error: 'Commande non trouvée' };
+}
+
+// Récupérer l'historique des commandes d'un client
+function getOrderHistory(telephone) {
+  const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+  const sheet = ss.getSheetByName(CONFIG.sheets.commandes);
+  
+  if (!sheet) {
+    return { success: false, error: 'Feuille Commandes non trouvée' };
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const telIndex = headers.indexOf('Telephone');
+  const idIndex = headers.indexOf('ID_Commande');
+  const dateIndex = headers.indexOf('Date');
+  const nomIndex = headers.indexOf('Nom_Client');
+  const totalIndex = headers.indexOf('Total');
+  const statutIndex = headers.indexOf('Statut');
+  const articlesIndex = headers.indexOf('Articles');
+  const adresseIndex = headers.indexOf('Adresse');
+  
+  const searchTel = telephone.replace(/\D/g, '');
+  const history = [];
+  
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const rowTel = row[telIndex] ? row[telIndex].toString().replace(/\D/g, '') : '';
+    
+    if (rowTel === searchTel) {
+      history.push({
+        commande_id: row[idIndex],
+        date: row[dateIndex],
+        nom: row[nomIndex],
+        telephone: row[telIndex],
+        adresse: row[adresseIndex],
+        articles: row[articlesIndex],
+        total: row[totalIndex],
+        statut: row[statutIndex] || 'En attente'
       });
     }
   }
   
-  return articles;
+  // Trier par date (plus récent d'abord)
+  history.sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  return {
+    success: true,
+    history: history,
+    count: history.length
+  };
 }
 
-/*********************************
- * GENERER UN TABLEAU HTML POUR L'AFFICHAGE
- * Affiche les 8 colonnes exactes
- *********************************/
-export function genererTableauCommandes(commandes) {
-  if (!commandes || !commandes.length) {
-    return '<p class="no-data">Aucune commande trouvée</p>';
-  }
-  
-  let html = `
-    <table class="commandes-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Nom</th>
-          <th>Téléphone</th>
-          <th>Adresse</th>
-          <th>Commande</th>
-          <th>Articles</th>
-          <th>Total</th>
-          <th>Statut</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-  
-  commandes.forEach(commande => {
-    html += `
-      <tr>
-        <td>${commande.Date || ''}</td>
-        <td>${commande.Nom || ''}</td>
-        <td>${commande.Téléphone || ''}</td>
-        <td>${commande.Adresse || ''}</td>
-        <td><strong>${commande.Commande || ''}</strong></td>
-        <td class="articles-cell">${formaterArticles(commande.Articles).replace(/\n/g, '<br>')}</td>
-        <td><strong>${commande.Total || '0'} dt</strong></td>
-        <td class="statut-cell" data-commande="${commande.Commande}">
-          <select class="statut-select" onchange="changerStatut('${commande.Commande}', this.value)">
-            <option value="En attente" ${commande.Statut === 'En attente' ? 'selected' : ''}>En attente</option>
-            <option value="En cours" ${commande.Statut === 'En cours' ? 'selected' : ''}>En cours</option>
-            <option value="Livrée" ${commande.Statut === 'Livrée' ? 'selected' : ''}>Livrée</option>
-            <option value="Annulée" ${commande.Statut === 'Annulée' ? 'selected' : ''}>Annulée</option>
-          </select>
-        </td>
-      </tr>
-    `;
-  });
-  
-  html += `
-      </tbody>
-    </table>
-  `;
-  
-  return html;
-}
-
-/*********************************
- * GENERER UN TABLEAU POUR LE SUIVI CLIENT
- *********************************/
-export function genererTableauSuivi(commande) {
-  if (!commande) {
-    return '<p class="no-data">Commande non trouvée</p>';
-  }
-  
-  return `
-    <div class="suivi-commande">
-      <div class="suivi-header">
-        <h3>Commande: ${commande.Commande || ''}</h3>
-        <span class="statut-badge ${commande.Statut?.toLowerCase().replace(' ', '-') || ''}">
-          ${commande.Statut || 'En attente'}
-        </span>
-      </div>
-      
-      <div class="suivi-details">
-        <div class="detail-row">
-          <span class="detail-label">Date:</span>
-          <span class="detail-value">${commande.Date || ''}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Client:</span>
-          <span class="detail-value">${commande.Nom || ''}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Téléphone:</span>
-          <span class="detail-value">${commande.Téléphone || ''}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Adresse:</span>
-          <span class="detail-value">${commande.Adresse || ''}</span>
-        </div>
-      </div>
-      
-      <div class="suivi-articles">
-        <h4>Articles commandés:</h4>
-        <div class="articles-list">
-          ${formaterArticles(commande.Articles).split('\n').map(article => `
-            <div class="article-item">${article}</div>
-          `).join('')}
-        </div>
-      </div>
-      
-      <div class="suivi-total">
-        <h4>Total à payer:</h4>
-        <div class="total-amount">${commande.Total || '0'} dt</div>
-      </div>
-    </div>
-  `;
-}
-
-/*********************************
- * CSS POUR LES TABLEAUX
- *********************************/
-export const stylesTableau = `
-  <style>
-    .commandes-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-      font-family: Arial, sans-serif;
+// Soumettre une nouvelle commande
+function submitOrder(payload) {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+    const sheet = ss.getSheetByName(CONFIG.sheets.commandes);
+    
+    if (!sheet) {
+      return { success: false, error: 'Feuille Commandes non trouvée' };
     }
     
-    .commandes-table th {
-      background: #4CAF50;
-      color: white;
-      padding: 12px;
-      text-align: left;
-      font-weight: bold;
-      border: 1px solid #ddd;
-    }
+    // Parser le payload
+    const orderData = JSON.parse(payload);
     
-    .commandes-table td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      vertical-align: top;
-    }
+    // Générer un ID de commande unique
+    const date = new Date();
+    const commandeId = `CMD-MAXI-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}-${String(sheet.getLastRow()).padStart(3, '0')}`;
     
-    .commandes-table tr:nth-child(even) {
-      background: #f9f9f9;
-    }
+    // Préparer la nouvelle ligne
+    const newRow = [
+      commandeId,
+      date.toISOString(),
+      orderData.client_nom || '',
+      orderData.client_telephone || '',
+      orderData.client_adresse || '',
+      orderData.articles || '',
+      parseFloat(orderData.sous_total || 0),
+      parseFloat(orderData.frais_livraison || 0),
+      parseFloat(orderData.total || 0),
+      parseFloat(orderData.economies || 0),
+      parseFloat(orderData.pourcentage_economies || 0),
+      'Nouveau', // Statut
+      '', // Notes
+      '', // Livreur
+      '', // Date livraison
+      orderData.timestamp || new Date().toISOString()
+    ];
     
-    .commandes-table tr:hover {
-      background: #f5f5f5;
-    }
+    // Ajouter la ligne à la feuille
+    sheet.appendRow(newRow);
     
-    .articles-cell {
-      max-width: 250px;
-      white-space: pre-line;
-      font-size: 14px;
-    }
-    
-    .statut-select {
-      padding: 6px 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background: white;
-      cursor: pointer;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    
-    .statut-select:focus {
-      outline: none;
-      border-color: #4CAF50;
-      box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-    }
-    
-    .suivi-commande {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      margin: 20px 0;
-    }
-    
-    .suivi-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 2px solid #f0f0f0;
-    }
-    
-    .statut-badge {
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-weight: bold;
-      font-size: 14px;
-    }
-    
-    .statut-badge.en-attente {
-      background: #FFF3CD;
-      color: #856404;
-    }
-    
-    .statut-badge.en-cours {
-      background: #CCE5FF;
-      color: #004085;
-    }
-    
-    .statut-badge.livrée {
-      background: #D4EDDA;
-      color: #155724;
-    }
-    
-    .statut-badge.annulée {
-      background: #F8D7DA;
-      color: #721C24;
-    }
-    
-    .suivi-details {
-      margin-bottom: 20px;
-    }
-    
-    .detail-row {
-      display: flex;
-      margin-bottom: 8px;
-      padding: 5px 0;
-    }
-    
-    .detail-label {
-      flex: 0 0 120px;
-      font-weight: bold;
-      color: #666;
-    }
-    
-    .detail-value {
-      flex: 1;
-      color: #333;
-    }
-    
-    .suivi-articles h4 {
-      margin-bottom: 10px;
-      color: #333;
-    }
-    
-    .articles-list {
-      background: #f9f9f9;
-      border-radius: 5px;
-      padding: 15px;
-      margin-bottom: 20px;
-    }
-    
-    .article-item {
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
-    }
-    
-    .article-item:last-child {
-      border-bottom: none;
-    }
-    
-    .suivi-total {
-      text-align: right;
-      padding-top: 15px;
-      border-top: 2px solid #f0f0f0;
-    }
-    
-    .total-amount {
-      font-size: 24px;
-      font-weight: bold;
-      color: #4CAF50;
-      margin-top: 5px;
-    }
-    
-    .no-data {
-      text-align: center;
-      padding: 40px;
-      color: #666;
-      font-style: italic;
-    }
-  </style>
-`;
-
-/*********************************
- * FONCTION GLOBALE POUR CHANGER LE STATUT
- *********************************/
-export function initGestionStatut() {
-  window.changerStatut = async function(commandeId, nouveauStatut) {
-    try {
-      console.log(`Changement statut: ${commandeId} -> ${nouveauStatut}`);
-      await mettreAJourStatut(commandeId, nouveauStatut);
-      
-      // Mettre à jour l'affichage
-      const cellule = document.querySelector(`[data-commande="${commandeId}"]`);
-      if (cellule) {
-        cellule.innerHTML = `
-          <select class="statut-select" onchange="changerStatut('${commandeId}', this.value)">
-            <option value="En attente" ${nouveauStatut === 'En attente' ? 'selected' : ''}>En attente</option>
-            <option value="En cours" ${nouveauStatut === 'En cours' ? 'selected' : ''}>En cours</option>
-            <option value="Livrée" ${nouveauStatut === 'Livrée' ? 'selected' : ''}>Livrée</option>
-            <option value="Annulée" ${nouveauStatut === 'Annulée' ? 'selected' : ''}>Annulée</option>
-          </select>
-        `;
-        
-        // Afficher un message de succès
-        alert(`Statut de la commande ${commandeId} mis à jour: ${nouveauStatut}`);
+    // Mettre à jour les stocks
+    if (orderData.articles) {
+      try {
+        const articles = JSON.parse(orderData.articles);
+        articles.forEach(article => {
+          updateStockInBackground(article.code, -article.quantite);
+        });
+      } catch (e) {
+        console.warn('Erreur mise à jour stocks:', e);
       }
-    } catch (error) {
-      console.error("Erreur lors du changement de statut:", error);
-      alert(`Erreur: ${error.message}`);
     }
+    
+    // Mettre à jour les statistiques
+    updateStatsInBackground(orderData.total || 0);
+    
+    return {
+      success: true,
+      commande_id: commandeId,
+      message: 'Commande enregistrée avec succès'
+    };
+    
+  } catch (error) {
+    console.error('Erreur soumission commande:', error);
+    return { success: false, error: error.toString() };
+  }
+}
+
+// Mettre à jour le stock (fonction interne)
+function updateStockInBackground(productCode, quantityChange) {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+    const sheet = ss.getSheetByName(CONFIG.sheets.produits);
+    
+    if (!sheet) return;
+    
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const codeIndex = headers.indexOf('Code');
+    const stockIndex = headers.indexOf('Stock');
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][codeIndex] === productCode) {
+        const currentStock = parseFloat(data[i][stockIndex]) || 0;
+        const newStock = Math.max(0, currentStock + quantityChange);
+        sheet.getRange(i + 1, stockIndex + 1).setValue(newStock);
+        break;
+      }
+    }
+  } catch (error) {
+    console.error('Erreur mise à jour stock:', error);
+  }
+}
+
+// Mettre à jour les statistiques
+function updateStatsInBackground(amount) {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+    const sheet = ss.getSheetByName(CONFIG.sheets.stats);
+    
+    if (!sheet) {
+      // Créer la feuille si elle n'existe pas
+      sheet = ss.insertSheet(CONFIG.sheets.stats);
+      sheet.appendRow(['Date', 'Chiffre_affaires', 'Nombre_commandes', 'Valeur_moyenne']);
+    }
+    
+    const today = new Date();
+    const dateStr = Utilities.formatDate(today, 'GMT+1', 'yyyy-MM-dd');
+    const data = sheet.getDataRange().getValues();
+    
+    let found = false;
+    for (let i = 1; i < data.length; i++) {
+      const rowDate = Utilities.formatDate(new Date(data[i][0]), 'GMT+1', 'yyyy-MM-dd');
+      if (rowDate === dateStr) {
+        // Mettre à jour la ligne existante
+        const currentAmount = parseFloat(data[i][1]) || 0;
+        const currentCount = parseFloat(data[i][2]) || 0;
+        
+        sheet.getRange(i + 1, 2).setValue(currentAmount + amount);
+        sheet.getRange(i + 1, 3).setValue(currentCount + 1);
+        sheet.getRange(i + 1, 4).setValue((currentAmount + amount) / (currentCount + 1));
+        
+        found = true;
+        break;
+      }
+    }
+    
+    if (!found) {
+      // Ajouter une nouvelle ligne
+      sheet.appendRow([today, amount, 1, amount]);
+    }
+    
+  } catch (error) {
+    console.error('Erreur mise à jour stats:', error);
+  }
+}
+
+// Récupérer les statistiques de vente
+function getSalesStats() {
+  const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+  const sheet = ss.getSheetByName(CONFIG.sheets.commandes);
+  const statsSheet = ss.getSheetByName(CONFIG.sheets.stats);
+  
+  let totalSales = 0;
+  let todayOrders = 0;
+  let todayRevenue = 0;
+  let totalCustomers = 0;
+  let lowStockProducts = 0;
+  let averageOrder = 0;
+  
+  // Calculer le total des ventes
+  if (sheet) {
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const totalIndex = headers.indexOf('Total');
+    const dateIndex = headers.indexOf('Date');
+    const telIndex = headers.indexOf('Telephone');
+    
+    const today = new Date();
+    const todayStr = Utilities.formatDate(today, 'GMT+1', 'yyyy-MM-dd');
+    
+    const uniqueCustomers = new Set();
+    
+    for (let i = 1; i < data.length; i++) {
+      const rowTotal = parseFloat(data[i][totalIndex]) || 0;
+      totalSales += rowTotal;
+      
+      const rowDate = data[i][dateIndex];
+      if (rowDate) {
+        const rowDateStr = Utilities.formatDate(new Date(rowDate), 'GMT+1', 'yyyy-MM-dd');
+        if (rowDateStr === todayStr) {
+          todayOrders++;
+          todayRevenue += rowTotal;
+        }
+      }
+      
+      const rowTel = data[i][telIndex];
+      if (rowTel) {
+        uniqueCustomers.add(rowTel.toString());
+      }
+    }
+    
+    totalCustomers = uniqueCustomers.size;
+    averageOrder = data.length > 1 ? totalSales / (data.length - 1) : 0;
+  }
+  
+  // Compter les produits à faible stock
+  const produitsSheet = ss.getSheetByName(CONFIG.sheets.produits);
+  if (produitsSheet) {
+    const data = produitsSheet.getDataRange().getValues();
+    const headers = data[0];
+    const stockIndex = headers.indexOf('Stock');
+    
+    if (stockIndex >= 0) {
+      for (let i = 1; i < data.length; i++) {
+        const stock = parseFloat(data[i][stockIndex]) || 0;
+        if (stock > 0 && stock <= 5) {
+          lowStockProducts++;
+        }
+      }
+    }
+  }
+  
+  // Calculer la croissance mensuelle (simplifié)
+  const monthlyGrowth = calculateMonthlyGrowth();
+  
+  return {
+    totalSales: totalSales.toFixed(2),
+    todayOrders: todayOrders,
+    totalCustomers: totalCustomers,
+    lowStockProducts: lowStockProducts,
+    monthlyGrowth: monthlyGrowth,
+    averageOrder: averageOrder.toFixed(2),
+    todayRevenue: todayRevenue.toFixed(2)
   };
 }
 
-/*********************************
- * EXPORT DES FONCTIONS
- *********************************/
-export default {
-  envoyerCommande,
-  recupererCommandes,
-  suivreCommande,
-  recupererHistorique,
-  mettreAJourStatut,
-  formaterArticles,
-  parserArticles,
-  genererTableauCommandes,
-  genererTableauSuivi,
-  stylesTableau,
-  initGestionStatut
-};
+// Calculer la croissance mensuelle
+function calculateMonthlyGrowth() {
+  const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+  const sheet = ss.getSheetByName(CONFIG.sheets.stats);
+  
+  if (!sheet || sheet.getLastRow() < 2) {
+    return 100; // Croissance par défaut pour le démarrage
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  
+  let currentMonthTotal = 0;
+  let previousMonthTotal = 0;
+  
+  for (let i = 1; i < data.length; i++) {
+    const rowDate = new Date(data[i][0]);
+    const rowAmount = parseFloat(data[i][1]) || 0;
+    
+    if (rowDate.getMonth() === currentMonth && rowDate.getFullYear() === currentYear) {
+      currentMonthTotal += rowAmount;
+    } else if (rowDate.getMonth() === (currentMonth - 1 + 12) % 12 && 
+               rowDate.getFullYear() === (currentMonth === 0 ? currentYear - 1 : currentYear)) {
+      previousMonthTotal += rowAmount;
+    }
+  }
+  
+  if (previousMonthTotal === 0) {
+    return currentMonthTotal > 0 ? 100 : 0;
+  }
+  
+  const growth = ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100;
+  return Math.round(growth);
+}
 
-// Pour utilisation depuis la console
-if (typeof window !== 'undefined') {
-  window.apiCommandes = {
-    envoyerCommande,
-    recupererCommandes,
-    suivreCommande,
-    recupererHistorique,
-    mettreAJourStatut,
-    formaterArticles
+// Récupérer les données pour le graphique des ventes
+function getSalesChartData() {
+  const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+  const sheet = ss.getSheetByName(CONFIG.sheets.stats);
+  
+  const labels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  const data = [0, 0, 0, 0, 0, 0, 0];
+  
+  if (sheet && sheet.getLastRow() > 1) {
+    const sheetData = sheet.getDataRange().getValues();
+    
+    // Récupérer les 7 derniers jours
+    for (let i = Math.max(1, sheetData.length - 7); i < sheetData.length; i++) {
+      const rowDate = new Date(sheetData[i][0]);
+      const dayOfWeek = rowDate.getDay(); // 0 = Dimanche, 1 = Lundi, etc.
+      const amount = parseFloat(sheetData[i][1]) || 0;
+      
+      // Convertir pour avoir Lundi = 0
+      const adjustedDay = (dayOfWeek + 6) % 7;
+      if (adjustedDay >= 0 && adjustedDay < 7) {
+        data[adjustedDay] += amount;
+      }
+    }
+  }
+  
+  return {
+    labels: labels,
+    data: data.map(val => Math.round(val))
   };
+}
+
+// Récupérer les données pour le graphique des produits populaires
+function getTopProductsChartData() {
+  const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+  const sheet = ss.getSheetByName(CONFIG.sheets.commandes);
+  
+  const productSales = new Map();
+  
+  if (sheet && sheet.getLastRow() > 1) {
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const articlesIndex = headers.indexOf('Articles');
+    
+    for (let i = 1; i < data.length; i++) {
+      try {
+        const articlesJson = data[i][articlesIndex];
+        if (articlesJson) {
+          const articles = JSON.parse(articlesJson);
+          articles.forEach(article => {
+            const productName = article.produit || 'Produit inconnu';
+            const quantity = parseInt(article.quantite) || 0;
+            
+            if (productSales.has(productName)) {
+              productSales.set(productName, productSales.get(productName) + quantity);
+            } else {
+              productSales.set(productName, quantity);
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Erreur parsing articles:', e);
+      }
+    }
+  }
+  
+  // Trier par quantité vendue et prendre les 5 premiers
+  const sortedProducts = Array.from(productSales.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  
+  return {
+    labels: sortedProducts.map(p => p[0]),
+    data: sortedProducts.map(p => p[1])
+  };
+}
+
+// Récupérer les commandes récentes
+function getRecentOrders() {
+  const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+  const sheet = ss.getSheetByName(CONFIG.sheets.commandes);
+  
+  const recentOrders = [];
+  
+  if (sheet && sheet.getLastRow() > 1) {
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    
+    const idIndex = headers.indexOf('ID_Commande');
+    const dateIndex = headers.indexOf('Date');
+    const nomIndex = headers.indexOf('Nom_Client');
+    const telIndex = headers.indexOf('Telephone');
+    const totalIndex = headers.indexOf('Total');
+    const statutIndex = headers.indexOf('Statut');
+    
+    // Prendre les 10 commandes les plus récentes
+    const startRow = Math.max(1, data.length - 10);
+    
+    for (let i = startRow; i < data.length; i++) {
+      recentOrders.push({
+        id: data[i][idIndex],
+        date: data[i][dateIndex],
+        client_name: data[i][nomIndex],
+        client_phone: data[i][telIndex],
+        total: parseFloat(data[i][totalIndex]) || 0,
+        status: data[i][statutIndex] || 'Nouveau'
+      });
+    }
+    
+    // Trier par date (plus récent d'abord)
+    recentOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+  }
+  
+  return recentOrders;
+}
+
+// Récupérer les produits à faible stock
+function getLowStock() {
+  const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+  const sheet = ss.getSheetByName(CONFIG.sheets.produits);
+  
+  const lowStock = [];
+  
+  if (sheet && sheet.getLastRow() > 1) {
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    
+    const codeIndex = headers.indexOf('Code');
+    const nomIndex = headers.indexOf('Nom');
+    const categorieIndex = headers.indexOf('Categorie');
+    const stockIndex = headers.indexOf('Stock');
+    const prixIndex = headers.indexOf('Prix');
+    
+    for (let i = 1; i < data.length; i++) {
+      const stock = parseFloat(data[i][stockIndex]) || 0;
+      if (stock > 0 && stock <= 5) {
+        lowStock.push({
+          code: data[i][codeIndex],
+          name: data[i][nomIndex],
+          category: data[i][categorieIndex],
+          stock: stock,
+          price: parseFloat(data[i][prixIndex]) || 0
+        });
+      }
+    }
+    
+    // Trier par stock (le plus bas d'abord)
+    lowStock.sort((a, b) => a.stock - b.stock);
+  }
+  
+  return lowStock;
+}
+
+// Mettre à jour le stock manuellement
+function updateStock(productCode, newStock) {
+  const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+  const sheet = ss.getSheetByName(CONFIG.sheets.produits);
+  
+  if (!sheet) {
+    return { success: false, error: 'Feuille Produits non trouvée' };
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const codeIndex = headers.indexOf('Code');
+  const stockIndex = headers.indexOf('Stock');
+  
+  let updated = false;
+  
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][codeIndex] === productCode) {
+      sheet.getRange(i + 1, stockIndex + 1).setValue(parseInt(newStock) || 0);
+      updated = true;
+      break;
+    }
+  }
+  
+  if (updated) {
+    return { success: true, message: `Stock mis à jour pour ${productCode}: ${newStock}` };
+  } else {
+    return { success: false, error: `Produit ${productCode} non trouvé` };
+  }
+}
+
+// Créer une réponse JSON
+function createResponse(success, message, data = null, statusCode = 200) {
+  const response = {
+    success: success,
+    message: message,
+    data: data
+  };
+  
+  const output = ContentService.createTextOutput(JSON.stringify(response));
+  output.setMimeType(ContentService.MimeType.JSON);
+  output.setStatusCode(statusCode);
+  
+  return output;
+}
+
+// Fonction d'initialisation (à exécuter une fois)
+function initializeSheets() {
+  const ss = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+  
+  // Créer la feuille Commandes si elle n'existe pas
+  let sheet = ss.getSheetByName(CONFIG.sheets.commandes);
+  if (!sheet) {
+    sheet = ss.insertSheet(CONFIG.sheets.commandes);
+    sheet.appendRow([
+      'ID_Commande',
+      'Date',
+      'Nom_Client',
+      'Telephone',
+      'Adresse',
+      'Articles',
+      'Sous_total',
+      'Frais_livraison',
+      'Total',
+      'Economies',
+      'Pourcentage_economies',
+      'Statut',
+      'Notes',
+      'Livreur',
+      'Date_livraison',
+      'Timestamp'
+    ]);
+    
+    // Formater l'en-tête
+    const headerRange = sheet.getRange(1, 1, 1, 16);
+    headerRange.setBackground('#4a86e8')
+      .setFontColor('white')
+      .setFontWeight('bold');
+    
+    // Ajuster la largeur des colonnes
+    sheet.autoResizeColumns(1, 16);
+  }
+  
+  // Créer la feuille Statistiques si elle n'existe pas
+  sheet = ss.getSheetByName(CONFIG.sheets.stats);
+  if (!sheet) {
+    sheet = ss.insertSheet(CONFIG.sheets.stats);
+    sheet.appendRow(['Date', 'Chiffre_affaires', 'Nombre_commandes', 'Valeur_moyenne']);
+    
+    const headerRange = sheet.getRange(1, 1, 1, 4);
+    headerRange.setBackground('#4a86e8')
+      .setFontColor('white')
+      .setFontWeight('bold');
+  }
+  
+  // Créer la feuille Clients si elle n'existe pas
+  sheet = ss.getSheetByName(CONFIG.sheets.clients);
+  if (!sheet) {
+    sheet = ss.insertSheet(CONFIG.sheets.clients);
+    sheet.appendRow([
+      'Nom',
+      'Telephone',
+      'Adresse',
+      'Premiere_commande',
+      'Derniere_commande',
+      'Total_commandes',
+      'Total_depense',
+      'Notes'
+    ]);
+    
+    const headerRange = sheet.getRange(1, 1, 1, 8);
+    headerRange.setBackground('#4a86e8')
+      .setFontColor('white')
+      .setFontWeight('bold');
+  }
+  
+  return 'Feuilles initialisées avec succès!';
+}
+
+// Tester l'API
+function testAPI() {
+  const testData = {
+    token: CONFIG.password,
+    method: 'getDashboardData'
+  };
+  
+  const params = {
+    parameter: testData
+  };
+  
+  const result = handleRequest(params);
+  return result.getContent();
 }
