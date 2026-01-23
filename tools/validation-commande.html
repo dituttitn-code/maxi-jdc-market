@@ -1,1 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Validation de commande - MAXI JDC MARKET</title>
+
+  <style>
+    :root{
+      --bg1:#0a1929;--bg2:#112240;--card:#162447;--line:rgba(255,255,255,.15);
+      --txt:#f0f6fc;--muted:#8b949e;--green:#00ff88;--blue:#00d4ff;--red:#ff6b6b;
+      --shadow:0 10px 40px rgba(0,0,0,.45);--r:14px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;
+      background:linear-gradient(135deg,var(--bg1),var(--bg2));
+      color:var(--txt);min-height:100vh;padding:18px;
+    }
+    .container{max-width:900px;margin:0 auto}
+    .header{
+      background:rgba(10,25,47,.95);border:2px solid var(--green);border-radius:var(--r);
+      padding:18px 22px;display:flex;justify-content:space-between;align-items:center;
+      box-shadow:var(--shadow);margin-bottom:18px;
+    }
+    h1{
+      font-size:22px;font-weight:900;
+      background:linear-gradient(90deg,var(--green),var(--blue));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+    .sub{color:var(--muted);font-size:13px;margin-top:4px}
+    .card{background:var(--card);border:2px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:18px}
+    label{font-size:12px;color:var(--muted)}
+    input,textarea{
+      width:100%;padding:12px;border-radius:10px;border:2px solid var(--line);
+      background:rgba(255,255,255,.08);color:var(--txt);outline:none;
+    }
+    input:focus,textarea:focus{border-color:var(--green)}
+    textarea{min-height:90px}
+    .btn{
+      width:100%;margin-top:16px;
+      background:rgba(0,255,136,.15);border:2px solid var(--green);
+      color:var(--green);font-weight:900;padding:14px;border-radius:12px;
+      cursor:pointer;font-size:16px;
+    }
+    .btn:hover{background:rgba(0,255,136,.25)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row1{display:grid;grid-template-columns:1fr;gap:12px}
+    .error{color:var(--red);font-weight:800;margin-top:10px}
+    .big{font-size:18px;font-weight:900;color:var(--green)}
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Validation de commande</h1>
+        <div class="sub">MAXI JDC MARKET — confirmation via WhatsApp</div>
+      </div>
+      <a href="/maxi-jdc-market/" style="color:white;text-decoration:none;">← Accueil</a>
+    </div>
+
+    <div class="card">
+      <div>🧾 Numéro de commande :</div>
+      <div id="commandeId" class="big">—</div>
+
+      <div class="row" style="margin-top:14px;">
+        <div>
+          <label>Nom & Prénom</label>
+          <input id="nom" placeholder="Ex: Mohamed Ali">
+        </div>
+        <div>
+          <label>Téléphone (WhatsApp)</label>
+          <input id="telephone" placeholder="Ex: 25 600 978">
+        </div>
+      </div>
+
+      <div class="row1" style="margin-top:12px;">
+        <div>
+          <label>Adresse de livraison</label>
+          <textarea id="adresse" placeholder="Ex: Jardins de Carthage..."></textarea>
+        </div>
+      </div>
+
+      <div id="error" class="error" style="display:none;"></div>
+
+      <button class="btn" id="btnValider">✅ Valider & ouvrir WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- API COMMANDES -->
+  <script src="./api/api-commandes.js"></script>
+
+  <script>
+    const $ = id => document.getElementById(id);
+
+    async function genererNumero() {
+      const id = await ApiCommandes.generateNextCommandeId(new Date());
+      $("commandeId").textContent = id;
+      return id;
+    }
+
+    function erreur(msg){
+      $("error").style.display="block";
+      $("error").textContent=msg;
+    }
+
+    $("btnValider").addEventListener("click", async () => {
+      $("error").style.display="none";
+
+      const nom = $("nom").value.trim();
+      const tel = $("telephone").value.trim();
+      const adr = $("adresse").value.trim();
+
+      if(!nom || !tel || !adr){
+        erreur("Veuillez remplir tous les champs.");
+        return;
+      }
+
+      let cmd = $("commandeId").textContent;
+      if(cmd==="—") cmd = await genererNumero();
+
+      // 🔥 OUVERTURE WHATSAPP CLIENT
+      ApiCommandes.openWhatsApp(tel, cmd);
+    });
+
+    document.addEventListener("DOMContentLoaded", genererNumero);
+  </script>
+</body>
+</html>
 
