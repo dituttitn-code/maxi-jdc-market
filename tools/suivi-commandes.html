@@ -1,1 +1,639 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suivi de Commande - MAXI JDC MARKET</title>
+
+  <style>
+    :root{
+      --bg1:#0a1929;--bg2:#112240;--card:#162447;--line:rgba(255,255,255,.15);
+      --txt:#f0f6fc;--muted:#8b949e;--green:#00ff88;--blue:#00d4ff;--orange:#ffa726;--red:#ff6b6b;
+      --shadow:0 10px 40px rgba(0,0,0,.45);--r:14px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;
+      background:linear-gradient(135deg,var(--bg1),var(--bg2));
+      color:var(--txt);min-height:100vh;padding:18px;
+    }
+    .container{max-width:900px;margin:0 auto}
+    .header{
+      background:rgba(10,25,47,.95);border:2px solid var(--green);border-radius:var(--r);
+      padding:18px 22px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+      box-shadow:var(--shadow);margin-bottom:20px;
+    }
+    .left{display:flex;align-items:center;gap:14px}
+    .logo{
+      width:56px;height:56px;border-radius:12px;border:3px solid var(--green);
+      display:flex;align-items:center;justify-content:center;background:rgba(0,255,136,.12);
+      font-size:22px;font-weight:900;
+    }
+    h1{
+      font-size:22px;font-weight:900;background:linear-gradient(90deg,var(--green),var(--blue));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;
+    }
+    .sub{color:var(--muted);font-size:13px}
+    .btn{
+      background:rgba(255,255,255,.10);border:2px solid var(--line);color:var(--txt);
+      padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer;transition:.2s;
+      display:flex;gap:8px;align-items:center;text-decoration:none;justify-content:center;
+    }
+    .btn:hover{transform:translateY(-2px);border-color:var(--blue);background:rgba(255,255,255,.15)}
+    .card{background:var(--card);border:2px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:22px;margin-bottom:20px}
+    .search-section{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+    .search-input{
+      flex:1;min-width:260px;padding:14px 18px;border-radius:10px;border:2px solid var(--line);
+      background:rgba(255,255,255,.08);color:var(--txt);font-size:16px;outline:none;
+    }
+    .search-input:focus{border-color:var(--green)}
+    .search-btn{
+      padding:14px 24px;border-radius:10px;border:2px solid var(--green);
+      background:rgba(0,255,136,.15);color:var(--green);font-weight:900;font-size:16px;cursor:pointer;transition:.3s;
+    }
+    .search-btn:hover{background:rgba(0,255,136,.25);transform:translateY(-2px)}
+    .hint{font-size:12px;color:var(--muted)}
+    .order-card{
+      background:linear-gradient(135deg,rgba(26,36,93,.8),rgba(22,36,71,.8));
+      border:2px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px;transition:.3s;
+      box-shadow:var(--shadow);
+    }
+    .order-card:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,212,255,.2)}
+    .order-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line);gap:10px;flex-wrap:wrap}
+    .order-id{font-size:18px;font-weight:900;color:var(--green)}
+    .order-date{color:var(--muted);font-size:14px}
+    .status-badge{
+      padding:8px 16px;border-radius:20px;font-weight:900;font-size:14px;display:inline-flex;align-items:center;gap:8px;
+      border:2px solid rgba(255,255,255,.2);
+    }
+    .status-pending{background:rgba(255,193,7,.15);color:#FFC107;border-color:rgba(255,193,7,.3)}
+    .status-processing{background:rgba(33,150,243,.15);color:#2196F3;border-color:rgba(33,150,243,.3)}
+    .status-delivered{background:rgba(76,175,80,.15);color:#4CAF50;border-color:rgba(76,175,80,.3)}
+    .status-cancelled{background:rgba(244,67,54,.15);color:#F44336;border-color:rgba(244,67,54,.3)}
+    .progress-container{margin:20px 0;padding:20px;background:rgba(0,0,0,.2);border-radius:12px;position:relative}
+    .progress-steps{display:flex;justify-content:space-between;position:relative;margin-top:18px;gap:10px}
+    .progress-steps::before{content:"";position:absolute;top:20px;left:0;right:0;height:4px;background:var(--line);z-index:1}
+    .progress-bar{position:absolute;top:20px;left:0;height:4px;background:var(--green);z-index:2;transition:width .5s ease}
+    .step{display:flex;flex-direction:column;align-items:center;z-index:3;position:relative;min-width:70px}
+    .step-icon{
+      width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      font-size:18px;font-weight:900;background:var(--card);border:3px solid var(--line);margin-bottom:8px;
+    }
+    .step.active .step-icon{border-color:var(--green);background:rgba(0,255,136,.15);color:var(--green)}
+    .step.completed .step-icon{border-color:var(--green);background:var(--green);color:var(--bg1)}
+    .step-label{font-size:12px;color:var(--muted);text-align:center;max-width:100px}
+    .step.active .step-label{color:var(--green);font-weight:700}
+    .order-details{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:20px}
+    .detail-item{background:rgba(255,255,255,.05);border-radius:10px;padding:12px}
+    .detail-label{color:var(--muted);font-size:12px;margin-bottom:4px}
+    .detail-value{font-size:14px;font-weight:700;word-break:break-word}
+    .articles-list{margin-top:14px;max-height:240px;overflow-y:auto;padding-right:10px}
+    .article-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid rgba(255,255,255,.1);gap:10px}
+    .article-item:last-child{border-bottom:none}
+    .article-name{flex:1;font-size:14px}
+    .article-qty{font-size:14px;font-weight:800;color:var(--green);min-width:46px;text-align:right}
+    .order-total{margin-top:18px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .total-label{font-size:16px;color:var(--muted)}
+    .total-value{font-size:22px;font-weight:900;color:var(--green)}
+    .empty-state{text-align:center;padding:60px 20px}
+    .empty-icon{font-size:80px;margin-bottom:20px;opacity:.5}
+    .empty-title{font-size:24px;font-weight:900;color:var(--txt);margin-bottom:10px}
+    .empty-description{font-size:16px;color:var(--muted);line-height:1.5;max-width:480px;margin:0 auto}
+    .loading{text-align:center;padding:40px;color:var(--muted)}
+    .loading-spinner{width:40px;height:40px;border:3px solid var(--line);border-top-color:var(--green);border-radius:50%;margin:0 auto 20px;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .error-message{background:rgba(255,107,107,.15);border:2px solid var(--red);border-radius:var(--r);padding:18px;text-align:center;color:var(--red);margin-bottom:20px}
+    .success-message{background:rgba(0,255,136,.15);border:2px solid var(--green);border-radius:var(--r);padding:18px;text-align:center;color:var(--green);margin-bottom:20px}
+    .mini-list{
+      margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden;
+      background:rgba(255,255,255,.04)
+    }
+    .mini-item{
+      display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.08);cursor:pointer;
+    }
+    .mini-item:last-child{border-bottom:none}
+    .mini-item:hover{background:rgba(0,212,255,.08)}
+    .mini-left{display:flex;flex-direction:column;gap:4px}
+    .mini-id{font-weight:900;color:var(--green)}
+    .mini-sub{font-size:12px;color:var(--muted)}
+    .mini-status{font-size:12px;font-weight:900;color:var(--blue)}
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="left">
+        <div class="logo">📍</div>
+        <div>
+          <h1>Suivi de Commande</h1>
+          <div class="sub">MAXI JDC MARKET — Suivez votre commande en temps réel</div>
+        </div>
+      </div>
+
+      <a class="btn" href="/maxi-jdc-market/"><span>←</span><span>Retour Accueil</span></a>
+    </header>
+
+    <div class="card">
+      <h2 style="margin-bottom: 14px; color: var(--green);">🔍 Suivre une commande</h2>
+      <div class="search-section">
+        <input type="text" id="orderIdInput" class="search-input"
+               placeholder="Numéro commande (CMD-MAXI-20260118-001) ou téléphone (ex: 55532482)">
+        <button class="search-btn" id="searchOrderBtn"><span>🔎</span><span>Rechercher</span></button>
+      </div>
+      <div class="hint">💡 Astuce : tu peux saisir ton téléphone pour voir tes commandes (on affiche la dernière + une liste).</div>
+
+      <div id="phoneOrdersList" class="mini-list" style="display:none;"></div>
+    </div>
+
+    <div id="errorMessage" class="error-message" style="display:none;">
+      ❌ Aucune commande trouvée avec cet identifiant
+    </div>
+
+    <div id="successMessage" class="success-message" style="display:none;">
+      ✅ Commande trouvée ! Affichage des détails...
+    </div>
+
+    <div id="loadingState" class="loading" style="display:none;">
+      <div class="loading-spinner"></div>
+      <div>Chargement des informations de commande...</div>
+    </div>
+
+    <div id="emptyState" class="empty-state" style="display:none;">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">Aucune commande trouvée</div>
+      <div class="empty-description">
+        Vérifiez votre numéro de commande ou contactez-nous au +216 25 600 978
+      </div>
+    </div>
+
+    <div id="orderCard" class="order-card" style="display:none;">
+      <div class="order-header">
+        <div>
+          <div class="order-id" id="orderIdDisplay">—</div>
+          <div class="order-date" id="orderDateDisplay">—</div>
+        </div>
+        <div class="status-badge" id="orderStatusBadge">—</div>
+      </div>
+
+      <div class="progress-container">
+        <div style="font-weight: 800; color: var(--txt); margin-bottom: 10px;">📦 Progression de votre commande</div>
+        <div class="progress-steps">
+          <div class="step completed" id="step1"><div class="step-icon">📝</div><div class="step-label">Commandé</div></div>
+          <div class="step" id="step2"><div class="step-icon">👨‍🍳</div><div class="step-label">En préparation</div></div>
+          <div class="step" id="step3"><div class="step-icon">🚚</div><div class="step-label">En livraison</div></div>
+          <div class="step" id="step4"><div class="step-icon">✅</div><div class="step-label">Livré</div></div>
+        </div>
+        <div class="progress-bar" id="progressBar" style="width:25%;"></div>
+      </div>
+
+      <div class="order-details">
+        <div class="detail-item"><div class="detail-label">👤 Client</div><div class="detail-value" id="clientName">—</div></div>
+        <div class="detail-item"><div class="detail-label">📱 Téléphone</div><div class="detail-value" id="clientPhone">—</div></div>
+        <div class="detail-item"><div class="detail-label">📍 Adresse</div><div class="detail-value" id="clientAddress">—</div></div>
+        <div class="detail-item"><div class="detail-label">💰 Mode de paiement</div><div class="detail-value" id="paymentMethod">À la livraison</div></div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <div style="font-weight: 800; color: var(--txt); margin-bottom: 10px;">🛒 Articles commandés</div>
+        <div class="articles-list" id="articlesList"></div>
+      </div>
+
+      <div class="order-total">
+        <div class="total-label">Total</div>
+        <div class="total-value" id="orderTotal">—</div>
+      </div>
+
+      <div style="margin-top: 18px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn" id="contactBtn" style="flex: 1; min-width: 220px;"><span>📱</span><span>Contacter (WhatsApp)</span></button>
+        <button class="btn" id="helpBtn" style="flex: 1; min-width: 220px;"><span>❓</span><span>Appeler</span></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom: 15px; color: var(--green);">📞 Besoin d'aide ?</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;">
+        <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;">
+          <div style="font-weight: 800; color: var(--blue); margin-bottom: 5px;">WhatsApp</div>
+          <div style="font-size: 14px;">+216 25 600 978</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;">
+          <div style="font-weight: 800; color: var(--green); margin-bottom: 5px;">Horaires</div>
+          <div style="font-size: 14px;">7h - 1h tous les jours</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;">
+          <div style="font-weight: 800; color: var(--orange); margin-bottom: 5px;">Adresse</div>
+          <div style="font-size: 14px;">Derrière mosquée Esseem, Jardins De Carthage, Tunis</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ IMPORTANT : ton fichier est dans tools/api/api-commandes.js -->
+  <script src="./api/api-commandes.js"></script>
+
+  <script>
+    // (Optionnel) Ton Apps Script existant : si tu veux garder la recherche backend en priorité.
+    // Si tu veux 100% via Google Sheet (ApiCommandes), laisse comme ça, c’est OK.
+    const APPS_SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbzJBRgQiA214iLEyoDFWTq2dnfRFTL8S9fGwNd0SCGWKmUihISIMeyle_SF0X7vkEk/exec";
+
+    const SHOP_WHATSAPP = "21625600978";
+
+    const el = {
+      orderIdInput: document.getElementById("orderIdInput"),
+      searchOrderBtn: document.getElementById("searchOrderBtn"),
+      phoneOrdersList: document.getElementById("phoneOrdersList"),
+
+      orderCard: document.getElementById("orderCard"),
+      loadingState: document.getElementById("loadingState"),
+      emptyState: document.getElementById("emptyState"),
+      errorMessage: document.getElementById("errorMessage"),
+      successMessage: document.getElementById("successMessage"),
+
+      orderIdDisplay: document.getElementById("orderIdDisplay"),
+      orderDateDisplay: document.getElementById("orderDateDisplay"),
+      orderStatusBadge: document.getElementById("orderStatusBadge"),
+
+      clientName: document.getElementById("clientName"),
+      clientPhone: document.getElementById("clientPhone"),
+      clientAddress: document.getElementById("clientAddress"),
+      paymentMethod: document.getElementById("paymentMethod"),
+      articlesList: document.getElementById("articlesList"),
+      orderTotal: document.getElementById("orderTotal"),
+
+      contactBtn: document.getElementById("contactBtn"),
+      helpBtn: document.getElementById("helpBtn"),
+
+      step1: document.getElementById("step1"),
+      step2: document.getElementById("step2"),
+      step3: document.getElementById("step3"),
+      step4: document.getElementById("step4"),
+      progressBar: document.getElementById("progressBar")
+    };
+
+    const progressStates = {
+      "En attente":    { width: "25%",  steps: [true,  false, false, false] },
+      "En cours":      { width: "50%",  steps: [true,  true,  false, false] },
+      "En préparation":{ width: "50%",  steps: [true,  true,  false, false] },
+      "En livraison":  { width: "75%",  steps: [true,  true,  true,  false] },
+      "Livrée":        { width: "100%", steps: [true,  true,  true,  true ] },
+      "Livree":        { width: "100%", steps: [true,  true,  true,  true ] },
+      "Annulée":       { width: "100%", steps: [true,  false, false, false] },
+      "Annulee":       { width: "100%", steps: [true,  false, false, false] }
+    };
+
+    const statusClasses = {
+      "En attente": "status-pending",
+      "En cours": "status-processing",
+      "En préparation": "status-processing",
+      "En livraison": "status-processing",
+      "Livrée": "status-delivered",
+      "Livree": "status-delivered",
+      "Annulée": "status-cancelled",
+      "Annulee": "status-cancelled"
+    };
+
+    function show(x){ x.style.display = "block"; }
+    function hide(x){ x.style.display = "none"; }
+
+    function normalizeStatus(s){
+      const v = String(s || "").trim();
+      if (!v) return "En attente";
+      // Harmoniser quelques variantes
+      if (v.toLowerCase() === "livree") return "Livrée";
+      if (v.toLowerCase() === "annulee") return "Annulée";
+      return v;
+    }
+
+    function formatDateSmart(value){
+      // value peut être Date, string, ou un format dd/mm/yyyy (sheet)
+      if (!value) return "—";
+      if (value instanceof Date) {
+        return value.toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"});
+      }
+      const str = String(value);
+
+      // cas "2026-01-19" ou ISO
+      const d1 = new Date(str);
+      if (!Number.isNaN(d1.getTime())) {
+        return d1.toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"});
+      }
+
+      // cas "19/01/2026"
+      const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (m) {
+        const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+        return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"});
+      }
+
+      return str;
+    }
+
+    function formatPrice(amount){
+      const n = Number(amount);
+      if (Number.isNaN(n)) return String(amount || "—");
+      return n.toFixed(2).replace(".", ",") + " dt";
+    }
+
+    function updateProgress(status){
+      const s = normalizeStatus(status);
+      const progress = progressStates[s] || progressStates["En attente"];
+      el.progressBar.style.width = progress.width;
+
+      const steps = [el.step1, el.step2, el.step3, el.step4];
+      steps.forEach((step, idx) => {
+        if (progress.steps[idx]) {
+          step.classList.add("completed");
+          step.classList.add("active");
+        } else {
+          step.classList.remove("completed");
+          step.classList.remove("active");
+        }
+      });
+    }
+
+    function updateStatusBadge(status){
+      const s = normalizeStatus(status);
+      el.orderStatusBadge.textContent = s;
+      el.orderStatusBadge.className = `status-badge ${statusClasses[s] || "status-pending"}`;
+    }
+
+    function parseArticlesText(text){
+      // Exemples:
+      // "2x CHIPS LAYS SEL 80GR\n3x Harissa du Cap Vert 380 g"
+      const t = String(text || "").trim();
+      if (!t) return [];
+      const lines = t.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+
+      const out = [];
+      for (const line of lines) {
+        const m = line.match(/^(\d+)\s*x\s*(.+)$/i);
+        if (m) out.push({ name: m[2].trim(), quantity: Number(m[1]) });
+        else out.push({ name: line, quantity: 1 });
+      }
+      return out;
+    }
+
+    function displayArticles(articles){
+      el.articlesList.innerHTML = "";
+      const list = Array.isArray(articles) ? articles : [];
+      if (!list.length) {
+        el.articlesList.innerHTML = `<div class="hint">Aucun article trouvé.</div>`;
+        return;
+      }
+      for (const a of list) {
+        const div = document.createElement("div");
+        div.className = "article-item";
+        div.innerHTML = `
+          <div class="article-name">${escapeHtml(a.name || "Article")}</div>
+          <div class="article-qty">${Number(a.quantity || 0)}x</div>
+        `;
+        el.articlesList.appendChild(div);
+      }
+    }
+
+    function escapeHtml(s){
+      return String(s || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function clearStates(){
+      hide(el.orderCard);
+      hide(el.loadingState);
+      hide(el.emptyState);
+      hide(el.errorMessage);
+      hide(el.successMessage);
+      hide(el.phoneOrdersList);
+      el.phoneOrdersList.innerHTML = "";
+    }
+
+    function showLoading(){
+      clearStates();
+      show(el.loadingState);
+    }
+
+    function showEmpty(){
+      hide(el.loadingState);
+      show(el.emptyState);
+      show(el.errorMessage);
+    }
+
+    function showSuccessFlash(){
+      show(el.successMessage);
+      setTimeout(() => hide(el.successMessage), 1800);
+    }
+
+    function displayOrder(order){
+      // order: { id, date, clientName, clientPhone, clientAddress, status, articles[], total }
+      el.orderIdDisplay.textContent = order.id || "—";
+      el.orderDateDisplay.textContent = formatDateSmart(order.date);
+      el.clientName.textContent = order.clientName || "—";
+      el.clientPhone.textContent = order.clientPhone || "—";
+      el.clientAddress.textContent = order.clientAddress || "—";
+      el.paymentMethod.textContent = order.paymentMethod || "À la livraison";
+      el.orderTotal.textContent = formatPrice(order.total);
+
+      updateStatusBadge(order.status);
+      updateProgress(order.status);
+      displayArticles(order.articles);
+
+      hide(el.loadingState);
+      show(el.orderCard);
+      showSuccessFlash();
+    }
+
+    // ---------- 1) Optionnel : recherche via ton Apps Script ----------
+    async function fetchOrderFromAppsScript(commandeId){
+      try{
+        const res = await fetch(`${APPS_SCRIPT_API_URL}?method=getOrder&commande_id=${encodeURIComponent(commandeId)}&t=${Date.now()}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!(data && data.success && data.order)) return null;
+
+        let arts = [];
+        if (data.order.articles) {
+          if (Array.isArray(data.order.articles)) arts = data.order.articles;
+          else {
+            try { arts = JSON.parse(data.order.articles); } catch { arts = []; }
+          }
+        }
+
+        // Si tes articles backend sont déjà {name, quantity, price} on prend, sinon on adapte.
+        const normalizedArts = (arts || []).map(x => ({
+          name: x.name || x.article || x.libelle || String(x),
+          quantity: Number(x.quantity || x.qty || 1)
+        }));
+
+        return {
+          id: data.order.commande_id || commandeId,
+          date: data.order.date || new Date().toISOString(),
+          clientName: data.order.nom || "Client",
+          clientPhone: data.order.telephone || "",
+          clientAddress: data.order.adresse || "",
+          status: data.order.statut || "En attente",
+          paymentMethod: "À la livraison",
+          articles: normalizedArts,
+          total: Number(data.order.total || 0)
+        };
+      } catch {
+        return null;
+      }
+    }
+
+    // ---------- 2) Recherche via Google Sheet (ApiCommandes) ----------
+    function orderFromSheetObj(c){
+      // c vient de ApiCommandes (commandeId, date, nom, telephone, adresse, articles, total, statut)
+      return {
+        id: c.commandeId || c.id || "—",
+        date: c.date || "",
+        clientName: c.nom || c.clientName || "Client",
+        clientPhone: c.telephone || c.clientPhone || "",
+        clientAddress: c.adresse || c.clientAddress || "",
+        status: c.statut || c.status || "En attente",
+        paymentMethod: "À la livraison",
+        articles: parseArticlesText(c.articles),
+        total: c.total ?? 0
+      };
+    }
+
+    function looksLikeOrderId(value){
+      return /^CMD-MAXI-\d{8}-\d{3}$/i.test(String(value||"").trim());
+    }
+
+    function normalizePhoneDigits(value){
+      return String(value||"").replace(/[^\d]/g,"");
+    }
+
+    function renderPhoneOrdersList(items){
+      // items: array sheet objects (ApiCommandes)
+      if (!items || !items.length) return;
+
+      el.phoneOrdersList.innerHTML = "";
+      show(el.phoneOrdersList);
+
+      // Trier par date si possible (sinon ordre)
+      const sorted = [...items].sort((a,b) => String(b.date||"").localeCompare(String(a.date||"")));
+
+      // Petite entête
+      const header = document.createElement("div");
+      header.className = "mini-item";
+      header.style.cursor = "default";
+      header.innerHTML = `
+        <div class="mini-left">
+          <div style="font-weight:900;color:var(--txt)">📱 ${sorted.length} commande(s) trouvée(s)</div>
+          <div class="mini-sub">Clique sur une commande pour l’afficher</div>
+        </div>
+        <div class="mini-status">Liste</div>
+      `;
+      el.phoneOrdersList.appendChild(header);
+
+      for (const c of sorted) {
+        const div = document.createElement("div");
+        div.className = "mini-item";
+        div.innerHTML = `
+          <div class="mini-left">
+            <div class="mini-id">${escapeHtml(String(c.commandeId||""))}</div>
+            <div class="mini-sub">${escapeHtml(String(c.date||""))} • ${escapeHtml(String(c.total||""))} </div>
+          </div>
+          <div class="mini-status">${escapeHtml(String(c.statut||""))}</div>
+        `;
+        div.addEventListener("click", () => {
+          displayOrder(orderFromSheetObj(c));
+          // remonter en haut
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+        el.phoneOrdersList.appendChild(div);
+      }
+    }
+
+    async function searchOrder(){
+      const qRaw = el.orderIdInput.value.trim();
+      if (!qRaw) { el.orderIdInput.focus(); return; }
+
+      clearStates();
+      showLoading();
+
+      const q = qRaw.trim();
+
+      try{
+        // Si c’est un ID commande => on tente Apps Script (si dispo) puis fallback Sheet
+        if (looksLikeOrderId(q)) {
+          const qUpper = q.toUpperCase();
+
+          // 1) Apps Script
+          const fromBackend = await fetchOrderFromAppsScript(qUpper);
+          if (fromBackend) { displayOrder(fromBackend); return; }
+
+          // 2) Sheet
+          if (!window.ApiCommandes) { showEmpty(); return; }
+          const fromSheet = await ApiCommandes.findCommande(qUpper);
+          if (fromSheet) { displayOrder(orderFromSheetObj(fromSheet)); return; }
+
+          showEmpty();
+          return;
+        }
+
+        // Sinon => téléphone (ou texte). On essaie d’abord téléphone.
+        const digits = normalizePhoneDigits(q);
+        if (digits.length >= 6) {
+          if (!window.ApiCommandes) { showEmpty(); return; }
+          const list = await ApiCommandes.findCommandesByPhone(digits);
+          if (!list || !list.length) { showEmpty(); return; }
+
+          // afficher la dernière commande + liste
+          renderPhoneOrdersList(list);
+          displayOrder(orderFromSheetObj(list[0]));
+          return;
+        }
+
+        // fallback : recherche “findCommande” (au cas où)
+        if (!window.ApiCommandes) { showEmpty(); return; }
+        const any = await ApiCommandes.findCommande(q);
+        if (any) { displayOrder(orderFromSheetObj(any)); return; }
+
+        showEmpty();
+      } finally {
+        hide(el.loadingState);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // sécurité : vérifier que ApiCommandes est chargé
+      if (!window.ApiCommandes) {
+        console.warn("ApiCommandes non chargé. Vérifie le chemin: ./api/api-commandes.js");
+      }
+
+      el.searchOrderBtn.addEventListener("click", searchOrder);
+      el.orderIdInput.addEventListener("keypress", (e) => { if (e.key === "Enter") searchOrder(); });
+
+      // Contact WhatsApp magasin (inclut le numéro de commande affiché)
+      el.contactBtn.addEventListener("click", () => {
+        const currentId = (el.orderIdDisplay.textContent || "").trim();
+        const msg = currentId
+          ? `Bonjour, je souhaite des informations sur ma commande ${currentId}.`
+          : "Bonjour, je souhaite des informations sur ma commande.";
+        window.open(`https://wa.me/${SHOP_WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
+      });
+
+      // Appeler
+      el.helpBtn.addEventListener("click", () => window.open(`tel:+${SHOP_WHATSAPP}`, "_blank"));
+
+      // Support URL param ?order=CMD...
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderIdFromUrl = urlParams.get("order");
+      if (orderIdFromUrl) {
+        el.orderIdInput.value = orderIdFromUrl;
+        setTimeout(searchOrder, 250);
+      } else {
+        el.orderIdInput.focus();
+      }
+    });
+  </script>
+</body>
+</html>
 
