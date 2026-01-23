@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Suivi de Commande - MAXI JDC MARKET</title>
-  
+
   <style>
     :root {
       --bg1: #0a1929;
@@ -20,13 +20,9 @@
       --shadow: 0 10px 40px rgba(0, 0, 0, .45);
       --r: 14px;
     }
-    
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
       background: linear-gradient(135deg, var(--bg1), var(--bg2));
@@ -34,12 +30,9 @@
       min-height: 100vh;
       padding: 18px;
     }
-    
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    
+
+    .container { max-width: 800px; margin: 0 auto; }
+
     .header {
       background: rgba(10, 25, 47, .95);
       border: 2px solid var(--green);
@@ -53,13 +46,9 @@
       box-shadow: var(--shadow);
       margin-bottom: 20px;
     }
-    
-    .left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    
+
+    .left { display: flex; align-items: center; gap: 14px; }
+
     .logo {
       width: 56px;
       height: 56px;
@@ -72,7 +61,7 @@
       font-size: 22px;
       font-weight: 900;
     }
-    
+
     h1 {
       font-size: 22px;
       font-weight: 900;
@@ -81,12 +70,9 @@
       -webkit-text-fill-color: transparent;
       margin-bottom: 4px;
     }
-    
-    .sub {
-      color: var(--muted);
-      font-size: 13px;
-    }
-    
+
+    .sub { color: var(--muted); font-size: 13px; }
+
     .btn {
       background: rgba(255, 255, 255, .10);
       border: 2px solid var(--line);
@@ -100,13 +86,13 @@
       gap: 8px;
       align-items: center;
     }
-    
+
     .btn:hover {
       transform: translateY(-2px);
       border-color: var(--blue);
       background: rgba(255, 255, 255, .15);
     }
-    
+
     .card {
       background: var(--card);
       border: 2px solid var(--line);
@@ -115,14 +101,14 @@
       padding: 22px;
       margin-bottom: 20px;
     }
-    
+
     .search-section {
       display: flex;
       gap: 12px;
       margin-bottom: 20px;
       flex-wrap: wrap;
     }
-    
+
     .search-input {
       flex: 1;
       min-width: 250px;
@@ -134,11 +120,9 @@
       font-size: 16px;
       outline: none;
     }
-    
-    .search-input:focus {
-      border-color: var(--green);
-    }
-    
+
+    .search-input:focus { border-color: var(--green); }
+
     .search-btn {
       padding: 14px 24px;
       border-radius: 10px;
@@ -150,12 +134,12 @@
       cursor: pointer;
       transition: all 0.3s;
     }
-    
+
     .search-btn:hover {
       background: rgba(0, 255, 136, .25);
       transform: translateY(-2px);
     }
-    
+
     .order-card {
       background: linear-gradient(135deg, rgba(26, 36, 93, 0.8), rgba(22, 36, 71, 0.8));
       border: 2px solid var(--line);
@@ -164,13 +148,13 @@
       margin-bottom: 16px;
       transition: all 0.3s;
     }
-    
+
     .order-card:hover {
       border-color: var(--blue);
       transform: translateY(-3px);
       box-shadow: 0 8px 25px rgba(0, 212, 255, 0.2);
     }
-    
+
     .order-header {
       display: flex;
       justify-content: space-between;
@@ -179,18 +163,10 @@
       padding-bottom: 12px;
       border-bottom: 1px solid var(--line);
     }
-    
-    .order-id {
-      font-size: 18px;
-      font-weight: 900;
-      color: var(--green);
-    }
-    
-    .order-date {
-      color: var(--muted);
-      font-size: 14px;
-    }
-    
+
+    .order-id { font-size: 18px; font-weight: 900; color: var(--green); }
+    .order-date { color: var(--muted); font-size: 14px; }
+
     .status-badge {
       padding: 8px 16px;
       border-radius: 20px;
@@ -200,45 +176,43 @@
       align-items: center;
       gap: 8px;
     }
-    
+
     .status-pending {
       background: rgba(255, 193, 7, 0.15);
       color: #FFC107;
       border: 2px solid rgba(255, 193, 7, 0.3);
     }
-    
     .status-processing {
       background: rgba(33, 150, 243, 0.15);
       color: #2196F3;
       border: 2px solid rgba(33, 150, 243, 0.3);
     }
-    
     .status-delivered {
       background: rgba(76, 175, 80, 0.15);
       color: #4CAF50;
       border: 2px solid rgba(76, 175, 80, 0.3);
     }
-    
     .status-cancelled {
       background: rgba(244, 67, 54, 0.15);
       color: #F44336;
       border: 2px solid rgba(244, 67, 54, 0.3);
     }
-    
+
     .progress-container {
       margin: 20px 0;
       padding: 20px;
       background: rgba(0, 0, 0, 0.2);
       border-radius: 12px;
+      position: relative;
     }
-    
+
     .progress-steps {
       display: flex;
       justify-content: space-between;
       position: relative;
       margin-top: 20px;
     }
-    
+
     .progress-steps::before {
       content: '';
       position: absolute;
@@ -249,7 +223,7 @@
       background: var(--line);
       z-index: 1;
     }
-    
+
     .progress-bar {
       position: absolute;
       top: 20px;
@@ -259,7 +233,7 @@
       z-index: 2;
       transition: width 0.5s ease;
     }
-    
+
     .step {
       display: flex;
       flex-direction: column;
@@ -267,7 +241,7 @@
       z-index: 3;
       position: relative;
     }
-    
+
     .step-icon {
       width: 44px;
       height: 44px;
@@ -281,62 +255,46 @@
       border: 3px solid var(--line);
       margin-bottom: 8px;
     }
-    
+
     .step.active .step-icon {
       border-color: var(--green);
       background: rgba(0, 255, 136, 0.15);
       color: var(--green);
     }
-    
+
     .step.completed .step-icon {
       border-color: var(--green);
       background: var(--green);
       color: var(--bg1);
     }
-    
+
     .step-label {
       font-size: 12px;
       color: var(--muted);
       text-align: center;
       max-width: 100px;
     }
-    
-    .step.active .step-label {
-      color: var(--green);
-      font-weight: 700;
-    }
-    
+
+    .step.active .step-label { color: var(--green); font-weight: 700; }
+
     .order-details {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px;
       margin-top: 20px;
     }
-    
-    .detail-item {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 10px;
-      padding: 12px;
-    }
-    
-    .detail-label {
-      color: var(--muted);
-      font-size: 12px;
-      margin-bottom: 4px;
-    }
-    
-    .detail-value {
-      font-size: 14px;
-      font-weight: 700;
-    }
-    
+
+    .detail-item { background: rgba(255, 255, 255, 0.05); border-radius: 10px; padding: 12px; }
+    .detail-label { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+    .detail-value { font-size: 14px; font-weight: 700; }
+
     .articles-list {
       margin-top: 20px;
       max-height: 200px;
       overflow-y: auto;
       padding-right: 10px;
     }
-    
+
     .article-item {
       display: flex;
       justify-content: space-between;
@@ -344,32 +302,12 @@
       padding: 10px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
-    
-    .article-item:last-child {
-      border-bottom: none;
-    }
-    
-    .article-name {
-      flex: 1;
-      font-size: 14px;
-    }
-    
-    .article-qty {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--green);
-      min-width: 40px;
-      text-align: center;
-    }
-    
-    .article-price {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--blue);
-      min-width: 80px;
-      text-align: right;
-    }
-    
+
+    .article-item:last-child { border-bottom: none; }
+    .article-name { flex: 1; font-size: 14px; }
+    .article-qty { font-size: 14px; font-weight: 700; color: var(--green); min-width: 40px; text-align: center; }
+    .article-price { font-size: 14px; font-weight: 700; color: var(--blue); min-width: 80px; text-align: right; }
+
     .order-total {
       margin-top: 20px;
       padding-top: 20px;
@@ -378,50 +316,17 @@
       justify-content: space-between;
       align-items: center;
     }
-    
-    .total-label {
-      font-size: 16px;
-      color: var(--muted);
-    }
-    
-    .total-value {
-      font-size: 22px;
-      font-weight: 900;
-      color: var(--green);
-    }
-    
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-    }
-    
-    .empty-icon {
-      font-size: 80px;
-      margin-bottom: 20px;
-      opacity: 0.5;
-    }
-    
-    .empty-title {
-      font-size: 24px;
-      font-weight: 900;
-      color: var(--txt);
-      margin-bottom: 10px;
-    }
-    
-    .empty-description {
-      font-size: 16px;
-      color: var(--muted);
-      line-height: 1.5;
-      max-width: 400px;
-      margin: 0 auto;
-    }
-    
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: var(--muted);
-    }
-    
+
+    .total-label { font-size: 16px; color: var(--muted); }
+    .total-value { font-size: 22px; font-weight: 900; color: var(--green); }
+
+    .empty-state { text-align: center; padding: 60px 20px; }
+    .empty-icon { font-size: 80px; margin-bottom: 20px; opacity: 0.5; }
+    .empty-title { font-size: 24px; font-weight: 900; color: var(--txt); margin-bottom: 10px; }
+    .empty-description { font-size: 16px; color: var(--muted); line-height: 1.5; max-width: 400px; margin: 0 auto; }
+
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
+
     .loading-spinner {
       width: 40px;
       height: 40px;
@@ -431,15 +336,9 @@
       margin: 0 auto 20px;
       animation: spin 1s linear infinite;
     }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .back-btn {
-      margin-bottom: 20px;
-    }
-    
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     .error-message {
       background: rgba(255, 107, 107, 0.15);
       border: 2px solid var(--red);
@@ -449,7 +348,7 @@
       color: var(--red);
       margin-bottom: 20px;
     }
-    
+
     .success-message {
       background: rgba(0, 255, 136, 0.15);
       border: 2px solid var(--green);
@@ -472,46 +371,37 @@
           <div class="sub">MAXI JDC MARKET — Suivez votre commande en temps réel</div>
         </div>
       </div>
-      <button class="btn" onclick="window.history.back()">
-        <span>←</span>
-        <span>Retour</span>
+      <!-- ✅ important: retour vers la racine si le fichier est dans /tool/ -->
+      <button class="btn" onclick="window.location.href='../index.html'">
+        <span>←</span><span>Retour</span>
       </button>
     </header>
 
-    <!-- SECTION RECHERCHE -->
     <div class="card">
       <h2 style="margin-bottom: 20px; color: var(--green);">🔍 Suivre une commande</h2>
       <div class="search-section">
-        <input type="text" 
-               id="orderIdInput" 
-               class="search-input" 
+        <input type="text" id="orderIdInput" class="search-input"
                placeholder="Entrez votre numéro de commande (ex: CMD1001)">
-        <button class="search-btn" id="searchOrderBtn">
-          <span>🔎</span>
-          <span>Rechercher</span>
-        </button>
+        <button class="search-btn" id="searchOrderBtn"><span>🔎</span><span>Rechercher</span></button>
       </div>
       <div style="font-size: 12px; color: var(--muted); margin-top: 10px;">
         💡 Vous pouvez également utiliser votre numéro de téléphone pour voir toutes vos commandes
       </div>
     </div>
 
-    <!-- MESSAGES D'ERREUR/SUCCÈS -->
     <div id="errorMessage" class="error-message" style="display: none;">
       ❌ Aucune commande trouvée avec cet identifiant
     </div>
-    
+
     <div id="successMessage" class="success-message" style="display: none;">
       ✅ Commande trouvée ! Affichage des détails...
     </div>
 
-    <!-- ÉTAT DE CHARGEMENT -->
     <div id="loadingState" class="loading" style="display: none;">
       <div class="loading-spinner"></div>
       <div>Chargement des informations de commande...</div>
     </div>
 
-    <!-- ÉTAT VIDE -->
     <div id="emptyState" class="empty-state" style="display: none;">
       <div class="empty-icon">📭</div>
       <div class="empty-title">Aucune commande trouvée</div>
@@ -520,7 +410,6 @@
       </div>
     </div>
 
-    <!-- CARTE COMMANDE -->
     <div id="orderCard" class="order-card" style="display: none;">
       <div class="order-header">
         <div>
@@ -530,82 +419,40 @@
         <div class="status-badge" id="orderStatusBadge">En attente</div>
       </div>
 
-      <!-- PROGRESS BAR -->
       <div class="progress-container">
-        <div style="font-weight: 700; color: var(--txt); margin-bottom: 15px;">
-          📦 Progression de votre commande
-        </div>
+        <div style="font-weight: 700; color: var(--txt); margin-bottom: 15px;">📦 Progression de votre commande</div>
         <div class="progress-steps">
-          <div class="step completed" id="step1">
-            <div class="step-icon">📝</div>
-            <div class="step-label">Commandé</div>
-          </div>
-          <div class="step" id="step2">
-            <div class="step-icon">👨‍🍳</div>
-            <div class="step-label">En préparation</div>
-          </div>
-          <div class="step" id="step3">
-            <div class="step-icon">🚚</div>
-            <div class="step-label">En livraison</div>
-          </div>
-          <div class="step" id="step4">
-            <div class="step-icon">✅</div>
-            <div class="step-label">Livré</div>
-          </div>
+          <div class="step completed" id="step1"><div class="step-icon">📝</div><div class="step-label">Commandé</div></div>
+          <div class="step" id="step2"><div class="step-icon">👨‍🍳</div><div class="step-label">En préparation</div></div>
+          <div class="step" id="step3"><div class="step-icon">🚚</div><div class="step-label">En livraison</div></div>
+          <div class="step" id="step4"><div class="step-icon">✅</div><div class="step-label">Livré</div></div>
         </div>
         <div class="progress-bar" id="progressBar" style="width: 25%;"></div>
       </div>
 
-      <!-- DÉTAILS CLIENT -->
       <div class="order-details">
-        <div class="detail-item">
-          <div class="detail-label">👤 Client</div>
-          <div class="detail-value" id="clientName">Mohamed Ali</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">📱 Téléphone</div>
-          <div class="detail-value" id="clientPhone">+216 25 600 978</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">📍 Adresse</div>
-          <div class="detail-value" id="clientAddress">Jardins de Carthage, Tunis</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">💰 Mode de paiement</div>
-          <div class="detail-value" id="paymentMethod">À la livraison</div>
-        </div>
+        <div class="detail-item"><div class="detail-label">👤 Client</div><div class="detail-value" id="clientName">—</div></div>
+        <div class="detail-item"><div class="detail-label">📱 Téléphone</div><div class="detail-value" id="clientPhone">—</div></div>
+        <div class="detail-item"><div class="detail-label">📍 Adresse</div><div class="detail-value" id="clientAddress">—</div></div>
+        <div class="detail-item"><div class="detail-label">💰 Mode de paiement</div><div class="detail-value" id="paymentMethod">À la livraison</div></div>
       </div>
 
-      <!-- ARTICLES -->
       <div style="margin-top: 20px;">
-        <div style="font-weight: 700; color: var(--txt); margin-bottom: 10px;">
-          🛒 Articles commandés
-        </div>
-        <div class="articles-list" id="articlesList">
-          <!-- Articles seront ajoutés dynamiquement -->
-        </div>
+        <div style="font-weight: 700; color: var(--txt); margin-bottom: 10px;">🛒 Articles commandés</div>
+        <div class="articles-list" id="articlesList"></div>
       </div>
 
-      <!-- TOTAL -->
       <div class="order-total">
         <div class="total-label">Total à payer</div>
-        <div class="total-value" id="orderTotal">45,50 dt</div>
+        <div class="total-value" id="orderTotal">0,00 dt</div>
       </div>
 
-      <!-- ACTIONS -->
       <div style="margin-top: 20px; display: flex; gap: 10px;">
-        <button class="btn" id="contactBtn" style="flex: 1;">
-          <span>📱</span>
-          <span>Contacter le livreur</span>
-        </button>
-        <button class="btn" id="helpBtn" style="flex: 1;">
-          <span>❓</span>
-          <span>Aide & Support</span>
-        </button>
+        <button class="btn" id="contactBtn" style="flex: 1;"><span>📱</span><span>Contacter</span></button>
+        <button class="btn" id="helpBtn" style="flex: 1;"><span>❓</span><span>Aide</span></button>
       </div>
     </div>
 
-    <!-- INFORMATIONS DE CONTACT -->
     <div class="card">
       <h2 style="margin-bottom: 15px; color: var(--green);">📞 Besoin d'aide ?</h2>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
@@ -626,10 +473,8 @@
   </div>
 
   <script>
-    // URL de l'API Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbzJBRgQiA214iLEyoDFWTq2dnfRFTL8S9fGwNd0SCGWKmUihISIMeyle_SF0X7vkEk/exec";
 
-    // Éléments DOM
     const elements = {
       orderIdInput: document.getElementById('orderIdInput'),
       searchOrderBtn: document.getElementById('searchOrderBtn'),
@@ -656,7 +501,6 @@
       progressBar: document.getElementById('progressBar')
     };
 
-    // États de progression selon le statut
     const progressStates = {
       "En attente": { width: "25%", steps: [true, false, false, false] },
       "En cours": { width: "50%", steps: [true, true, false, false] },
@@ -665,7 +509,6 @@
       "Annulée": { width: "100%", steps: [true, false, false, false] }
     };
 
-    // Classes CSS pour les badges de statut
     const statusClasses = {
       "En attente": "status-pending",
       "En cours": "status-processing",
@@ -674,7 +517,6 @@
       "Annulée": "status-cancelled"
     };
 
-    // Données de démonstration
     const demoOrders = {
       "CMD1001": {
         id: "CMD1001",
@@ -690,176 +532,66 @@
           { name: "Soda", quantity: 2, price: 5.00 }
         ],
         total: 45.50
-      },
-      "CMD1002": {
-        id: "CMD1002",
-        date: "2024-03-09T19:15:00",
-        clientName: "Fatima Ben",
-        clientPhone: "+216 52 345 678",
-        clientAddress: "Sfax Centre, Avenue Habib Bourguiba",
-        status: "Livrée",
-        paymentMethod: "À la livraison",
-        articles: [
-          { name: "Burger Classique", quantity: 1, price: 15.00 },
-          { name: "Salade César", quantity: 1, price: 12.00 }
-        ],
-        total: 27.00
-      },
-      "CMD1003": {
-        id: "CMD1003",
-        date: "2024-03-11T12:45:00",
-        clientName: "Karim Said",
-        clientPhone: "+216 53 456 789",
-        clientAddress: "Sousse Médina, Rue de la Plage",
-        status: "En attente",
-        paymentMethod: "À la livraison",
-        articles: [
-          { name: "Pizza 4 Fromages", quantity: 1, price: 20.50 },
-          { name: "Tiramisu", quantity: 2, price: 8.50 }
-        ],
-        total: 37.50
       }
     };
 
-    // Formater la date
     function formatDate(dateString) {
       const date = new Date(dateString);
       return date.toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
       });
     }
 
-    // Formater le prix
     function formatPrice(amount) {
       return Number(amount).toFixed(2).replace('.', ',') + ' dt';
     }
 
-    // Afficher/masquer les éléments
-    function showElement(element) {
-      element.style.display = 'block';
-    }
+    function show(el) { el.style.display = 'block'; }
+    function hide(el) { el.style.display = 'none'; }
 
-    function hideElement(element) {
-      element.style.display = 'none';
-    }
-
-    // Mettre à jour la barre de progression
     function updateProgress(status) {
       const progress = progressStates[status] || progressStates["En attente"];
-      
-      // Mettre à jour la largeur de la barre
       elements.progressBar.style.width = progress.width;
-      
-      // Mettre à jour les étapes
+
       const steps = [elements.step1, elements.step2, elements.step3, elements.step4];
       steps.forEach((step, index) => {
         if (progress.steps[index]) {
-          step.classList.add('completed');
-          step.classList.add('active');
+          step.classList.add('completed'); step.classList.add('active');
         } else {
-          step.classList.remove('completed');
-          step.classList.remove('active');
+          step.classList.remove('completed'); step.classList.remove('active');
         }
       });
     }
 
-    // Mettre à jour le badge de statut
     function updateStatusBadge(status) {
       elements.orderStatusBadge.textContent = status;
       elements.orderStatusBadge.className = `status-badge ${statusClasses[status] || 'status-pending'}`;
     }
 
-    // Afficher les articles
     function displayArticles(articles) {
       elements.articlesList.innerHTML = '';
-      
-      articles.forEach(article => {
-        const articleTotal = article.price * article.quantity;
-        const articleElement = document.createElement('div');
-        articleElement.className = 'article-item';
-        articleElement.innerHTML = `
-          <div class="article-name">${article.name}</div>
-          <div class="article-qty">${article.quantity}x</div>
+      (articles || []).forEach(article => {
+        const articleTotal = (article.price || 0) * (article.quantity || 0);
+        const div = document.createElement('div');
+        div.className = 'article-item';
+        div.innerHTML = `
+          <div class="article-name">${article.name || 'Article'}</div>
+          <div class="article-qty">${article.quantity || 0}x</div>
           <div class="article-price">${formatPrice(articleTotal)}</div>
         `;
-        elements.articlesList.appendChild(articleElement);
+        elements.articlesList.appendChild(div);
       });
     }
 
-    // Rechercher une commande
-    async function searchOrder() {
-      const orderId = elements.orderIdInput.value.trim().toUpperCase();
-      
-      if (!orderId) {
-        elements.orderIdInput.focus();
-        return;
-      }
-
-      // Masquer tous les états
-      hideElement(elements.orderCard);
-      hideElement(elements.emptyState);
-      hideElement(elements.errorMessage);
-      hideElement(elements.successMessage);
-      showElement(elements.loadingState);
-
-      try {
-        // Essayer d'abord avec l'API
-        const apiOrder = await fetchOrderFromAPI(orderId);
-        
-        if (apiOrder) {
-          displayOrder(apiOrder);
-          showElement(elements.successMessage);
-          setTimeout(() => hideElement(elements.successMessage), 3000);
-        } else {
-          // Fallback aux données de démonstration
-          const demoOrder = demoOrders[orderId];
-          
-          if (demoOrder) {
-            displayOrder(demoOrder);
-            showElement(elements.successMessage);
-            setTimeout(() => hideElement(elements.successMessage), 3000);
-          } else {
-            showElement(elements.emptyState);
-            showElement(elements.errorMessage);
-          }
-        }
-      } catch (error) {
-        console.error('Erreur recherche commande:', error);
-        
-        // Fallback aux données de démonstration
-        const demoOrder = demoOrders[orderId];
-        
-        if (demoOrder) {
-          displayOrder(demoOrder);
-          showElement(elements.successMessage);
-          setTimeout(() => hideElement(elements.successMessage), 3000);
-        } else {
-          showElement(elements.emptyState);
-          showElement(elements.errorMessage);
-        }
-      } finally {
-        hideElement(elements.loadingState);
-      }
-    }
-
-    // Récupérer une commande depuis l'API
     async function fetchOrderFromAPI(orderId) {
       try {
-        const response = await fetch(
-          `${API_URL}?method=getOrder&commande_id=${encodeURIComponent(orderId)}&t=${Date.now()}`
-        );
-        
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
+        const res = await fetch(`${API_URL}?method=getOrder&commande_id=${encodeURIComponent(orderId)}&t=${Date.now()}`);
+        if (!res.ok) return null;
+        const data = await res.json();
         if (data.success && data.order) {
+          const arts = data.order.articles
+            ? (Array.isArray(data.order.articles) ? data.order.articles : JSON.parse(data.order.articles))
+            : [];
           return {
             id: data.order.commande_id || orderId,
             date: data.order.date || new Date().toISOString(),
@@ -868,22 +600,17 @@
             clientAddress: data.order.adresse || "",
             status: data.order.statut || "En attente",
             paymentMethod: "À la livraison",
-            articles: data.order.articles ? 
-              (Array.isArray(data.order.articles) ? data.order.articles : JSON.parse(data.order.articles)) : [],
+            articles: arts,
             total: parseFloat(data.order.total) || 0
           };
         }
-        
         return null;
-      } catch (error) {
-        console.error('Erreur API:', error);
+      } catch {
         return null;
       }
     }
 
-    // Afficher une commande
     function displayOrder(order) {
-      // Mettre à jour les informations de base
       elements.orderIdDisplay.textContent = order.id;
       elements.orderDateDisplay.textContent = formatDate(order.date);
       elements.clientName.textContent = order.clientName;
@@ -891,58 +618,62 @@
       elements.clientAddress.textContent = order.clientAddress;
       elements.paymentMethod.textContent = order.paymentMethod;
       elements.orderTotal.textContent = formatPrice(order.total);
-      
-      // Mettre à jour le statut et la progression
+
       updateStatusBadge(order.status);
       updateProgress(order.status);
-      
-      // Afficher les articles
       displayArticles(order.articles);
-      
-      // Afficher la carte
-      showElement(elements.orderCard);
+
+      show(elements.orderCard);
     }
 
-    // Initialiser les événements
-    function init() {
-      // Recherche par bouton
-      elements.searchOrderBtn.addEventListener('click', searchOrder);
-      
-      // Recherche par Entrée
-      elements.orderIdInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          searchOrder();
+    async function searchOrder() {
+      const orderId = elements.orderIdInput.value.trim().toUpperCase();
+      if (!orderId) { elements.orderIdInput.focus(); return; }
+
+      hide(elements.orderCard);
+      hide(elements.emptyState);
+      hide(elements.errorMessage);
+      hide(elements.successMessage);
+      show(elements.loadingState);
+
+      try {
+        const apiOrder = await fetchOrderFromAPI(orderId);
+        const found = apiOrder || demoOrders[orderId] || null;
+
+        if (found) {
+          displayOrder(found);
+          show(elements.successMessage);
+          setTimeout(() => hide(elements.successMessage), 2500);
+        } else {
+          show(elements.emptyState);
+          show(elements.errorMessage);
         }
-      });
-      
-      // Bouton contact
+      } finally {
+        hide(elements.loadingState);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      elements.searchOrderBtn.addEventListener('click', searchOrder);
+      elements.orderIdInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchOrder(); });
+
       elements.contactBtn.addEventListener('click', () => {
         const phoneNumber = "21625600978";
         const message = encodeURIComponent("Bonjour, je souhaite des informations sur ma commande.");
         window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
       });
-      
-      // Bouton aide
-      elements.helpBtn.addEventListener('click', () => {
-        const phoneNumber = "21625600978";
-        window.open(`tel:${phoneNumber}`, '_blank');
-      });
-      
-      // Focus sur le champ de recherche
-      elements.orderIdInput.focus();
-      
-      // Vérifier s'il y a un ID de commande dans l'URL
+
+      elements.helpBtn.addEventListener('click', () => window.open(`tel:21625600978`, '_blank'));
+
       const urlParams = new URLSearchParams(window.location.search);
       const orderIdFromUrl = urlParams.get('order');
-      
       if (orderIdFromUrl) {
         elements.orderIdInput.value = orderIdFromUrl;
-        setTimeout(() => searchOrder(), 500);
+        setTimeout(() => searchOrder(), 400);
+      } else {
+        elements.orderIdInput.focus();
       }
-    }
-
-    // Démarrer l'application
-    document.addEventListener('DOMContentLoaded', init);
+    });
   </script>
 </body>
 </html>
