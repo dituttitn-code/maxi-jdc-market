@@ -1,1 +1,839 @@
+<!DOCTYPE html>
+<html lang="fr">
 
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MAXI JDC MARKET" />
+  <meta name="theme-color" content="#0a1929" />
+  <title>MAXI JDC MARKET --- Application Mobile</title>
+  
+  <!-- Manifest PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  
+  <style>
+    :root {
+      --bg0: #0a1929;
+      --bg1: #112240;
+      --card: #1a365d;
+      --card2: #162447;
+      --line: rgba(255, 255, 255, .15);
+      --text: #f0f6fc;
+      --muted: #8b949e;
+      --accent: #00ff88;
+      --accent2: #00d4ff;
+      --danger: #ff6b6b;
+      --warning: #ffa726;
+      --shadow: 0 10px 40px rgba(0, 0, 0, .5);
+      --radius: 12px;
+      --drawerW: 100vw;
+      --header-height: 60px;
+      --safe-area: env(safe-area-inset-bottom, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      position: fixed;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
+      line-height: 1.6;
+      overflow-x: hidden;
+      touch-action: manipulation;
+      height: 100vh;
+      height: -webkit-fill-available;
+    }
+
+    #app {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .wrap {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 0 8px 70px;
+      transition: transform .3s ease;
+      height: 100%;
+    }
+
+    /* BOUTON COMPTEUR DE COMMANDES */
+    .counter-floating-btn {
+      position: fixed;
+      bottom: 290px;
+      right: 15px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 215, 0, 0.3);
+      border: 2px solid gold;
+      color: gold;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .counter-floating-btn:hover {
+      background: rgba(255, 215, 0, 0.5);
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+    }
+
+    /* MODAL DU COMPTEUR */
+    .counter-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 4500;
+      padding: 20px;
+      backdrop-filter: blur(20px);
+    }
+
+    .counter-modal-overlay.open {
+      display: flex;
+    }
+
+    .counter-modal {
+      width: 100%;
+      max-width: 500px;
+      background: linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
+      border-radius: 20px;
+      border: 3px solid gold;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .counter-modal-header {
+      padding: 20px;
+      background: rgba(255, 215, 0, 0.1);
+      border-bottom: 1px solid gold;
+      text-align: center;
+    }
+
+    .counter-modal-header h3 {
+      margin: 0;
+      font-size: 18px;
+      color: gold;
+      font-weight: 900;
+    }
+
+    .counter-modal-body {
+      padding: 20px;
+    }
+
+    .counter-info {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      padding: 15px;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      margin-bottom: 15px;
+    }
+
+    .counter-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .counter-row:last-child {
+      border-bottom: none;
+    }
+
+    .counter-label {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .counter-value {
+      font-weight: 900;
+      font-size: 16px;
+      color: gold;
+    }
+
+    .counter-big {
+      font-size: 28px;
+      font-weight: 900;
+      text-align: center;
+      padding: 15px;
+      background: rgba(255, 215, 0, 0.1);
+      border-radius: 12px;
+      border: 2px solid gold;
+      margin: 15px 0;
+    }
+
+    .counter-history {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid var(--line);
+    }
+
+    .counter-history h4 {
+      margin: 0 0 10px;
+      color: var(--accent2);
+      font-size: 14px;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 12px;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+    }
+
+    .history-date {
+      color: var(--muted);
+    }
+
+    .history-count {
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .counter-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid var(--line);
+    }
+
+    .counter-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+
+    .counter-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .counter-btn.reset {
+      border-color: var(--danger);
+      background: rgba(255, 107, 107, 0.1);
+      color: var(--danger);
+    }
+
+    .counter-btn.copy {
+      border-color: var(--accent2);
+      background: rgba(0, 212, 255, 0.1);
+      color: var(--accent2);
+    }
+
+    .counter-modal-footer {
+      padding: 15px 20px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: center;
+    }
+
+    /* BOUTON TABLEAU DE BORD */
+    .dashboard-floating-btn {
+      position: fixed;
+      bottom: 220px;
+      right: 15px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(0, 212, 255, 0.3);
+      border: 2px solid var(--accent2);
+      color: var(--accent2);
+      cursor: pointer;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .dashboard-floating-btn:hover {
+      background: rgba(0, 212, 255, 0.5);
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+    }
+
+    /* BOUTON QR */
+    .qr-direct-btn {
+      position: fixed;
+      bottom: 80px;
+      right: 15px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(0, 212, 255, 0.2);
+      border: 2px solid var(--accent2);
+      color: var(--accent2);
+      cursor: pointer;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .qr-direct-btn:hover {
+      background: rgba(0, 212, 255, 0.3);
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+    }
+
+    /* BOUTON ADMIN */
+    .secret-admin-btn {
+      position: fixed;
+      bottom: 150px;
+      right: 15px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 167, 38, 0.2);
+      border: 2px solid var(--warning);
+      color: var(--warning);
+      cursor: pointer;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      box-shadow: 0 4px 15px rgba(255, 167, 38, 0.3);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .secret-admin-btn:hover {
+      background: rgba(255, 167, 38, 0.3);
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(255, 167, 38, 0.4);
+    }
+
+    @media (max-width: 480px) {
+      .counter-floating-btn {
+        bottom: 260px;
+        right: 10px;
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+      }
+      
+      .dashboard-floating-btn {
+        bottom: 200px;
+        right: 10px;
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
+      }
+      
+      .secret-admin-btn {
+        bottom: 140px;
+        right: 10px;
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
+      }
+      
+      .qr-direct-btn {
+        bottom: 70px;
+        right: 10px;
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <!-- HEADER -->
+    <header class="header" style="background: rgba(10, 25, 47, 0.98); padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,.15); position: sticky; top: 0; z-index: 1000;">
+      <div class="logo-brand" style="display: flex; align-items: center; gap: 8px;">
+        <div class="logo" style="width: 44px; height: 44px; border-radius: 10px; border: 2px solid #00ff88; overflow: hidden;">
+          <img src="logo-maxi-jdc-market.jpg" alt="MAXI JDC MARKET" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+        <div class="brand-text">
+          <h1 style="margin:0;font-size:15px;font-weight:900;background:linear-gradient(90deg,#00ff88,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">MAXI JDC MARKET</h1>
+          <p style="margin:2px 0 0;color:#8b949e;font-size:10px;">Des prix mini --- Un MAXI choix</p>
+        </div>
+      </div>
+      <button class="cart-btn-header" id="cartTopBtn" style="width:50px;height:44px;border-radius:10px;border:2px solid #00ff88;background:rgba(0,255,136,0.1);color:#00ff88;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;">
+        <span class="icon" style="font-size:18px;">🛒</span>
+        <span class="count" id="cartTopCount" style="background:rgba(0,0,0,0.7);border:1px solid #00ff88;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;position:absolute;top:-5px;right:-5px;">0</span>
+      </button>
+    </header>
+
+    <!-- CONTENU PRINCIPAL -->
+    <main class="wrap">
+      <div style="padding: 20px; text-align: center; margin-top: 50px;">
+        <h2 style="color: #00ff88; margin-bottom: 20px;">SYSTÈME DE COMPTEUR DE COMMANDES</h2>
+        
+        <div style="background: linear-gradient(135deg, #1a365d 0%, #112240 100%); border-radius: 12px; padding: 20px; border: 2px solid #00d4ff; max-width: 400px; margin: 0 auto;">
+          <h3 style="color: gold; margin-bottom: 15px;">📊 COMPTEUR ACTUEL</h3>
+          
+          <div style="margin-bottom: 20px;">
+            <div style="font-size: 14px; color: #8b949e; margin-bottom: 5px;">Date d'aujourd'hui :</div>
+            <div style="font-size: 16px; font-weight: bold; color: white;" id="currentDateDisplay">Chargement...</div>
+          </div>
+          
+          <div style="margin-bottom: 20px;">
+            <div style="font-size: 14px; color: #8b949e; margin-bottom: 5px;">Prochaine commande :</div>
+            <div style="font-size: 20px; font-weight: 900; color: gold; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;" id="nextOrderDisplay">CMD-MAXI-20250123-001</div>
+          </div>
+          
+          <div style="margin-bottom: 20px;">
+            <div style="font-size: 14px; color: #8b949e; margin-bottom: 5px;">Commandes aujourd'hui :</div>
+            <div style="font-size: 32px; font-weight: 900; color: #00ff88;" id="counterDisplay">0</div>
+          </div>
+          
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="generateTestOrder()" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid #00ff88; background: rgba(0,255,136,0.1); color: #00ff88; cursor: pointer; font-weight: bold;">
+              TESTER 🚀
+            </button>
+            <button onclick="openCounterModal()" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid gold; background: rgba(255,215,0,0.1); color: gold; cursor: pointer; font-weight: bold;">
+              DÉTAILS 📊
+            </button>
+          </div>
+        </div>
+        
+        <div style="margin-top: 30px; color: #8b949e; font-size: 12px;">
+          <p>Format: CMD-MAXI-YYYYMMDD-NNN</p>
+          <p>Le compteur se réinitialise automatiquement chaque jour à minuit</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- BOUTON COMPTEUR DE COMMANDES -->
+    <button class="counter-floating-btn" id="counterBtn" title="Compteur de commandes">
+      #️⃣
+    </button>
+
+    <!-- BOUTON TABLEAU DE BORD -->
+    <button class="dashboard-floating-btn" id="dashboardFloatingBtn" title="Ouvrir le tableau de bord">
+      📊
+    </button>
+
+    <!-- BOUTON ADMIN -->
+    <button class="secret-admin-btn" id="secretAdminBtn" title="Activer/Désactiver mode admin">
+      🔓
+    </button>
+
+    <!-- BOUTON QR -->
+    <button class="qr-direct-btn" id="qrDirectBtn" title="Scanner QR Code">
+      📱
+    </button>
+  </div>
+
+  <!-- MODAL COMPTEUR DE COMMANDES -->
+  <div class="counter-modal-overlay" id="counterModal">
+    <div class="counter-modal">
+      <div class="counter-modal-header">
+        <h3>📊 COMPTEUR DE COMMANDES</h3>
+      </div>
+      <div class="counter-modal-body">
+        <div class="counter-info">
+          <div class="counter-row">
+            <span class="counter-label">📅 Date d'aujourd'hui :</span>
+            <span class="counter-value" id="todayDate"></span>
+          </div>
+          <div class="counter-row">
+            <span class="counter-label">🆔 Prochaine commande :</span>
+            <span class="counter-value" id="nextCommandeId"></span>
+          </div>
+          <div class="counter-row">
+            <span class="counter-label">🏪 Code boutique :</span>
+            <span class="counter-value">MAXI</span>
+          </div>
+        </div>
+
+        <div class="counter-big" id="todayCounter">
+          0 commande(s)
+        </div>
+
+        <div class="counter-history">
+          <h4>📈 Historique des 7 derniers jours</h4>
+          <div id="counterHistoryList">
+            <!-- Rempli dynamiquement -->
+          </div>
+        </div>
+
+        <div class="counter-actions">
+          <button class="counter-btn reset" id="resetCounterBtn" title="Réinitialiser le compteur">
+            🔄 Réinitialiser
+          </button>
+          <button class="counter-btn copy" id="copyCounterBtn" title="Copier les infos">
+            📋 Copier
+          </button>
+        </div>
+      </div>
+      <div class="counter-modal-footer">
+        <button class="form-btn" id="closeCounterModalBtn" style="padding: 10px 20px; border-radius: 8px; border: 2px solid #8b949e; background: rgba(255,255,255,0.1); color: white; cursor: pointer;">
+          ✕ Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toastContainer" style="position:fixed;top:20px;right:20px;z-index:5000;"></div>
+
+  <script>
+    // ===================== CONFIGURATION =====================
+    const CONFIG = {
+      counterPrefix: "CMD-MAXI",
+      adminPassword: "admin123",
+      isAdmin: false
+    };
+
+    // ===================== GÉNÉRATEUR D'ID DE COMMANDES =====================
+    function generateCommandeId() {
+      const now = new Date();
+      const dateStr = now.getFullYear() + 
+                     String(now.getMonth() + 1).padStart(2, '0') + 
+                     String(now.getDate()).padStart(2, '0');
+      
+      // Récupérer le dernier compteur depuis localStorage
+      const storageKey = `maxi_jdc_last_order_${dateStr}`;
+      let lastCounter = localStorage.getItem(storageKey);
+      
+      // Si pas de commande aujourd'hui, réinitialiser le compteur
+      if (!lastCounter) {
+        lastCounter = '0';
+        localStorage.setItem(storageKey, '0');
+      }
+      
+      // Incrémenter le compteur
+      const newCounter = parseInt(lastCounter) + 1;
+      
+      // Sauvegarder le nouveau compteur
+      localStorage.setItem(storageKey, newCounter.toString().padStart(3, '0'));
+      
+      // Retourner l'ID de commande
+      return `${CONFIG.counterPrefix}-${dateStr}-${newCounter.toString().padStart(3, '0')}`;
+    }
+
+    // Fonction pour obtenir le compteur actuel
+    function getCurrentCounter() {
+      const now = new Date();
+      const dateStr = now.getFullYear() + 
+                     String(now.getMonth() + 1).padStart(2, '0') + 
+                     String(now.getDate()).padStart(2, '0');
+      
+      const storageKey = `maxi_jdc_last_order_${dateStr}`;
+      const lastCounter = localStorage.getItem(storageKey);
+      
+      return lastCounter ? parseInt(lastCounter) : 0;
+    }
+
+    // Fonction pour obtenir le prochain ID
+    function getNextCommandeId() {
+      const now = new Date();
+      const dateStr = now.getFullYear() + 
+                     String(now.getMonth() + 1).padStart(2, '0') + 
+                     String(now.getDate()).padStart(2, '0');
+      
+      const storageKey = `maxi_jdc_last_order_${dateStr}`;
+      let lastCounter = localStorage.getItem(storageKey);
+      
+      if (!lastCounter) {
+        lastCounter = '0';
+      }
+      
+      const nextCounter = parseInt(lastCounter) + 1;
+      return `${CONFIG.counterPrefix}-${dateStr}-${nextCounter.toString().padStart(3, '0')}`;
+    }
+
+    // Fonction pour obtenir l'historique des compteurs
+    function getCounterHistory() {
+      const history = [];
+      const today = new Date();
+      
+      // Parcourir les 7 derniers jours
+      for (let i = 0; i < 7; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.getFullYear() + 
+                       String(date.getMonth() + 1).padStart(2, '0') + 
+                       String(date.getDate()).padStart(2, '0');
+        
+        const formattedDate = date.toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+        
+        const storageKey = `maxi_jdc_last_order_${dateStr}`;
+        const counter = localStorage.getItem(storageKey);
+        
+        history.push({
+          date: formattedDate,
+          dateStr: dateStr,
+          count: counter ? parseInt(counter) : 0,
+          isToday: i === 0
+        });
+      }
+      
+      return history;
+    }
+
+    // Fonction pour réinitialiser manuellement le compteur
+    function resetDailyCounter() {
+      if (!CONFIG.isAdmin) {
+        showToast('❌ Accès administrateur requis', 'error');
+        return;
+      }
+      
+      const now = new Date();
+      const dateStr = now.getFullYear() + 
+                     String(now.getMonth() + 1).padStart(2, '0') + 
+                     String(now.getDate()).padStart(2, '0');
+      
+      const storageKey = `maxi_jdc_last_order_${dateStr}`;
+      localStorage.setItem(storageKey, '0');
+      
+      showToast('✅ Compteur réinitialisé à 0 pour aujourd\'hui');
+      updateCounterDisplay();
+      updateCounterModal();
+    }
+
+    // Fonction pour afficher le modal du compteur
+    function openCounterModal() {
+      updateCounterModal();
+      document.getElementById('counterModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    // Fonction pour mettre à jour le modal du compteur
+    function updateCounterModal() {
+      const now = new Date();
+      const todayDate = now.toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      const currentCounter = getCurrentCounter();
+      const nextId = getNextCommandeId();
+      const history = getCounterHistory();
+      
+      document.getElementById('todayDate').textContent = todayDate;
+      document.getElementById('nextCommandeId').textContent = nextId;
+      document.getElementById('todayCounter').textContent = `${currentCounter} commande(s) aujourd'hui`;
+      
+      // Mettre à jour l'historique
+      const historyList = document.getElementById('counterHistoryList');
+      historyList.innerHTML = '';
+      
+      history.forEach(day => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+          <span class="history-date">${day.date} ${day.isToday ? ' (Aujourd\'hui)' : ''}</span>
+          <span class="history-count">${day.count} commande(s)</span>
+        `;
+        historyList.appendChild(historyItem);
+      });
+    }
+
+    // Fonction pour copier les infos du compteur
+    function copyCounterInfo() {
+      const currentCounter = getCurrentCounter();
+      const nextId = getNextCommandeId();
+      const now = new Date();
+      const todayDate = now.toLocaleDateString('fr-FR');
+      
+      const text = `📊 COMPTEUR MAXI JDC MARKET\n` +
+                   `📅 Date: ${todayDate}\n` +
+                   `🆔 Prochaine commande: ${nextId}\n` +
+                   `📈 Commandes aujourd'hui: ${currentCounter}\n\n` +
+                   `Historique 7 jours:\n` +
+                   getCounterHistory().map(day => 
+                     `${day.date}: ${day.count} commande(s)`
+                   ).join('\n');
+      
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('📋 Informations copiées dans le presse-papier');
+      }).catch(err => {
+        console.error('Erreur copie:', err);
+        showToast('❌ Erreur lors de la copie', 'error');
+      });
+    }
+
+    // Fonction pour mettre à jour l'affichage principal
+    function updateCounterDisplay() {
+      const now = new Date();
+      const todayDate = now.toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      const currentCounter = getCurrentCounter();
+      const nextId = getNextCommandeId();
+      
+      document.getElementById('currentDateDisplay').textContent = todayDate;
+      document.getElementById('nextOrderDisplay').textContent = nextId;
+      document.getElementById('counterDisplay').textContent = currentCounter;
+    }
+
+    // Fonction pour générer une commande test
+    function generateTestOrder() {
+      const commandeId = generateCommandeId();
+      showToast(`✅ Commande test créée : ${commandeId}`);
+      updateCounterDisplay();
+      updateCounterModal();
+    }
+
+    // Fonction pour afficher des notifications
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: relative;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: ${type === 'success' ? '#00ff88' : type === 'error' ? '#ff6b6b' : '#ffa726'};
+        color: ${type === 'warning' ? '#000' : '#fff'};
+        border-radius: 10px;
+        font-weight: 900;
+        z-index: 5000;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.5s forwards;
+        max-width: 300px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      `;
+      toast.innerHTML = `
+        <span>${type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '❌'}</span>
+        <span>${message}</span>
+      `;
+      
+      const container = document.getElementById('toastContainer');
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    // Fonction pour basculer le mode admin
+    function toggleAdminMode() {
+      const password = prompt("Entrez le mot de passe administrateur:");
+      if (password === CONFIG.adminPassword) {
+        CONFIG.isAdmin = !CONFIG.isAdmin;
+        showToast(CONFIG.isAdmin ? '🔓 Mode admin activé' : '🔒 Mode admin désactivé');
+      } else if (password !== null) {
+        showToast('❌ Mot de passe incorrect', 'error');
+      }
+    }
+
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialiser l'affichage
+      updateCounterDisplay();
+      
+      // Configurer les boutons
+      document.getElementById('counterBtn').onclick = openCounterModal;
+      document.getElementById('dashboardFloatingBtn').onclick = function() {
+        window.open('tdb.html', '_blank');
+      };
+      document.getElementById('secretAdminBtn').onclick = toggleAdminMode;
+      document.getElementById('qrDirectBtn').onclick = function() {
+        showToast('📱 Fonction QR Code à implémenter');
+      };
+      
+      document.getElementById('closeCounterModalBtn').onclick = function() {
+        document.getElementById('counterModal').classList.remove('open');
+        document.body.style.overflow = '';
+      };
+      
+      document.getElementById('resetCounterBtn').onclick = resetDailyCounter;
+      document.getElementById('copyCounterBtn').onclick = copyCounterInfo;
+      
+      // Afficher un message de bienvenue
+      setTimeout(() => {
+        const counter = getCurrentCounter();
+        if (counter > 0) {
+          showToast(`📊 ${counter} commande(s) aujourd'hui`);
+        }
+      }, 1000);
+    });
+
+    // Styles d'animation pour les toasts
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
