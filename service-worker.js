@@ -1,40 +1,21 @@
-const CACHE_NAME = 'maxi-jdc-market-v2';
+// service-worker.js
+const CACHE_NAME = 'maxi-jdc-market-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  './',
+  './index.html',
+  './tableau-de-bord.html',
+  './suivi-commandes.html'
 ];
 
-// Installation
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Cache ouvert');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// Activation
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Suppression de l\'ancien cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-});
-
-// Fetch
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
