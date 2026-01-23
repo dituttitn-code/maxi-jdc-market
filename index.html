@@ -1708,7 +1708,7 @@
       gap: 20px;
     }
 
-    /* SECTION ADMIN */
+    /* SECTION ADMIN - MODIFIÉE 2 BOUTONS PAR LIGNE */
     .admin-section {
       background: var(--card2);
       border-radius: var(--radius);
@@ -1819,6 +1819,28 @@
     .admin-label {
       font-size: 10px;
       font-weight: 900;
+    }
+
+    /* ESPACE CLIENT */
+    #clientSpaceSection {
+      background: var(--card2);
+      border-radius: var(--radius);
+      border: 1px solid var(--accent2);
+      padding: 15px;
+      box-shadow: var(--shadow);
+      margin-bottom: 15px;
+      display: block;
+    }
+
+    #clientSpaceSection .admin-btn {
+      border-color: var(--accent2);
+      background: rgba(0, 212, 255, 0.1);
+      color: var(--accent2);
+    }
+
+    #clientSpaceSection .admin-btn:hover {
+      background: rgba(0, 212, 255, 0.2);
+      transform: translateY(-2px);
     }
 
     /* MODAL GESTION STOCK */
@@ -3150,7 +3172,7 @@
       }
 
       .admin-controls-grid {
-        grid-template-columns: repeat(1, 1fr);
+        grid-template-columns: repeat(2, 1fr);
       }
 
       .secret-admin-btn {
@@ -3332,27 +3354,37 @@
             <span class="admin-icon">📊</span>
             <span class="admin-label">Tableau de bord</span>
           </button>
-          <button class="admin-btn promo" id="adminPromoBtn">
-            <span class="admin-icon">📢</span>
-            <span class="admin-label">Gérer promotions</span>
-          </button>
           <button class="admin-btn stock" id="adminStockBtn">
             <span class="admin-icon">📦</span>
             <span class="admin-label">Gérer stock</span>
           </button>
-          <button class="admin-btn stats" id="adminStatsBtn">
-            <span class="admin-icon">📈</span>
-            <span class="admin-label">Statistiques</span>
+        </div>
+      </section>
+
+      <!-- ESPACE CLIENT -->
+      <section class="account-section" id="clientSpaceSection">
+        <div class="section-title">
+          <h4>👤 Espace Client</h4>
+          <span class="account-status" id="clientSpaceStatus">Actif</span>
+        </div>
+        <div class="admin-controls-grid">
+          <button class="admin-btn promo" id="clientAccountBtn">
+            <span class="admin-icon">👤</span>
+            <span class="admin-label">Mon Compte</span>
           </button>
-          <button class="admin-btn settings" id="adminSettingsBtn">
-            <span class="admin-icon">⚙️</span>
-            <span class="admin-label">Paramètres</span>
+          <button class="admin-btn stats" id="clientTrackingBtn">
+            <span class="admin-icon">📍</span>
+            <span class="admin-label">Suivi Commande</span>
+          </button>
+          <button class="admin-btn settings" id="clientHistoryBtn">
+            <span class="admin-icon">📜</span>
+            <span class="admin-label">Historique</span>
           </button>
         </div>
       </section>
 
       <!-- COMPTE -->
-      <section class="account-section">
+      <section class="account-section" id="accountDetailsSection">
         <div class="section-title">
           <h4>👤 Mon Compte</h4>
           <span class="account-status" id="accountStatus">Nouveau</span>
@@ -3410,7 +3442,7 @@
       </section>
 
       <!-- HISTORIQUE -->
-      <section class="history-search-section">
+      <section class="history-search-section" id="historySearchSection" style="display:none">
         <div class="section-title">
           <h4>📋 Historique des commandes</h4>
         </div>
@@ -3741,7 +3773,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v33',
+      localStorageKey: 'maxi_jdc_market_app_v34',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -3753,9 +3785,8 @@
         lng: 10.301234
       },
       syncInterval: 30000,
-      dashboardUrl: 'tools/tableau-de-bord.html',
+      dashboardUrl: 'tableau-de-bord.html',
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
-      // NOUVEAU LIEN GOOGLE APPS SCRIPT POUR L'ENREGISTREMENT AUTOMATIQUE DES COMMANDES
       commandeApiUrl: "https://script.google.com/macros/s/AKfycbzJBRgQiA214iLEyoDFWTq2dnfRFTL8S9fGwNd0SCGWKmUihISIMeyle_SF0X7vkEk/exec",
     };
 
@@ -5229,6 +5260,43 @@
       document.body.style.overflow = '';
     }
 
+    // ===================== GESTION ESPACE CLIENT =====================
+    function initClientSpace() {
+      $('clientAccountBtn').onclick = () => {
+        // Afficher la section compte, masquer historique
+        $('accountDetailsSection').style.display = 'block';
+        $('orderHistorySection').style.display = 'none';
+        $('historySearchSection').style.display = 'none';
+        showToast('👤 Accès à votre compte');
+      };
+
+      $('clientTrackingBtn').onclick = () => {
+        if (!state.user || !state.user.phone) {
+          showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
+          $('clientAccountBtn').click();
+          return;
+        }
+        // Ouvrir la page de suivi des commandes
+        window.open('suivi-commande.html', '_blank');
+      };
+
+      $('clientHistoryBtn').onclick = () => {
+        if (!state.user || !state.user.phone) {
+          showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
+          $('clientAccountBtn').click();
+          return;
+        }
+        // Afficher la section historique, masquer compte
+        $('accountDetailsSection').style.display = 'none';
+        $('historySearchSection').style.display = 'block';
+        $('orderHistorySection').style.display = 'block';
+        $('searchHistoryPhone').value = state.user.phone;
+        const history = loadHistoryForPhone(state.user.phone);
+        renderHistory(history);
+        showToast('📜 Accès à votre historique');
+      };
+    }
+
     // ===================== ADMIN =====================
     function toggleAdminMode() {
       const password = prompt("Entrez le mot de passe administrateur:");
@@ -5305,7 +5373,6 @@
         showToast('📤 Enregistrement automatique de la commande...', 'warning');
 
         // 1. PRÉPARER LES DONNÉES DANS LE FORMAT ATTENDU PAR LE SERVEUR
-        // Votre Code.gs attend : nom, telephone, adresse (SANS "client_")
         const formData = new URLSearchParams();
         
         // Données de base - FORMAT CORRECT pour Code.gs
@@ -5320,7 +5387,6 @@
             articles.push({
                 produit: item.name,
                 quantite: item.quantity
-                // Note: Code.gs ignore prix_unitaire dans formatArticles(), donc pas besoin
             });
         });
         
@@ -5750,6 +5816,7 @@
 
       loadAllProducts();
       initializeSync();
+      initClientSpace();
       showToast('👋 Bienvenue sur MAXI JDC MARKET !');
     }
 
@@ -5758,7 +5825,7 @@
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '33.0'
+        version: '34.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
@@ -5772,5 +5839,4 @@
     });
   </script>
 </body>
-
 </html>
