@@ -20,113 +20,228 @@
     .container{max-width:900px;margin:0 auto}
     .header{
       background:rgba(10,25,47,.95);border:2px solid var(--green);border-radius:var(--r);
-      padding:18px 22px;display:flex;justify-content:space-between;align-items:center;
+      padding:18px 22px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;
       box-shadow:var(--shadow);margin-bottom:18px;
     }
-    h1{
+    .left{display:flex;align-items:center;gap:14px}
+    .logo{
+      width:56px;height:56px;border-radius:12px;border:3px solid var(--green);
+      display:flex;align-items:center;justify-content:center;background:rgba(0,255,136,.12);
       font-size:22px;font-weight:900;
-      background:linear-gradient(90deg,var(--green),var(--blue));
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
     }
-    .sub{color:var(--muted);font-size:13px;margin-top:4px}
-    .card{background:var(--card);border:2px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:18px}
-    label{font-size:12px;color:var(--muted)}
+    h1{
+      font-size:22px;font-weight:900;background:linear-gradient(90deg,var(--green),var(--blue));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;
+    }
+    .sub{color:var(--muted);font-size:13px}
+    .btnLink{
+      background:rgba(255,255,255,.10);border:2px solid var(--line);color:var(--txt);
+      padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer;transition:.2s;
+      display:inline-flex;gap:8px;align-items:center;text-decoration:none;justify-content:center;
+    }
+    .btnLink:hover{transform:translateY(-2px);border-color:var(--blue);background:rgba(255,255,255,.15)}
+    .card{
+      background:var(--card);border:2px solid var(--line);border-radius:var(--r);
+      box-shadow:var(--shadow);padding:18px;margin-bottom:18px;
+    }
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
     input,textarea{
-      width:100%;padding:12px;border-radius:10px;border:2px solid var(--line);
-      background:rgba(255,255,255,.08);color:var(--txt);outline:none;
+      width:100%;padding:12px 14px;border-radius:10px;border:2px solid var(--line);
+      background:rgba(255,255,255,.08);color:var(--txt);outline:none;font-size:14px;
     }
     input:focus,textarea:focus{border-color:var(--green)}
-    textarea{min-height:90px}
-    .btn{
-      width:100%;margin-top:16px;
+    textarea{min-height:90px;resize:vertical}
+    .primary{
+      width:100%;
       background:rgba(0,255,136,.15);border:2px solid var(--green);
-      color:var(--green);font-weight:900;padding:14px;border-radius:12px;
-      cursor:pointer;font-size:16px;
+      color:var(--green);font-weight:900;padding:14px 16px;border-radius:12px;
+      cursor:pointer;font-size:16px;transition:.2s;
+      display:flex;gap:10px;align-items:center;justify-content:center;
     }
-    .btn:hover{background:rgba(0,255,136,.25)}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .row1{display:grid;grid-template-columns:1fr;gap:12px}
-    .error{color:var(--red);font-weight:800;margin-top:10px}
+    .primary:hover{background:rgba(0,255,136,.25);transform:translateY(-1px)}
+    .muted{color:var(--muted);font-size:13px;line-height:1.5}
+    .line{height:1px;background:rgba(255,255,255,.12);margin:14px 0}
+    .row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
     .big{font-size:18px;font-weight:900;color:var(--green)}
+    .error{
+      background:rgba(255,107,107,.12);
+      border:1px solid rgba(255,107,107,.5);
+      color:var(--red);
+      padding:12px 14px;border-radius:12px;
+      font-weight:800;
+      display:none;
+      margin-top:12px;
+    }
+    .preview{
+      background:rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.12);
+      padding:12px 14px;border-radius:12px;
+      white-space:pre-wrap;
+      font-size:14px;
+      margin-top:10px;
+    }
+    .smallPill{
+      display:inline-flex;gap:8px;align-items:center;
+      border:1px solid rgba(255,255,255,.18);
+      padding:6px 10px;border-radius:999px;
+      color:var(--muted);font-size:12px;
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <div class="header">
-      <div>
-        <h1>Validation de commande</h1>
-        <div class="sub">MAXI JDC MARKET — confirmation via WhatsApp</div>
+    <header class="header">
+      <div class="left">
+        <div class="logo">✅</div>
+        <div>
+          <h1>Validation de commande</h1>
+          <div class="sub">MAXI JDC MARKET — validez puis envoyez sur WhatsApp</div>
+        </div>
       </div>
-      <a href="/maxi-jdc-market/" style="color:white;text-decoration:none;">← Accueil</a>
-    </div>
+      <a class="btnLink" href="/maxi-jdc-market/"><span>←</span><span>Retour Accueil</span></a>
+    </header>
 
     <div class="card">
-      <div>🧾 Numéro de commande :</div>
-      <div id="commandeId" class="big">—</div>
+      <div class="row">
+        <div>
+          <div class="smallPill">📦 Étape: Validation</div>
+          <div style="margin-top:10px;font-weight:900;font-size:18px;">Informations client</div>
+          <div class="muted">Rien n’est envoyé tant que vous n’avez pas cliqué sur <b>Valider la commande</b>.</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="muted">Numéro de commande</div>
+          <div id="commandeId" class="big">—</div>
+        </div>
+      </div>
 
-      <div class="row" style="margin-top:14px;">
+      <div class="line"></div>
+
+      <div class="grid">
         <div>
           <label>Nom & Prénom</label>
-          <input id="nom" placeholder="Ex: Mohamed Ali">
+          <input id="nom" placeholder="Ex: Mohamed Ali" autocomplete="name" />
         </div>
         <div>
-          <label>Téléphone (WhatsApp)</label>
-          <input id="telephone" placeholder="Ex: 25 600 978">
+          <label>Téléphone</label>
+          <input id="telephone" placeholder="Ex: 25 600 978" autocomplete="tel" inputmode="tel" />
         </div>
-      </div>
-
-      <div class="row1" style="margin-top:12px;">
-        <div>
+        <div style="grid-column:1 / -1;">
           <label>Adresse de livraison</label>
-          <textarea id="adresse" placeholder="Ex: Jardins de Carthage..."></textarea>
+          <textarea id="adresse" placeholder="Ex: Jardins de Carthage..." autocomplete="street-address"></textarea>
         </div>
       </div>
 
-      <div id="error" class="error" style="display:none;"></div>
+      <div id="error" class="error"></div>
 
-      <button class="btn" id="btnValider">✅ Valider & ouvrir WhatsApp</button>
+      <div class="line"></div>
+
+      <div style="font-weight:900;margin-bottom:6px;">Message WhatsApp (aperçu)</div>
+      <div id="preview" class="preview">Remplissez vos infos puis cliquez sur “Valider la commande”.</div>
+
+      <button class="primary" id="btnValider" style="margin-top:14px;">
+        ✅ Valider la commande & ouvrir WhatsApp
+      </button>
+
+      <div class="muted" style="margin-top:10px;">
+        ℹ️ WhatsApp s’ouvre avec le message prêt. Ensuite, vous appuyez sur <b>Envoyer</b>.
+      </div>
+
+      <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+        <a class="btnLink" id="btnSuivi" href="/maxi-jdc-market/tools/suivi-commandes.html" style="flex:1;min-width:220px;">
+          📍 Suivi commande
+        </a>
+        <a class="btnLink" href="tel:+21625600978" style="flex:1;min-width:220px;">
+          📞 Appeler MAXI
+        </a>
+      </div>
     </div>
   </div>
 
-  <!-- API COMMANDES -->
+  <!-- IMPORTANT : ton API est dans tools/api/api-commandes.js -->
   <script src="./api/api-commandes.js"></script>
 
   <script>
-    const $ = id => document.getElementById(id);
+    const $ = (id) => document.getElementById(id);
 
-    async function genererNumero() {
-      const id = await ApiCommandes.generateNextCommandeId(new Date());
-      $("commandeId").textContent = id;
-      return id;
+    // ✅ WhatsApp Business de MAXI (chiffres uniquement, sans +)
+    const MAXI_WHATSAPP = "21625600978";
+
+    function showError(msg){
+      const e = $("error");
+      e.style.display = "block";
+      e.textContent = msg;
+    }
+    function hideError(){
+      const e = $("error");
+      e.style.display = "none";
+      e.textContent = "";
     }
 
-    function erreur(msg){
-      $("error").style.display="block";
-      $("error").textContent=msg;
+    function buildMessage(commandeId){
+      return (
+`✅ Merci pour votre commande MAXI JDC MARKET.
+📦 Votre commande est bien reçue sous le numero ${commandeId}
+⏳ Elle est en cours de préparation.
+Nous vous contacterons pour la livraison.`
+      );
     }
 
-    $("btnValider").addEventListener("click", async () => {
-      $("error").style.display="none";
+    async function onValidate(){
+      hideError();
 
       const nom = $("nom").value.trim();
-      const tel = $("telephone").value.trim();
-      const adr = $("adresse").value.trim();
+      const telephone = $("telephone").value.trim();
+      const adresse = $("adresse").value.trim();
 
-      if(!nom || !tel || !adr){
-        erreur("Veuillez remplir tous les champs.");
+      if (!nom || !telephone || !adresse) {
+        showError("Veuillez remplir Nom, Téléphone et Adresse.");
         return;
       }
 
-      let cmd = $("commandeId").textContent;
-      if(cmd==="—") cmd = await genererNumero();
+      if (!window.ApiCommandes || !ApiCommandes.generateNextCommandeId) {
+        showError("Erreur: api-commandes.js non chargé. Vérifie le chemin: ./api/api-commandes.js");
+        return;
+      }
 
-      // 🔥 OUVERTURE WHATSAPP CLIENT
-      ApiCommandes.openWhatsApp(tel, cmd);
+      // ✅ Générer le numéro UNIQUEMENT AU CLIC (donc validation)
+      const commandeId = await ApiCommandes.generateNextCommandeId(new Date());
+
+      $("commandeId").textContent = commandeId;
+
+      // aperçu du message
+      const message = buildMessage(commandeId);
+      $("preview").textContent = message;
+
+      // ✅ Ouvrir WhatsApp vers MAXI avec message prêt
+      const url = `https://wa.me/${MAXI_WHATSAPP}?text=${encodeURIComponent(message)}`;
+      window.open(url, "_blank");
+
+      // ✅ Optionnel: bouton suivi direct sur ce numéro
+      $("btnSuivi").href = `/maxi-jdc-market/tools/suivi-commandes.html?order=${encodeURIComponent(commandeId)}`;
+
+      // ✅ Sauvegarde utile (facultatif)
+      localStorage.setItem("last_commande_id", commandeId);
+      localStorage.setItem("last_client_tel", telephone);
+      localStorage.setItem("last_client_nom", nom);
+      localStorage.setItem("last_client_adresse", adresse);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      $("btnValider").addEventListener("click", onValidate);
+
+      // Petit confort : pré-remplir si déjà sauvegardé
+      const nom = localStorage.getItem("last_client_nom") || "";
+      const tel = localStorage.getItem("last_client_tel") || "";
+      const adr = localStorage.getItem("last_client_adresse") || "";
+      if (nom) $("nom").value = nom;
+      if (tel) $("telephone").value = tel;
+      if (adr) $("adresse").value = adr;
+
+      // aperçu initial (sans commande)
+      $("preview").textContent = "Remplissez vos infos puis cliquez sur “Valider la commande”.";
     });
-
-    document.addEventListener("DOMContentLoaded", genererNumero);
   </script>
 </body>
 </html>
-
