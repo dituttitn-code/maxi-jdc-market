@@ -3756,7 +3756,7 @@
       dashboardUrl: 'tools/tableau-de-bord.html',
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
       // NOUVEAU LIEN GOOGLE APPS SCRIPT POUR L'ENREGISTREMENT AUTOMATIQUE DES COMMANDES
-      commandeApiUrl: "https://script.google.com/macros/s/AKfycbwupA9X-fbIwK1t1bHR0L3_xgefj9wWsPcXyAd0E34aRSJjVYovu7C2R-vugXMmz0zK/exec",
+      commandeApiUrl: "https://script.google.com/macros/s/AKfycbzJBRgQiA214iLEyoDFWTq2dnfRFTL8S9fGwNd0SCGWKmUihISIMeyle_SF0X7vkEk/exec",
     };
 
     // Catégories
@@ -5304,57 +5304,61 @@
       try {
         showToast('📤 Enregistrement automatique de la commande...', 'warning');
 
-        // Préparer les données
-        const dataToSend = {
-          token: "MAXI_JDC_2026",
-          timestamp: new Date().toISOString(),
-          commande_id: 'CMD_' + Date.now(),
-          client_nom: state.user.name,
-          client_telephone: state.user.phone.replace(/\D/g, ''),
-          client_adresse: state.user.address,
-          articles: JSON.stringify(Object.values(state.cart).map(item => ({
-            produit: item.name,
-            code: item.code,
-            quantite: item.quantity,
-            prix_unitaire: item.price,
-            prix_total: (item.price * item.quantity).toFixed(2),
-            promotion: item.isPromotion ? 'OUI' : 'NON',
-            ancien_prix: item.oldPrice || item.price
-          }))),
-          sous_total: orderData.subtotal.toFixed(2),
-          frais_livraison: orderData.shipping.toFixed(2),
-          total: orderData.total.toFixed(2),
-          economies: orderData.savings ? orderData.savings.toFixed(2) : '0.00',
-          pourcentage_economies: orderData.savingsPercentage || 0,
-          statut: 'NOUVEAU'
-        };
+        // 1. PRÉPARER LES DONNÉES DANS LE FORMAT ATTENDU PAR LE SERVEUR
+        // Votre Code.gs attend : nom, telephone, adresse (SANS "client_")
+        const formData = new URLSearchParams();
+        
+        // Données de base - FORMAT CORRECT pour Code.gs
+        formData.append('method', 'saveOrder');
+        formData.append('nom', state.user.name || '');
+        formData.append('telephone', state.user.phone ? state.user.phone.replace(/\D/g, '') : '');
+        formData.append('adresse', state.user.address || '');
+        
+        // 2. PRÉPARER LES ARTICLES DANS LE FORMAT ATTENDU
+        const articles = [];
+        Object.values(state.cart).forEach(item => {
+            articles.push({
+                produit: item.name,
+                quantite: item.quantity
+                // Note: Code.gs ignore prix_unitaire dans formatArticles(), donc pas besoin
+            });
+        });
+        
+        // 3. ENVOYER LES ARTICLES SOUS FORME DE JSON
+        formData.append('articles', JSON.stringify(articles));
+        
+        // 4. TOTAL (format string)
+        formData.append('total', orderData.total.toFixed(2));
+        
+        console.log('📤 Données envoyées au serveur:', Object.fromEntries(formData));
 
-        console.log('📤 Données envoyées:', dataToSend);
-
-        // URL avec JSONP
-        const url = `${CONFIG.commandeApiUrl}?action=submit&payload=${encodeURIComponent(JSON.stringify(dataToSend))}`;
-
-        // Envoyer via JSONP
-        const response = await fetchJsonp(url);
-
-        console.log('📥 Réponse reçue:', response);
-
-        if (response && (response.ok === true || response.success === true)) {
-          showToast('✅ Commande enregistrée dans Google Sheets !');
-          return true;
+        // 5. ENVOYER VIA POST - FORMAT URL ENCODED
+        const response = await fetch(CONFIG.commandeApiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formData.toString()
+        });
+        
+        const result = await response.json();
+        console.log('📥 Réponse du serveur:', result);
+        
+        if (result.success) {
+            showToast('✅ Commande enregistrée dans Google Sheets ! ID: ' + result.commande_id);
+            return true;
         } else {
-          const errorMsg = response?.error || response?.message || 'Erreur inconnue';
-          console.warn('⚠️ Erreur API:', errorMsg);
-          showToast(`⚠️ Commande créée (non enregistrée: ${errorMsg})`, 'warning');
-          return false;
+            console.warn('⚠️ Erreur API:', result.error);
+            showToast(`⚠️ Commande créée (non enregistrée: ${result.error || 'Erreur serveur'})`, 'warning');
+            return false;
         }
 
-      } catch (error) {
+    } catch (error) {
         console.error('❌ Erreur enregistrement:', error);
         showToast('⚠️ Commande créée (erreur réseau)', 'warning');
         return false;
-      }
     }
+}
 
     // ===================== COMMANDES =====================
     async function placeOrder() {
