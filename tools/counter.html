@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Compteur de Commandes MAXI JDC</title>
+    <title>Compteur de Commandes MAXI JDC - FONCTIONNEL</title>
     <style>
         * {
             margin: 0;
@@ -18,185 +18,250 @@
         }
         
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
         }
         
         .header {
             text-align: center;
-            margin-bottom: 40px;
-            padding: 20px;
+            margin-bottom: 30px;
+            padding: 25px;
             background: rgba(0, 212, 255, 0.1);
             border-radius: 15px;
-            border: 2px solid #00d4ff;
+            border: 3px solid #00d4ff;
         }
         
         h1 {
             color: #00ff88;
-            font-size: 28px;
+            font-size: 32px;
             margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
         }
         
-        .counter-box {
-            background: rgba(26, 54, 93, 0.8);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            border: 2px solid rgba(0, 255, 136, 0.3);
+        .date-display {
+            font-size: 20px;
+            color: gold;
+            font-weight: bold;
+            margin-bottom: 20px;
             text-align: center;
         }
         
-        .counter-value {
-            font-size: 72px;
-            font-weight: bold;
-            color: #00ff88;
-            margin: 20px 0;
-            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        .main-counter {
+            background: rgba(26, 54, 93, 0.9);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 30px auto;
+            border: 3px solid #00ff88;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
         }
         
-        .commande-id {
-            font-size: 24px;
+        .counter-label {
+            font-size: 18px;
+            color: #8b949e;
+            margin-bottom: 10px;
+        }
+        
+        .counter-number {
+            font-size: 100px;
+            font-weight: 900;
+            color: #00ff88;
+            margin: 20px 0;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+        }
+        
+        .commande-id-display {
+            font-size: 28px;
             font-weight: bold;
             color: gold;
             background: rgba(255, 215, 0, 0.1);
-            padding: 15px;
-            border-radius: 10px;
+            padding: 20px;
+            border-radius: 15px;
             border: 2px solid gold;
-            margin: 20px 0;
+            margin: 30px 0;
             word-break: break-all;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
         }
         
         .buttons {
             display: flex;
             gap: 15px;
             justify-content: center;
-            margin: 30px 0;
+            margin: 40px 0;
             flex-wrap: wrap;
         }
         
         .btn {
-            padding: 15px 25px;
-            border-radius: 10px;
+            padding: 18px 30px;
+            border-radius: 12px;
             border: none;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            min-width: 180px;
+            gap: 12px;
+            min-width: 220px;
         }
         
-        .btn-primary {
+        .btn-generate {
             background: linear-gradient(135deg, #00ff88, #00d4ff);
             color: #0a1929;
         }
         
-        .btn-secondary {
-            background: rgba(255, 215, 0, 0.2);
-            color: gold;
-            border: 2px solid gold;
+        .btn-history {
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            border: 2px solid #00d4ff;
         }
         
-        .btn-danger {
+        .btn-reset {
             background: rgba(255, 107, 107, 0.2);
             color: #ff6b6b;
             border: 2px solid #ff6b6b;
         }
         
         .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         }
         
-        .history {
-            background: rgba(26, 54, 93, 0.8);
-            border-radius: 15px;
-            padding: 25px;
-            margin-top: 30px;
-        }
-        
-        .history h3 {
-            color: #00d4ff;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .history-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .history-date {
-            color: #8b949e;
-        }
-        
-        .history-count {
-            color: #00ff88;
-            font-weight: bold;
-        }
-        
-        .status {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 10px;
-            background: rgba(0, 255, 136, 0.2);
-            border: 1px solid #00ff88;
-            color: #00ff88;
-            font-weight: bold;
-            z-index: 1000;
-            animation: fadeIn 0.3s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .instructions {
+        .debug-info {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
             padding: 20px;
             margin-top: 30px;
-            border-left: 4px solid #00d4ff;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #8b949e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .instructions h4 {
-            color: #00d4ff;
+        .debug-title {
+            color: #ffa726;
+            font-weight: bold;
             margin-bottom: 10px;
+        }
+        
+        .test-results {
+            background: rgba(26, 54, 93, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 40px;
+            border: 2px solid #ffa726;
+        }
+        
+        .test-title {
+            color: #ffa726;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .test-btn {
+            padding: 12px 20px;
+            border-radius: 8px;
+            background: rgba(255, 167, 38, 0.2);
+            color: #ffa726;
+            border: 2px solid #ffa726;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .test-btn:hover {
+            background: rgba(255, 167, 38, 0.4);
+            transform: translateY(-3px);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 12px;
+            background: rgba(0, 255, 136, 0.2);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            font-weight: bold;
+            z-index: 10000;
+            display: none;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+        
+        .notification.error {
+            background: rgba(255, 107, 107, 0.2);
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .instructions {
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 40px;
+            border: 2px solid #00d4ff;
+        }
+        
+        .instructions h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
         }
         
         .instructions ul {
             padding-left: 20px;
-            color: #8b949e;
         }
         
         .instructions li {
-            margin: 5px 0;
+            margin: 10px 0;
+            color: #8b949e;
+        }
+        
+        .instructions strong {
+            color: #00ff88;
         }
         
         @media (max-width: 768px) {
-            .buttons {
-                flex-direction: column;
+            .container {
+                padding: 10px;
+            }
+            
+            .counter-number {
+                font-size: 70px;
+            }
+            
+            .commande-id-display {
+                font-size: 20px;
+                padding: 15px;
             }
             
             .btn {
-                width: 100%;
-            }
-            
-            .counter-value {
-                font-size: 48px;
-            }
-            
-            .commande-id {
-                font-size: 18px;
+                min-width: 100%;
+                font-size: 16px;
+                padding: 15px 20px;
             }
         }
     </style>
@@ -204,68 +269,73 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔄 COMPTEUR DE COMMANDES MAXI JDC</h1>
-            <p>Système de génération automatique d'ID de commandes</p>
+            <h1>🔢 COMPTEUR DE COMMANDES MAXI JDC</h1>
+            <p style="color: #8b949e; font-size: 16px;">Système de génération automatique d'ID unique par commande</p>
         </div>
         
-        <div class="counter-box">
-            <h2>📅 DATE DU JOUR</h2>
-            <div id="currentDate" style="font-size: 18px; color: #8b949e; margin-bottom: 20px;">
-                Chargement...
+        <div class="date-display" id="currentDateDisplay">
+            Chargement de la date...
+        </div>
+        
+        <div class="main-counter">
+            <div class="counter-label">COMMANDES AUJOURD'HUI</div>
+            <div class="counter-number" id="counterDisplay">0</div>
+            
+            <div class="counter-label">PROCHAINE COMMANDE</div>
+            <div class="commande-id-display" id="nextCommandeIdDisplay">
+                CMD-MAXI-20260123-001
             </div>
             
-            <h2>🎯 COMPTEUR ACTUEL</h2>
-            <div class="counter-value" id="counterValue">0</div>
-            
-            <h2>🆔 PROCHAINE COMMANDE</h2>
-            <div class="commande-id" id="nextCommandeId">CMD-MAXI-20250123-001</div>
-            
             <div class="buttons">
-                <button class="btn btn-primary" onclick="generateNewCommande()">
+                <button class="btn btn-generate" onclick="generateNewOrder()">
                     🚀 GÉNÉRER UNE NOUVELLE COMMANDE
                 </button>
-                <button class="btn btn-secondary" onclick="showHistory()">
-                    📊 VOIR L'HISTORIQUE
+                <button class="btn btn-history" onclick="showDebugInfo()">
+                    🔍 VOIR LES DÉTAILS TECHNIQUES
                 </button>
-                <button class="btn btn-danger" onclick="resetCounter()">
+                <button class="btn btn-reset" onclick="resetCounter()">
                     🔄 RÉINITIALISER LE COMPTEUR
                 </button>
             </div>
         </div>
         
-        <div class="history" id="historySection" style="display: none;">
-            <h3>📈 HISTORIQUE DES 7 DERNIERS JOURS</h3>
-            <div id="historyList">
-                <!-- L'historique sera ajouté ici -->
-            </div>
+        <div class="test-results" id="testResults" style="display: none;">
+            <div class="test-title">📊 TESTS ET RÉSULTATS</div>
+            <div id="testHistory"></div>
+        </div>
+        
+        <div class="debug-info" id="debugInfo" style="display: none;">
+            <div class="debug-title">📋 DÉTAILS TECHNIQUES DU COMPTEUR</div>
+            <div id="debugContent"></div>
         </div>
         
         <div class="instructions">
-            <h4>📝 COMMENT ÇA FONCTIONNE ?</h4>
+            <h3>💡 COMMENT FONCTIONNE LE SYSTÈME ?</h3>
             <ul>
-                <li>Le format est : <strong>CMD-MAXI-YYYYMMDD-NNN</strong></li>
-                <li><strong>CMD-MAXI</strong> : Identifiant de la boutique</li>
-                <li><strong>YYYYMMDD</strong> : Date du jour (année, mois, jour)</li>
-                <li><strong>NNN</strong> : Numéro séquentiel sur 3 chiffres (001, 002, 003...)</li>
-                <li>Le compteur se réinitialise automatiquement chaque jour à minuit</li>
-                <li>Les données sont sauvegardées dans le navigateur</li>
+                <li><strong>Format :</strong> CMD-MAXI-YYYYMMDD-NNN</li>
+                <li><strong>CMD-MAXI :</strong> Code fixe de la boutique</li>
+                <li><strong>YYYYMMDD :</strong> Date du jour (ex: 20260123)</li>
+                <li><strong>NNN :</strong> Numéro séquentiel sur 3 chiffres (001, 002, 003...)</li>
+                <li>Le compteur <strong>s'incrémente automatiquement</strong> à chaque nouvelle commande</li>
+                <li>Le compteur <strong>se réinitialise chaque jour</strong> à minuit</li>
+                <li>Les données sont sauvegardées dans le <strong>localStorage</strong> du navigateur</li>
             </ul>
         </div>
     </div>
     
-    <div id="statusMessage" class="status" style="display: none;"></div>
+    <div class="notification" id="notification"></div>
 
     <script>
         // ===================== CONFIGURATION =====================
         const CONFIG = {
             prefix: "CMD-MAXI",
             adminPassword: "admin123",
-            historyDays: 7
+            storagePrefix: "maxi_jdc_counter_"
         };
 
-        // ===================== FONCTIONS PRINCIPALES =====================
+        // ===================== FONCTIONS DE BASE =====================
         
-        // Fonction pour obtenir la date au format YYYYMMDD
+        // Fonction pour obtenir la date formatée
         function getTodayDateString() {
             const now = new Date();
             const year = now.getFullYear();
@@ -274,314 +344,359 @@
             return year + month + day;
         }
         
+        // Fonction pour obtenir la date d'hier
+        function getYesterdayDateString() {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const year = yesterday.getFullYear();
+            const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+            const day = String(yesterday.getDate()).padStart(2, '0');
+            return year + month + day;
+        }
+        
+        // FONCTION PRINCIPALE : Générer un nouvel ID de commande
+        function generateCommandeId() {
+            try {
+                const today = getTodayDateString();
+                const storageKey = CONFIG.storagePrefix + today;
+                
+                // Lire le compteur actuel
+                let currentCounter = localStorage.getItem(storageKey);
+                
+                // Si pas de compteur pour aujourd'hui, commencer à 0
+                if (currentCounter === null) {
+                    currentCounter = 0;
+                } else {
+                    currentCounter = parseInt(currentCounter);
+                }
+                
+                // Incrémenter le compteur
+                const newCounter = currentCounter + 1;
+                
+                // Sauvegarder le nouveau compteur
+                localStorage.setItem(storageKey, newCounter.toString());
+                
+                // Formater le numéro sur 3 chiffres
+                const counterStr = String(newCounter).padStart(3, '0');
+                
+                // Générer l'ID complet
+                const commandeId = `${CONFIG.prefix}-${today}-${counterStr}`;
+                
+                console.log(`✅ Compteur incrémenté : ${currentCounter} → ${newCounter}`);
+                console.log(`🆔 ID généré : ${commandeId}`);
+                
+                return commandeId;
+                
+            } catch (error) {
+                console.error("❌ Erreur dans generateCommandeId:", error);
+                // Fallback en cas d'erreur
+                const today = getTodayDateString();
+                return `${CONFIG.prefix}-${today}-001`;
+            }
+        }
+        
         // Fonction pour obtenir le compteur actuel
         function getCurrentCounter() {
-            const dateStr = getTodayDateString();
-            const storageKey = `maxi_counter_${dateStr}`;
+            const today = getTodayDateString();
+            const storageKey = CONFIG.storagePrefix + today;
             const counter = localStorage.getItem(storageKey);
             
-            if (counter === null) {
-                // Première utilisation aujourd'hui, initialiser à 0
-                localStorage.setItem(storageKey, '0');
+            if (counter === null || counter === "null") {
                 return 0;
             }
             
             return parseInt(counter);
         }
         
-        // Fonction pour incrémenter et sauvegarder le compteur
-        function incrementCounter() {
-            const dateStr = getTodayDateString();
-            const storageKey = `maxi_counter_${dateStr}`;
-            const currentCounter = getCurrentCounter();
-            const newCounter = currentCounter + 1;
-            
-            // Sauvegarder le nouveau compteur
-            localStorage.setItem(storageKey, newCounter.toString());
-            
-            // Sauvegarder aussi dans l'historique global
-            saveToHistory(dateStr, newCounter);
-            
-            return newCounter;
-        }
-        
-        // Fonction pour générer un nouvel ID de commande
-        function generateCommandeId() {
-            const dateStr = getTodayDateString();
-            const newCounter = incrementCounter();
-            const counterStr = String(newCounter).padStart(3, '0');
-            
-            return `${CONFIG.prefix}-${dateStr}-${counterStr}`;
-        }
-        
         // Fonction pour obtenir le prochain ID (sans incrémenter)
         function getNextCommandeId() {
-            const dateStr = getTodayDateString();
+            const today = getTodayDateString();
             const currentCounter = getCurrentCounter();
             const nextCounter = currentCounter + 1;
             const counterStr = String(nextCounter).padStart(3, '0');
             
-            return `${CONFIG.prefix}-${dateStr}-${counterStr}`;
-        }
-        
-        // Fonction pour sauvegarder dans l'historique
-        function saveToHistory(dateStr, counter) {
-            const historyKey = 'maxi_counter_history';
-            let history = localStorage.getItem(historyKey);
-            
-            if (!history) {
-                history = {};
-            } else {
-                history = JSON.parse(history);
-            }
-            
-            // Ajouter ou mettre à jour la date
-            history[dateStr] = counter;
-            
-            // Limiter l'historique aux 30 derniers jours
-            const historyDates = Object.keys(history).sort();
-            if (historyDates.length > 30) {
-                const datesToRemove = historyDates.slice(0, historyDates.length - 30);
-                datesToRemove.forEach(date => {
-                    delete history[date];
-                });
-            }
-            
-            localStorage.setItem(historyKey, JSON.stringify(history));
-        }
-        
-        // Fonction pour obtenir l'historique
-        function getHistory() {
-            const historyKey = 'maxi_counter_history';
-            const history = localStorage.getItem(historyKey);
-            
-            if (!history) {
-                return [];
-            }
-            
-            const historyObj = JSON.parse(history);
-            const historyArray = [];
-            
-            // Convertir l'objet en tableau et trier par date
-            for (const [dateStr, counter] of Object.entries(historyObj)) {
-                const year = dateStr.substring(0, 4);
-                const month = dateStr.substring(4, 6);
-                const day = dateStr.substring(6, 8);
-                const date = new Date(year, month - 1, day);
-                
-                historyArray.push({
-                    date: date,
-                    dateStr: dateStr,
-                    formattedDate: `${day}/${month}/${year}`,
-                    counter: counter
-                });
-            }
-            
-            // Trier par date (du plus récent au plus ancien)
-            historyArray.sort((a, b) => b.date - a.date);
-            
-            return historyArray.slice(0, CONFIG.historyDays);
+            return `${CONFIG.prefix}-${today}-${counterStr}`;
         }
         
         // ===================== FONCTIONS D'AFFICHAGE =====================
         
-        // Fonction pour afficher le compteur
-        function displayCounter() {
+        // Afficher la date du jour
+        function displayCurrentDate() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            const dateStr = now.toLocaleDateString('fr-FR', options);
+            document.getElementById('currentDateDisplay').textContent = dateStr;
+        }
+        
+        // Mettre à jour l'affichage du compteur
+        function updateCounterDisplay() {
             const currentCounter = getCurrentCounter();
             const nextId = getNextCommandeId();
-            const now = new Date();
             
-            // Afficher la date
-            document.getElementById('currentDate').textContent = 
-                now.toLocaleDateString('fr-FR', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
+            document.getElementById('counterDisplay').textContent = currentCounter;
+            document.getElementById('nextCommandeIdDisplay').textContent = nextId;
             
-            // Afficher le compteur
-            document.getElementById('counterValue').textContent = currentCounter;
-            
-            // Afficher le prochain ID
-            document.getElementById('nextCommandeId').textContent = nextId;
+            console.log(`📊 Compteur affiché : ${currentCounter}, Prochain ID : ${nextId}`);
         }
         
-        // Fonction pour générer une nouvelle commande
-        function generateNewCommande() {
+        // Afficher une notification
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification' + (isError ? ' error' : '');
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+        
+        // ===================== FONCTIONS D'INTERACTION =====================
+        
+        // Générer une nouvelle commande
+        function generateNewOrder() {
             const newCommandeId = generateCommandeId();
             
-            // Afficher le nouveau compteur
-            displayCounter();
+            // Mettre à jour l'affichage
+            updateCounterDisplay();
             
-            // Afficher un message de confirmation
-            showStatus(`✅ Commande générée : ${newCommandeId}`);
+            // Afficher une notification
+            showNotification(`✅ Commande générée : ${newCommandeId}`);
             
-            // Jouer un son de succès (optionnel)
-            playSuccessSound();
+            // Ajouter au test history
+            addToTestHistory(newCommandeId);
             
-            // Afficher l'historique si ouvert
-            if (document.getElementById('historySection').style.display === 'block') {
-                displayHistory();
-            }
+            // Forcer une vérification du localStorage
+            verifyLocalStorage();
         }
         
-        // Fonction pour afficher l'historique
-        function displayHistory() {
-            const history = getHistory();
-            const historyList = document.getElementById('historyList');
-            
-            if (history.length === 0) {
-                historyList.innerHTML = '<p style="text-align: center; color: #8b949e;">Aucun historique disponible</p>';
-                return;
-            }
-            
-            let html = '';
-            history.forEach(item => {
-                const isToday = item.dateStr === getTodayDateString();
-                html += `
-                    <div class="history-item">
-                        <span class="history-date">${item.formattedDate} ${isToday ? '(Aujourd\'hui)' : ''}</span>
-                        <span class="history-count">${item.counter} commande(s)</span>
-                    </div>
-                `;
-            });
-            
-            historyList.innerHTML = html;
-        }
-        
-        // Fonction pour afficher/masquer l'historique
-        function showHistory() {
-            const historySection = document.getElementById('historySection');
-            if (historySection.style.display === 'none') {
-                displayHistory();
-                historySection.style.display = 'block';
-            } else {
-                historySection.style.display = 'none';
-            }
-        }
-        
-        // Fonction pour réinitialiser le compteur
+        // Réinitialiser le compteur
         function resetCounter() {
-            const password = prompt("Entrez le mot de passe administrateur pour réinitialiser le compteur:");
+            const password = prompt("🔐 Entrez le mot de passe administrateur :");
             
             if (password === CONFIG.adminPassword) {
-                const dateStr = getTodayDateString();
-                const storageKey = `maxi_counter_${dateStr}`;
+                const today = getTodayDateString();
+                const storageKey = CONFIG.storagePrefix + today;
+                
+                // Réinitialiser à 0
                 localStorage.setItem(storageKey, '0');
                 
-                showStatus('✅ Compteur réinitialisé à 0 pour aujourd\'hui');
-                displayCounter();
+                // Mettre à jour l'affichage
+                updateCounterDisplay();
                 
-                if (document.getElementById('historySection').style.display === 'block') {
-                    displayHistory();
+                showNotification("✅ Compteur réinitialisé à 0 pour aujourd'hui");
+                
+                // Rafraîchir les infos de debug
+                if (document.getElementById('debugInfo').style.display === 'block') {
+                    showDebugInfo();
                 }
+                
             } else if (password !== null) {
-                showStatus('❌ Mot de passe incorrect', 'error');
+                showNotification("❌ Mot de passe incorrect", true);
             }
         }
         
-        // Fonction pour afficher des messages de statut
-        function showStatus(message, type = 'success') {
-            const statusDiv = document.getElementById('statusMessage');
+        // Afficher les informations de debug
+        function showDebugInfo() {
+            const today = getTodayDateString();
+            const yesterday = getYesterdayDateString();
+            const storageKeyToday = CONFIG.storagePrefix + today;
+            const storageKeyYesterday = CONFIG.storagePrefix + yesterday;
             
-            // Changer la couleur selon le type
-            if (type === 'error') {
-                statusDiv.style.background = 'rgba(255, 107, 107, 0.2)';
-                statusDiv.style.borderColor = '#ff6b6b';
-                statusDiv.style.color = '#ff6b6b';
-            } else {
-                statusDiv.style.background = 'rgba(0, 255, 136, 0.2)';
-                statusDiv.style.borderColor = '#00ff88';
-                statusDiv.style.color = '#00ff88';
+            const counterToday = localStorage.getItem(storageKeyToday) || '0';
+            const counterYesterday = localStorage.getItem(storageKeyYesterday) || '0';
+            
+            // Compter toutes les clés de localStorage
+            const allKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith(CONFIG.storagePrefix)) {
+                    allKeys.push(key);
+                }
             }
             
-            statusDiv.textContent = message;
-            statusDiv.style.display = 'block';
+            const debugContent = document.getElementById('debugContent');
+            debugContent.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <strong>Date d'aujourd'hui :</strong> ${today}<br>
+                    <strong>Compteur aujourd'hui :</strong> ${counterToday}<br>
+                    <strong>Clé de stockage :</strong> ${storageKeyToday}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>Date d'hier :</strong> ${yesterday}<br>
+                    <strong>Compteur hier :</strong> ${counterYesterday}<br>
+                    <strong>Clé de stockage :</strong> ${storageKeyYesterday}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>Toutes les clés de compteur :</strong><br>
+                    ${allKeys.map(key => {
+                        const value = localStorage.getItem(key);
+                        return `• ${key} = ${value}`;
+                    }).join('<br>')}
+                </div>
+                
+                <div>
+                    <strong>Total localStorage :</strong> ${localStorage.length} éléments<br>
+                    <strong>Navigateur :</strong> ${navigator.userAgent.substring(0, 50)}...
+                </div>
+            `;
             
-            // Masquer après 3 secondes
-            setTimeout(() => {
-                statusDiv.style.display = 'none';
-            }, 3000);
+            document.getElementById('debugInfo').style.display = 'block';
+            document.getElementById('testResults').style.display = 'none';
         }
         
-        // Fonction pour jouer un son de succès
-        function playSuccessSound() {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
+        // Ajouter une entrée à l'historique des tests
+        function addToTestHistory(commandeId) {
+            const testHistory = document.getElementById('testHistory');
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('fr-FR', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+            
+            const historyItem = document.createElement('div');
+            historyItem.style.cssText = `
+                padding: 10px;
+                margin: 5px 0;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 5px;
+                border-left: 3px solid #00ff88;
+            `;
+            historyItem.textContent = `${timeStr} - ${commandeId}`;
+            
+            testHistory.prepend(historyItem);
+            
+            // Afficher la section test si cachée
+            document.getElementById('testResults').style.display = 'block';
+        }
+        
+        // Vérifier le localStorage
+        function verifyLocalStorage() {
+            console.log("=== VÉRIFICATION LOCALSTORAGE ===");
+            
+            // Vérifier la clé du jour
+            const today = getTodayDateString();
+            const storageKey = CONFIG.storagePrefix + today;
+            const counterValue = localStorage.getItem(storageKey);
+            
+            console.log(`Clé vérifiée : ${storageKey}`);
+            console.log(`Valeur trouvée : ${counterValue}`);
+            console.log(`Type de valeur : ${typeof counterValue}`);
+            
+            // Vérifier que c'est un nombre valide
+            if (counterValue !== null) {
+                const numValue = parseInt(counterValue);
+                console.log(`Valeur numérique : ${numValue}`);
+                console.log(`Est un nombre valide : ${!isNaN(numValue)}`);
+            }
+            
+            console.log("=================================");
+        }
+        
+        // Test de génération multiple
+        function testMultipleGenerations() {
+            showNotification("🧪 Test en cours...");
+            
+            const results = [];
+            const initialCounter = getCurrentCounter();
+            
+            // Générer 5 commandes de test
+            for (let i = 1; i <= 5; i++) {
+                const commandeId = generateCommandeId();
+                results.push(commandeId);
+                addToTestHistory(commandeId);
+            }
+            
+            const finalCounter = getCurrentCounter();
+            updateCounterDisplay();
+            
+            showNotification(`✅ Test terminé : ${initialCounter} → ${finalCounter} (${results.length} commandes générées)`);
+            
+            // Afficher les résultats
+            document.getElementById('testResults').style.display = 'block';
+        }
+        
+        // Nettoyer tout le localStorage
+        function clearAllStorage() {
+            if (confirm("⚠️ Voulez-vous vraiment SUPPRIMER TOUTES les données du compteur ? Cette action est irréversible.")) {
+                const password = prompt("🔐 Mot de passe administrateur :");
                 
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.value = 800;
-                oscillator.type = 'sine';
-                
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.5);
-            } catch (e) {
-                // Fallback silencieux si AudioContext n'est pas supporté
+                if (password === CONFIG.adminPassword) {
+                    // Supprimer toutes les clés de compteur
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith(CONFIG.storagePrefix)) {
+                            localStorage.removeItem(key);
+                        }
+                    }
+                    
+                    updateCounterDisplay();
+                    showNotification("🗑️ Toutes les données du compteur ont été supprimées");
+                    
+                } else if (password !== null) {
+                    showNotification("❌ Mot de passe incorrect", true);
+                }
             }
         }
         
         // ===================== INITIALISATION =====================
         
-        // Initialiser l'affichage au chargement
-        document.addEventListener('DOMContentLoaded', function() {
-            displayCounter();
+        // Initialiser l'application
+        function initApp() {
+            console.log("=== INITIALISATION DU COMPTEUR MAXI JDC ===");
+            
+            // Afficher la date
+            displayCurrentDate();
+            
+            // Mettre à jour l'affichage du compteur
+            updateCounterDisplay();
+            
+            // Vérifier le localStorage
+            verifyLocalStorage();
             
             // Afficher un message de bienvenue
             setTimeout(() => {
                 const counter = getCurrentCounter();
                 if (counter > 0) {
-                    showStatus(`📊 ${counter} commande(s) générée(s) aujourd'hui`);
+                    showNotification(`📊 ${counter} commande(s) aujourd'hui | Prochaine : ${getNextCommandeId()}`);
                 } else {
-                    showStatus('👋 Prêt à générer des commandes !');
+                    showNotification("👋 Prêt à générer des commandes ! Cliquez sur le bouton 🚀");
                 }
             }, 1000);
             
-            // Ajouter un raccourci clavier (ESPACE pour générer une commande)
+            // Ajouter des raccourcis clavier
             document.addEventListener('keydown', function(e) {
-                if (e.code === 'Space' && !e.target.matches('input, textarea')) {
+                // Espace = Générer une commande
+                if (e.code === 'Space' && !e.target.matches('input, textarea, button')) {
                     e.preventDefault();
-                    generateNewCommande();
+                    generateNewOrder();
+                }
+                
+                // F5 = Rafraîchir l'affichage
+                if (e.code === 'F5') {
+                    e.preventDefault();
+                    updateCounterDisplay();
+                    showNotification("🔄 Affichage rafraîchi");
+                }
+                
+                // Ctrl+R = Réinitialiser
+                if (e.ctrlKey && e.code === 'KeyR') {
+                    e.preventDefault();
+                    resetCounter();
                 }
             });
-            
-            // Log de débogage
-            console.log('=== DÉBOGAGE COMPTEUR MAXI JDC ===');
-            console.log('Date du jour:', getTodayDateString());
-            console.log('Compteur actuel:', getCurrentCounter());
-            console.log('Prochaine commande:', getNextCommandeId());
-            console.log('Clés localStorage:', Object.keys(localStorage));
-            console.log('===============================');
-        });
-        
-        // Vérifier si nous sommes dans un nouveau jour
-        function checkNewDay() {
-            const lastCheckKey = 'maxi_last_day_check';
-            const todayStr = getTodayDateString();
-            const lastCheck = localStorage.getItem(lastCheckKey);
-            
-            if (lastCheck !== todayStr) {
-                // Nouveau jour détecté
-                localStorage.setItem(lastCheckKey, todayStr);
-                console.log('🎉 Nouveau jour détecté ! Le compteur est prêt.');
-                
-                // Afficher un message
-                if (getCurrentCounter() === 0) {
-                    showStatus('🎯 Nouveau jour ! Le compteur est réinitialisé.');
-                }
-            }
         }
         
-        // Vérifier le changement de jour toutes les minutes
-        setInterval(checkNewDay, 60000);
-        checkNewDay(); // Vérifier immédiatement au chargement
+        // Démarrer l'application
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
