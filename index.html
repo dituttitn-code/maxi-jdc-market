@@ -5526,31 +5526,16 @@ state.lastOrderId = commandeId || null;
       $('orderDetails').textContent = orderText;
       $('orderModal').classList.add('open');
 
-      // ENREGISTREMENT AUTOMATIQUE DE LA COMMANDE
-      const orderData = {
-        subtotal,
-        shipping: shippingFee,
-        total,
-        savings: savings.totalSavings,
-        savingsPercentage: savings.percentage
-      };
+    // ✅ commande en attente (PAS ENVOYÉE ici)
+state.pendingOrder = {
+  nom: state.user.name,
+  telephone: state.user.phone,
+  adresse: state.user.address,
+  articles: JSON.parse(JSON.stringify(state.cart)),
+  total: total
+};
+state.pendingOrderText = orderText;
 
-      // Appeler la fonction d'enregistrement automatique
-      const enregistrementReussi = await enregistrerCommandeAutomatique(orderData);
-
-      // Sauvegarder dans l'historique local
-      saveOrderToHistory(orderData);
-
-      // Vider le panier après envoi
-      state.cart = {};
-      updateCartUI();
-
-      if (enregistrementReussi) {
-        showToast('✅ Commande créée et enregistrée avec succès !');
-      } else {
-        showToast('✅ Commande créée ! (Erreur d\'enregistrement automatique)', 'warning');
-      }
-    }
 
     // ===================== INITIALISATION =====================
     function init() {
@@ -5887,6 +5872,7 @@ if (modal) {
   </script>
 </body>
 </html>
+
 
 
 
