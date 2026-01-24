@@ -43,7 +43,7 @@
       `Nous vous contacterons pour la livraison.`,
 
     // OPTIONNEL (si vous avez un Google Apps Script WebApp pour APPEND la commande)
-    // Ex: "https://script.google.com/macros/s/AKfycbwmOsta2jKtXsm9M2yUUKYJf26qtM6Zpv6BK5ikDz5SO_2iTQ1IriQbRJnEsL9pR2GA/exec"
+    // Ex: "https://script.google.com/macros/s/AKfycbz01QnoaxYg8OwAd5BGm_L6JbaOPaQ0FGuu7Cm3dGbJ_M07F_4aKDNcy7BfPtr7hA3T/exec"
     APPS_SCRIPT_WEBAPP_URL: ""
   };
 
