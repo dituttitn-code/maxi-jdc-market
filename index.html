@@ -5455,6 +5455,20 @@
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
       const total = subtotal + shippingFee;
 
+// 🔹 Enregistrement de la commande + récupération de l'ID
+const commandeId = await enregistrerCommandeAutomatique({
+  nom: state.user_name,
+  telephone: state.user_phone,
+  adresse: state.user_address,
+  articles: state.cart,
+  total: total
+});
+
+// 🔹 Mémorisation de l'ID pour l'utiliser ailleurs (message client)
+state.lastOrderId = commandeId || null;
+
+      
+
       let orderText = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
       orderText += `📅 ${new Date().toLocaleDateString('fr-FR', {
         day: '2-digit',
@@ -5864,6 +5878,7 @@
   </script>
 </body>
 </html>
+
 
 
 
