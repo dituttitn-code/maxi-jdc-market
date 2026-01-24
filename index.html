@@ -5765,11 +5765,29 @@
         showToast('💾 Commande téléchargée');
       };
 
-      $('whatsappOrderBtn').onclick = () => {
-        const orderText = $('orderDetails').textContent;
-        const whatsappUrl = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(orderText)}`;
-        window.open(whatsappUrl, '_blank');
-      };
+     $('sendOrderBtn').onclick = async () => {
+  // On récupère l'ID de commande mémorisé au moment du "placeOrder()"
+  const commandeId = state.lastOrderId || 'CMD-MAXI-AAAAmmjj-XXX';
+
+  const messageClient =
+    `Merci pour votre commande MAXI JDC MARKET.\n` +
+    `📦 Votre commande est bien reçue sous le numero de commande ${commandeId}\n` +
+    `⏳ Elle est en cours de préparation.\n` +
+    `Nous vous contacterons pour la livraison.`;
+
+  // Affichage "automatique" à l'écran
+  showToast('✅ Commande validée ! Message client affiché.', 'success');
+
+  // Option pratique : copier le message dans le presse-papier
+  try {
+    await navigator.clipboard.writeText(messageClient);
+    showToast('📋 Message client copié (vous pouvez le coller où vous voulez).');
+  } catch (e) {
+    // si le navigateur bloque le clipboard
+    alert(messageClient);
+  }
+};
+
 
       $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
         $('stockModal').classList.remove('open');
@@ -5844,6 +5862,7 @@
   </script>
 </body>
 </html>
+
 
 
 
