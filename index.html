@@ -5464,61 +5464,65 @@ const commandeId = await enregistrerCommandeAutomatique({
   total: total
 });
 
+
+
 // 🔹 Mémorisation de l'ID pour l'utiliser ailleurs (message client)
 state.lastOrderId = commandeId || null;
 
-      
+let orderText = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
+orderText += `📅 ${new Date().toLocaleDateString('fr-FR', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit'
+})}\n\n`;
 
-      let orderText = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
-      orderText += `📅 ${new Date().toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })}\n\n`;
+orderText += `👤 CLIENT\n`;
+orderText += `Nom: ${state.user.name}\n`;
+orderText += `Téléphone: +216 ${state.user.phone}\n`;
+orderText += `Adresse: ${state.user.address}\n`;
 
-      orderText += `👤 CLIENT\n`;
-      orderText += `Nom: ${state.user.name}\n`;
-      orderText += `Téléphone: +216 ${state.user.phone}\n`;
-      orderText += `Adresse: ${state.user.address}\n`;
-      if (state.user.lat && state.user.lng) {
-        orderText += `📍 GPS: ${state.user.lat}, ${state.user.lng}\n`;
-        orderText += `🗺️ Google Maps: https://maps.google.com/?q=${state.user.lat},${state.user.lng}\n`;
-      }
+if (state.user.lat && state.user.lng) {
+  orderText += `📍 GPS: ${state.user.lat}, ${state.user.lng}\n`;
+  orderText += `🗺️ Google Maps: https://maps.google.com/?q=${state.user.lat},${state.user.lng}\n`;
+}
 
-      orderText += `\n🛒 ARTICLES\n`;
-      orderText += '─'.repeat(50) + '\n';
+orderText += `\n🛒 ARTICLES\n`;
+orderText += '─'.repeat(50) + '\n';
 
-      Object.values(state.cart).forEach(item => {
-        const itemTotal = item.price * item.quantity;
-        const itemSaving = calculateItemSavings(item);
-        const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
-        orderText += `${item.quantity}x ${item.name} (${item.code})\n`;
-        orderText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
-        if (itemSaving > 0) {
-          orderText += ` 💰 ÉCONOMIE: ${formatPrice(itemSaving)}`;
-          if (item.discountPercent) {
-            orderText += ` (-${item.discountPercent}%)`;
-          }
-          orderText += `\n ⚡ Ancien prix: ${formatPrice(originalTotal)}`;
-        }
-        orderText += '\n';
-      });
+Object.values(state.cart).forEach(item => {
+  const itemTotal = item.price * item.quantity;
+  const itemSaving = calculateItemSavings(item);
+  const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
+  
+  orderText += `${item.quantity}x ${item.name} (${item.code})\n`;
+  orderText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
+  
+  if (itemSaving > 0) {
+    orderText += ` 💰 ÉCONOMIE: ${formatPrice(itemSaving)}`;
+    if (item.discountPercent) {
+      orderText += ` (-${item.discountPercent}%)`;
+    }
+    orderText += `\n ⚡ Ancien prix: ${formatPrice(originalTotal)}`;
+  }
+  
+  orderText += '\n';
+});
 
-      orderText += '─'.repeat(50) + '\n';
-      orderText += `Sous-total: ${formatPrice(subtotal)}\n`;
+orderText += '─'.repeat(50) + '\n';
+orderText += `Sous-total: ${formatPrice(subtotal)}\n`;
 
-      if (savings.totalSavings > 0) {
-        orderText += `💰 ÉCONOMIES TOTALES: ${formatPrice(savings.totalSavings)} (${savings.percentage}%)\n`;
-      }
+if (savings.totalSavings > 0) {
+  orderText += `💰 ÉCONOMIES TOTALES: ${formatPrice(savings.totalSavings)} (${savings.percentage}%)\n`;
+}
 
-      orderText += `Livraison: ${shippingFee === 0 ? 'GRATUIT' : formatPrice(shippingFee)}\n`;
-      orderText += `TOTAL: ${formatPrice(total)}\n\n`;
+orderText += `Livraison: ${shippingFee === 0 ? 'GRATUIT' : formatPrice(shippingFee)}\n`;
+orderText += `TOTAL: ${formatPrice(total)}\n\n`;
 
-      if (savings.totalSavings > 0) {
-        orderText += `🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(savings.totalSavings)} sur cette commande !\n\n`;
-      }
+if (savings.totalSavings > 0) {
+  orderText += `🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(savings.totalSavings)} sur cette commande !\n\n`;
+}
 
 // =================== FIN DE placeOrder() ===================
 // (à coller DANS placeOrder(), à la fin)
@@ -5526,8 +5530,16 @@ state.lastOrderId = commandeId || null;
 orderText += `🕒 Heures: 7h - 1h\n`;
 orderText += `📱 WhatsApp: +216 25 600 978\n`;
 
-$('orderDetails').textContent = orderText;
-$('orderModal').classList.add('open');
+// Utiliser $ si c'est défini, sinon utiliser document.getElementById
+if (typeof $ !== 'undefined') {
+  $('orderDetails').textContent = orderText;
+  $('orderModal').classList.add('open');
+} else if (document.getElementById) {
+  document.getElementById('orderDetails').textContent = orderText;
+  document.getElementById('orderModal').classList.add('open');
+} else {
+  console.log('Order details:', orderText);
+}
 
 // ✅ commande en attente (PAS ENVOYÉE ici) — version safe (évite crash si user null)
 state.pendingOrder = {
@@ -5540,11 +5552,8 @@ state.pendingOrder = {
 
 state.pendingOrderText = orderText;
 
-// ✅ stop ici : l’envoi se fera seulement au clic "Valider et envoyer"
+// ✅ stop ici : l'envoi se fera seulement au clic "Valider et envoyer"
 return;
-// ------------------------------------------------------------
-
-
 
 // ===================== INITIALISATION =====================
 // (à coller HORS de placeOrder(), seulement si tu n'as pas déjà un init ailleurs)
@@ -5557,9 +5566,19 @@ function init() {
       state.user = data.user || null;
       state.cart = data.cart || {};
       state.orderHistory = data.orderHistory || [];
-      updateUserUI();
-      updateCartUI();
+      
+      // Assurez-vous que ces fonctions existent
+      if (typeof updateUserUI === 'function') updateUserUI();
+      if (typeof updateCartUI === 'function') updateCartUI();
     }
+  } catch (error) {
+    console.error('Erreur lors de l\'initialisation:', error);
+  }
+}
+
+
+
+      
 
     const adminState = localStorage.getItem(CONFIG.adminPasswordKey);
     state.isAdmin = adminState === 'true';
@@ -5887,6 +5906,7 @@ if (modal) {
   </script>
 </body>
 </html>
+
 
 
 
