@@ -5415,9 +5415,11 @@
         console.log('📥 Réponse du serveur:', result);
         
         if (result.success) {
-            showToast('✅ Commande enregistrée dans Google Sheets ! ID: ' + result.commande_id);
-            return true;
-        } else {
+  showToast('✅ Commande enregistrée dans Google Sheets ! ID: ' + result.commande_id);
+  return result.commande_id; // ✅ on renvoie l'ID
+}
+
+        else {
             console.warn('⚠️ Erreur API:', result.error);
             showToast(`⚠️ Commande créée (non enregistrée: ${result.error || 'Erreur serveur'})`, 'warning');
             return false;
@@ -5862,6 +5864,7 @@
   </script>
 </body>
 </html>
+
 
 
 
