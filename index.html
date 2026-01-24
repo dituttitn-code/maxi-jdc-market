@@ -5521,12 +5521,12 @@ state.lastOrderId = commandeId || null;
       }
 
       orderText += `🕒 Heures: 7h - 1h\n`;
-      orderText += `📱 WhatsApp: +216 25 600 978`;
+orderText += `📱 WhatsApp: +216 25 600 978`;
 
-      $('orderDetails').textContent = orderText;
-      $('orderModal').classList.add('open');
+$('orderDetails').textContent = orderText;
+$('orderModal').classList.add('open');
 
-    // ✅ commande en attente (PAS ENVOYÉE ici)
+// ✅ commande en attente (PAS ENVOYÉE ici)
 state.pendingOrder = {
   nom: state.user.name,
   telephone: state.user.phone,
@@ -5536,25 +5536,30 @@ state.pendingOrder = {
 };
 state.pendingOrderText = orderText;
 
+return;
+} // ✅ fermeture de placeOrder()
 
-    // ===================== INITIALISATION =====================
-    function init() {
-      try {
-        const saved = localStorage.getItem(CONFIG.localStorageKey);
-        if (saved) {
-          const data = JSON.parse(saved);
-          state.user = data.user || null;
-          state.cart = data.cart || {};
-          state.orderHistory = data.orderHistory || [];
-          updateUserUI();
-          updateCartUI();
-        }
-        const adminState = localStorage.getItem(CONFIG.adminPasswordKey);
-        state.isAdmin = adminState === 'true';
-        $('adminSection').classList.toggle('visible', state.isAdmin);
-      } catch (e) {
-        console.warn('Erreur chargement état:', e);
-      }
+
+// ===================== INITIALISATION =====================
+function init() {
+  try {
+    const saved = localStorage.getItem(CONFIG.localStorageKey);
+    if (saved) {
+      const data = JSON.parse(saved);
+      state.user = data.user || null;
+      state.cart = data.cart || {};
+      state.orderHistory = data.orderHistory || [];
+      updateUserUI();
+      updateCartUI();
+    }
+    const adminState = localStorage.getItem(CONFIG.adminPasswordKey);
+    state.isAdmin = adminState === 'true';
+    $('adminSection').classList.toggle('visible', state.isAdmin);
+  } catch (e) {
+    console.warn('Erreur chargement état:', e);
+  }
+}
+
 
       $('cartTopBtn').onclick = () => {
         $('drawer').classList.add('open');
