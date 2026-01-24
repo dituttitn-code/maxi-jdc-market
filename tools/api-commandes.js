@@ -1,11 +1,14 @@
 /* maxi-jdc-market/tools/api-commandes.js
    API FRONT (GitHub Pages) — MAXI JDC MARKET
+
    ✅ Lit Google Sheet (gviz JSON)
-   ✅ Normalise / recherche commandes (ID / téléphone)
+   ✅ NORMALISE + GROUPE : 1 commande = 1 objet (même si la sheet a 1 ligne par article)
+   ✅ Recherche commandes (ID / téléphone)
    ✅ Génère nouvel ID CMD-MAXI-YYYYMMDD-XXX
    ✅ WhatsApp confirmation
-   ✅ Parse "Articles" (colonne F) => items {name, qty}
-   ✅ Stats Dashboard :
+
+   ✅ Parse articles => items {name, qty}
+   ✅ Dashboard Stats (sur commandes groupées):
       - chiffre d'affaires total
       - commandes totales
       - panier moyen
@@ -49,18 +52,22 @@
     // Si tu as un Apps Script WebApp pour ajouter une ligne
     APPS_SCRIPT_WEBAPP_URL: "",
 
-    // Cache mémoire (évite refetch à chaque widget)
+    // Cache mémoire
     CACHE_TTL_MS: 20_000
+  };
+
+  // =========================
+  // CACHE
+  // =========================
+  const _cache = {
+    at: 0,
+    commandes: null,          // commandes groupées
+    commandesRaw: null        // lignes raw si besoin
   };
 
   // =========================
   // UTILS
   // =========================
-  const _cache = {
-    at: 0,
-    commandes: null
-  };
-
   function pad3(n) {
     const s = String(n);
     return s.length >= 3 ? s : ("000" + s).slice(-3);
@@ -114,19 +121,13 @@
 
   function safeNumber(v) {
     if (v == null) return 0;
-    // gviz peut renvoyer un nombre ou un texte, parfois "63,5"
     const s = String(v).replace(/\s/g, "").replace(",", ".");
     const n = Number(s);
     return Number.isFinite(n) ? n : 0;
   }
 
   function parseDateLoose(v) {
-    // gviz peut renvoyer:
-    // - Date JS
-    // - string "2025-01-24" / "24/01/2025"
-    // - ou "Date(2025,0,24,...)"
     if (!v) return null;
-
     if (v instanceof Date && !isNaN(v.getTime())) return v;
 
     const s = String(v).trim();
@@ -135,7 +136,7 @@
     const m = s.match(/Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})(?:,\s*(\d{1,2}),\s*(\d{1,2}),\s*(\d{1,2}))?\)/i);
     if (m) {
       const yyyy = Number(m[1]);
-      const mm = Number(m[2]); // 0-based
+      const mm = Number(m[2]);
       const dd = Number(m[3]);
       const hh = Number(m[4] || 0);
       const mi = Number(m[5] || 0);
@@ -156,7 +157,6 @@
       return isNaN(d.getTime()) ? null : d;
     }
 
-    // ISO ou fallback Date.parse
     const t = Date.parse(s);
     if (!Number.isNaN(t)) return new Date(t);
 
@@ -173,12 +173,20 @@
   function normalizeStatut(s) {
     const v = String(s || "").trim().toLowerCase();
     if (!v) return "inconnu";
-    // Normalisation simple (tu peux adapter)
     if (v.includes("att")) return "en attente";
     if (v.includes("cour")) return "en cours";
     if (v.includes("liv")) return "livrée";
     if (v.includes("ann")) return "annulée";
-    return v; // sinon on garde
+    return v;
+  }
+
+  function pickFirstNonEmpty(...vals) {
+    for (const v of vals) {
+      if (v == null) continue;
+      const s = String(v).trim();
+      if (s !== "") return v;
+    }
+    return "";
   }
 
   // =========================
@@ -188,8 +196,7 @@
     const txt = String(articlesText || "").trim();
     if (!txt) return [];
 
-    // 1) Si c'est du JSON (recommandé)
-    // ex: [{"name":"Coca","qty":2},{"name":"Chips","qty":1}]
+    // JSON
     if ((txt.startsWith("[") && txt.endsWith("]")) || (txt.startsWith("{") && txt.endsWith("}"))) {
       try {
         const json = JSON.parse(txt);
@@ -203,17 +210,26 @@
             .filter((it) => it.name && Number.isFinite(it.qty) && it.qty > 0);
         }
       } catch (_) {
-        // on retombe sur parsing texte
+        // fallback texte
       }
     }
 
-    // 2) Texte libre : split par , ; | ou retour ligne
+    // Texte libre : split par , ; | ou retour ligne
     const parts = txt.split(/[,;|\n]+/).map((s) => s.trim()).filter(Boolean);
 
     const items = [];
     for (const p of parts) {
-      // "Produit x2" / "Produit ×2"
-      let m = p.match(/^(.*?)(?:\s*[x×]\s*(\d+))$/i);
+      // "Produit x2" / "Produit ×2" / "3x Produit" (ton format)
+      let m = p.match(/^(\d+)\s*[x×]\s*(.*)$/i);
+      if (m) {
+        const qty = Number(m[1]);
+        const name = String(m[2] || "").trim();
+        if (name && Number.isFinite(qty) && qty > 0) items.push({ name, qty });
+        continue;
+      }
+
+      // "Produit x2" (qty à la fin)
+      m = p.match(/^(.*?)(?:\s*[x×]\s*(\d+))$/i);
       if (m) {
         const name = m[1].trim();
         const qty = Number(m[2]);
@@ -239,16 +255,54 @@
         continue;
       }
 
-      // fallback : 1 unité
       items.push({ name: p, qty: 1 });
     }
     return items;
   }
 
+  function mergeItems(itemsList) {
+    // itemsList: array of arrays of {name, qty}
+    const map = new Map();
+    for (const arr of (itemsList || [])) {
+      for (const it of (arr || [])) {
+        const name = String(it.name || "").trim();
+        const qty = Number(it.qty);
+        if (!name || !Number.isFinite(qty) || qty <= 0) continue;
+        map.set(name, (map.get(name) || 0) + qty);
+      }
+    }
+    return Array.from(map.entries()).map(([name, qty]) => ({ name, qty }));
+  }
+
+  function guessTotalPerOrder(totals) {
+    // totals: numbers from lines of same order
+    const nums = (totals || []).map(safeNumber).filter((n) => Number.isFinite(n) && n > 0);
+    if (!nums.length) return 0;
+
+    // si la majorité a la même valeur => c'est le total de commande répété
+    const freq = new Map();
+    for (const n of nums) freq.set(n, (freq.get(n) || 0) + 1);
+
+    let bestVal = nums[0], bestCount = 0;
+    for (const [val, count] of freq.entries()) {
+      if (count > bestCount) {
+        bestCount = count;
+        bestVal = val;
+      }
+    }
+
+    // si valeur la plus fréquente représente au moins 60% des lignes => on la prend
+    if (bestCount / nums.length >= 0.6) return bestVal;
+
+    // sinon on additionne (cas où G = prix par article)
+    const sum = nums.reduce((a, b) => a + b, 0);
+    return Number(sum.toFixed(2));
+  }
+
   // =========================
-  // ROW -> OBJ
+  // ROW -> OBJ (ligne)
   // =========================
-  function rowToCommandeObj(row, map) {
+  function rowToLineObj(row, map) {
     const get = (key) => {
       const idx = map[key];
       return idx == null ? "" : (row[idx] ?? "");
@@ -259,16 +313,16 @@
 
     return {
       date: dateRaw,
-      dateObj,                 // Date JS ou null
+      dateObj,
       dateYMD: dateObj ? formatYMD(dateObj) : "",
 
       nom: get("nom"),
       telephone: String(get("telephone") ?? ""),
       adresse: get("adresse"),
 
-      commandeId: String(get("commandeId") ?? ""),
+      commandeId: String(get("commandeId") ?? "").trim(),
       articles: get("articles"),
-      items: parseArticlesToItems(get("articles")), // ✅ items parsés
+      items: parseArticlesToItems(get("articles")),
 
       total: get("total"),
       totalNum: safeNumber(get("total")),
@@ -281,12 +335,100 @@
   }
 
   // =========================
-  // API : COMMANDES
+  // GROUP : lignes -> commandes
+  // =========================
+  function groupLinesToOrders(lines) {
+    const groups = new Map(); // commandeId -> array lines
+
+    for (const l of (lines || [])) {
+      const cid = String(l.commandeId || "").trim();
+      if (!cid) continue;
+      if (cid.toLowerCase() === "commandes") continue; // header éventuel
+      if (!groups.has(cid)) groups.set(cid, []);
+      groups.get(cid).push(l);
+    }
+
+    const orders = [];
+    for (const [commandeId, arr] of groups.entries()) {
+      // date = plus ancienne
+      const dates = arr.map(a => a.dateObj).filter(Boolean).sort((a,b)=>a-b);
+      const dateObj = dates.length ? dates[0] : null;
+      const dateYMD = dateObj ? formatYMD(dateObj) : "";
+
+      const nom = pickFirstNonEmpty(...arr.map(a => a.nom));
+      const telephone = pickFirstNonEmpty(...arr.map(a => a.telephone));
+      const adresse = pickFirstNonEmpty(...arr.map(a => a.adresse));
+
+      // statut : on prend le dernier non vide (ou le plus fréquent)
+      const statuts = arr.map(a => a.statutNorm).filter(Boolean);
+      let statutNorm = "inconnu";
+      if (statuts.length) {
+        const freq = new Map();
+        for (const s of statuts) freq.set(s, (freq.get(s) || 0) + 1);
+        // meilleur = plus fréquent ; en cas d'égalité on préfère le dernier
+        let best = statuts[statuts.length - 1], bestCount = 0;
+        for (const [s, c] of freq.entries()) {
+          if (c > bestCount) { bestCount = c; best = s; }
+        }
+        statutNorm = best;
+      }
+
+      // articles texte : concat " | "
+      const articlesConcat = arr
+        .map(a => String(a.articles || "").trim())
+        .filter(Boolean)
+        .join(" | ");
+
+      // items : merge
+      const items = mergeItems(arr.map(a => a.items));
+
+      // total par commande
+      const totalNum = guessTotalPerOrder(arr.map(a => a.totalNum));
+
+      orders.push({
+        commandeId,
+
+        dateObj,
+        dateYMD,
+        date: dateObj ? dateObj.toISOString() : pickFirstNonEmpty(...arr.map(a => a.date)),
+
+        nom,
+        telephone,
+        adresse,
+
+        // compat (si ton UI affiche articles)
+        articles: articlesConcat,
+        items,
+
+        totalNum,
+        total: Number(totalNum.toFixed(2)),
+
+        statutNorm,
+        statut: statutNorm,
+
+        // debug
+        _linesCount: arr.length,
+        _lines: arr
+      });
+    }
+
+    // tri par date décroissante si possible
+    orders.sort((a, b) => {
+      const ta = a.dateObj ? a.dateObj.getTime() : 0;
+      const tb = b.dateObj ? b.dateObj.getTime() : 0;
+      return tb - ta;
+    });
+
+    return orders;
+  }
+
+  // =========================
+  // API : COMMANDES (groupées)
   // =========================
   async function getCommandes(options = {}) {
     const { force = false } = options;
-
     const now = Date.now();
+
     if (!force && _cache.commandes && now - _cache.at < CONFIG.CACHE_TTL_MS) {
       return _cache.commandes;
     }
@@ -299,14 +441,17 @@
     const gviz = parseGviz(text);
     const rows = gvizToRows(gviz);
 
-    const commandes = rows
-      .map((row) => rowToCommandeObj(row, CONFIG.COLUMN_MAP))
-      .filter((c) => c.commandeId && String(c.commandeId).trim() !== "" && c.commandeId !== "Commandes");
+    const lines = rows
+      .map((row) => rowToLineObj(row, CONFIG.COLUMN_MAP))
+      .filter((l) => l.commandeId && String(l.commandeId).trim() !== "" && l.commandeId.toLowerCase() !== "commandes");
+
+    const grouped = groupLinesToOrders(lines);
 
     _cache.at = now;
-    _cache.commandes = commandes;
+    _cache.commandesRaw = lines;
+    _cache.commandes = grouped;
 
-    return commandes;
+    return grouped;
   }
 
   async function findCommande(identifier) {
@@ -348,7 +493,6 @@
         if (!Number.isNaN(seq) && seq > maxSeq) maxSeq = seq;
       }
     }
-
     return `${prefix}${pad3(maxSeq + 1)}`;
   }
 
@@ -386,7 +530,7 @@
   }
 
   // =========================
-  // STATS DASHBOARD
+  // STATS DASHBOARD (sur commandes groupées)
   // =========================
   function computeStatusCounts(commandes) {
     const counts = {};
@@ -394,7 +538,7 @@
       const s = c.statutNorm || "inconnu";
       counts[s] = (counts[s] || 0) + 1;
     }
-    return counts; // ex: { "en attente": 38, "en cours": 2, ... }
+    return counts;
   }
 
   function computeTopProducts(commandes, limit = 10) {
@@ -405,21 +549,18 @@
         map.set(it.name, (map.get(it.name) || 0) + it.qty);
       }
     }
-
-    const arr = Array.from(map.entries())
+    return Array.from(map.entries())
       .map(([name, qty]) => ({ name, qty }))
-      .sort((a, b) => b.qty - a.qty);
-
-    return arr.slice(0, Math.max(0, limit));
+      .sort((a, b) => b.qty - a.qty)
+      .slice(0, Math.max(0, limit));
   }
 
   function computeTopProduct(commandes) {
     const top = computeTopProducts(commandes, 1);
-    return top.length ? top[0] : null; // {name, qty} ou null
+    return top.length ? top[0] : null;
   }
 
   function computeSalesByDay(commandes, days = 30) {
-    // retourne [{date:"YYYY-MM-DD", revenue: number, orders: number}]
     const end = new Date();
     end.setHours(23, 59, 59, 999);
 
@@ -427,8 +568,7 @@
     start.setDate(start.getDate() - (days - 1));
     start.setHours(0, 0, 0, 0);
 
-    const map = new Map(); // ymd -> {revenue, orders}
-    // init pour avoir des jours à 0
+    const map = new Map();
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       map.set(formatYMD(d), { revenue: 0, orders: 0 });
     }
@@ -452,7 +592,6 @@
   }
 
   function computeOrdersByHour(commandes, days = 30) {
-    // retourne [{hour:0..23, orders, revenue}]
     const end = new Date();
     end.setHours(23, 59, 59, 999);
     const start = new Date(end);
@@ -478,11 +617,7 @@
   }
 
   async function getDashboardStats(options = {}) {
-    const {
-      days = 30,
-      topLimit = 10,
-      force = false
-    } = options;
+    const { days = 30, topLimit = 10, force = false } = options;
 
     const commandes = await getCommandes({ force });
 
@@ -519,7 +654,7 @@
   global.ApiCommandes = {
     CONFIG,
 
-    // commandes
+    // commandes (GROUPÉES)
     getCommandes,
     findCommande,
     findCommandesByPhone,
@@ -532,7 +667,7 @@
     // submit
     submitCommandeToSheet,
 
-    // parsing & stats (utile pour le dashboard)
+    // parsing & stats
     parseArticlesToItems,
     getDashboardStats,
     computeTopProduct,
