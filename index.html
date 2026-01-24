@@ -5520,27 +5520,35 @@ state.lastOrderId = commandeId || null;
         orderText += `🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(savings.totalSavings)} sur cette commande !\n\n`;
       }
 
-      orderText += `🕒 Heures: 7h - 1h\n`;
-orderText += `📱 WhatsApp: +216 25 600 978`;
+// =================== FIN DE placeOrder() ===================
+// (à coller DANS placeOrder(), à la fin)
+
+orderText += `🕒 Heures: 7h - 1h\n`;
+orderText += `📱 WhatsApp: +216 25 600 978\n`;
 
 $('orderDetails').textContent = orderText;
 $('orderModal').classList.add('open');
 
-// ✅ commande en attente (PAS ENVOYÉE ici)
+// ✅ commande en attente (PAS ENVOYÉE ici) — version safe (évite crash si user null)
 state.pendingOrder = {
-  nom: state.user.name,
-  telephone: state.user.phone,
-  adresse: state.user.address,
-  articles: JSON.parse(JSON.stringify(state.cart)),
+  nom: state.user?.name || '',
+  telephone: state.user?.phone || '',
+  adresse: state.user?.address || '',
+  articles: JSON.parse(JSON.stringify(state.cart || {})),
   total: total
 };
+
 state.pendingOrderText = orderText;
 
+// ✅ stop ici : l’envoi se fera seulement au clic "Valider et envoyer"
 return;
-} // ✅ fermeture de placeOrder()
+// ------------------------------------------------------------
+
 
 
 // ===================== INITIALISATION =====================
+// (à coller HORS de placeOrder(), seulement si tu n'as pas déjà un init ailleurs)
+
 function init() {
   try {
     const saved = localStorage.getItem(CONFIG.localStorageKey);
@@ -5552,6 +5560,7 @@ function init() {
       updateUserUI();
       updateCartUI();
     }
+
     const adminState = localStorage.getItem(CONFIG.adminPasswordKey);
     state.isAdmin = adminState === 'true';
     $('adminSection').classList.toggle('visible', state.isAdmin);
@@ -5559,6 +5568,7 @@ function init() {
     console.warn('Erreur chargement état:', e);
   }
 }
+
 
 
       $('cartTopBtn').onclick = () => {
@@ -5877,6 +5887,7 @@ if (modal) {
   </script>
 </body>
 </html>
+
 
 
 
