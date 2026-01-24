@@ -3755,9 +3755,8 @@
           💾 Télécharger
         </button>
         <button class="order-btn whatsapp" id="sendOrderBtn">
-  ✅ Valider et envoyer
-</button>
-
+          ✅ Valider et envoyer
+        </button>
       </div>
     </div>
   </div>
@@ -3883,7 +3882,8 @@
       pendingStockUpdates: new Map(),
       lastSyncTime: null,
       syncTimer: null,
-      googleSheetsStock: new Map()
+      googleSheetsStock: new Map(),
+      lastOrderId: null
     };
 
     // ===================== UTILITAIRES =====================
@@ -5415,22 +5415,49 @@
         console.log('📥 Réponse du serveur:', result);
         
         if (result.success) {
-  showToast('✅ Commande enregistrée dans Google Sheets ! ID: ' + result.commande_id);
-  return result.commande_id; // ✅ on renvoie l'ID
-}
-
-        else {
+          showToast('✅ Commande enregistrée dans Google Sheets ! ID: ' + result.commande_id);
+          state.lastOrderId = result.commande_id;
+          return result.commande_id;
+        } else {
             console.warn('⚠️ Erreur API:', result.error);
             showToast(`⚠️ Commande créée (non enregistrée: ${result.error || 'Erreur serveur'})`, 'warning');
             return false;
         }
 
-    } catch (error) {
+      } catch (error) {
         console.error('❌ Erreur enregistrement:', error);
         showToast('⚠️ Commande créée (erreur réseau)', 'warning');
         return false;
+      }
     }
-}
+
+    // ===================== GÉNÉRATION NUMÉRO COMMANDE =====================
+    function genererNumeroCommande() {
+      const now = new Date();
+      const datePart = now.getFullYear() + 
+                      String(now.getMonth() + 1).padStart(2, '0') + 
+                      String(now.getDate()).padStart(2, '0');
+      const randomPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      return `CMD-MAXI-${datePart}-${randomPart}`;
+    }
+
+    // ===================== ENVOI MESSAGE AU CLIENT =====================
+    function envoyerMessageClient(commandeId) {
+      const message = `Merci pour votre commande chez MAXI JDC MARKET.
+📦 Votre commande, référencée ${commandeId}, a bien été prise en compte.
+⏳ Elle est actuellement en cours de préparation.
+📞 Nous vous contacterons prochainement pour la livraison.`;
+      
+      // Afficher le message dans une alerte
+      alert(message);
+      
+      // Copier le message dans le presse-papier
+      navigator.clipboard.writeText(message).then(() => {
+        showToast('📋 Message copié dans le presse-papier');
+      }).catch(err => {
+        console.error('Erreur copie:', err);
+      });
+    }
 
     // ===================== COMMANDES =====================
     async function placeOrder() {
@@ -5455,19 +5482,8 @@
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
       const total = subtotal + shippingFee;
 
-// 🔹 Enregistrement de la commande + récupération de l'ID
-const commandeId = await enregistrerCommandeAutomatique({
-  nom: state.user_name,
-  telephone: state.user_phone,
-  adresse: state.user_address,
-  articles: state.cart,
-  total: total
-});
-
-// 🔹 Mémorisation de l'ID pour l'utiliser ailleurs (message client)
-state.lastOrderId = commandeId || null;
-
-      
+      // Générer un numéro de commande
+      const commandeId = genererNumeroCommande();
 
       let orderText = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
       orderText += `📅 ${new Date().toLocaleDateString('fr-FR', {
@@ -5532,7 +5548,8 @@ state.lastOrderId = commandeId || null;
         shipping: shippingFee,
         total,
         savings: savings.totalSavings,
-        savingsPercentage: savings.percentage
+        savingsPercentage: savings.percentage,
+        commandeId: commandeId
       };
 
       // Appeler la fonction d'enregistrement automatique
@@ -5547,8 +5564,16 @@ state.lastOrderId = commandeId || null;
 
       if (enregistrementReussi) {
         showToast('✅ Commande créée et enregistrée avec succès !');
+        // Envoyer le message au client
+        setTimeout(() => {
+          envoyerMessageClient(commandeId);
+        }, 1000);
       } else {
         showToast('✅ Commande créée ! (Erreur d\'enregistrement automatique)', 'warning');
+        // Envoyer quand même le message avec le numéro généré localement
+        setTimeout(() => {
+          envoyerMessageClient(commandeId);
+        }, 1000);
       }
     }
 
@@ -5781,38 +5806,19 @@ state.lastOrderId = commandeId || null;
         showToast('💾 Commande téléchargée');
       };
 
-     $('sendOrderBtn').onclick = async () => {
-  // On récupère l'ID de commande mémorisé au moment du "placeOrder()"
-  const commandeId = state.lastOrderId || 'CMD-MAXI-AAAAmmjj-XXX';
-
-  const messageClient =
-    `Merci pour votre commande MAXI JDC MARKET.\n` +
-    `📦 Votre commande est bien reçue sous le numero de commande ${commandeId}\n` +
-    `⏳ Elle est en cours de préparation.\n` +
-    `Nous vous contacterons pour la livraison.`;
-
-  // Affichage "automatique" à l'écran
-  showToast('✅ Commande validée ! Message client affiché.', 'success');
-
-  // Option pratique : copier le message dans le presse-papier
-  try {
-    await navigator.clipboard.writeText(messageClient);
-    showToast('📋 Message client copié (vous pouvez le coller où vous voulez).');
-  } catch (e) {
-    // si le navigateur bloque le clipboard
-    alert(messageClient);
-
-
-// 🔹 Fermer la fenêtre de confirmation après envoi
-const modal = document.querySelector('.order-confirm-modal');
-if (modal) {
-  modal.classList.remove('open');
-}
-
-    
-  }
-};
-
+      $('sendOrderBtn').onclick = () => {
+        // Fermer le modal
+        $('orderModal').classList.remove('open');
+        
+        // Utiliser l'ID de commande sauvegardé dans state
+        const commandeId = state.lastOrderId || genererNumeroCommande();
+        
+        // Envoyer le message au client
+        envoyerMessageClient(commandeId);
+        
+        // Montrer un toast de confirmation
+        showToast('✅ Commande envoyée avec succès !');
+      };
 
       $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
         $('stockModal').classList.remove('open');
@@ -5887,14 +5893,3 @@ if (modal) {
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
