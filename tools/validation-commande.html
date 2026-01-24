@@ -1,247 +1,435 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Validation de commande - MAXI JDC MARKET</title>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Validation commande - MAXI JDC MARKET</title>
   <style>
     :root{
-      --bg1:#0a1929;--bg2:#112240;--card:#162447;--line:rgba(255,255,255,.15);
-      --txt:#f0f6fc;--muted:#8b949e;--green:#00ff88;--blue:#00d4ff;--red:#ff6b6b;
-      --shadow:0 10px 40px rgba(0,0,0,.45);--r:14px;
+      --bg:#05070a;
+      --panel:#0e1622;
+      --panel2:#0b1220;
+      --border:#12e6a5;
+      --border2:#0ecf95;
+      --text:#e8f1ff;
+      --muted:#93a4be;
+      --btn:#122235;
+      --btn2:#0f1b2b;
+      --danger:#ff5c5c;
+      --ok:#20e3b2;
+      --shadow: 0 18px 55px rgba(0,0,0,.6);
+      --radius:16px;
+      --radius2:12px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
-    *{box-sizing:border-box;margin:0;padding:0}
+    *{box-sizing:border-box}
     body{
-      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;
-      background:linear-gradient(135deg,var(--bg1),var(--bg2));
-      color:var(--txt);min-height:100vh;padding:18px;
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 800px at 50% 20%, rgba(18,230,165,.16), transparent 60%),
+                  radial-gradient(900px 700px at 15% 70%, rgba(30,144,255,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
     }
-    .container{max-width:900px;margin:0 auto}
+    .modal{
+      width:min(560px, 96vw);
+      background: linear-gradient(180deg, rgba(18,230,165,.08), rgba(18,230,165,.02) 35%, rgba(0,0,0,0)),
+                  var(--panel);
+      border:2px solid rgba(18,230,165,.55);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
     .header{
-      background:rgba(10,25,47,.95);border:2px solid var(--green);border-radius:var(--r);
-      padding:18px 22px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;
-      box-shadow:var(--shadow);margin-bottom:18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 16px;
+      border-bottom:1px solid rgba(18,230,165,.28);
+      background: rgba(8, 18, 28, .65);
     }
-    .left{display:flex;align-items:center;gap:14px}
-    .logo{
-      width:56px;height:56px;border-radius:12px;border:3px solid var(--green);
-      display:flex;align-items:center;justify-content:center;background:rgba(0,255,136,.12);
-      font-size:22px;font-weight:900;
+    .title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:700;
+      color:#a8ffe8;
+      letter-spacing:.2px;
     }
-    h1{
-      font-size:22px;font-weight:900;background:linear-gradient(90deg,var(--green),var(--blue));
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;
+    .title .dot{
+      width:16px;height:16px;border-radius:4px;
+      border:2px solid rgba(18,230,165,.9);
+      background:rgba(18,230,165,.18);
+      display:grid;place-items:center;
+      font-size:12px;
+      line-height:1;
     }
-    .sub{color:var(--muted);font-size:13px}
-    .btnLink{
-      background:rgba(255,255,255,.10);border:2px solid var(--line);color:var(--txt);
-      padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer;transition:.2s;
-      display:inline-flex;gap:8px;align-items:center;text-decoration:none;justify-content:center;
-    }
-    .btnLink:hover{transform:translateY(-2px);border-color:var(--blue);background:rgba(255,255,255,.15)}
-    .card{
-      background:var(--card);border:2px solid var(--line);border-radius:var(--r);
-      box-shadow:var(--shadow);padding:18px;margin-bottom:18px;
-    }
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
-    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
-    input,textarea{
-      width:100%;padding:12px 14px;border-radius:10px;border:2px solid var(--line);
-      background:rgba(255,255,255,.08);color:var(--txt);outline:none;font-size:14px;
-    }
-    input:focus,textarea:focus{border-color:var(--green)}
-    textarea{min-height:90px;resize:vertical}
-    .primary{
-      width:100%;
-      background:rgba(0,255,136,.15);border:2px solid var(--green);
-      color:var(--green);font-weight:900;padding:14px 16px;border-radius:12px;
-      cursor:pointer;font-size:16px;transition:.2s;
-      display:flex;gap:10px;align-items:center;justify-content:center;
-    }
-    .primary:hover{background:rgba(0,255,136,.25);transform:translateY(-1px)}
-    .muted{color:var(--muted);font-size:13px;line-height:1.5}
-    .line{height:1px;background:rgba(255,255,255,.12);margin:14px 0}
-    .row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
-    .big{font-size:18px;font-weight:900;color:var(--green)}
-    .error{
-      background:rgba(255,107,107,.12);
-      border:1px solid rgba(255,107,107,.5);
-      color:var(--red);
-      padding:12px 14px;border-radius:12px;
-      font-weight:800;
-      display:none;
-      margin-top:12px;
-    }
-    .preview{
-      background:rgba(0,0,0,.18);
+    .close{
+      width:34px;height:34px;border-radius:10px;
       border:1px solid rgba(255,255,255,.12);
-      padding:12px 14px;border-radius:12px;
-      white-space:pre-wrap;
-      font-size:14px;
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor:pointer;
+      font-size:18px;
+    }
+    .close:hover{border-color:rgba(18,230,165,.55)}
+    .content{
+      padding:16px;
+    }
+    .receipt{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius2);
+      padding:14px;
+      max-height: 58vh;
+      overflow:auto;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.45;
+      color:#d7e6ff;
+      white-space: pre-wrap;
+    }
+    .footer{
+      display:flex;
+      gap:12px;
+      padding:14px 16px 16px;
+      border-top:1px solid rgba(18,230,165,.20);
+      background: rgba(8, 18, 28, .55);
+    }
+    .btn{
+      flex:1;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: var(--btn);
+      color: var(--text);
+      padding:12px 12px;
+      cursor:pointer;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.30);
+      transition:.15s ease;
+    }
+    .btn:hover{transform: translateY(-1px); border-color:rgba(18,230,165,.45)}
+    .btn:active{transform: translateY(0px); opacity:.95}
+    .btn.secondary{background: var(--btn2)}
+    .btn.whatsapp{
+      border-color: rgba(18,230,165,.55);
+      box-shadow: 0 10px 30px rgba(18,230,165,.10);
+    }
+    .btn.validate{
+      background: linear-gradient(180deg, rgba(18,230,165,.18), rgba(18,230,165,.08)),
+                  var(--btn);
+      border-color: rgba(18,230,165,.70);
+      color:#c9fff0;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-family: var(--sans);
+      font-weight:700;
+      font-size:12px;
+      margin: 10px 0 0;
+    }
+    .pill strong{color:#cfe3ff}
+    .toast{
+      position:fixed;
+      bottom:22px;
+      left:50%;
+      transform:translateX(-50%);
+      background: rgba(10,18,28,.92);
+      border:1px solid rgba(255,255,255,.12);
+      color: var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      box-shadow: var(--shadow);
+      font-size:13px;
+      display:none;
+      max-width:min(680px, 92vw);
+    }
+    .toast.show{display:block}
+    .toast.ok{border-color: rgba(18,230,165,.55)}
+    .toast.err{border-color: rgba(255,92,92,.55)}
+    .small{
+      font-size:12px;
+      color: var(--muted);
       margin-top:10px;
     }
-    .smallPill{
-      display:inline-flex;gap:8px;align-items:center;
-      border:1px solid rgba(255,255,255,.18);
-      padding:6px 10px;border-radius:999px;
-      color:var(--muted);font-size:12px;
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top:10px;
     }
+    .link{
+      color:#9feee0;
+      text-decoration: none;
+      border-bottom:1px dashed rgba(18,230,165,.35);
+    }
+    .link:hover{border-bottom-color:rgba(18,230,165,.8)}
   </style>
 </head>
-
 <body>
-  <div class="container">
-    <header class="header">
-      <div class="left">
-        <div class="logo">✅</div>
-        <div>
-          <h1>Validation de commande</h1>
-          <div class="sub">MAXI JDC MARKET — validez puis envoyez sur WhatsApp</div>
-        </div>
-      </div>
-      <a class="btnLink" href="/maxi-jdc-market/"><span>←</span><span>Retour Accueil</span></a>
-    </header>
 
-    <div class="card">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Validation commande">
+    <div class="header">
+      <div class="title">
+        <span class="dot">✓</span>
+        <span id="headerTitle">Commande confirmée</span>
+      </div>
+      <button class="close" id="closeBtn" title="Fermer">×</button>
+    </div>
+
+    <div class="content">
+      <div class="receipt" id="receipt"></div>
+
       <div class="row">
-        <div>
-          <div class="smallPill">📦 Étape: Validation</div>
-          <div style="margin-top:10px;font-weight:900;font-size:18px;">Informations client</div>
-          <div class="muted">Rien n’est envoyé tant que vous n’avez pas cliqué sur <b>Valider la commande</b>.</div>
+        <div class="pill" id="statusPill">
+          Statut : <strong id="statusText">En attente</strong>
         </div>
-        <div style="text-align:right;">
-          <div class="muted">Numéro de commande</div>
-          <div id="commandeId" class="big">—</div>
+
+        <div class="pill">
+          Commande : <strong id="orderIdText">—</strong>
         </div>
       </div>
 
-      <div class="line"></div>
-
-      <div class="grid">
-        <div>
-          <label>Nom & Prénom</label>
-          <input id="nom" placeholder="Ex: Mohamed Ali" autocomplete="name" />
-        </div>
-        <div>
-          <label>Téléphone</label>
-          <input id="telephone" placeholder="Ex: 25 600 978" autocomplete="tel" inputmode="tel" />
-        </div>
-        <div style="grid-column:1 / -1;">
-          <label>Adresse de livraison</label>
-          <textarea id="adresse" placeholder="Ex: Jardins de Carthage..." autocomplete="street-address"></textarea>
-        </div>
+      <div class="small">
+        Astuce : “Valider et envoyer” met la commande en <b>Validée</b> puis ouvre WhatsApp avec le message prêt.
       </div>
+    </div>
 
-      <div id="error" class="error"></div>
-
-      <div class="line"></div>
-
-      <div style="font-weight:900;margin-bottom:6px;">Message WhatsApp (aperçu)</div>
-      <div id="preview" class="preview">Remplissez vos infos puis cliquez sur “Valider la commande”.</div>
-
-      <button class="primary" id="btnValider" style="margin-top:14px;">
-        ✅ Valider la commande & ouvrir WhatsApp
-      </button>
-
-      <div class="muted" style="margin-top:10px;">
-        ℹ️ WhatsApp s’ouvre avec le message prêt. Ensuite, vous appuyez sur <b>Envoyer</b>.
-      </div>
-
-      <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-        <a class="btnLink" id="btnSuivi" href="/maxi-jdc-market/tools/suivi-commandes.html" style="flex:1;min-width:220px;">
-          📍 Suivi commande
-        </a>
-        <a class="btnLink" href="tel:+21625600978" style="flex:1;min-width:220px;">
-          📞 Appeler MAXI
-        </a>
-      </div>
+    <div class="footer">
+      <!-- Remplace "Copier" par Valider et envoyer -->
+      <button class="btn validate" id="validateSendBtn">✅ Valider et envoyer</button>
+      <button class="btn secondary" id="downloadBtn">⬇️ Télécharger</button>
+      <button class="btn whatsapp" id="whatsappBtn">📱 WhatsApp</button>
     </div>
   </div>
 
-  <!-- IMPORTANT : ton API est dans tools/api/api-commandes.js -->
-  <script src="./api/api-commandes.js"></script>
+  <div class="toast" id="toast"></div>
 
-  <script>
-    const $ = (id) => document.getElementById(id);
+<script>
+/**
+ * ==========================
+ *  CONFIGURATION OBLIGATOIRE
+ * ==========================
+ * Mets ici l’URL de ton Apps Script WebApp (celle qui finit par /exec)
+ * Exemple: https://script.google.com/macros/s/AKfycbxxxxxxx/exec
+ */
+const WEBAPP_URL = "COLLE_ICI_TON_URL_WEBAPP_EXEC";
 
-    // ✅ WhatsApp Business de MAXI (chiffres uniquement, sans +)
-    const MAXI_WHATSAPP = "21625600978";
+/**
+ * ==========================
+ *  LECTURE DES DONNÉES COMMANDE
+ * ==========================
+ * Le fichier accepte 3 sources (dans cet ordre) :
+ * 1) URL params: ?commande_id=...&telephone=...&nom=...&adresse=...&message=...&statut=...
+ * 2) localStorage: key "MAXI_CURRENT_ORDER" (JSON)
+ * 3) placeholder si rien
+ */
+function getOrderFromUrlOrStorage() {
+  const params = new URLSearchParams(location.search);
 
-    function showError(msg){
-      const e = $("error");
-      e.style.display = "block";
-      e.textContent = msg;
+  const fromUrl = {
+    commande_id: params.get("commande_id") || "",
+    telephone: params.get("telephone") || "",
+    nom: params.get("nom") || "",
+    adresse: params.get("adresse") || "",
+    statut: params.get("statut") || "En attente",
+    message: params.get("message") || ""
+  };
+
+  if (fromUrl.commande_id || fromUrl.message) return fromUrl;
+
+  try {
+    const raw = localStorage.getItem("MAXI_CURRENT_ORDER");
+    if (raw) {
+      const obj = JSON.parse(raw);
+      return {
+        commande_id: obj.commande_id || obj.id || "",
+        telephone: obj.telephone || "",
+        nom: obj.nom || "",
+        adresse: obj.adresse || "",
+        statut: obj.statut || "En attente",
+        message: obj.message || obj.text || ""
+      };
     }
-    function hideError(){
-      const e = $("error");
-      e.style.display = "none";
-      e.textContent = "";
+  } catch (e) {}
+
+  return {
+    commande_id: "",
+    telephone: "",
+    nom: "",
+    adresse: "",
+    statut: "En attente",
+    message: ""
+  };
+}
+
+function normalizeTNPhone(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (digits.length === 8) return "216" + digits;
+  if (digits.startsWith("216") && digits.length === 11) return digits;
+  return digits; // fallback
+}
+
+function showToast(text, type="ok") {
+  const el = document.getElementById("toast");
+  el.textContent = text;
+  el.className = "toast show " + (type === "err" ? "err" : "ok");
+  setTimeout(()=> el.className = "toast", 3200);
+}
+
+function buildReceiptText(order) {
+  // Si le message complet existe déjà, on l’affiche directement (comme sur ta capture)
+  if (order.message && order.message.trim().length > 0) return order.message;
+
+  // Sinon, on construit un reçu simple
+  const now = new Date();
+  const date = now.toLocaleDateString("fr-FR");
+  const time = now.toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"});
+  return (
+`📦 NOUVELLE COMMANDE - MAXI JDC MARKET
+🗓️ ${date} ${time}
+
+👤 CLIENT
+Nom: ${order.nom || "-"}
+Téléphone: ${order.telephone || "-"}
+Adresse: ${order.adresse || "-"}
+
+🛒 ARTICLES
+(Le détail n'a pas été fourni dans cette page)
+
+✅ Statut: ${order.statut || "En attente"}`
+  );
+}
+
+function downloadText(filename, text) {
+  const blob = new Blob([text], {type: "text/plain;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  }, 0);
+}
+
+function openWhatsApp(order) {
+  const phone = normalizeTNPhone(order.telephone);
+  const msg = (order.message && order.message.trim()) ? order.message : buildReceiptText(order);
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  window.open(url, "_blank", "noopener");
+}
+
+/**
+ * ==========================
+ *  ACTION PRINCIPALE:
+ *  VALIDER + OUVRIR WHATSAPP
+ * ==========================
+ */
+async function validateAndSend(order) {
+  if (!WEBAPP_URL || WEBAPP_URL.includes("COLLE_ICI")) {
+    showToast("⚠️ WEBAPP_URL non configuré dans validation-commande.html", "err");
+    return;
+  }
+  if (!order.commande_id) {
+    showToast("❌ commande_id introuvable (URL ou localStorage).", "err");
+    return;
+  }
+
+  const btn = document.getElementById("validateSendBtn");
+  const oldTxt = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "⏳ Validation...";
+
+  try {
+    // 1) valider dans Google Sheet (met à jour toutes les lignes côté Apps Script)
+    const url = `${WEBAPP_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(order.commande_id)}&statut=${encodeURIComponent("Validée")}`;
+    const resp = await fetch(url, { method: "GET" });
+    const json = await resp.json();
+
+    if (!json || json.success !== true) {
+      console.error(json);
+      showToast("❌ Erreur validation (WebApp). Vérifie permissions / URL.", "err");
+      btn.disabled = false;
+      btn.textContent = oldTxt;
+      return;
     }
 
-    function buildMessage(commandeId){
-      return (
-`✅ Merci pour votre commande MAXI JDC MARKET.
-📦 Votre commande est bien reçue sous le numero ${commandeId}
-⏳ Elle est en cours de préparation.
-Nous vous contacterons pour la livraison.`
-      );
-    }
+    // 2) maj UI statut
+    order.statut = "Validée";
+    document.getElementById("statusText").textContent = "Validée";
+    document.getElementById("headerTitle").textContent = "Commande validée";
 
-    async function onValidate(){
-      hideError();
+    showToast("✅ Commande validée. Ouverture WhatsApp...", "ok");
 
-      const nom = $("nom").value.trim();
-      const telephone = $("telephone").value.trim();
-      const adresse = $("adresse").value.trim();
+    // 3) ouvrir WhatsApp avec le message prêt
+    openWhatsApp(order);
 
-      if (!nom || !telephone || !adresse) {
-        showError("Veuillez remplir Nom, Téléphone et Adresse.");
-        return;
-      }
+    btn.textContent = "✅ Validée";
 
-      if (!window.ApiCommandes || !ApiCommandes.generateNextCommandeId) {
-        showError("Erreur: api-commandes.js non chargé. Vérifie le chemin: ./api/api-commandes.js");
-        return;
-      }
+  } catch (e) {
+    console.error(e);
+    showToast("❌ Erreur: " + e.message, "err");
+    btn.disabled = false;
+    btn.textContent = oldTxt;
+  }
+}
 
-      // ✅ Générer le numéro UNIQUEMENT AU CLIC (donc validation)
-      const commandeId = await ApiCommandes.generateNextCommandeId(new Date());
+/**
+ * ==========================
+ *  INIT PAGE
+ * ==========================
+ */
+const order = getOrderFromUrlOrStorage();
+document.getElementById("orderIdText").textContent = order.commande_id || "—";
+document.getElementById("statusText").textContent = order.statut || "En attente";
+document.getElementById("receipt").textContent = buildReceiptText(order);
 
-      $("commandeId").textContent = commandeId;
+// Buttons
+document.getElementById("validateSendBtn").addEventListener("click", () => validateAndSend(order));
 
-      // aperçu du message
-      const message = buildMessage(commandeId);
-      $("preview").textContent = message;
+document.getElementById("downloadBtn").addEventListener("click", () => {
+  const text = buildReceiptText(order);
+  const safeId = (order.commande_id || "commande").replace(/[^\w\-]/g, "_");
+  downloadText(`${safeId}.txt`, text);
+  showToast("⬇️ Fichier téléchargé.", "ok");
+});
 
-      // ✅ Ouvrir WhatsApp vers MAXI avec message prêt
-      const url = `https://wa.me/${MAXI_WHATSAPP}?text=${encodeURIComponent(message)}`;
-      window.open(url, "_blank");
+document.getElementById("whatsappBtn").addEventListener("click", () => {
+  openWhatsApp(order);
+});
 
-      // ✅ Optionnel: bouton suivi direct sur ce numéro
-      $("btnSuivi").href = `/maxi-jdc-market/tools/suivi-commandes.html?order=${encodeURIComponent(commandeId)}`;
+document.getElementById("closeBtn").addEventListener("click", () => {
+  // Sur GitHub Pages, souvent on revient à la page précédente
+  if (history.length > 1) history.back();
+  else window.close();
+});
 
-      // ✅ Sauvegarde utile (facultatif)
-      localStorage.setItem("last_commande_id", commandeId);
-      localStorage.setItem("last_client_tel", telephone);
-      localStorage.setItem("last_client_nom", nom);
-      localStorage.setItem("last_client_adresse", adresse);
-    }
+// Optionnel: CTRL+Enter = WhatsApp
+document.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.key === "Enter") openWhatsApp(order);
+});
+</script>
 
-    document.addEventListener("DOMContentLoaded", () => {
-      $("btnValider").addEventListener("click", onValidate);
-
-      // Petit confort : pré-remplir si déjà sauvegardé
-      const nom = localStorage.getItem("last_client_nom") || "";
-      const tel = localStorage.getItem("last_client_tel") || "";
-      const adr = localStorage.getItem("last_client_adresse") || "";
-      if (nom) $("nom").value = nom;
-      if (tel) $("telephone").value = tel;
-      if (adr) $("adresse").value = adr;
-
-      // aperçu initial (sans commande)
-      $("preview").textContent = "Remplissez vos infos puis cliquez sur “Valider la commande”.";
-    });
-  </script>
 </body>
 </html>
