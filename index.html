@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -3755,9 +3754,10 @@
         <button class="order-btn download" id="downloadOrderBtn">
           💾 Télécharger
         </button>
-        <button class="order-btn whatsapp" id="whatsappOrderBtn">
-          📱 WhatsApp
-        </button>
+        <button class="order-btn whatsapp" id="sendOrderBtn">
+  ✅ Valider et envoyer
+</button>
+
       </div>
     </div>
   </div>
@@ -5279,7 +5279,8 @@
           return;
         }
         // Ouvrir la page de suivi des commandes
-        window.open('/maxi-jdc-market/tools/suivi-commandes.html', '_blank');
+       window.open('/maxi-jdc-market/tools/suivi-commandes.html', '_blank');
+
 
       };
 
@@ -5414,9 +5415,11 @@
         console.log('📥 Réponse du serveur:', result);
         
         if (result.success) {
-            showToast('✅ Commande enregistrée dans Google Sheets ! ID: ' + result.commande_id);
-            return true;
-        } else {
+  showToast('✅ Commande enregistrée dans Google Sheets ! ID: ' + result.commande_id);
+  return result.commande_id; // ✅ on renvoie l'ID
+}
+
+        else {
             console.warn('⚠️ Erreur API:', result.error);
             showToast(`⚠️ Commande créée (non enregistrée: ${result.error || 'Erreur serveur'})`, 'warning');
             return false;
@@ -5451,6 +5454,20 @@
       const savings = calculateTotalSavings();
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
       const total = subtotal + shippingFee;
+
+// 🔹 Enregistrement de la commande + récupération de l'ID
+const commandeId = await enregistrerCommandeAutomatique({
+  nom: state.user_name,
+  telephone: state.user_phone,
+  adresse: state.user_address,
+  articles: state.cart,
+  total: total
+});
+
+// 🔹 Mémorisation de l'ID pour l'utiliser ailleurs (message client)
+state.lastOrderId = commandeId || null;
+
+      
 
       let orderText = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
       orderText += `📅 ${new Date().toLocaleDateString('fr-FR', {
@@ -5764,11 +5781,38 @@
         showToast('💾 Commande téléchargée');
       };
 
-      $('whatsappOrderBtn').onclick = () => {
-        const orderText = $('orderDetails').textContent;
-        const whatsappUrl = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(orderText)}`;
-        window.open(whatsappUrl, '_blank');
-      };
+     $('sendOrderBtn').onclick = async () => {
+  // On récupère l'ID de commande mémorisé au moment du "placeOrder()"
+  const commandeId = state.lastOrderId || 'CMD-MAXI-AAAAmmjj-XXX';
+
+  const messageClient =
+    `Merci pour votre commande MAXI JDC MARKET.\n` +
+    `📦 Votre commande est bien reçue sous le numero de commande ${commandeId}\n` +
+    `⏳ Elle est en cours de préparation.\n` +
+    `Nous vous contacterons pour la livraison.`;
+
+  // Affichage "automatique" à l'écran
+  showToast('✅ Commande validée ! Message client affiché.', 'success');
+
+  // Option pratique : copier le message dans le presse-papier
+  try {
+    await navigator.clipboard.writeText(messageClient);
+    showToast('📋 Message client copié (vous pouvez le coller où vous voulez).');
+  } catch (e) {
+    // si le navigateur bloque le clipboard
+    alert(messageClient);
+
+
+// 🔹 Fermer la fenêtre de confirmation après envoi
+const modal = document.querySelector('.order-confirm-modal');
+if (modal) {
+  modal.classList.remove('open');
+}
+
+    
+  }
+};
+
 
       $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
         $('stockModal').classList.remove('open');
@@ -5843,6 +5887,13 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
