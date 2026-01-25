@@ -1821,7 +1821,7 @@
       font-weight: 900;
     }
 
-    /* ESPACE CLIENT */
+    /* ESPACE CLIENT - MASQUÉ PAR DÉFAUT */
     #clientSpaceSection {
       background: var(--card2);
       border-radius: var(--radius);
@@ -1829,6 +1829,10 @@
       padding: 15px;
       box-shadow: var(--shadow);
       margin-bottom: 15px;
+      display: none;
+    }
+
+    #clientSpaceSection.visible {
       display: block;
     }
 
@@ -1841,6 +1845,73 @@
     #clientSpaceSection .admin-btn:hover {
       background: rgba(0, 212, 255, 0.2);
       transform: translateY(-2px);
+    }
+
+    /* BOUTON AFFICHER/CAHER ESPACE CLIENT */
+    .toggle-client-space-btn {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid var(--accent2);
+      background: rgba(0, 212, 255, 0.1);
+      color: var(--accent2);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      margin-bottom: 10px;
+    }
+
+    .toggle-client-space-btn:hover {
+      background: rgba(0, 212, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    /* BOUTON FERMER ESPACE CLIENT */
+    .close-client-space-btn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 2px solid var(--muted);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      margin-top: 8px;
+      align-self: flex-end;
+    }
+
+    .close-client-space-btn:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: rgba(255, 107, 107, 0.1);
+    }
+
+    /* COMPTE - MASQUÉ PAR DÉFAUT */
+    #accountDetailsSection {
+      display: none;
+    }
+
+    #accountDetailsSection.visible {
+      display: block;
+    }
+
+    /* HISTORIQUE - MASQUÉ PAR DÉFAUT */
+    #historySearchSection, #orderHistorySection {
+      display: none;
+    }
+
+    #historySearchSection.visible, #orderHistorySection.visible {
+      display: block;
     }
 
     /* MODAL GESTION STOCK */
@@ -2342,21 +2413,25 @@
       border-color: var(--accent2);
     }
 
-    /* SECTION PANIER */
+    /* SECTION PANIER - PLUS D'ESPACE */
     .cart-section {
       background: var(--card2);
       border-radius: var(--radius);
       border: 1px solid var(--line);
       padding: 20px;
       box-shadow: var(--shadow);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
     .cart-items {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      max-height: 300px;
+      flex: 1;
       overflow-y: auto;
+      max-height: none;
       padding-right: 5px;
     }
 
@@ -2535,6 +2610,11 @@
       text-align: center;
       padding: 40px 20px;
       color: var(--muted);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
 
     .cart-empty-icon {
@@ -3216,6 +3296,48 @@
         height: calc(var(--header-height) + env(safe-area-inset-top));
       }
     }
+
+    /* LANGUE SWITCHER */
+    .lang-switcher {
+      position: fixed;
+      bottom: 80px;
+      left: 15px;
+      z-index: 999;
+      display: flex;
+      gap: 5px;
+      background: rgba(10, 25, 47, 0.9);
+      border-radius: 20px;
+      padding: 5px;
+      border: 1px solid var(--accent2);
+      backdrop-filter: blur(10px);
+    }
+
+    .lang-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .lang-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .lang-btn.active {
+      background: rgba(0, 212, 255, 0.2);
+      border-color: var(--accent2);
+      color: var(--accent2);
+      transform: scale(1.1);
+    }
   </style>
 </head>
 
@@ -3228,8 +3350,8 @@
           <img src="logo-maxi-jdc-market.jpg" alt="MAXI JDC MARKET" onerror="this.style.display='none'">
         </div>
         <div class="brand-text">
-          <h1>MAXI JDC MARKET</h1>
-          <p>Des prix mini --- Un MAXI choix</p>
+          <h1 id="appTitle">MAXI JDC MARKET</h1>
+          <p id="appSubtitle">Des prix mini --- Un MAXI choix</p>
         </div>
       </div>
       <button class="cart-btn-header" id="cartTopBtn" title="Ouvrir le panier">
@@ -3322,6 +3444,13 @@
       </div>
     </main>
 
+    <!-- SWITCHER DE LANGUE -->
+    <div class="lang-switcher">
+      <button class="lang-btn active" id="langFrBtn" title="Français">FR</button>
+      <button class="lang-btn" id="langEnBtn" title="English">EN</button>
+      <button class="lang-btn" id="langArBtn" title="العربية">AR</button>
+    </div>
+
     <!-- BOUTON QR -->
     <button class="qr-direct-btn" id="qrDirectBtn" title="Scanner QR Code">
       📱
@@ -3339,7 +3468,7 @@
   <!-- PANIER -->
   <aside class="drawer" id="drawer">
     <div class="drawer-header">
-      <h3>🛒 Mon Panier & Compte</h3>
+      <h3 id="drawerTitle">🛒 Mon Panier & Compte</h3>
       <button class="drawer-close" id="closeDrawerBtn">×</button>
     </div>
     <div class="drawer-content">
@@ -3361,11 +3490,19 @@
         </div>
       </section>
 
+      <!-- BOUTON AFFICHER ESPACE CLIENT -->
+      <button class="toggle-client-space-btn" id="toggleClientSpaceBtn">
+        👤 Afficher l'espace client
+      </button>
+
       <!-- ESPACE CLIENT -->
       <section class="account-section" id="clientSpaceSection">
         <div class="section-title">
           <h4>👤 Espace Client</h4>
           <span class="account-status" id="clientSpaceStatus">Actif</span>
+          <button class="close-client-space-btn" id="closeClientSpaceBtn">
+            ✕ Fermer
+          </button>
         </div>
         <div class="admin-controls-grid">
           <button class="admin-btn promo" id="clientAccountBtn">
@@ -3442,7 +3579,7 @@
       </section>
 
       <!-- HISTORIQUE -->
-      <section class="history-search-section" id="historySearchSection" style="display:none">
+      <section class="history-search-section" id="historySearchSection">
         <div class="section-title">
           <h4>📋 Historique des commandes</h4>
         </div>
@@ -3465,7 +3602,7 @@
       </section>
 
       <!-- HISTORIQUE COMMANDES -->
-      <section class="order-history-section" id="orderHistorySection" style="display:none">
+      <section class="order-history-section" id="orderHistorySection">
         <div class="section-title">
           <h4>📜 Vos commandes</h4>
           <span class="account-status" id="historyCount">0 commande(s)</span>
@@ -3479,7 +3616,7 @@
       <!-- PANIER -->
       <section class="cart-section">
         <div class="section-title">
-          <h4>🧺 Mon Panier</h4>
+          <h4 id="cartSectionTitle">🧺 Mon Panier</h4>
           <span class="account-status" id="cartItemsCount">0 article(s)</span>
         </div>
         <div class="cart-items" id="cartItemsList"></div>
@@ -3487,8 +3624,8 @@
         <!-- PANIER VIDE -->
         <div class="cart-empty" id="cartEmptyMessage" style="display:none">
           <div class="cart-empty-icon">🛒</div>
-          <h4>Panier vide</h4>
-          <p>Ajoutez des articles pour commencer votre commande</p>
+          <h4 id="cartEmptyTitle">Panier vide</h4>
+          <p id="cartEmptyText">Ajoutez des articles pour commencer votre commande</p>
         </div>
 
         <!-- SECTION ÉCONOMIES -->
@@ -3496,14 +3633,14 @@
           <div class="savings-row">
             <span class="savings-label">
               <span class="promo-icon-small">💰</span>
-              ÉCONOMIES TOTALES
+              <span id="savingsLabel">ÉCONOMIES TOTALES</span>
             </span>
             <span class="savings-value" id="totalSavings">0,00 dt</span>
           </div>
           <div class="savings-row" style="margin-bottom: 0;">
             <span class="savings-label">
               <span class="promo-icon-small">📊</span>
-              Pourcentage économisé
+              <span id="percentageLabel">Pourcentage économisé</span>
             </span>
             <span class="savings-value">
               <span id="savingsPercentage">0%</span>
@@ -3515,15 +3652,15 @@
         <!-- TOTAUX -->
         <div class="cart-totals">
           <div class="total-row">
-            <span class="total-label">Sous-total</span>
+            <span class="total-label" id="subtotalLabel">Sous-total</span>
             <span class="total-value" id="cartSubtotal">0,00 dt</span>
           </div>
           <div class="total-row">
-            <span class="total-label">Livraison</span>
+            <span class="total-label" id="shippingLabel">Livraison</span>
             <span class="total-value" id="cartShipping">0,00 dt</span>
           </div>
           <div class="total-row">
-            <span class="total-label">Total</span>
+            <span class="total-label" id="totalLabel">Total</span>
             <span class="total-value grand" id="cartTotal">0,00 dt</span>
           </div>
         </div>
@@ -3534,15 +3671,15 @@
           <div class="delivery-rules">
             <div class="rule" id="minOrderRule">
               <span class="rule-icon">💰</span>
-              <span>Minimum commande: <strong>15 dt</strong></span>
+              <span id="minOrderText">Minimum commande: <strong>15 dt</strong></span>
             </div>
             <div class="rule" id="shippingRule">
               <span class="rule-icon">🚚</span>
-              <span>Frais livraison: <strong>3 dt</strong></span>
+              <span id="shippingFeeText">Frais livraison: <strong>3 dt</strong></span>
             </div>
             <div class="rule" id="freeShippingRule">
               <span class="rule-icon">🎁</span>
-              <span>Livraison gratuite à partir de <strong>100 dt</strong></span>
+              <span id="freeShippingText">Livraison gratuite à partir de <strong>100 dt</strong></span>
             </div>
           </div>
         </div>
@@ -3792,6 +3929,223 @@
       commandeApiUrl: "https://script.google.com/macros/s/AKfycbz01QnoaxYg8OwAd5BGm_L6JbaOPaQ0FGuu7Cm3dGbJ_M07F_4aKDNcy7BfPtr7hA3T/exec",
     };
 
+    // ===================== TRADUCTIONS =====================
+    const TRANSLATIONS = {
+      fr: {
+        // Interface principale
+        appTitle: "MAXI JDC MARKET",
+        appSubtitle: "Des prix mini --- Un MAXI choix",
+        searchPlaceholder: "🔍 Rechercher un produit...",
+        searchClear: "Effacer",
+        searchAll: "Tous",
+        cartTitle: "🛒 Mon Panier & Compte",
+        cartEmptyTitle: "Panier vide",
+        cartEmptyText: "Ajoutez des articles pour commencer votre commande",
+        cartSectionTitle: "🧺 Mon Panier",
+        subtotalLabel: "Sous-total",
+        shippingLabel: "Livraison",
+        totalLabel: "Total",
+        savingsLabel: "ÉCONOMIES TOTALES",
+        percentageLabel: "Pourcentage économisé",
+        minOrderText: "Minimum commande:",
+        shippingFeeText: "Frais livraison:",
+        freeShippingText: "Livraison gratuite à partir de",
+        clearCartBtn: "🗑️ Vider le panier",
+        placeOrderBtn: "🚀 Commander",
+        
+        // Espace client
+        toggleClientSpace: "👤 Afficher l'espace client",
+        closeClientSpace: "✕ Fermer",
+        clientSpaceTitle: "👤 Espace Client",
+        clientAccountBtn: "Mon Compte",
+        clientTrackingBtn: "Suivi Commande",
+        clientHistoryBtn: "Historique",
+        
+        // Compte
+        accountTitle: "👤 Mon Compte",
+        nameLabel: "Nom complet *",
+        phoneLabel: "Téléphone *",
+        addressLabel: "Adresse complète *",
+        latLabel: "Latitude GPS",
+        lngLabel: "Longitude GPS",
+        phoneHint: "Format: 8 chiffres après +216 (ex: 25 600 978)",
+        locationBtn: "📍 Localiser sur la carte",
+        mapPreviewText: "Cliquez pour localiser",
+        saveAccountBtn: "💾 Enregistrer mon compte",
+        editAccountBtn: "✏️ Modifier",
+        
+        // Historique
+        historyTitle: "📋 Historique des commandes",
+        historySearchLabel: "🔍 Entrez votre numéro pour voir votre historique",
+        historySearchBtn: "🔎 Voir mon historique",
+        ordersTitle: "📜 Vos commandes",
+        noOrdersText: "Aucune commande passée dans les 2 dernières années",
+        
+        // Produits
+        productsTitle: "Produits",
+        selectCategory: "Sélectionnez une catégorie",
+        page: "Page",
+        items: "article(s)",
+        noProductsFound: "Aucun produit trouvé",
+        
+        // Modal produit
+        addToCart: "🛒 Ajouter au panier",
+        similarProducts: "🛍️ Articles similaires",
+        closeModal: "✕ Fermer",
+        codeLabel: "Code:",
+        categoryLabel: "Catégorie:",
+        stockLabel: "Stock:",
+        
+        // Notifications
+        toastAdded: "ajouté au panier !",
+        toastCartCleared: "Panier vidé",
+        toastAccountSaved: "Compte enregistré avec succès !",
+        toastOrderPlaced: "Commande créée !"
+      },
+      en: {
+        // Main interface
+        appTitle: "MAXI JDC MARKET",
+        appSubtitle: "Mini prices --- MAXI choice",
+        searchPlaceholder: "🔍 Search a product...",
+        searchClear: "Clear",
+        searchAll: "All",
+        cartTitle: "🛒 My Cart & Account",
+        cartEmptyTitle: "Cart empty",
+        cartEmptyText: "Add items to start your order",
+        cartSectionTitle: "🧺 My Cart",
+        subtotalLabel: "Subtotal",
+        shippingLabel: "Shipping",
+        totalLabel: "Total",
+        savingsLabel: "TOTAL SAVINGS",
+        percentageLabel: "Percentage saved",
+        minOrderText: "Minimum order:",
+        shippingFeeText: "Shipping fee:",
+        freeShippingText: "Free shipping from",
+        clearCartBtn: "🗑️ Clear cart",
+        placeOrderBtn: "🚀 Order",
+        
+        // Client space
+        toggleClientSpace: "👤 Show client space",
+        closeClientSpace: "✕ Close",
+        clientSpaceTitle: "👤 Client Space",
+        clientAccountBtn: "My Account",
+        clientTrackingBtn: "Order Tracking",
+        clientHistoryBtn: "History",
+        
+        // Account
+        accountTitle: "👤 My Account",
+        nameLabel: "Full name *",
+        phoneLabel: "Phone *",
+        addressLabel: "Complete address *",
+        latLabel: "GPS Latitude",
+        lngLabel: "GPS Longitude",
+        phoneHint: "Format: 8 digits after +216 (ex: 25 600 978)",
+        locationBtn: "📍 Locate on map",
+        mapPreviewText: "Click to locate",
+        saveAccountBtn: "💾 Save my account",
+        editAccountBtn: "✏️ Edit",
+        
+        // History
+        historyTitle: "📋 Order History",
+        historySearchLabel: "🔍 Enter your number to see your history",
+        historySearchBtn: "🔎 View my history",
+        ordersTitle: "📜 Your Orders",
+        noOrdersText: "No orders in the last 2 years",
+        
+        // Products
+        productsTitle: "Products",
+        selectCategory: "Select a category",
+        page: "Page",
+        items: "item(s)",
+        noProductsFound: "No products found",
+        
+        // Product modal
+        addToCart: "🛒 Add to cart",
+        similarProducts: "🛍️ Similar products",
+        closeModal: "✕ Close",
+        codeLabel: "Code:",
+        categoryLabel: "Category:",
+        stockLabel: "Stock:",
+        
+        // Notifications
+        toastAdded: "added to cart!",
+        toastCartCleared: "Cart cleared",
+        toastAccountSaved: "Account saved successfully!",
+        toastOrderPlaced: "Order created!"
+      },
+      ar: {
+        // الواجهة الرئيسية
+        appTitle: "ماكسي جي دي سي ماركت",
+        appSubtitle: "أسعار مصغرة --- اختيار ماكسي",
+        searchPlaceholder: "🔍 ابحث عن منتج...",
+        searchClear: "مسح",
+        searchAll: "الكل",
+        cartTitle: "🛒 سلة التسوق و الحساب",
+        cartEmptyTitle: "السلة فارغة",
+        cartEmptyText: "أضف منتجات لبدء طلبك",
+        cartSectionTitle: "🧺 سلة التسوق",
+        subtotalLabel: "المجموع الجزئي",
+        shippingLabel: "التوصيل",
+        totalLabel: "المجموع الكلي",
+        savingsLabel: "إجمالي التوفير",
+        percentageLabel: "النسبة المئوية المحفوظة",
+        minOrderText: "الحد الأدنى للطلب:",
+        shippingFeeText: "رسوم التوصيل:",
+        freeShippingText: "توصيل مجاني ابتداء من",
+        clearCartBtn: "🗑️ تفريغ السلة",
+        placeOrderBtn: "🚀 طلب",
+        
+        // مساحة الزبون
+        toggleClientSpace: "👤 إظهار مساحة الزبون",
+        closeClientSpace: "✕ إغلاق",
+        clientSpaceTitle: "👤 مساحة الزبون",
+        clientAccountBtn: "حسابي",
+        clientTrackingBtn: "تتبع الطلب",
+        clientHistoryBtn: "التاريخ",
+        
+        // الحساب
+        accountTitle: "👤 حسابي",
+        nameLabel: "الاسم الكامل *",
+        phoneLabel: "الهاتف *",
+        addressLabel: "العنوان الكامل *",
+        latLabel: "خط العرض GPS",
+        lngLabel: "خط الطول GPS",
+        phoneHint: "التنسيق: 8 أرقام بعد +216 (مثال: 25 600 978)",
+        locationBtn: "📍 تحديد على الخريطة",
+        mapPreviewText: "انقر للتحديد",
+        saveAccountBtn: "💾 حفظ حسابي",
+        editAccountBtn: "✏️ تعديل",
+        
+        // التاريخ
+        historyTitle: "📋 تاريخ الطلبات",
+        historySearchLabel: "🔍 أدخل رقمك لرؤية تاريخك",
+        historySearchBtn: "🔎 عرض تاريخي",
+        ordersTitle: "📜 طلباتك",
+        noOrdersText: "لا توجد طلبات في السنتين الماضيتين",
+        
+        // المنتجات
+        productsTitle: "المنتجات",
+        selectCategory: "اختر فئة",
+        page: "صفحة",
+        items: "منتج(ات)",
+        noProductsFound: "لم يتم العثور على منتجات",
+        
+        // نافذة المنتج
+        addToCart: "🛒 إضافة إلى السلة",
+        similarProducts: "🛍️ منتجات مماثلة",
+        closeModal: "✕ إغلاق",
+        codeLabel: "الرمز:",
+        categoryLabel: "الفئة:",
+        stockLabel: "المخزون:",
+        
+        // الإشعارات
+        toastAdded: "تمت الإضافة إلى السلة!",
+        toastCartCleared: "تم تفريغ السلة",
+        toastAccountSaved: "تم حفظ الحساب بنجاح!",
+        toastOrderPlaced: "تم إنشاء الطلب!"
+      }
+    };
+
     // Catégories
     const CATEGORIES = [
       { key: "promotions", label: "🔥 PROMOTIONS", file: "data/PROMOTIONS.csv", isPromo: true },
@@ -3818,48 +4172,6 @@
       { key: "vipa_selections", label: "⭐ Sélections VIP", file: "data/vipa_selections.csv" }
     ];
 
-    // ===================== FONCTION fetchJsonp POUR ÉVITER CORS =====================
-    function fetchJsonp(url, timeoutMs = 15000) {
-      return new Promise((resolve, reject) => {
-        const callbackName = 'jsonpCallback_' + Math.random().toString(36).substr(2, 9);
-        const script = document.createElement('script');
-        let timeoutId;
-
-        // Fonction de nettoyage
-        function cleanup() {
-          if (timeoutId) clearTimeout(timeoutId);
-          delete window[callbackName];
-          if (script.parentNode) {
-            script.parentNode.removeChild(script);
-          }
-        }
-
-        // Timeout
-        timeoutId = setTimeout(() => {
-          cleanup();
-          reject(new Error('JSONP timeout'));
-        }, timeoutMs);
-
-        // Callback global
-        window[callbackName] = (data) => {
-          cleanup();
-          resolve(data);
-        };
-
-        // Gestion des erreurs
-        script.onerror = () => {
-          cleanup();
-          reject(new Error('JSONP script error'));
-        };
-
-        // Construire l'URL avec le callback
-        const separator = url.includes('?') ? '&' : '?';
-        script.src = url + separator + 'callback=' + callbackName;
-
-        document.body.appendChild(script);
-      });
-    }
-
     // ===================== ÉTAT GLOBAL =====================
     const state = {
       user: null,
@@ -3884,8 +4196,94 @@
       lastSyncTime: null,
       syncTimer: null,
       googleSheetsStock: new Map(),
-      lastOrderId: null
+      lastOrderId: null,
+      currentLanguage: 'fr',
+      clientSpaceVisible: false
     };
+
+    // ===================== TRADUCTION =====================
+    function setLanguage(lang) {
+      if (!TRANSLATIONS[lang]) return;
+      state.currentLanguage = lang;
+      
+      // Mettre à jour l'interface
+      const t = TRANSLATIONS[lang];
+      
+      // Titre application
+      $('appTitle').textContent = t.appTitle;
+      $('appSubtitle').textContent = t.appSubtitle;
+      
+      // Recherche
+      $('searchInput').placeholder = t.searchPlaceholder;
+      $('clearSearchBtn').textContent = t.searchClear;
+      $('showAllBtn').textContent = t.searchAll;
+      
+      // Panier
+      $('drawerTitle').textContent = t.cartTitle;
+      $('cartEmptyTitle').textContent = t.cartEmptyTitle;
+      $('cartEmptyText').textContent = t.cartEmptyText;
+      $('cartSectionTitle').textContent = t.cartSectionTitle;
+      $('subtotalLabel').textContent = t.subtotalLabel;
+      $('shippingLabel').textContent = t.shippingLabel;
+      $('totalLabel').textContent = t.totalLabel;
+      $('savingsLabel').textContent = t.savingsLabel;
+      $('percentageLabel').textContent = t.percentageLabel;
+      $('minOrderText').textContent = `${t.minOrderText} <strong>15 dt</strong>`;
+      $('shippingFeeText').textContent = `${t.shippingFeeText} <strong>3 dt</strong>`;
+      $('freeShippingText').textContent = `${t.freeShippingText} <strong>100 dt</strong>`;
+      $('clearCartBtn').textContent = t.clearCartBtn;
+      $('placeOrderBtn').textContent = t.placeOrderBtn;
+      
+      // Espace client
+      $('toggleClientSpaceBtn').textContent = t.toggleClientSpace;
+      $('closeClientSpaceBtn').textContent = t.closeClientSpace;
+      $('clientSpaceSection h4').textContent = t.clientSpaceTitle;
+      $('clientAccountBtn .admin-label').textContent = t.clientAccountBtn;
+      $('clientTrackingBtn .admin-label').textContent = t.clientTrackingBtn;
+      $('clientHistoryBtn .admin-label').textContent = t.clientHistoryBtn;
+      
+      // Compte
+      $('accountDetailsSection h4').textContent = t.accountTitle;
+      $('clientName').previousElementSibling.textContent = t.nameLabel;
+      $('clientPhone').parentElement.previousElementSibling.textContent = t.phoneLabel;
+      $('clientAddress').previousElementSibling.textContent = t.addressLabel;
+      $('clientLat').previousElementSibling.textContent = t.latLabel;
+      $('clientLng').previousElementSibling.textContent = t.lngLabel;
+      $('tel-hint').textContent = t.phoneHint;
+      $('getLocationBtn').textContent = t.locationBtn;
+      $('mapPreview span').textContent = t.mapPreviewText;
+      $('saveAccountBtn').textContent = t.saveAccountBtn;
+      $('editAccountBtn').textContent = t.editAccountBtn;
+      
+      // Historique
+      $('historySearchSection h4').textContent = t.historyTitle;
+      $('searchHistoryPhone').parentElement.previousElementSibling.textContent = t.historySearchLabel;
+      $('searchHistoryBtn').textContent = t.historySearchBtn;
+      $('orderHistorySection h4').textContent = t.ordersTitle;
+      $('historyEmptyMessage').textContent = t.noOrdersText;
+      
+      // Produits
+      $('activeCategoryLabel').textContent = t.productsTitle;
+      $('activeCategoryMeta').textContent = t.selectCategory;
+      updatePageInfo();
+      
+      // Mettre à jour les boutons langue
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      $(`lang${lang.charAt(0).toUpperCase() + lang.slice(1)}Btn`).classList.add('active');
+      
+      // Sauvegarder la langue
+      localStorage.setItem('maxi_jdc_language', lang);
+    }
+
+    function updatePageInfo() {
+      const t = TRANSLATIONS[state.currentLanguage];
+      const totalPages = Math.ceil(state.filteredProducts.length / CONFIG.itemsPerPage) || 1;
+      $('pageInfo').textContent = `${t.page} ${state.currentPage}/${totalPages}`;
+      $('pageInfoBottom').textContent = `${t.page} ${state.currentPage}/${totalPages}`;
+      $('itemCount').textContent = `${state.filteredProducts.length} ${t.items}`;
+    }
 
     // ===================== UTILITAIRES =====================
     function $(id) { return document.getElementById(id); }
@@ -4434,8 +4832,8 @@
       buttons.forEach(button => button.classList.remove('active'));
       if (state.showAllCategories) {
         buttons[0].classList.add('active');
-        $('activeCategoryLabel').textContent = 'Tous les produits';
-        $('activeCategoryMeta').textContent = 'Toutes catégories';
+        $('activeCategoryLabel').textContent = TRANSLATIONS[state.currentLanguage].productsTitle;
+        $('activeCategoryMeta').textContent = TRANSLATIONS[state.currentLanguage].selectCategory;
       } else {
         const category = CATEGORIES.find(c => c.key === state.activeCategory);
         if (category) {
@@ -4482,9 +4880,7 @@
       state.filteredProducts = getFilteredProducts();
       const totalPages = Math.ceil(state.filteredProducts.length / CONFIG.itemsPerPage) || 1;
       if (state.currentPage > totalPages) state.currentPage = totalPages || 1;
-      $('pageInfo').textContent = `Page ${state.currentPage}/${totalPages}`;
-      $('pageInfoBottom').textContent = `Page ${state.currentPage}/${totalPages}`;
-      $('itemCount').textContent = `${state.filteredProducts.length} article(s)`;
+      updatePageInfo();
       $('prevPageBtn').disabled = state.currentPage === 1;
       $('nextPageBtn').disabled = state.currentPage === totalPages;
       $('prevPageBottomBtn').disabled = state.currentPage === 1;
@@ -4496,10 +4892,11 @@
       const grid = $('productsGrid');
       grid.innerHTML = '';
       if (productsToShow.length === 0) {
+        const t = TRANSLATIONS[state.currentLanguage];
         grid.innerHTML = `
           <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">
             <div style="font-size:48px;margin-bottom:15px;">🔍</div>
-            <h3 style="margin-bottom:10px;color:var(--text);">Aucun produit trouvé</h3>
+            <h3 style="margin-bottom:10px;color:var(--text);">${t.noProductsFound}</h3>
             <p>Essayez de modifier votre recherche ou sélectionnez une autre catégorie</p>
           </div>
         `;
@@ -4639,7 +5036,8 @@
       quantityInput.max = Math.min(999, availableStock);
       const addBtn = $('modalAddToCartBtn');
       addBtn.disabled = quantity === 0 || !stockStatus.available;
-      addBtn.textContent = quantity > 0 ? `🛒 Ajouter ${quantity} au panier` : '🛒 Ajouter au panier';
+      const t = TRANSLATIONS[state.currentLanguage];
+      addBtn.textContent = quantity > 0 ? `🛒 ${t.addToCart} ${quantity}` : `🛒 ${t.addToCart}`;
       const img = $('modalProductImage');
       const noPhoto = $('modalNoPhoto');
       const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
@@ -4686,7 +5084,8 @@
       state.quantityPicks[productId] = quantity;
       const addBtn = $('modalAddToCartBtn');
       addBtn.disabled = quantity === 0 || availableStock === 0;
-      addBtn.textContent = quantity > 0 ? `🛒 Ajouter ${quantity} au panier` : '🛒 Ajouter au panier';
+      const t = TRANSLATIONS[state.currentLanguage];
+      addBtn.textContent = quantity > 0 ? `🛒 ${t.addToCart} ${quantity}` : `🛒 ${t.addToCart}`;
     }
 
     function handleQuantityInputChange() {
@@ -4771,7 +5170,7 @@
       const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
       const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
       $('cartTopCount').textContent = cartCount;
-      $('cartItemsCount').textContent = `${cartCount} article(s)`;
+      $('cartItemsCount').textContent = `${cartCount} ${TRANSLATIONS[state.currentLanguage].items}`;
       const cartItemsList = $('cartItemsList');
       const cartEmptyMessage = $('cartEmptyMessage');
       if (cartCount === 0) {
@@ -4877,11 +5276,12 @@
       state.quantityPicks[productId] = 0;
       updateCartUI();
       renderProducts();
+      const t = TRANSLATIONS[state.currentLanguage];
       if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
         const saving = (product.oldPrice - product.price) * quantity;
-        showToast(`✅ ${quantity} × ${product.name} ajouté ! Économie: ${formatPrice(saving)}`);
+        showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded} Économie: ${formatPrice(saving)}`);
       } else {
-        showToast(`✅ ${quantity} × ${product.name} ajouté au panier !`);
+        showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded}`);
       }
       if (state.currentModalProduct &&
         generateProductId(state.currentModalProduct) === productId) {
@@ -4904,6 +5304,69 @@
       }
       renderProducts();
       updateCartUI();
+    }
+
+    // ===================== GESTION ESPACE CLIENT =====================
+    function toggleClientSpace() {
+      state.clientSpaceVisible = !state.clientSpaceVisible;
+      if (state.clientSpaceVisible) {
+        $('clientSpaceSection').classList.add('visible');
+        $('toggleClientSpaceBtn').style.display = 'none';
+        // Masquer les autres sections par défaut
+        $('accountDetailsSection').classList.remove('visible');
+        $('historySearchSection').classList.remove('visible');
+        $('orderHistorySection').classList.remove('visible');
+      } else {
+        $('clientSpaceSection').classList.remove('visible');
+        $('toggleClientSpaceBtn').style.display = 'block';
+      }
+    }
+
+    function closeClientSpace() {
+      state.clientSpaceVisible = false;
+      $('clientSpaceSection').classList.remove('visible');
+      $('toggleClientSpaceBtn').style.display = 'block';
+      // Masquer toutes les sections de l'espace client
+      $('accountDetailsSection').classList.remove('visible');
+      $('historySearchSection').classList.remove('visible');
+      $('orderHistorySection').classList.remove('visible');
+    }
+
+    function initClientSpace() {
+      $('clientAccountBtn').onclick = () => {
+        // Afficher la section compte, masquer historique
+        $('accountDetailsSection').classList.add('visible');
+        $('orderHistorySection').classList.remove('visible');
+        $('historySearchSection').classList.remove('visible');
+        showToast('👤 Accès à votre compte');
+      };
+
+      $('clientTrackingBtn').onclick = () => {
+        if (!state.user || !state.user.phone) {
+          showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
+          $('clientAccountBtn').click();
+          return;
+        }
+        // Ouvrir la page de suivi des commandes avec le numéro de téléphone
+        const trackingUrl = `${CONFIG.trackingUrl}?phone=${encodeURIComponent(state.user.phone)}`;
+        window.open(trackingUrl, '_blank');
+      };
+
+      $('clientHistoryBtn').onclick = () => {
+        if (!state.user || !state.user.phone) {
+          showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
+          $('clientAccountBtn').click();
+          return;
+        }
+        // Afficher la section historique, masquer compte
+        $('accountDetailsSection').classList.remove('visible');
+        $('historySearchSection').classList.add('visible');
+        $('orderHistorySection').classList.add('visible');
+        $('searchHistoryPhone').value = state.user.phone;
+        const history = loadHistoryForPhone(state.user.phone);
+        renderHistory(history);
+        showToast('📜 Accès à votre historique');
+      };
     }
 
     // ===================== GESTION ADMIN STOCK =====================
@@ -5162,7 +5625,7 @@
         return;
       }
       historyEmptyMessage.style.display = 'none';
-      orderHistorySection.style.display = 'block';
+      orderHistorySection.classList.add('visible');
       historyCount.textContent = `${history.length} commande(s)`;
       historyItemsList.innerHTML = '';
       history.forEach(order => {
@@ -5273,44 +5736,6 @@
       document.body.style.overflow = '';
     }
 
-    // ===================== GESTION ESPACE CLIENT =====================
-    function initClientSpace() {
-      $('clientAccountBtn').onclick = () => {
-        // Afficher la section compte, masquer historique
-        $('accountDetailsSection').style.display = 'block';
-        $('orderHistorySection').style.display = 'none';
-        $('historySearchSection').style.display = 'none';
-        showToast('👤 Accès à votre compte');
-      };
-
-      $('clientTrackingBtn').onclick = () => {
-        if (!state.user || !state.user.phone) {
-          showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
-          $('clientAccountBtn').click();
-          return;
-        }
-        // Ouvrir la page de suivi des commandes avec le numéro de téléphone
-        const trackingUrl = `${CONFIG.trackingUrl}?phone=${encodeURIComponent(state.user.phone)}`;
-        window.open(trackingUrl, '_blank');
-      };
-
-      $('clientHistoryBtn').onclick = () => {
-        if (!state.user || !state.user.phone) {
-          showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
-          $('clientAccountBtn').click();
-          return;
-        }
-        // Afficher la section historique, masquer compte
-        $('accountDetailsSection').style.display = 'none';
-        $('historySearchSection').style.display = 'block';
-        $('orderHistorySection').style.display = 'block';
-        $('searchHistoryPhone').value = state.user.phone;
-        const history = loadHistoryForPhone(state.user.phone);
-        renderHistory(history);
-        showToast('📜 Accès à votre historique');
-      };
-    }
-
     // ===================== ADMIN =====================
     function toggleAdminMode() {
       const password = prompt("Entrez le mot de passe administrateur:");
@@ -5372,7 +5797,8 @@
       };
       updateUserUI();
       saveState();
-      showToast('✅ Compte enregistré avec succès !');
+      const t = TRANSLATIONS[state.currentLanguage];
+      showToast(`✅ ${t.toastAccountSaved}`);
     }
 
     function editUser() {
@@ -5624,7 +6050,8 @@
       state.cart = {};
       updateCartUI();
 
-      showToast('✅ Commande créée ! Cliquez sur "Valider et envoyer" pour finaliser.');
+      const t = TRANSLATIONS[state.currentLanguage];
+      showToast(`✅ ${t.toastOrderPlaced} Cliquez sur "Valider et envoyer" pour finaliser.`);
     }
 
     // ===================== INITIALISATION =====================
@@ -5642,6 +6069,10 @@
         const adminState = localStorage.getItem(CONFIG.adminPasswordKey);
         state.isAdmin = adminState === 'true';
         $('adminSection').classList.toggle('visible', state.isAdmin);
+        
+        // Charger la langue sauvegardée
+        const savedLang = localStorage.getItem('maxi_jdc_language') || 'fr';
+        setLanguage(savedLang);
       } catch (e) {
         console.warn('Erreur chargement état:', e);
       }
@@ -5740,9 +6171,17 @@
       $('qrDirectBtn').onclick = openQRModal;
       $('closeQrModalBtn').onclick = closeQRModal;
 
+      // Langue
+      $('langFrBtn').onclick = () => setLanguage('fr');
+      $('langEnBtn').onclick = () => setLanguage('en');
+      $('langArBtn').onclick = () => setLanguage('ar');
+
       $('secretAdminBtn').onclick = toggleAdminMode;
       $('adminDashboardBtn').onclick = openDashboard;
       $('adminStockBtn').onclick = openStockManagement;
+
+      $('toggleClientSpaceBtn').onclick = toggleClientSpace;
+      $('closeClientSpaceBtn').onclick = closeClientSpace;
 
       $('clearCartBtn').onclick = () => {
         if (Object.keys(state.cart).length === 0) return;
@@ -5756,7 +6195,8 @@
           state.quantityPicks = {};
           updateCartUI();
           renderProducts();
-          showToast('Panier vidé', 'warning');
+          const t = TRANSLATIONS[state.currentLanguage];
+          showToast(t.toastCartCleared, 'warning');
         }
       };
 
