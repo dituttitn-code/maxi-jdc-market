@@ -101,6 +101,46 @@
       box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
     }
 
+    /* BARRE DE LANGUE EN HAUT - AJOUTÉE */
+    .lang-top-bar {
+      background: rgba(0, 212, 255, 0.1);
+      border-bottom: 1px solid var(--accent2);
+      padding: 4px 8px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 4px;
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1001;
+    }
+
+    .lang-top-bar .lang-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .lang-top-bar .lang-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .lang-top-bar .lang-btn.active {
+      background: rgba(0, 212, 255, 0.2);
+      border-color: var(--accent2);
+      color: var(--accent2);
+      transform: scale(1.1);
+    }
+
     .logo-brand {
       display: flex;
       align-items: center;
@@ -1952,6 +1992,139 @@
       display: block;
     }
 
+    /* MODAL SUIVI COMMANDE - NOUVEAU */
+    .tracking-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3600;
+      padding: 20px;
+      backdrop-filter: blur(20px);
+    }
+
+    .tracking-modal-overlay.open {
+      display: flex;
+    }
+
+    .tracking-modal {
+      width: 100%;
+      max-width: 500px;
+      background: linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
+      border-radius: 20px;
+      border: 3px solid var(--accent2);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tracking-modal-header {
+      padding: 18px;
+      background: rgba(0, 212, 255, 0.1);
+      border-bottom: 1px solid var(--accent2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tracking-modal-header h3 {
+      margin: 0;
+      font-size: 16px;
+      color: var(--accent2);
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tracking-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tracking-input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .tracking-input-group input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .tracking-input-group input:focus {
+      border-color: var(--accent2);
+    }
+
+    .tracking-result {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      border: 1px solid var(--line);
+      display: none;
+    }
+
+    .tracking-result.visible {
+      display: block;
+    }
+
+    .tracking-status {
+      font-size: 14px;
+      font-weight: 900;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tracking-status.pending { color: var(--warning); }
+    .tracking-status.processing { color: var(--accent2); }
+    .tracking-status.shipped { color: var(--accent); }
+    .tracking-status.delivered { color: #00ff88; }
+    .tracking-status.cancelled { color: var(--danger); }
+
+    .tracking-details {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .tracking-timeline {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 11px;
+    }
+
+    .timeline-date {
+      color: var(--muted);
+      min-width: 70px;
+    }
+
+    .timeline-event {
+      color: var(--text);
+      font-weight: 600;
+    }
+
     /* MODAL GESTION STOCK */
     .stock-modal-overlay {
       position: fixed;
@@ -3195,6 +3368,140 @@
       transform: scale(1.1);
     }
 
+    /* MODAL TABLEAU DE BORD - NOUVEAU */
+    .dashboard-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3700;
+      padding: 20px;
+      backdrop-filter: blur(20px);
+    }
+
+    .dashboard-modal-overlay.open {
+      display: flex;
+    }
+
+    .dashboard-modal {
+      width: 100%;
+      max-width: 800px;
+      max-height: 90vh;
+      background: linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
+      border-radius: 20px;
+      border: 3px solid #9c27b0;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dashboard-modal-header {
+      padding: 18px;
+      background: rgba(156, 39, 176, 0.1);
+      border-bottom: 1px solid #9c27b0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dashboard-modal-header h3 {
+      margin: 0;
+      font-size: 16px;
+      color: #9c27b0;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dashboard-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--accent);
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .top-products-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+    }
+
+    .top-product-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .top-product-item:last-child {
+      border-bottom: none;
+    }
+
+    .top-product-name {
+      font-size: 12px;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .top-product-sales {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 700;
+      margin-left: 10px;
+    }
+
+    .dashboard-chart {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      border: 1px solid var(--line);
+      margin-top: 10px;
+    }
+
+    .chart-placeholder {
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
     /* RESPONSIVE */
     @media (max-width: 768px) {
       .drawer {
@@ -3249,6 +3556,10 @@
         width: 34px;
         height: 34px;
         font-size: 10px;
+      }
+
+      .dashboard-stats {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -3365,6 +3676,16 @@
         height: 32px;
         font-size: 9px;
       }
+
+      .lang-top-bar {
+        padding: 3px 6px;
+      }
+
+      .lang-top-bar .lang-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 9px;
+      }
     }
 
     /* SCROLLBAR */
@@ -3420,6 +3741,13 @@
 
 <body>
   <div id="app">
+    <!-- BARRE DE LANGUE EN HAUT - AJOUTÉE -->
+    <div class="lang-top-bar">
+      <button class="lang-btn active" id="langTopFrBtn" title="Français">FR</button>
+      <button class="lang-btn" id="langTopEnBtn" title="English">EN</button>
+      <button class="lang-btn" id="langTopArBtn" title="العربية">AR</button>
+    </div>
+
     <!-- HEADER -->
     <header class="header">
       <div class="logo-brand">
@@ -3933,6 +4261,86 @@
     </div>
   </div>
 
+  <!-- MODAL SUIVI COMMANDE - NOUVEAU -->
+  <div class="tracking-modal-overlay" id="trackingModal">
+    <div class="tracking-modal">
+      <div class="tracking-modal-header">
+        <h3>📍 Suivi de Commande</h3>
+        <button class="drawer-close" id="closeTrackingModalBtn">×</button>
+      </div>
+      <div class="tracking-modal-body">
+        <div class="tracking-input-group">
+          <input type="text" id="trackingOrderInput" placeholder="Entrez votre numéro de commande (ex: CMD-MAXI-20260125-001)">
+          <button class="form-btn primary" id="checkTrackingBtn">🔍 Vérifier</button>
+        </div>
+        <div class="tracking-result" id="trackingResult">
+          <div class="tracking-status pending" id="trackingStatus">
+            ⏳ En attente de vérification
+          </div>
+          <div class="tracking-details" id="trackingDetails">
+            Entrez votre numéro de commande pour voir le statut.
+          </div>
+          <div class="tracking-timeline" id="trackingTimeline"></div>
+        </div>
+      </div>
+      <div class="tracking-modal-footer">
+        <button class="form-btn" id="closeTrackingModalBtn2">
+          ✕ Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TABLEAU DE BORD - NOUVEAU -->
+  <div class="dashboard-modal-overlay" id="dashboardModal">
+    <div class="dashboard-modal">
+      <div class="dashboard-modal-header">
+        <h3>📊 Tableau de Bord</h3>
+        <button class="drawer-close" id="closeDashboardModalBtn">×</button>
+      </div>
+      <div class="dashboard-modal-body">
+        <div class="dashboard-stats">
+          <div class="stat-card">
+            <div class="stat-value" id="totalSales">0 dt</div>
+            <div class="stat-label">Ventes totales</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="totalOrders">0</div>
+            <div class="stat-label">Commandes totales</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="avgOrderValue">0 dt</div>
+            <div class="stat-label">Moyenne commande</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="topProductSales">0</div>
+            <div class="stat-label">Ventes produit #1</div>
+          </div>
+        </div>
+        
+        <h4>🏆 Top 10 Produits les Plus Vendus</h4>
+        <div class="top-products-list" id="topProductsList">
+          <!-- Rempli dynamiquement -->
+        </div>
+        
+        <div class="dashboard-chart">
+          <h4>📈 Statistiques des Ventes (7 derniers jours)</h4>
+          <div class="chart-placeholder">
+            Graphique des ventes - À implémenter avec une librairie graphique
+          </div>
+        </div>
+      </div>
+      <div class="dashboard-modal-footer">
+        <button class="form-btn" id="refreshDashboardBtn">
+          🔄 Actualiser
+        </button>
+        <button class="form-btn danger" id="closeDashboardModalBtn2">
+          ✕ Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL MAP -->
   <div class="map-modal-overlay" id="mapModal">
     <div class="map-modal">
@@ -3991,7 +4399,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v36',
+      localStorageKey: 'maxi_jdc_market_app_v37',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -4003,21 +4411,23 @@
         lng: 10.301234
       },
       syncInterval: 30000,
-      dashboardUrl: 'tools/tableau-de-bord.html',
       trackingUrl: 'tools/suivi-commandes.html',
       
+      // URLs Google Sheets
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
       commandeApiUrl: "https://script.google.com/macros/s/AKfycbzJBRgQiA214iLEyoDFWTq2dnfRFTL8S9fGwNd0SCGWKmUihISIMeyle_SF0X7vkEk/exec",
       
       // Configuration pour le son uniquement sur la tablette du magasin
-      tabletDeviceId: 'maxi_jdc_tablet', // ID unique pour la tablette du magasin
-      playSoundOnTabletOnly: true
+      tabletDeviceId: 'maxi_jdc_tablet',
+      playSoundOnTabletOnly: true,
+
+      // URL pour récupérer les données de suivi des commandes
+      trackingApiUrl: "https://script.google.com/macros/s/AKfycbzJBRgQiA214iLEyoDFWTq2dnfRFTL8S9fGwNd0SCGWKmUihISIMeyle_SF0X7vkEk/exec"
     };
 
     // ===================== TRADUCTIONS =====================
     const TRANSLATIONS = {
       fr: {
-        // Interface principale
         appTitle: "MAXI JDC MARKET",
         appSubtitle: "Des prix mini --- Un MAXI choix",
         searchPlaceholder: "🔍 Rechercher un produit...",
@@ -4037,16 +4447,12 @@
         freeShippingText: "Livraison gratuite à partir de",
         clearCartBtn: "🗑️ Vider le panier",
         placeOrderBtn: "🚀 Commander",
-        
-        // Espace client
         toggleClientSpace: "👤 Afficher l'espace client",
         closeClientSpace: "✕ Fermer",
         clientSpaceTitle: "👤 Espace Client",
         clientAccountBtn: "Mon Compte",
         clientTrackingBtn: "Suivi Commande",
         clientHistoryBtn: "Historique",
-        
-        // Compte
         accountTitle: "👤 Mon Compte",
         nameLabel: "Nom complet *",
         phoneLabel: "Téléphone *",
@@ -4058,30 +4464,22 @@
         mapPreviewText: "Cliquez pour localiser",
         saveAccountBtn: "💾 Enregistrer mon compte",
         editAccountBtn: "✏️ Modifier",
-        
-        // Historique
         historyTitle: "📋 Historique des commandes",
         historySearchLabel: "🔍 Entrez votre numéro pour voir votre historique",
         historySearchBtn: "🔎 Voir mon historique",
         ordersTitle: "📜 Vos commandes",
         noOrdersText: "Aucune commande passée dans les 2 dernières années",
-        
-        // Produits
         productsTitle: "Produits",
         selectCategory: "Sélectionnez une catégorie",
         page: "Page",
         items: "article(s)",
         noProductsFound: "Aucun produit trouvé",
-        
-        // Modal produit
         addToCart: "🛒 Ajouter au panier",
         similarProducts: "🛍️ Articles similaires",
         closeModal: "✕ Fermer",
         codeLabel: "Code:",
         categoryLabel: "Catégorie:",
         stockLabel: "Stock:",
-        
-        // Notifications
         toastAdded: "ajouté au panier !",
         toastCartCleared: "Panier vidé",
         toastAccountSaved: "Compte enregistré avec succès !",
@@ -4089,7 +4487,6 @@
         trackingMessage: "Pour suivre votre commande, veuillez saisir votre numéro de commande dans le champ de suivi de commande"
       },
       en: {
-        // Main interface
         appTitle: "MAXI JDC MARKET",
         appSubtitle: "Mini prices --- MAXI choice",
         searchPlaceholder: "🔍 Search a product...",
@@ -4109,16 +4506,12 @@
         freeShippingText: "Free shipping from",
         clearCartBtn: "🗑️ Clear cart",
         placeOrderBtn: "🚀 Order",
-        
-        // Client space
         toggleClientSpace: "👤 Show client space",
         closeClientSpace: "✕ Close",
         clientSpaceTitle: "👤 Client Space",
         clientAccountBtn: "My Account",
         clientTrackingBtn: "Order Tracking",
         clientHistoryBtn: "History",
-        
-        // Account
         accountTitle: "👤 My Account",
         nameLabel: "Full name *",
         phoneLabel: "Phone *",
@@ -4130,30 +4523,22 @@
         mapPreviewText: "Click to locate",
         saveAccountBtn: "💾 Save my account",
         editAccountBtn: "✏️ Edit",
-        
-        // History
         historyTitle: "📋 Order History",
         historySearchLabel: "🔍 Enter your number to see your history",
         historySearchBtn: "🔎 View my history",
         ordersTitle: "📜 Your Orders",
         noOrdersText: "No orders in the last 2 years",
-        
-        // Products
         productsTitle: "Products",
         selectCategory: "Select a category",
         page: "Page",
         items: "item(s)",
         noProductsFound: "No products found",
-        
-        // Product modal
         addToCart: "🛒 Add to cart",
         similarProducts: "🛍️ Similar products",
         closeModal: "✕ Close",
         codeLabel: "Code:",
         categoryLabel: "Category:",
         stockLabel: "Stock:",
-        
-        // Notifications
         toastAdded: "added to cart!",
         toastCartCleared: "Cart cleared",
         toastAccountSaved: "Account saved successfully!",
@@ -4161,7 +4546,6 @@
         trackingMessage: "To track your order, please enter your order number in the order tracking field"
       },
       ar: {
-        // الواجهة الرئيسية
         appTitle: "ماكسي جي دي سي ماركت",
         appSubtitle: "أسعار مصغرة --- اختيار ماكسي",
         searchPlaceholder: "🔍 ابحث عن منتج...",
@@ -4181,16 +4565,12 @@
         freeShippingText: "توصيل مجاني ابتداء من",
         clearCartBtn: "🗑️ تفريغ السلة",
         placeOrderBtn: "🚀 طلب",
-        
-        // مساحة الزبون
         toggleClientSpace: "👤 إظهار مساحة الزبون",
         closeClientSpace: "✕ إغلاق",
         clientSpaceTitle: "👤 مساحة الزبون",
         clientAccountBtn: "حسابي",
         clientTrackingBtn: "تتبع الطلب",
         clientHistoryBtn: "التاريخ",
-        
-        // الحساب
         accountTitle: "👤 حسابي",
         nameLabel: "الاسم الكامل *",
         phoneLabel: "الهاتف *",
@@ -4202,30 +4582,22 @@
         mapPreviewText: "انقر للتحديد",
         saveAccountBtn: "💾 حفظ حسابي",
         editAccountBtn: "✏️ تعديل",
-        
-        // التاريخ
         historyTitle: "📋 تاريخ الطلبات",
         historySearchLabel: "🔍 أدخل رقمك لرؤية تاريخك",
         historySearchBtn: "🔎 عرض تاريخي",
         ordersTitle: "📜 طلباتك",
         noOrdersText: "لا توجد طلبات في السنتين الماضيتين",
-        
-        // المنتجات
         productsTitle: "المنتجات",
         selectCategory: "اختر فئة",
         page: "صفحة",
         items: "منتج(ات)",
         noProductsFound: "لم يتم العثور على منتجات",
-        
-        // نافذة المنتج
         addToCart: "🛒 إضافة إلى السلة",
         similarProducts: "🛍️ منتجات مماثلة",
         closeModal: "✕ إغلاق",
         codeLabel: "الرمز:",
         categoryLabel: "الفئة:",
         stockLabel: "المخزون:",
-        
-        // الإشعارات
         toastAdded: "تمت الإضافة إلى السلة!",
         toastCartCleared: "تم تفريغ السلة",
         toastAccountSaved: "تم حفظ الحساب بنجاح!",
@@ -4287,51 +4659,31 @@
       lastOrderId: null,
       currentLanguage: 'fr',
       clientSpaceVisible: false,
-      isTabletDevice: false, // Nouveau: pour détecter la tablette du magasin
-      catScrollPosition: 0
-    };
-
-    // ===================== DÉTECTION DE LA TABLETTE =====================
-    function detectTabletDevice() {
-      // Vérifier si c'est la tablette du magasin
-      const savedDeviceId = localStorage.getItem('maxi_jdc_device_id');
-      if (savedDeviceId === CONFIG.tabletDeviceId) {
-        state.isTabletDevice = true;
-        console.log('📱 Tablette du magasin détectée');
-      } else if (!savedDeviceId) {
-        // Première visite - demander si c'est la tablette du magasin
-        const isTablet = confirm("Êtes-vous sur la tablette du magasin MAXI JDC MARKET ?\n\nCliquez sur OK pour activer les notifications sonores des nouvelles commandes.\nCliquez sur Annuler si vous êtes un client.");
-        if (isTablet) {
-          localStorage.setItem('maxi_jdc_device_id', CONFIG.tabletDeviceId);
-          state.isTabletDevice = true;
-          showToast('🔔 Notifications sonores activées pour la tablette du magasin');
-        } else {
-          localStorage.setItem('maxi_jdc_device_id', 'client_device');
-          state.isTabletDevice = false;
-        }
-      } else {
-        state.isTabletDevice = false;
+      isTabletDevice: false,
+      catScrollPosition: 0,
+      // Nouveau: pour le suivi des commandes
+      orderTrackingData: new Map(),
+      // Nouveau: pour le tableau de bord
+      salesStats: {
+        totalSales: 0,
+        totalOrders: 0,
+        avgOrderValue: 0,
+        topProducts: []
       }
-    }
+    };
 
     // ===================== TRADUCTION =====================
     function setLanguage(lang) {
       if (!TRANSLATIONS[lang]) return;
       state.currentLanguage = lang;
       
-      // Mettre à jour l'interface
       const t = TRANSLATIONS[lang];
       
-      // Titre application
       $('appTitle').textContent = t.appTitle;
       $('appSubtitle').textContent = t.appSubtitle;
-      
-      // Recherche
       $('searchInput').placeholder = t.searchPlaceholder;
       $('clearSearchBtn').textContent = t.searchClear;
       $('showAllBtn').textContent = t.searchAll;
-      
-      // Panier
       $('drawerTitle').textContent = t.cartTitle;
       $('cartEmptyTitle').textContent = t.cartEmptyTitle;
       $('cartEmptyText').textContent = t.cartEmptyText;
@@ -4346,16 +4698,12 @@
       $('freeShippingText').innerHTML = `${t.freeShippingText} <strong>100 dt</strong>`;
       $('clearCartBtn').textContent = t.clearCartBtn;
       $('placeOrderBtn').textContent = t.placeOrderBtn;
-      
-      // Espace client
       $('toggleClientSpaceBtn').textContent = t.toggleClientSpace;
       $('closeClientSpaceBtn').textContent = t.closeClientSpace;
       $('clientSpaceSection h4').textContent = t.clientSpaceTitle;
       $('clientAccountBtn .admin-label').textContent = t.clientAccountBtn;
       $('clientTrackingBtn .admin-label').textContent = t.clientTrackingBtn;
       $('clientHistoryBtn .admin-label').textContent = t.clientHistoryBtn;
-      
-      // Compte
       $('accountDetailsSection h4').textContent = t.accountTitle;
       $('clientName').previousElementSibling.textContent = t.nameLabel;
       $('clientPhone').parentElement.previousElementSibling.textContent = t.phoneLabel;
@@ -4367,27 +4715,22 @@
       $('mapPreview span').textContent = t.mapPreviewText;
       $('saveAccountBtn').textContent = t.saveAccountBtn;
       $('editAccountBtn').textContent = t.editAccountBtn;
-      
-      // Historique
       $('historySearchSection h4').textContent = t.historyTitle;
       $('searchHistoryPhone').parentElement.previousElementSibling.textContent = t.historySearchLabel;
       $('searchHistoryBtn').textContent = t.historySearchBtn;
       $('orderHistorySection h4').textContent = t.ordersTitle;
       $('historyEmptyMessage').textContent = t.noOrdersText;
-      
-      // Produits
       $('activeCategoryLabel').textContent = t.productsTitle;
       $('activeCategoryMeta').textContent = t.selectCategory;
-      updatePageInfo();
       
-      // Mettre à jour les boutons langue
       document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.classList.remove('active');
       });
       $(`lang${lang.charAt(0).toUpperCase() + lang.slice(1)}Btn`).classList.add('active');
+      $(`langTop${lang.charAt(0).toUpperCase() + lang.slice(1)}Btn`).classList.add('active');
       
-      // Sauvegarder la langue
       localStorage.setItem('maxi_jdc_language', lang);
+      updatePageInfo();
     }
 
     function updatePageInfo() {
@@ -4615,62 +4958,6 @@
       }
     }
 
-    // ===================== CALCUL DES ÉCONOMIES =====================
-    function calculateItemSavings(item) {
-      if (!item.isPromotion || !item.oldPrice || item.oldPrice <= item.price) {
-        return 0;
-      }
-      const savingPerUnit = item.oldPrice - item.price;
-      return savingPerUnit * item.quantity;
-    }
-
-    function calculateTotalSavings() {
-      let totalSavings = 0;
-      let totalOriginalPrice = 0;
-      let totalCurrentPrice = 0;
-      Object.values(state.cart).forEach(item => {
-        if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
-          const saving = calculateItemSavings(item);
-          totalSavings += saving;
-          totalOriginalPrice += item.oldPrice * item.quantity;
-          totalCurrentPrice += item.price * item.quantity;
-        }
-      });
-      return {
-        totalSavings,
-        totalOriginalPrice,
-        totalCurrentPrice,
-        percentage: totalOriginalPrice > 0 ? Math.round((totalSavings / totalOriginalPrice) * 100) : 0
-      };
-    }
-
-    function updateSavingsDisplay() {
-      const savings = calculateTotalSavings();
-      const savingsSection = $('cartSavingsSection');
-      const totalSavingsElement = $('totalSavings');
-      const savingsPercentageElement = $('savingsPercentage');
-      const savingsPercentageTextElement = $('savingsPercentageText');
-
-      if (savings.totalSavings > 0) {
-        savingsSection.classList.add('visible');
-        totalSavingsElement.textContent = formatPrice(savings.totalSavings);
-        savingsPercentageElement.textContent = `${savings.percentage}%`;
-        let percentageText = '';
-        if (savings.percentage >= 50) {
-          percentageText = 'ÉNORME ÉCONOMIE !';
-        } else if (savings.percentage >= 30) {
-          percentageText = 'Super affaire !';
-        } else if (savings.percentage >= 15) {
-          percentageText = 'Bonne affaire';
-        } else {
-          percentageText = 'Économie';
-        }
-        savingsPercentageTextElement.textContent = percentageText;
-      } else {
-        savingsSection.classList.remove('visible');
-      }
-    }
-
     // ===================== GESTION DES DONNÉES =====================
     async function loadCategoryData(categoryKey) {
       try {
@@ -4872,28 +5159,6 @@
         state.products.set(catKey, updatedProducts);
       }
       console.log('Promotions appliquées avec succès');
-    }
-
-    // ===================== GESTION DU STOCK =====================
-    function updateProductStock(product, quantity) {
-      const stockKey = `${product.categoryKey}_${product.code}`;
-      const currentStock = state.productStocks.get(stockKey) || product.stock;
-      const newStock = Math.max(0, currentStock - quantity);
-      state.productStocks.set(stockKey, newStock);
-      state.pendingStockUpdates.set(stockKey, newStock);
-      for (const [catKey, products] of state.products.entries()) {
-        const index = products.findIndex(p => p.code === product.code);
-        if (index !== -1) {
-          state.products.get(catKey)[index].stock = newStock;
-        }
-      }
-      saveSyncData();
-      return newStock;
-    }
-
-    function getAvailableStock(product) {
-      const stockKey = `${product.categoryKey}_${product.code}`;
-      return state.productStocks.get(stockKey) || product.stock || 0;
     }
 
     // ===================== AFFICHAGE =====================
@@ -5102,422 +5367,235 @@
       });
     }
 
-    // ===================== NAVIGATION ARTICLES =====================
-    function findProductIndex(product) {
-      if (!product || !state.filteredProducts) return -1;
-      return state.filteredProducts.findIndex(p =>
-        p.code === product.code && p.name === product.name
-      );
-    }
-
-    function updateModalNavigationButtons() {
-      if (!state.currentModalProduct) return;
-      const currentIndex = findProductIndex(state.currentModalProduct);
-      const prevBtn = $('modalPrevProduct');
-      const nextBtn = $('modalNextProduct');
-      prevBtn.disabled = currentIndex <= 0;
-      nextBtn.disabled = currentIndex >= state.filteredProducts.length - 1;
-    }
-
-    function showPrevProduct() {
-      if (!state.currentModalProduct) return;
-      const currentIndex = findProductIndex(state.currentModalProduct);
-      if (currentIndex > 0) {
-        const prevProduct = state.filteredProducts[currentIndex - 1];
-        openProductModal(prevProduct);
-      }
-    }
-
-    function showNextProduct() {
-      if (!state.currentModalProduct) return;
-      const currentIndex = findProductIndex(state.currentModalProduct);
-      if (currentIndex < state.filteredProducts.length - 1) {
-        const nextProduct = state.filteredProducts[currentIndex + 1];
-        openProductModal(nextProduct);
-      }
-    }
-
-    // ===================== MODAL PRODUIT =====================
-    function openProductModal(product) {
-      if (!product) return;
-      state.currentModalProduct = product;
-      const productId = generateProductId(product);
-      const quantity = state.quantityPicks[productId] || 0;
-      const availableStock = getAvailableStock(product);
-      const stockStatus = getStockStatus(availableStock);
-      $('modalProductName').textContent = product.name;
-      $('modalProductNameFull').textContent = product.name;
-      if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
-        $('modalCurrentPrice').textContent = formatPrice(product.price);
-        $('modalOldPrice').textContent = formatPrice(product.oldPrice);
-        $('modalOldPrice').style.display = 'block';
-        const discountPercent = product.discountPercent || Math.round((1 - product.price / product.oldPrice) * 100);
-        if (discountPercent > 0) {
-          $('modalDiscount').textContent = `-${discountPercent}%`;
-          $('modalDiscount').style.display = 'block';
-          $('modalPromoBadge').style.display = 'block';
-          $('modalPromoBadge').textContent = `${discountPercent}% OFF`;
-        } else {
-          $('modalDiscount').style.display = 'none';
-          $('modalPromoBadge').style.display = 'none';
-        }
-      } else {
-        $('modalCurrentPrice').textContent = formatPrice(product.price);
-        $('modalOldPrice').style.display = 'none';
-        $('modalDiscount').style.display = 'none';
-        $('modalPromoBadge').style.display = 'none';
-      }
-      $('modalProductCode').textContent = product.code;
-      $('modalProductCategory').textContent = product.category;
-      $('modalProductStock').textContent = stockStatus.text;
-      $('modalProductStock').style.color = stockStatus.class === 'ok' ? 'var(--accent)' : stockStatus.class === 'low' ? 'var(--warning)' : 'var(--danger)';
-      const quantityInput = $('modalQuantityInput');
-      quantityInput.value = quantity;
-      quantityInput.max = Math.min(999, availableStock);
-      const addBtn = $('modalAddToCartBtn');
-      addBtn.disabled = quantity === 0 || !stockStatus.available;
-      const t = TRANSLATIONS[state.currentLanguage];
-      addBtn.textContent = quantity > 0 ? `🛒 ${t.addToCart} ${quantity}` : `🛒 ${t.addToCart}`;
-      const img = $('modalProductImage');
-      const noPhoto = $('modalNoPhoto');
-      const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-      img.src = imgSrc;
-      img.onload = () => {
-        img.style.display = 'block';
-        noPhoto.style.display = 'none';
-      };
-      img.onerror = () => {
-        img.style.display = 'none';
-        noPhoto.style.display = 'flex';
-        noPhoto.textContent = `Aucune photo pour ${product.code}`;
-      };
-      updateModalNavigationButtons();
-      $('modalPrevImageBtn').style.display = 'none';
-      $('modalNextImageBtn').style.display = 'none';
-      $('imageNavBar').innerHTML = '';
-      renderSimilarProducts(product);
-      $('productModal').classList.add('open');
+    // ===================== SUIVI COMMANDE - NOUVEAU =====================
+    function openOrderTracking() {
+      $('trackingModal').classList.add('open');
       document.body.style.overflow = 'hidden';
-      setTimeout(() => {
-        quantityInput.focus();
-        quantityInput.select();
-      }, 300);
     }
 
-    function closeProductModal() {
-      $('productModal').classList.remove('open');
-      document.body.style.overflow = '';
-      state.currentModalProduct = null;
-    }
-
-    function updateModalQuantity() {
-      if (!state.currentModalProduct) return;
-      const productId = generateProductId(state.currentModalProduct);
-      const quantityInput = $('modalQuantityInput');
-      let quantity = parseInt(quantityInput.value) || 0;
-      const availableStock = getAvailableStock(state.currentModalProduct);
-      if (quantity > availableStock) {
-        quantity = availableStock;
-        quantityInput.value = quantity;
-        showToast(`⚠️ Stock limité à ${availableStock} unités`, 'warning');
-      }
-      state.quantityPicks[productId] = quantity;
-      const addBtn = $('modalAddToCartBtn');
-      addBtn.disabled = quantity === 0 || availableStock === 0;
-      const t = TRANSLATIONS[state.currentLanguage];
-      addBtn.textContent = quantity > 0 ? `🛒 ${t.addToCart} ${quantity}` : `🛒 ${t.addToCart}`;
-    }
-
-    function handleQuantityInputChange() {
-      const quantityInput = $('modalQuantityInput');
-      let value = parseInt(quantityInput.value) || 0;
-      if (value < 0) value = 0;
-      if (value > 999) value = 999;
-      quantityInput.value = value;
-      updateModalQuantity();
-    }
-
-    function increaseQuantity() {
-      const quantityInput = $('modalQuantityInput');
-      let value = parseInt(quantityInput.value) || 0;
-      const availableStock = getAvailableStock(state.currentModalProduct);
-      value = Math.min(999, value + 1, availableStock);
-      quantityInput.value = value;
-      updateModalQuantity();
-    }
-
-    function decreaseQuantity() {
-      const quantityInput = $('modalQuantityInput');
-      let value = parseInt(quantityInput.value) || 0;
-      value = Math.max(0, value - 1);
-      quantityInput.value = value;
-      updateModalQuantity();
-    }
-
-    // ===================== ARTICLES SIMILAIRES =====================
-    function getSimilarProducts(currentProduct) {
-      if (!currentProduct) return [];
-      if (currentProduct.categoryKey === 'promotions') {
-        return state.promotions.filter(p =>
-          p.code !== currentProduct.code
-        ).slice(0, 6);
-      }
-      const sameCategory = state.products.get(currentProduct.categoryKey) || [];
-      return sameCategory.filter(p =>
-        p.code !== currentProduct.code
-      ).slice(0, 6);
-    }
-
-    function renderSimilarProducts(currentProduct) {
-      const similar = getSimilarProducts(currentProduct);
-      const grid = $('similarProductsGrid');
-      const count = $('similarProductsCount');
-      const section = $('similarProductsSection');
-      count.textContent = similar.length;
-      if (similar.length === 0) {
-        section.style.display = 'none';
+    async function checkOrderStatus() {
+      const orderId = $('trackingOrderInput').value.trim();
+      if (!orderId) {
+        showToast('❌ Veuillez entrer un numéro de commande', 'error');
         return;
       }
-      section.style.display = 'block';
-      grid.innerHTML = '';
-      similar.forEach(product => {
-        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-        const stockStatus = getStockStatus(product.stock);
-        const card = document.createElement('div');
-        card.className = 'similar-product-card';
-        card.innerHTML = `
-          <div class="similar-product-image">
-            <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
-          </div>
-          <div class="similar-product-info">
-            <div class="similar-product-name">${product.name}</div>
-            <div class="similar-product-price">${formatPrice(product.price)}</div>
-            <div class="similar-product-stock ${stockStatus.class}">
-              ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
+
+      showToast('🔍 Vérification du statut de commande...', 'warning');
+
+      try {
+        // Envoyer la requête à l'API Google Sheets
+        const formData = new URLSearchParams();
+        formData.append('method', 'checkOrderStatus');
+        formData.append('commande_id', orderId);
+
+        const response = await fetch(CONFIG.trackingApiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: formData.toString()
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          displayTrackingResult(orderId, result.status, result.details, result.timeline);
+          showToast('✅ Statut de commande trouvé');
+        } else {
+          // Vérifier dans l'historique local
+          const localOrder = state.orderHistory.find(order => order.orderId === orderId);
+          if (localOrder) {
+            displayTrackingResult(orderId, 'pending', 'Commande trouvée dans votre historique local. Statut à confirmer avec le magasin.');
+          } else {
+            $('trackingResult').innerHTML = `
+              <div class="tracking-status cancelled">
+                ❌ Commande non trouvée
+              </div>
+              <div class="tracking-details">
+                Aucune commande correspondant au numéro "${orderId}" n'a été trouvée.
+                Vérifiez le numéro ou contactez le service client.
+              </div>
+            `;
+            showToast('❌ Commande non trouvée', 'error');
+          }
+        }
+      } catch (error) {
+        console.error('Erreur vérification commande:', error);
+        // Fallback: vérifier dans l'historique local
+        const localOrder = state.orderHistory.find(order => order.orderId === orderId);
+        if (localOrder) {
+          displayTrackingResult(orderId, 'pending', 'Commande trouvée dans votre historique local. Statut à confirmer avec le magasin.');
+        } else {
+          $('trackingResult').innerHTML = `
+            <div class="tracking-status cancelled">
+              ❌ Erreur de connexion
             </div>
+            <div class="tracking-details">
+              Impossible de vérifier le statut en ligne. Veuillez contacter le service client.
+            </div>
+          `;
+          showToast('⚠️ Erreur de connexion', 'warning');
+        }
+      }
+    }
+
+    function displayTrackingResult(orderId, status, details, timeline = []) {
+      const resultDiv = $('trackingResult');
+      const statusDiv = $('trackingStatus');
+      const detailsDiv = $('trackingDetails');
+      const timelineDiv = $('trackingTimeline');
+      
+      let statusText = '';
+      let statusClass = '';
+      
+      switch(status) {
+        case 'pending':
+          statusText = '⏳ En attente de traitement';
+          statusClass = 'pending';
+          break;
+        case 'processing':
+          statusText = '🔄 En cours de préparation';
+          statusClass = 'processing';
+          break;
+        case 'shipped':
+          statusText = '🚚 Expédiée';
+          statusClass = 'shipped';
+          break;
+        case 'delivered':
+          statusText = '✅ Livrée';
+          statusClass = 'delivered';
+          break;
+        case 'cancelled':
+          statusText = '❌ Annulée';
+          statusClass = 'cancelled';
+          break;
+        default:
+          statusText = '❓ Statut inconnu';
+          statusClass = 'pending';
+      }
+      
+      statusDiv.textContent = statusText;
+      statusDiv.className = `tracking-status ${statusClass}`;
+      detailsDiv.textContent = `Commande ${orderId}: ${details}`;
+      
+      // Afficher la timeline si disponible
+      if (timeline && timeline.length > 0) {
+        timelineDiv.innerHTML = '<h5>📅 Historique:</h5>';
+        timeline.forEach(event => {
+          const item = document.createElement('div');
+          item.className = 'timeline-item';
+          item.innerHTML = `
+            <div class="timeline-date">${event.date}</div>
+            <div class="timeline-event">${event.event}</div>
+          `;
+          timelineDiv.appendChild(item);
+        });
+      } else {
+        timelineDiv.innerHTML = '<h5>📅 Historique:</h5><div class="timeline-item"><div class="timeline-event">Aucun historique disponible</div></div>';
+      }
+      
+      resultDiv.classList.add('visible');
+    }
+
+    // ===================== TABLEAU DE BORD - NOUVEAU =====================
+    function openDashboard() {
+      if (!state.isAdmin) {
+        showToast('❌ Accès administrateur requis', 'error');
+        return;
+      }
+      calculateDashboardStats();
+      renderDashboard();
+      $('dashboardModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function calculateDashboardStats() {
+      // Calculer les statistiques à partir de l'historique des commandes
+      const orders = state.orderHistory;
+      
+      // Total des ventes
+      const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
+      
+      // Nombre total de commandes
+      const totalOrders = orders.length;
+      
+      // Valeur moyenne des commandes
+      const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
+      
+      // Top 10 produits les plus vendus
+      const productSales = {};
+      orders.forEach(order => {
+        order.items.forEach(item => {
+          const productKey = `${item.code}_${item.name}`;
+          if (!productSales[productKey]) {
+            productSales[productKey] = {
+              name: item.name,
+              code: item.code,
+              quantity: 0,
+              revenue: 0
+            };
+          }
+          productSales[productKey].quantity += item.quantity;
+          productSales[productKey].revenue += item.price * item.quantity;
+        });
+      });
+      
+      // Convertir en tableau et trier par quantité vendue
+      const topProducts = Object.values(productSales)
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 10);
+      
+      state.salesStats = {
+        totalSales,
+        totalOrders,
+        avgOrderValue,
+        topProducts
+      };
+    }
+
+    function renderDashboard() {
+      const stats = state.salesStats;
+      
+      // Mettre à jour les statistiques
+      $('totalSales').textContent = formatPrice(stats.totalSales);
+      $('totalOrders').textContent = stats.totalOrders;
+      $('avgOrderValue').textContent = formatPrice(stats.avgOrderValue);
+      $('topProductSales').textContent = stats.topProducts.length > 0 ? stats.topProducts[0].quantity : 0;
+      
+      // Afficher le Top 10 des produits
+      const topProductsList = $('topProductsList');
+      topProductsList.innerHTML = '';
+      
+      if (stats.topProducts.length === 0) {
+        topProductsList.innerHTML = `
+          <div style="text-align:center;padding:20px;color:var(--muted);">
+            Aucune donnée de vente disponible
           </div>
         `;
-        card.addEventListener('click', () => {
-          closeProductModal();
-          setTimeout(() => openProductModal(product), 300);
-        });
-        grid.appendChild(card);
+        return;
+      }
+      
+      stats.topProducts.forEach((product, index) => {
+        const item = document.createElement('div');
+        item.className = 'top-product-item';
+        item.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-weight:900;color:var(--accent);">${index + 1}.</span>
+            <div>
+              <div class="top-product-name">${product.name}</div>
+              <div style="font-size:9px;color:var(--muted);">Code: ${product.code}</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;">
+            <span class="top-product-sales">${product.quantity} unités</span>
+            <span style="font-size:10px;color:var(--accent2);">${formatPrice(product.revenue)}</span>
+          </div>
+        `;
+        topProductsList.appendChild(item);
       });
     }
 
-    // ===================== PANIER - CORRECTION DU CALCUL =====================
-    function updateCartUI() {
-      const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
-      const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      $('cartTopCount').textContent = cartCount;
-      $('cartItemsCount').textContent = `${cartCount} ${TRANSLATIONS[state.currentLanguage].items}`;
-      const cartItemsList = $('cartItemsList');
-      const cartEmptyMessage = $('cartEmptyMessage');
-      if (cartCount === 0) {
-        cartItemsList.style.display = 'none';
-        cartEmptyMessage.style.display = 'block';
-        $('cartSavingsSection').classList.remove('visible');
-        $('cartSubtotal').textContent = formatPrice(0);
-        $('cartShipping').textContent = formatPrice(0);
-        $('cartTotal').textContent = formatPrice(0);
-        $('placeOrderBtn').disabled = true;
-      } else {
-        cartItemsList.style.display = 'flex';
-        cartEmptyMessage.style.display = 'none';
-        cartItemsList.innerHTML = '';
-        Object.entries(state.cart).forEach(([id, item]) => {
-          const itemSaving = calculateItemSavings(item);
-          const itemTotal = item.price * item.quantity;
-          const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
-          const itemElement = document.createElement('div');
-          itemElement.className = 'cart-item';
-          let savingsBadge = '';
-          if (itemSaving > 0) {
-            savingsBadge = `
-              <div class="cart-item-saving ${item.isPromotion ? 'promo' : ''}">
-                <span>💰</span>
-                <span>Économie: ${formatPrice(itemSaving)}</span>
-                ${item.discountPercent ? `<span class="savings-percentage">(-${item.discountPercent}%)</span>` : ''}
-              </div>
-            `;
-          }
-          itemElement.innerHTML = `
-            <div class="cart-item-info">
-              <div class="cart-item-name">
-                ${item.name}
-                ${item.isPromotion ? '<span class="savings-badge">PROMO</span>' : ''}
-              </div>
-              <div class="cart-item-details">
-                <span>Code: ${item.code}</span>
-                <span>Prix: ${formatPrice(item.price)}</span>
-                ${item.oldPrice && item.oldPrice > item.price ?
-              `<span style="color:#ffcc00;font-weight:700;">
-                  Ancien: <del>${formatPrice(item.oldPrice)}</del>
-                </span>` : ''}
-                <span>Cat: ${item.category}</span>
-              </div>
-              ${savingsBadge}
-              <div class="cart-item-controls">
-                <div class="cart-item-stepper">
-                  <button class="cart-item-qty-btn" data-action="decrease" data-id="${id}">−</button>
-                  <span class="cart-item-qty">${item.quantity}</span>
-                  <button class="cart-item-qty-btn" data-action="increase" data-id="${id}">+</button>
-                </div>
-              </div>
-            </div>
-            <div class="cart-item-price">
-              ${formatPrice(itemTotal)}
-              ${itemSaving > 0 ? `
-                <div style="font-size:9px;color:#ffcc00;margin-top:2px;">
-                  <del style="opacity:0.7;">${formatPrice(originalTotal)}</del>
-                </div>
-              ` : ''}
-            </div>
-          `;
-          cartItemsList.appendChild(itemElement);
-        });
-        updateSavingsDisplay();
-      }
-      
-      // CORRECTION DU CALCUL DES TOTAUX
-      $('cartSubtotal').textContent = formatPrice(subtotal);
-      
-      let shippingFee = CONFIG.shippingFee;
-      let shippingText = formatPrice(shippingFee);
-      let total = subtotal + shippingFee;
-      
-      if (subtotal >= CONFIG.freeShipping) {
-        shippingFee = 0;
-        shippingText = '<span class="total-value free">GRATUIT</span>';
-        total = subtotal;
-      } else if (subtotal < CONFIG.minOrder) {
-        shippingFee = null;
-        shippingText = '---';
-        total = null;
-      }
-      
-      $('cartShipping').innerHTML = shippingText;
-      
-      if (total !== null) {
-        $('cartTotal').textContent = formatPrice(total);
-        $('placeOrderBtn').disabled = false;
-        $('cartTotal').style.color = 'var(--accent)';
-      } else {
-        $('cartTotal').textContent = `Minimum: ${formatPrice(CONFIG.minOrder)}`;
-        $('cartTotal').style.color = 'var(--danger)';
-        $('placeOrderBtn').disabled = true;
-      }
-      
-      saveState();
-    }
-
-    function addToCart(productId, product, quantity = 1) {
-      if (!product || quantity <= 0) return;
-      const availableStock = getAvailableStock(product);
-      if (quantity > availableStock) {
-        showToast(`❌ Stock insuffisant. Il ne reste que ${availableStock} unités`, 'error');
-        return;
-      }
-      const newStock = updateProductStock(product, quantity);
-      if (state.cart[productId]) {
-        state.cart[productId].quantity += quantity;
-      } else {
-        state.cart[productId] = {
-          ...product,
-          quantity: quantity
-        };
-      }
-      state.quantityPicks[productId] = 0;
-      updateCartUI();
-      renderProducts();
-      const t = TRANSLATIONS[state.currentLanguage];
-      if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
-        const saving = (product.oldPrice - product.price) * quantity;
-        showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded} Économie: ${formatPrice(saving)}`);
-      } else {
-        showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded}`);
-      }
-      if (state.currentModalProduct &&
-        generateProductId(state.currentModalProduct) === productId) {
-        state.quantityPicks[productId] = 0;
-        updateModalQuantity();
-      }
-    }
-
-    function removeFromCart(productId, quantity = 1) {
-      if (!state.cart[productId]) return;
-      const item = state.cart[productId];
-      const removeQuantity = Math.min(quantity, item.quantity);
-      const stockKey = `${item.categoryKey}_${item.code}`;
-      const currentStock = state.productStocks.get(stockKey) || 0;
-      state.productStocks.set(stockKey, currentStock + removeQuantity);
-      item.quantity -= removeQuantity;
-      if (item.quantity <= 0) {
-        delete state.cart[productId];
-        delete state.quantityPicks[productId];
-      }
-      renderProducts();
-      updateCartUI();
-    }
-
-    // ===================== GESTION ESPACE CLIENT =====================
-    function toggleClientSpace() {
-      state.clientSpaceVisible = !state.clientSpaceVisible;
-      if (state.clientSpaceVisible) {
-        $('clientSpaceSection').classList.add('visible');
-        $('toggleClientSpaceBtn').style.display = 'none';
-        // Masquer les autres sections par défaut
-        $('accountDetailsSection').classList.remove('visible');
-        $('historySearchSection').classList.remove('visible');
-        $('orderHistorySection').classList.remove('visible');
-      } else {
-        $('clientSpaceSection').classList.remove('visible');
-        $('toggleClientSpaceBtn').style.display = 'block';
-      }
-    }
-
-    function closeClientSpace() {
-      state.clientSpaceVisible = false;
-      $('clientSpaceSection').classList.remove('visible');
-      $('toggleClientSpaceBtn').style.display = 'block';
-      // Masquer toutes les sections de l'espace client
-      $('accountDetailsSection').classList.remove('visible');
-      $('historySearchSection').classList.remove('visible');
-      $('orderHistorySection').classList.remove('visible');
-    }
-
-    function initClientSpace() {
-      $('clientAccountBtn').onclick = () => {
-        // Afficher la section compte, masquer historique
-        $('accountDetailsSection').classList.add('visible');
-        $('orderHistorySection').classList.remove('visible');
-        $('historySearchSection').classList.remove('visible');
-        showToast('👤 Accès à votre compte');
-      };
-
-      $('clientTrackingBtn').onclick = () => {
-        const t = TRANSLATIONS[state.currentLanguage];
-        alert(t.trackingMessage);
-      };
-
-      $('clientHistoryBtn').onclick = () => {
-        if (!state.user || !state.user.phone) {
-          showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
-          $('clientAccountBtn').click();
-          return;
-        }
-        // Afficher la section historique, masquer compte
-        $('accountDetailsSection').classList.remove('visible');
-        $('historySearchSection').classList.add('visible');
-        $('orderHistorySection').classList.add('visible');
-        $('searchHistoryPhone').value = state.user.phone;
-        const history = loadHistoryForPhone(state.user.phone);
-        renderHistory(history);
-        showToast('📜 Accès à votre historique');
-      };
-    }
-
-    // ===================== GESTION ADMIN STOCK =====================
+    // ===================== GESTION STOCK =====================
     function openStockManagement() {
       if (!state.isAdmin) {
         showToast('❌ Accès administrateur requis', 'error');
@@ -5598,402 +5676,186 @@
       showToast(`✅ Stock mis à jour pour ${code}: ${newStock} unités`);
     }
 
-    // ===================== CARTE ET LOCALISATION =====================
-    function openMapModal() {
-      $('mapModal').classList.add('open');
-      document.body.style.overflow = 'hidden';
-      if (!state.map) {
-        setTimeout(() => {
-          initMap();
-        }, 100);
+    // ===================== GESTION PANIER =====================
+    function updateCartUI() {
+      const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
+      const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      $('cartTopCount').textContent = cartCount;
+      $('cartItemsCount').textContent = `${cartCount} ${TRANSLATIONS[state.currentLanguage].items}`;
+      const cartItemsList = $('cartItemsList');
+      const cartEmptyMessage = $('cartEmptyMessage');
+      if (cartCount === 0) {
+        cartItemsList.style.display = 'none';
+        cartEmptyMessage.style.display = 'block';
+        $('cartSavingsSection').classList.remove('visible');
+        $('cartSubtotal').textContent = formatPrice(0);
+        $('cartShipping').textContent = formatPrice(0);
+        $('cartTotal').textContent = formatPrice(0);
+        $('placeOrderBtn').disabled = true;
       } else {
-        if (state.tempMapCoords) {
-          state.map.setView([state.tempMapCoords.lat, state.tempMapCoords.lng], 15);
-          state.mapMarker.setLatLng([state.tempMapCoords.lat, state.tempMapCoords.lng]);
-        } else {
-          state.map.setView([36.8065, 10.1815], 12);
-        }
-      }
-    }
-
-    function initMap() {
-      const mapElement = document.getElementById('map');
-      if (!mapElement) return;
-      const defaultLat = state.tempMapCoords?.lat || 36.8065;
-      const defaultLng = state.tempMapCoords?.lng || 10.1815;
-      state.map = L.map('map').setView([defaultLat, defaultLng], 14);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
-      }).addTo(state.map);
-      state.mapMarker = L.marker([defaultLat, defaultLng], {
-        draggable: true,
-        autoPan: true
-      }).addTo(state.map);
-      state.mapMarker.on('dragend', function (event) {
-        const marker = event.target;
-        const position = marker.getLatLng();
-        state.tempMapCoords = {
-          lat: position.lat,
-          lng: position.lng
-        };
-        updateMapPreview(position.lat, position.lng);
-      });
-      state.map.on('click', function (event) {
-        state.mapMarker.setLatLng(event.latlng);
-        state.tempMapCoords = {
-          lat: event.latlng.lat,
-          lng: event.latlng.lng
-        };
-        updateMapPreview(event.latlng.lat, event.latlng.lng);
-      });
-      L.marker([CONFIG.storeLocation.lat, CONFIG.storeLocation.lng], {
-        icon: L.icon({
-          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-          iconSize: [25, 41],
-          iconAnchor: [12, 41]
-        })
-      }).addTo(state.map)
-        .bindPopup('MAXI JDC MARKET<br>📍 Jardins de Carthage');
-    }
-
-    function updateMapPreview(lat, lng) {
-      const mapPreview = $('mapPreview');
-      mapPreview.innerHTML = `
-        <div style="padding:5px;text-align:center;font-size:9px;">
-          <div>📍 Position:</div>
-          <div style="font-weight:700;">${lat.toFixed(6)}, ${lng.toFixed(6)}</div>
-        </div>
-      `;
-      $('clientLat').value = lat.toFixed(6);
-      $('clientLng').value = lng.toFixed(6);
-    }
-
-    function getLocationFromBrowser() {
-      if (!navigator.geolocation) {
-        showToast('❌ Géolocalisation non supportée par votre navigateur', 'error');
-        openMapModal();
-        return;
-      }
-      showToast('📍 Localisation en cours...', 'warning');
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          state.tempMapCoords = { lat, lng };
-          $('clientLat').value = lat.toFixed(6);
-          $('clientLng').value = lng.toFixed(6);
-          updateMapPreview(lat, lng);
-          showToast('✅ Position détectée avec succès !');
-          openMapModal();
-        },
-        (error) => {
-          console.error('Erreur géolocalisation:', error);
-          showToast('❌ Impossible de détecter votre position', 'error');
-          openMapModal();
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        }
-      );
-    }
-
-    // ===================== HISTORIQUE COMMANDES =====================
-    function saveOrderToHistory(orderDetails) {
-      if (!state.user || !state.user.phone) {
-        console.warn('Utilisateur non enregistré, impossible de sauvegarder l\'historique');
-        return;
-      }
-      const itemsWithSavings = Object.values(state.cart).map(item => {
-        const itemSaving = calculateItemSavings(item);
-        return {
-          name: item.name,
-          code: item.code,
-          quantity: item.quantity,
-          price: item.price,
-          oldPrice: item.oldPrice || item.price,
-          total: item.price * item.quantity,
-          saving: itemSaving,
-          isPromotion: item.isPromotion || false,
-          discountPercent: item.discountPercent || 0
-        };
-      });
-      const historyEntry = {
-        id: Date.now(),
-        date: new Date().toISOString(),
-        clientPhone: state.user.phone,
-        clientName: state.user.name,
-        items: itemsWithSavings,
-        subtotal: orderDetails.subtotal,
-        shipping: orderDetails.shipping,
-        total: orderDetails.total,
-        savings: orderDetails.savings || 0,
-        savingsPercentage: orderDetails.savingsPercentage || 0,
-        address: state.user.address,
-        coords: state.user.lat && state.user.lng ? {
-          lat: state.user.lat,
-          lng: state.user.lng
-        } : null,
-        orderId: orderDetails.commandeId
-      };
-      state.orderHistory.unshift(historyEntry);
-      const twoYearsAgo = new Date();
-      twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
-      state.orderHistory = state.orderHistory.filter(order =>
-        new Date(order.date) > twoYearsAgo
-      );
-      saveState();
-      saveSyncData();
-      if (orderDetails.savings && orderDetails.savings > 0) {
-        showToast(`🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(orderDetails.savings)} !`);
-      } else {
-        showToast('📝 Commande ajoutée à votre historique');
-      }
-    }
-
-    function loadHistoryForPhone(phone) {
-      const cleanPhone = phone.replace(/\D/g, '');
-      const userHistory = state.orderHistory.filter(order =>
-        order.clientPhone && order.clientPhone.replace(/\D/g, '') === cleanPhone
-      );
-      return userHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-    }
-
-    function renderHistory(history) {
-      const historyItemsList = $('historyItemsList');
-      const historyEmptyMessage = $('historyEmptyMessage');
-      const historyCount = $('historyCount');
-      const orderHistorySection = $('orderHistorySection');
-      if (!history || history.length === 0) {
-        historyItemsList.innerHTML = '';
-        historyEmptyMessage.style.display = 'block';
-        historyCount.textContent = '0 commande(s)';
-        return;
-      }
-      historyEmptyMessage.style.display = 'none';
-      orderHistorySection.classList.add('visible');
-      historyCount.textContent = `${history.length} commande(s)`;
-      historyItemsList.innerHTML = '';
-      history.forEach(order => {
-        const orderDate = new Date(order.date);
-        const formattedDate = orderDate.toLocaleDateString('fr-FR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-        const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
-        const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
-        const historyItem = document.createElement('div');
-        historyItem.className = 'history-item';
-        historyItem.innerHTML = `
-          <div class="history-date">📅 ${formattedDate}</div>
-          <div class="history-summary">
-            <span class="history-items-count">${itemCount} article(s)</span>
-            <span class="history-total">${formatPrice(order.total)}</span>
-          </div>
-          ${orderSavings > 0 ? `
-            <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
-              💰 Économies: ${formatPrice(orderSavings)}
-            </div>
-          ` : ''}
-          ${order.orderId ? `
-            <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
-              📦 N°: ${order.orderId}
-            </div>
-          ` : ''}
-        `;
-        historyItem.addEventListener('click', () => {
-          showOrderDetails(order);
-        });
-        historyItemsList.appendChild(historyItem);
-      });
-    }
-
-    function showOrderDetails(order) {
-      const orderDetails = $('orderDetails');
-      let detailsText = `📦 COMMANDE #${order.orderId || order.id}\n`;
-      detailsText += `📅 ${new Date(order.date).toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })}\n`;
-      detailsText += `👤 ${order.clientName}\n`;
-      detailsText += `📱 ${order.clientPhone}\n`;
-      detailsText += `📍 ${order.address}\n`;
-      if (order.coords) {
-        detailsText += `🗺️ GPS: ${order.coords.lat}, ${order.coords.lng}\n`;
-      }
-      detailsText += `\n🛒 ARTICLES :\n`;
-      detailsText += '─'.repeat(50) + '\n';
-      let totalSavingsInOrder = 0;
-      let totalOriginalInOrder = 0;
-      order.items.forEach(item => {
-        const itemTotal = item.price * item.quantity;
-        const originalTotal = item.oldPrice * item.quantity;
-        const itemSaving = item.saving || 0;
-        totalSavingsInOrder += itemSaving;
-        totalOriginalInOrder += originalTotal;
-        detailsText += `${item.quantity}x ${item.name} (${item.code})\n`;
-        if (itemSaving > 0) {
-          detailsText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}\n`;
-          detailsText += ` 💰 ÉCONOMIE: ${formatPrice(itemSaving)}`;
-          if (item.discountPercent) {
-            detailsText += ` (-${item.discountPercent}%)`;
+        cartItemsList.style.display = 'flex';
+        cartEmptyMessage.style.display = 'none';
+        cartItemsList.innerHTML = '';
+        Object.entries(state.cart).forEach(([id, item]) => {
+          const itemSaving = calculateItemSavings(item);
+          const itemTotal = item.price * item.quantity;
+          const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
+          const itemElement = document.createElement('div');
+          itemElement.className = 'cart-item';
+          let savingsBadge = '';
+          if (itemSaving > 0) {
+            savingsBadge = `
+              <div class="cart-item-saving ${item.isPromotion ? 'promo' : ''}">
+                <span>💰</span>
+                <span>Économie: ${formatPrice(itemSaving)}</span>
+                ${item.discountPercent ? `<span class="savings-percentage">(-${item.discountPercent}%)</span>` : ''}
+              </div>
+            `;
           }
-          detailsText += `\n ⚡ Ancien: ${formatPrice(originalTotal)}\n`;
-        } else {
-          detailsText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}\n`;
+          itemElement.innerHTML = `
+            <div class="cart-item-info">
+              <div class="cart-item-name">
+                ${item.name}
+                ${item.isPromotion ? '<span class="savings-badge">PROMO</span>' : ''}
+              </div>
+              <div class="cart-item-details">
+                <span>Code: ${item.code}</span>
+                <span>Prix: ${formatPrice(item.price)}</span>
+                ${item.oldPrice && item.oldPrice > item.price ?
+              `<span style="color:#ffcc00;font-weight:700;">
+                  Ancien: <del>${formatPrice(item.oldPrice)}</del>
+                </span>` : ''}
+                <span>Cat: ${item.category}</span>
+              </div>
+              ${savingsBadge}
+              <div class="cart-item-controls">
+                <div class="cart-item-stepper">
+                  <button class="cart-item-qty-btn" data-action="decrease" data-id="${id}">−</button>
+                  <span class="cart-item-qty">${item.quantity}</span>
+                  <button class="cart-item-qty-btn" data-action="increase" data-id="${id}">+</button>
+                </div>
+              </div>
+            </div>
+            <div class="cart-item-price">
+              ${formatPrice(itemTotal)}
+              ${itemSaving > 0 ? `
+                <div style="font-size:9px;color:#ffcc00;margin-top:2px;">
+                  <del style="opacity:0.7;">${formatPrice(originalTotal)}</del>
+                </div>
+              ` : ''}
+            </div>
+          `;
+          cartItemsList.appendChild(itemElement);
+        });
+        updateSavingsDisplay();
+      }
+      
+      $('cartSubtotal').textContent = formatPrice(subtotal);
+      
+      let shippingFee = CONFIG.shippingFee;
+      let shippingText = formatPrice(shippingFee);
+      let total = subtotal + shippingFee;
+      
+      if (subtotal >= CONFIG.freeShipping) {
+        shippingFee = 0;
+        shippingText = '<span class="total-value free">GRATUIT</span>';
+        total = subtotal;
+      } else if (subtotal < CONFIG.minOrder) {
+        shippingFee = null;
+        shippingText = '---';
+        total = null;
+      }
+      
+      $('cartShipping').innerHTML = shippingText;
+      
+      if (total !== null) {
+        $('cartTotal').textContent = formatPrice(total);
+        $('placeOrderBtn').disabled = false;
+        $('cartTotal').style.color = 'var(--accent)';
+      } else {
+        $('cartTotal').textContent = `Minimum: ${formatPrice(CONFIG.minOrder)}`;
+        $('cartTotal').style.color = 'var(--danger)';
+        $('placeOrderBtn').disabled = true;
+      }
+      
+      saveState();
+    }
+
+    function calculateItemSavings(item) {
+      if (!item.isPromotion || !item.oldPrice || item.oldPrice <= item.price) {
+        return 0;
+      }
+      const savingPerUnit = item.oldPrice - item.price;
+      return savingPerUnit * item.quantity;
+    }
+
+    function calculateTotalSavings() {
+      let totalSavings = 0;
+      let totalOriginalPrice = 0;
+      let totalCurrentPrice = 0;
+      Object.values(state.cart).forEach(item => {
+        if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
+          const saving = calculateItemSavings(item);
+          totalSavings += saving;
+          totalOriginalPrice += item.oldPrice * item.quantity;
+          totalCurrentPrice += item.price * item.quantity;
         }
       });
-      detailsText += '─'.repeat(50) + '\n';
-      detailsText += `Sous-total: ${formatPrice(order.subtotal)}\n`;
-      if (totalSavingsInOrder > 0) {
-        const savingsPercentage = totalOriginalInOrder > 0 ?
-          Math.round((totalSavingsInOrder / totalOriginalInOrder) * 100) : 0;
-        detailsText += `💰 ÉCONOMIES TOTALES: ${formatPrice(totalSavingsInOrder)} (${savingsPercentage}%)\n`;
-      }
-      detailsText += `Livraison: ${order.shipping === 0 ? 'GRATUIT' : formatPrice(order.shipping)}\n`;
-      detailsText += `TOTAL: ${formatPrice(order.total)}\n`;
-      if (totalSavingsInOrder > 0) {
-        detailsText += `\n🎉 Vous avez économisé ${formatPrice(totalSavingsInOrder)} sur cette commande !`;
-      }
-      orderDetails.textContent = detailsText;
-      $('orderModal').classList.add('open');
+      return {
+        totalSavings,
+        totalOriginalPrice,
+        totalCurrentPrice,
+        percentage: totalOriginalPrice > 0 ? Math.round((totalSavings / totalOriginalPrice) * 100) : 0
+      };
     }
 
-    // ===================== QR CODE =====================
-    function openQRModal() {
-      const qrCodeImg = document.querySelector('#qrCodeContainer img');
-      if (qrCodeImg) {
-        const qrUrl = CONFIG.qrCodeUrl || window.location.href;
-        qrCodeImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}`;
-      }
-      $('qrModal').classList.add('open');
-      document.body.style.overflow = 'hidden';
-    }
+    function updateSavingsDisplay() {
+      const savings = calculateTotalSavings();
+      const savingsSection = $('cartSavingsSection');
+      const totalSavingsElement = $('totalSavings');
+      const savingsPercentageElement = $('savingsPercentage');
+      const savingsPercentageTextElement = $('savingsPercentageText');
 
-    function closeQRModal() {
-      $('qrModal').classList.remove('open');
-      document.body.style.overflow = '';
-    }
-
-    // ===================== ADMIN =====================
-    function toggleAdminMode() {
-      const password = prompt("Entrez le mot de passe administrateur:");
-      if (password === CONFIG.adminPassword) {
-        state.isAdmin = !state.isAdmin;
-        $('adminSection').classList.toggle('visible', state.isAdmin);
-        showToast(state.isAdmin ? '🔓 Mode admin activé' : '🔒 Mode admin désactivé');
-        localStorage.setItem(CONFIG.adminPasswordKey, state.isAdmin ? 'true' : 'false');
-      } else if (password !== null) {
-        showToast('❌ Mot de passe incorrect', 'error');
-      }
-    }
-
-    function openDashboard() {
-      if (!state.isAdmin) {
-        showToast('❌ Accès administrateur requis', 'error');
-        return;
-      }
-      window.open(CONFIG.dashboardUrl, '_blank');
-    }
-
-    // ===================== SIGNAL SONORE - PLUS FORT ET UNIQUEMENT SUR TABLETTE =====================
-    function playOrderNotificationSound() {
-      // Vérifier si c'est la tablette du magasin
-      if (CONFIG.playSoundOnTabletOnly && !state.isTabletDevice) {
-        console.log('🔕 Son désactivé - Ce n\'est pas la tablette du magasin');
-        return;
-      }
-
-      try {
-        // Créer un contexte audio
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Fonction pour jouer un bip FORT
-        function playBeep(frequency, duration, startTime, volume = 0.5) {
-          const oscillator = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-          
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-          
-          oscillator.frequency.value = frequency;
-          oscillator.type = 'sine';
-          
-          // Volume PLUS FORT
-          gainNode.gain.setValueAtTime(0, startTime);
-          gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
-          
-          oscillator.start(startTime);
-          oscillator.stop(startTime + duration);
+      if (savings.totalSavings > 0) {
+        savingsSection.classList.add('visible');
+        totalSavingsElement.textContent = formatPrice(savings.totalSavings);
+        savingsPercentageElement.textContent = `${savings.percentage}%`;
+        let percentageText = '';
+        if (savings.percentage >= 50) {
+          percentageText = 'ÉNORME ÉCONOMIE !';
+        } else if (savings.percentage >= 30) {
+          percentageText = 'Super affaire !';
+        } else if (savings.percentage >= 15) {
+          percentageText = 'Bonne affaire';
+        } else {
+          percentageText = 'Économie';
         }
-        
-        // Jouer 5 bips FORTS avec un petit délai entre chacun
-        const now = audioContext.currentTime;
-        
-        // Premier bip très fort (1000Hz)
-        playBeep(1000, 0.2, now, 0.7);
-        // Deuxième bip
-        playBeep(800, 0.15, now + 0.3, 0.6);
-        // Troisième bip
-        playBeep(1200, 0.18, now + 0.6, 0.65);
-        // Quatrième bip
-        playBeep(900, 0.16, now + 0.9, 0.6);
-        // Cinquième bip très fort
-        playBeep(1100, 0.25, now + 1.2, 0.7);
-        
-        console.log('🔔 Signal sonore FORT joué pour nouvelle commande');
-        
-        // Si c'est la tablette, montrer une notification visuelle aussi
-        if (state.isTabletDevice) {
-          showToast('🛎️ NOUVELLE COMMANDE !', 'warning');
-        }
-      } catch (error) {
-        console.warn('Impossible de jouer le signal sonore:', error);
-        // Fallback: utiliser un son HTML simple
-        try {
-          const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ');
-          audio.volume = 0.7;
-          audio.play().catch(e => console.log('Audio fallback error:', e));
-        } catch (e) {
-          console.log('Tous les systèmes audio ont échoué');
-        }
+        savingsPercentageTextElement.textContent = percentageText;
+      } else {
+        savingsSection.classList.remove('visible');
       }
     }
 
-    // ===================== ENREGISTREMENT VERS GOOGLE SHEETS - CORRIGÉ =====================
+    // ===================== ENREGISTREMENT VERS GOOGLE SHEETS =====================
     async function enregistrerCommandeGoogleSheets(orderData) {
       try {
         showToast('📤 Envoi de la commande vers Google Sheets...', 'warning');
 
-        // Construire l'adresse avec les coordonnées GPS
         let adresseComplete = state.user.address;
         if (state.user.lat && state.user.lng) {
           adresseComplete += ` - GPS: ${state.user.lat}, ${state.user.lng}`;
         }
 
-        // 1. PRÉPARER LES DONNÉES DANS LE FORMAT ATTENDU
         const formData = new URLSearchParams();
         
-        // Données de base
         formData.append('method', 'saveOrder');
         formData.append('nom', state.user.name || '');
         formData.append('telephone', state.user.phone ? state.user.phone.replace(/\D/g, '') : '');
         formData.append('adresse', adresseComplete);
         formData.append('commande_id', orderData.commandeId);
         
-        // 2. PRÉPARER LES ARTICLES - TOUS LES ARTICLES DU PANIER
         const articles = [];
         Object.values(state.cart).forEach(item => {
-            // Ajouter chaque article avec tous ses détails
             articles.push({
                 produit: item.name,
                 code: item.code,
@@ -6005,16 +5867,12 @@
             });
         });
         
-        // 3. ENVOYER LES ARTICLES SOUS FORME DE JSON
         formData.append('articles', JSON.stringify(articles));
-        
-        // 4. TOTAL
         formData.append('total', orderData.total.toFixed(2));
         formData.append('economies', orderData.savings || 0);
         
         console.log('📤 Envoi au serveur:', Object.fromEntries(formData));
 
-        // 5. ENVOYER VIA POST
         const response = await fetch(CONFIG.commandeApiUrl, {
             method: 'POST',
             headers: {
@@ -6027,9 +5885,7 @@
         console.log('📥 Réponse:', result);
         
         if (result.success) {
-          // Jouer le signal sonore pour alerter l'employé (uniquement sur tablette)
           playOrderNotificationSound();
-          
           showToast('✅ Commande enregistrée dans Google Sheets ! ID: ' + result.commande_id);
           state.lastOrderId = result.commande_id;
           return result.commande_id;
@@ -6047,187 +5903,72 @@
     }
 
     // ===================== GÉNÉRATION NUMÉRO COMMANDE =====================
+    let commandeCounter = 1;
+
     function genererNumeroCommande() {
       const now = new Date();
       const datePart = now.getFullYear() + 
                       String(now.getMonth() + 1).padStart(2, '0') + 
                       String(now.getDate()).padStart(2, '0');
-      const randomPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-      return `CMD-MAXI-${datePart}-${randomPart}`;
+      
+      // Incrémenter le compteur
+      const counterPart = String(commandeCounter).padStart(3, '0');
+      commandeCounter++;
+      
+      return `CMD-MAXI-${datePart}-${counterPart}`;
     }
 
-    // ===================== ENVOI MESSAGE AU CLIENT =====================
-    function envoyerMessageClient(commandeId) {
-      const t = TRANSLATIONS[state.currentLanguage];
-      const message = `Merci pour votre commande chez MAXI JDC MARKET.
-📦 Votre commande, référencée ${commandeId}, a bien été prise en compte.
-⏳ Elle est actuellement en cours de préparation.
-📞 Nous vous contacterons prochainement pour la livraison.
-${t.trackingMessage}`;
-      
-      // Afficher le message dans une alerte
-      alert(message);
-      
-      // Copier le message dans le presse-papier
-      navigator.clipboard.writeText(message).then(() => {
-        showToast('📋 Message copié dans le presse-papier');
-      }).catch(err => {
-        console.error('Erreur copie:', err);
-      });
-    }
-
-    // ===================== COMMANDES =====================
-    async function placeOrder() {
-      if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
-        showToast('❌ Veuillez compléter vos informations personnelles', 'error');
-        $('cartTopBtn').click();
+    // ===================== SIGNAL SONORE =====================
+    function playOrderNotificationSound() {
+      if (CONFIG.playSoundOnTabletOnly && !state.isTabletDevice) {
+        console.log('🔕 Son désactivé - Ce n\'est pas la tablette du magasin');
         return;
       }
 
-      if (Object.keys(state.cart).length === 0) {
-        showToast('❌ Votre panier est vide', 'error');
-        return;
-      }
-
-      const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      if (subtotal < CONFIG.minOrder) {
-        showToast(`❌ Commande minimum: ${formatPrice(CONFIG.minOrder)}`, 'error');
-        return;
-      }
-
-      const savings = calculateTotalSavings();
-      let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
-      const total = subtotal + shippingFee;
-
-      // Générer un numéro de commande
-      const commandeId = genererNumeroCommande();
-
-      let orderText = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
-      orderText += `📅 ${new Date().toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })}\n\n`;
-
-      orderText += `👤 CLIENT\n`;
-      orderText += `Nom: ${state.user.name}\n`;
-      orderText += `Téléphone: +216 ${state.user.phone}\n`;
-      orderText += `Adresse: ${state.user.address}\n`;
-      if (state.user.lat && state.user.lng) {
-        orderText += `📍 GPS: ${state.user.lat}, ${state.user.lng}\n`;
-      }
-
-      orderText += `\n🛒 ARTICLES\n`;
-      orderText += '─'.repeat(50) + '\n';
-
-      Object.values(state.cart).forEach(item => {
-        const itemTotal = item.price * item.quantity;
-        const itemSaving = calculateItemSavings(item);
-        const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
-        orderText += `${item.quantity}x ${item.name} (${item.code})\n`;
-        orderText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
-        if (itemSaving > 0) {
-          orderText += ` 💰 ÉCONOMIE: ${formatPrice(itemSaving)}`;
-          if (item.discountPercent) {
-            orderText += ` (-${item.discountPercent}%)`;
-          }
-          orderText += `\n ⚡ Ancien prix: ${formatPrice(originalTotal)}`;
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playBeep(frequency, duration, startTime, volume = 0.5) {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.value = frequency;
+          oscillator.type = 'sine';
+          
+          gainNode.gain.setValueAtTime(0, startTime);
+          gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+          
+          oscillator.start(startTime);
+          oscillator.stop(startTime + duration);
         }
-        orderText += '\n';
-      });
-
-      orderText += '─'.repeat(50) + '\n';
-      orderText += `Sous-total: ${formatPrice(subtotal)}\n`;
-
-      if (savings.totalSavings > 0) {
-        orderText += `💰 ÉCONOMIES TOTALES: ${formatPrice(savings.totalSavings)} (${savings.percentage}%)\n`;
+        
+        const now = audioContext.currentTime;
+        
+        playBeep(1000, 0.2, now, 0.7);
+        playBeep(800, 0.15, now + 0.3, 0.6);
+        playBeep(1200, 0.18, now + 0.6, 0.65);
+        playBeep(900, 0.16, now + 0.9, 0.6);
+        playBeep(1100, 0.25, now + 1.2, 0.7);
+        
+        console.log('🔔 Signal sonore FORT joué pour nouvelle commande');
+        
+        if (state.isTabletDevice) {
+          showToast('🛎️ NOUVELLE COMMANDE !', 'warning');
+        }
+      } catch (error) {
+        console.warn('Impossible de jouer le signal sonore:', error);
+        try {
+          const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ');
+          audio.volume = 0.7;
+          audio.play().catch(e => console.log('Audio fallback error:', e));
+        } catch (e) {
+          console.log('Tous les systèmes audio ont échoué');
+        }
       }
-
-      orderText += `Livraison: ${shippingFee === 0 ? 'GRATUIT' : formatPrice(shippingFee)}\n`;
-      orderText += `TOTAL: ${formatPrice(total)}\n\n`;
-
-      if (savings.totalSavings > 0) {
-        orderText += `🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(savings.totalSavings)} sur cette commande !\n\n`;
-      }
-
-      orderText += `🕒 Heures: 7h - 1h\n`;
-      orderText += `📱 WhatsApp: +216 25 600 978\n`;
-      orderText += `📦 N° Commande: ${commandeId}`;
-
-      $('orderDetails').textContent = orderText;
-      $('orderModal').classList.add('open');
-
-      // Sauvegarder dans l'historique local MAIS PAS ENCORE DANS GOOGLE SHEETS
-      const orderData = {
-        subtotal,
-        shipping: shippingFee,
-        total,
-        savings: savings.totalSavings,
-        savingsPercentage: savings.percentage,
-        commandeId: commandeId
-      };
-
-      // Sauvegarder dans l'historique local seulement
-      saveOrderToHistory(orderData);
-
-      // Vider le panier après création de la commande
-      state.cart = {};
-      updateCartUI();
-
-      const t = TRANSLATIONS[state.currentLanguage];
-      showToast(`✅ ${t.toastOrderPlaced} Cliquez sur "Valider et envoyer" pour finaliser.`);
-    }
-
-    // ===================== GESTION UTILISATEUR =====================
-    function updateUserUI() {
-      if (state.user) {
-        $('clientName').value = state.user.name || '';
-        $('clientPhone').value = state.user.phone || '';
-        $('clientAddress').value = state.user.address || '';
-        $('clientLat').value = state.user.lat || '';
-        $('clientLng').value = state.user.lng || '';
-        $('accountStatus').textContent = 'Enregistré';
-        $('accountStatus').style.color = 'var(--accent)';
-        $('saveAccountBtn').style.display = 'none';
-        $('editAccountBtn').style.display = 'block';
-      } else {
-        $('accountStatus').textContent = 'Nouveau';
-        $('accountStatus').style.color = 'var(--muted)';
-        $('saveAccountBtn').style.display = 'block';
-        $('editAccountBtn').style.display = 'none';
-      }
-    }
-
-    function saveUser() {
-      const name = $('clientName').value.trim();
-      const phone = $('clientPhone').value.trim();
-      const address = $('clientAddress').value.trim();
-      const lat = $('clientLat').value.trim();
-      const lng = $('clientLng').value.trim();
-      if (!name || !phone || !address) {
-        showToast('❌ Veuillez remplir tous les champs obligatoires (*)', 'error');
-        return;
-      }
-      state.user = {
-        name,
-        phone,
-        address,
-        lat: lat || null,
-        lng: lng || null,
-        createdAt: new Date().toISOString()
-      };
-      updateUserUI();
-      saveState();
-      const t = TRANSLATIONS[state.currentLanguage];
-      showToast(`✅ ${t.toastAccountSaved}`);
-    }
-
-    function editUser() {
-      $('saveAccountBtn').style.display = 'block';
-      $('editAccountBtn').style.display = 'none';
-      $('accountStatus').textContent = 'Modification';
     }
 
     // ===================== INITIALISATION =====================
@@ -6246,16 +5987,13 @@ ${t.trackingMessage}`;
         state.isAdmin = adminState === 'true';
         $('adminSection').classList.toggle('visible', state.isAdmin);
         
-        // Charger la langue sauvegardée
         const savedLang = localStorage.getItem('maxi_jdc_language') || 'fr';
         setLanguage(savedLang);
-        
-        // Détecter si c'est la tablette du magasin
-        detectTabletDevice();
       } catch (e) {
         console.warn('Erreur chargement état:', e);
       }
 
+      // Événements
       $('cartTopBtn').onclick = () => {
         $('drawer').classList.add('open');
         $('drawerOverlay').classList.add('open');
@@ -6302,286 +6040,43 @@ ${t.trackingMessage}`;
         scrollCategories();
       };
 
-      $('viewPromosBtn').onclick = () => {
-        state.showAllCategories = false;
-        state.activeCategory = 'promotions';
-        state.currentPage = 1;
-        renderProducts();
-        updateCategoriesUI();
-        $('closeDrawerBtn').click();
-      };
-
-      $('prevPageBtn').onclick = $('prevPageBottomBtn').onclick = () => {
-        if (state.currentPage > 1) {
-          state.currentPage--;
-          renderProducts();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      };
-
-      $('nextPageBtn').onclick = $('nextPageBottomBtn').onclick = () => {
-        const products = getFilteredProducts();
-        const totalPages = Math.ceil(products.length / CONFIG.itemsPerPage) || 1;
-        if (state.currentPage < totalPages) {
-          state.currentPage++;
-          renderProducts();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      };
-
       // Navigation catégories
       $('catPrevBtn').onclick = scrollCategoriesLeft;
       $('catNextBtn').onclick = scrollCategoriesRight;
 
-      $('modalPrevProduct').onclick = showPrevProduct;
-      $('modalNextProduct').onclick = showNextProduct;
-      $('closeProductModalBtn').onclick = $('modalCloseBottomBtn').onclick = closeProductModal;
-      $('modalDecreaseBtn').onclick = decreaseQuantity;
-      $('modalIncreaseBtn').onclick = increaseQuantity;
-      $('modalQuantityInput').addEventListener('input', handleQuantityInputChange);
-      $('modalQuantityInput').addEventListener('change', handleQuantityInputChange);
-
-      $('modalAddToCartBtn').onclick = () => {
-        if (!state.currentModalProduct) return;
-        const productId = generateProductId(state.currentModalProduct);
-        const quantityInput = $('modalQuantityInput');
-        const quantity = parseInt(quantityInput.value) || 0;
-        if (quantity > 0) {
-          addToCart(productId, state.currentModalProduct, quantity);
-          closeProductModal();
-        }
-      };
-
-      $('qrInfoBtn').onclick = openQRModal;
-      $('qrDirectBtn').onclick = openQRModal;
-      $('closeQrModalBtn').onclick = closeQRModal;
-
       // Langue
-      $('langFrBtn').onclick = () => setLanguage('fr');
-      $('langEnBtn').onclick = () => setLanguage('en');
-      $('langArBtn').onclick = () => setLanguage('ar');
+      $('langFrBtn').onclick = $('langTopFrBtn').onclick = () => setLanguage('fr');
+      $('langEnBtn').onclick = $('langTopEnBtn').onclick = () => setLanguage('en');
+      $('langArBtn').onclick = $('langTopArBtn').onclick = () => setLanguage('ar');
 
       $('secretAdminBtn').onclick = toggleAdminMode;
       $('adminDashboardBtn').onclick = openDashboard;
       $('adminStockBtn').onclick = openStockManagement;
 
-      $('toggleClientSpaceBtn').onclick = toggleClientSpace;
-      $('closeClientSpaceBtn').onclick = closeClientSpace;
+      $('clientTrackingBtn').onclick = openOrderTracking;
 
-      $('clearCartBtn').onclick = () => {
-        if (Object.keys(state.cart).length === 0) return;
-        if (confirm('Voulez-vous vraiment vider tout votre panier ?')) {
-          Object.values(state.cart).forEach(item => {
-            const stockKey = `${item.categoryKey}_${item.code}`;
-            const currentStock = state.productStocks.get(stockKey) || 0;
-            state.productStocks.set(stockKey, currentStock + item.quantity);
-          });
-          state.cart = {};
-          state.quantityPicks = {};
-          updateCartUI();
-          renderProducts();
-          const t = TRANSLATIONS[state.currentLanguage];
-          showToast(t.toastCartCleared, 'warning');
-        }
-      };
-
-      $('cartItemsList').addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-action]');
-        if (!btn) return;
-        const action = btn.dataset.action;
-        const id = btn.dataset.id;
-        if (action === 'increase' && state.cart[id]) {
-          const availableStock = getAvailableStock(state.cart[id]);
-          if (state.cart[id].quantity < availableStock) {
-            state.cart[id].quantity++;
-            updateProductStock(state.cart[id], 1);
-            renderProducts();
-            updateCartUI();
-          } else {
-            showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
-          }
-        } else if (action === 'decrease' && state.cart[id]) {
-          state.cart[id].quantity--;
-          if (state.cart[id].quantity <= 0) {
-            delete state.cart[id];
-            delete state.quantityPicks[id];
-          }
-          removeFromCart(id, 1);
-        }
-      });
-
-      $('saveAccountBtn').onclick = saveUser;
-      $('editAccountBtn').onclick = editUser;
-
-      $('clearPhoneBtn').onclick = () => {
-        $('clientPhone').value = '';
-        $('clientPhone').focus();
-      };
-
-      $('getLocationBtn').onclick = getLocationFromBrowser;
-      $('mapPreview').onclick = openMapModal;
-
-      $('closeMapModalBtn').onclick = () => {
-        $('mapModal').classList.remove('open');
+      // Suivi commande
+      $('closeTrackingModalBtn').onclick = $('closeTrackingModalBtn2').onclick = () => {
+        $('trackingModal').classList.remove('open');
         document.body.style.overflow = '';
       };
 
-      $('mapOkBtn').onclick = () => {
-        if (state.tempMapCoords) {
-          $('clientLat').value = state.tempMapCoords.lat.toFixed(6);
-          $('clientLng').value = state.tempMapCoords.lng.toFixed(6);
-          updateMapPreview(state.tempMapCoords.lat, state.tempMapCoords.lng);
-          showToast('✅ Position enregistrée');
-        }
-        $('closeMapModalBtn').click();
-      };
+      $('checkTrackingBtn').onclick = checkOrderStatus;
 
-      $('searchHistoryBtn').onclick = () => {
-        const phone = $('searchHistoryPhone').value.trim();
-        if (!phone) {
-          showToast('❌ Veuillez entrer votre numéro de téléphone', 'error');
-          return;
-        }
-        const history = loadHistoryForPhone(phone);
-        renderHistory(history);
-        if (history.length === 0) {
-          showToast('📭 Aucune commande trouvée pour ce numéro', 'warning');
-        } else {
-          showToast(`📜 ${history.length} commande(s) trouvée(s)`);
-        }
-      };
-
-      $('placeOrderBtn').onclick = placeOrder;
-
-      $('closeOrderModalBtn').onclick = () => {
-        $('orderModal').classList.remove('open');
-      };
-
-      $('copyOrderBtn').onclick = () => {
-        const orderText = $('orderDetails').textContent;
-        navigator.clipboard.writeText(orderText).then(() => {
-          showToast('📋 Commande copiée dans le presse-papier');
-        }).catch(err => {
-          console.error('Erreur copie:', err);
-          showToast('❌ Erreur lors de la copie', 'error');
-        });
-      };
-
-      $('downloadOrderBtn').onclick = () => {
-        const orderText = $('orderDetails').textContent;
-        const blob = new Blob([orderText], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `commande-maxi-jdc-${Date.now()}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showToast('💾 Commande téléchargée');
-      };
-
-      $('sendOrderBtn').onclick = async () => {
-        // Récupérer les données de commande depuis le modal
-        const orderText = $('orderDetails').textContent;
-        const lines = orderText.split('\n');
-        let commandeId = '';
-        
-        // Extraire le numéro de commande du texte
-        for (const line of lines) {
-          if (line.includes('N° Commande:')) {
-            commandeId = line.split(':')[1].trim();
-            break;
-          }
-        }
-        
-        if (!commandeId) {
-          commandeId = genererNumeroCommande();
-        }
-        
-        // Calculer les totaux
-        const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
-        const total = subtotal + shippingFee;
-        const savings = calculateTotalSavings();
-        
-        // Préparer les données pour l'envoi
-        const orderData = {
-          subtotal,
-          shipping: shippingFee,
-          total,
-          savings: savings.totalSavings,
-          savingsPercentage: savings.percentage,
-          commandeId: commandeId
-        };
-        
-        // Envoyer vers Google Sheets (SEULEMENT maintenant)
-        const enregistrementReussi = await enregistrerCommandeGoogleSheets(orderData);
-        
-        // Fermer le modal
-        $('orderModal').classList.remove('open');
-        
-        if (enregistrementReussi) {
-          // Envoyer le message au client
-          envoyerMessageClient(enregistrementReussi);
-          showToast('✅ Commande envoyée avec succès !');
-        } else {
-          showToast('⚠️ Commande créée mais erreur d\'enregistrement', 'warning');
-          // Envoyer quand même le message avec le numéro généré localement
-          envoyerMessageClient(commandeId);
-        }
-      };
-
-      $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
-        $('stockModal').classList.remove('open');
+      // Tableau de bord
+      $('closeDashboardModalBtn').onclick = $('closeDashboardModalBtn2').onclick = () => {
+        $('dashboardModal').classList.remove('open');
         document.body.style.overflow = '';
       };
 
-      $('stockSearchInput').addEventListener('input', (e) => {
-        renderStockTable(e.target.value);
-      });
-
-      $('refreshStockBtn').onclick = () => {
-        loadGoogleSheetsStock().then(() => {
-          updateAllProductStocks();
-          renderStockTable($('stockSearchInput').value);
-          showToast('🔄 Stocks actualisés depuis Google Sheets');
-        });
-      };
-
-      $('stockTableBody').addEventListener('click', (e) => {
-        const saveBtn = e.target.closest('.stock-save-btn');
-        if (saveBtn) {
-          const productKey = saveBtn.dataset.key;
-          const input = document.querySelector(`.stock-input[data-key="${productKey}"]`);
-          if (input) {
-            updateStock(productKey, input.value);
-          }
-        }
-      });
-
-      $('saveAllStockBtn').onclick = () => {
-        const inputs = document.querySelectorAll('.stock-input');
-        let updatedCount = 0;
-        inputs.forEach(input => {
-          const productKey = input.dataset.key;
-          const newStock = parseInt(input.value) || 0;
-          const currentStock = state.productStocks.get(productKey) || 0;
-          if (newStock !== currentStock) {
-            updateStock(productKey, newStock);
-            updatedCount++;
-          }
-        });
-        if (updatedCount > 0) {
-          showToast(`✅ ${updatedCount} stocks mis à jour`);
-        } else {
-          showToast('ℹ️ Aucun changement détecté');
-        }
+      $('refreshDashboardBtn').onclick = () => {
+        calculateDashboardStats();
+        renderDashboard();
+        showToast('🔄 Tableau de bord actualisé');
       };
 
       loadAllProducts();
       initializeSync();
-      initClientSpace();
       showToast('👋 Bienvenue sur MAXI JDC MARKET !');
     }
 
@@ -6590,7 +6085,7 @@ ${t.trackingMessage}`;
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '36.0'
+        version: '37.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
