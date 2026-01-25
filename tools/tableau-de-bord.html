@@ -19,8 +19,14 @@
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
       background:linear-gradient(135deg,var(--bg1),var(--bg2));
       color:var(--txt); min-height:100vh; padding:18px;
+      overflow-x: hidden; /* Empêche le défilement horizontal */
     }
-    .container{max-width:1400px;margin:0 auto}
+    .container{
+      max-width:1400px;
+      margin:0 auto;
+      width: 100%;
+      overflow-x: hidden; /* Contient le contenu */
+    }
     .header{
       background:rgba(10,25,47,.95);
       border:2px solid var(--green);
@@ -28,6 +34,8 @@
       padding:18px 22px;
       display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap;
       box-shadow:var(--shadow);
+      width: 100%;
+      max-width: 100%;
     }
     .left{display:flex; align-items:center; gap:14px}
     .logo{
@@ -78,6 +86,7 @@
     .grid{
       display:grid; gap:16px; margin-top:18px;
       grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      width: 100%;
     }
     .card{
       background:var(--card);
@@ -86,6 +95,8 @@
       box-shadow:var(--shadow);
       padding:18px;
       transition:.2s;
+      width: 100%;
+      max-width: 100%;
     }
     .card:hover{border-color:var(--green); transform:translateY(-3px)}
     .statTop{display:flex; justify-content:space-between; align-items:center; gap:10px}
@@ -99,12 +110,24 @@
     .sectionGrid{
       display:grid; gap:18px; margin-top:18px;
       grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+      width: 100%;
     }
     .sectionTitle{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px}
     .sectionTitle h3{font-size:16px; font-weight:1000; color:var(--green)}
-    .chartBox{height:300px; position:relative}
-    .tableWrap{border:1px solid var(--line); border-radius:12px; overflow:auto; max-height:420px}
-    table{width:100%; border-collapse:collapse}
+    .chartBox{height:300px; position:relative; width:100%}
+    .tableWrap{
+      border:1px solid var(--line); 
+      border-radius:12px; 
+      overflow:auto; 
+      max-height:420px;
+      width: 100%;
+      max-width: 100%;
+    }
+    table{
+      width:100%; 
+      border-collapse:collapse;
+      table-layout: fixed; /* Force les colonnes à rester fixes */
+    }
     th{
       position:sticky; top:0;
       background:rgba(0,212,255,.10);
@@ -113,9 +136,28 @@
       padding:12px;
       border-bottom:2px solid var(--blue);
       font-size:13px; font-weight:1000;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px}
+    td{
+      padding:10px 12px; 
+      border-bottom:1px solid var(--line); 
+      font-size:13px;
+      white-space: normal;
+      word-wrap: break-word;
+    }
     tr:hover{background:rgba(255,255,255,.05)}
+    
+    /* Colonnes spécifiques */
+    th:nth-child(1) { width: 140px; } /* Date */
+    th:nth-child(2) { width: 120px; } /* Nom */
+    th:nth-child(3) { width: 100px; } /* Téléphone */
+    th:nth-child(4) { width: 150px; } /* Adresse */
+    th:nth-child(5) { width: 130px; } /* Commande */
+    th:nth-child(6) { width: 250px; } /* Articles - PLUS LARGE */
+    th:nth-child(7) { width: 80px; } /* Total */
+    th:nth-child(8) { width: 100px; } /* Statut */
     
     .statut-select {
       padding: 6px 10px;
@@ -152,6 +194,7 @@
       margin-top:18px; padding:14px; text-align:center; color:var(--muted);
       border-top:1px solid var(--line);
       font-size:13px;
+      width: 100%;
     }
 
     .toast{
@@ -159,15 +202,18 @@
       padding:12px 16px; border-radius:12px; font-weight:900; color:#0a1929;
       box-shadow:0 10px 30px rgba(0,0,0,.35);
       display:none;
+      max-width: 300px;
     }
     .toast.show{display:block; animation:pop .2s ease}
     @keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
     
     .articles-cell {
-      max-width: 200px;
+      max-width: 250px;
       white-space: pre-line;
       font-size: 12px;
       line-height: 1.4;
+      overflow-wrap: break-word;
+      word-break: break-word;
     }
     
     .statut-badge {
@@ -190,11 +236,13 @@
       flex-wrap: wrap;
       gap: 20px;
       margin-top: 20px;
+      width: 100%;
     }
     
     .chart-card {
       flex: 1 1 calc(50% - 20px);
       min-width: 300px;
+      max-width: 100%;
     }
     
     @media (max-width: 768px) {
@@ -204,6 +252,19 @@
       .chart-card {
         flex: 1 1 100%;
       }
+      th:nth-child(1) { width: 120px; }
+      th:nth-child(6) { width: 200px; }
+    }
+    
+    @media (max-width: 480px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .articles-cell {
+        max-width: 150px;
+      }
+      th:nth-child(6) { width: 150px; }
     }
   </style>
 </head>
@@ -710,7 +771,7 @@
       }
     }
 
-    // ===================== ANALYTICS =====================
+    // ===================== ANALYTICS - AMÉLIORÉ POUR PRODUITS PLUS VENDUS =====================
     function parseArticles(articlesText) {
       if (!articlesText) return [];
       
@@ -725,7 +786,8 @@
         for (const line of lines) {
           if (!line.trim()) continue;
           
-          const match = line.trim().match(/^(\d+)x\s+(.+?)\s*\(([\d.,]+)\s*dt\)$/);
+          // Plusieurs formats possibles
+          let match = line.trim().match(/^(\d+)x\s+(.+?)\s*\(([\d.,]+)\s*dt\)$/);
           if (match) {
             const quantite = parseInt(match[1]);
             const produit = match[2].trim();
@@ -737,6 +799,20 @@
               prix_unitaire: prix,
               prix_total: prix * quantite
             });
+          } else {
+            // Format simple: "3x Produit"
+            match = line.trim().match(/^(\d+)x\s+(.+)$/);
+            if (match) {
+              const quantite = parseInt(match[1]);
+              const produit = match[2].trim();
+              
+              articles.push({
+                produit: produit,
+                quantite: quantite,
+                prix_unitaire: 0,
+                prix_total: 0
+              });
+            }
           }
         }
         
@@ -767,55 +843,77 @@
       state.analytics.avgOrderValue = state.analytics.totalOrders > 0 ? 
         state.analytics.totalRevenue / state.analytics.totalOrders : 0;
 
+      // Distribution des statuts
       orders.forEach(order => {
         const statut = order.Statut || "En attente";
         state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
       });
 
+      // Analyse détaillée des produits vendus
       const productSales = new Map();
+      const productRevenue = new Map();
+      const productQuantities = new Map();
+      
       const now = new Date();
       
       orders.forEach(order => {
-        if (!order.Date) return;
-        
-        const orderDate = new Date(order.Date);
-        if (isNaN(orderDate.getTime())) return;
-        
-        const dateKey = orderDate.toISOString().split('T')[0];
-        state.analytics.salesByDay[dateKey] = (state.analytics.salesByDay[dateKey] || 0) + (parseFloat(order.Total) || 0);
-        
-        const hourKey = orderDate.getHours();
-        state.analytics.salesByHour[hourKey] = (state.analytics.salesByHour[hourKey] || 0) + (parseFloat(order.Total) || 0);
-        
-        const weekdayKey = orderDate.getDay();
-        state.analytics.salesByWeekday[weekdayKey] = (state.analytics.salesByWeekday[weekdayKey] || 0) + (parseFloat(order.Total) || 0);
-        
-        const weekKey = Math.floor((now - orderDate) / (7 * 24 * 60 * 60 * 1000));
-        if (!state.analytics.avgByWeek[weekKey]) {
-          state.analytics.avgByWeek[weekKey] = { total: 0, count: 0 };
+        // Analyses temporelles
+        if (order.Date) {
+          const orderDate = new Date(order.Date);
+          if (isNaN(orderDate.getTime())) return;
+          
+          const dateKey = orderDate.toISOString().split('T')[0];
+          state.analytics.salesByDay[dateKey] = (state.analytics.salesByDay[dateKey] || 0) + (parseFloat(order.Total) || 0);
+          
+          const hourKey = orderDate.getHours();
+          state.analytics.salesByHour[hourKey] = (state.analytics.salesByHour[hourKey] || 0) + (parseFloat(order.Total) || 0);
+          
+          const weekdayKey = orderDate.getDay();
+          state.analytics.salesByWeekday[weekdayKey] = (state.analytics.salesByWeekday[weekdayKey] || 0) + (parseFloat(order.Total) || 0);
+          
+          const weekKey = Math.floor((now - orderDate) / (7 * 24 * 60 * 60 * 1000));
+          if (!state.analytics.avgByWeek[weekKey]) {
+            state.analytics.avgByWeek[weekKey] = { total: 0, count: 0 };
+          }
+          state.analytics.avgByWeek[weekKey].total += parseFloat(order.Total) || 0;
+          state.analytics.avgByWeek[weekKey].count += 1;
         }
-        state.analytics.avgByWeek[weekKey].total += parseFloat(order.Total) || 0;
-        state.analytics.avgByWeek[weekKey].count += 1;
         
+        // Analyse des produits
         const articles = parseArticles(order.Articles);
         articles.forEach(article => {
           const productName = article.produit || "Produit";
           const quantite = article.quantite || 0;
           const revenu = article.prix_total || 0;
           
+          // Mettre à jour les quantités
+          productQuantities.set(productName, (productQuantities.get(productName) || 0) + quantite);
+          
+          // Mettre à jour les revenus
+          productRevenue.set(productName, (productRevenue.get(productName) || 0) + revenu);
+          
+          // Stocker les détails du produit
           if (!productSales.has(productName)) {
-            productSales.set(productName, { name: productName, quantity: 0, revenue: 0 });
+            productSales.set(productName, { 
+              name: productName, 
+              quantity: 0, 
+              revenue: 0,
+              orders: 0 
+            });
           }
           
           const product = productSales.get(productName);
           product.quantity += quantite;
           product.revenue += revenu;
+          product.orders += 1;
         });
       });
 
+      // Convertir en tableau et trier par quantité vendue
       state.analytics.topProducts = Array.from(productSales.values())
-        .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, 10);
+        .filter(p => p.quantity > 0)
+        .sort((a, b) => b.quantity - b.revenue) // Tri par quantité puis revenu
+        .slice(0, 15); // Prendre plus pour avoir des données significatives
     }
 
     // ===================== AFFICHAGE UI =====================
@@ -883,7 +981,7 @@
           </tr>
         `;
       } else {
-        state.analytics.topProducts.forEach(product => {
+        state.analytics.topProducts.slice(0, 10).forEach(product => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td><div style="font-weight:900">${safeText(product.name)}</div></td>
@@ -1107,7 +1205,7 @@
 
     function updateProductsChart() {
       const topProducts = state.analytics.topProducts.slice(0, 10);
-      const labels = topProducts.map(p => p.name);
+      const labels = topProducts.map(p => p.name.length > 15 ? p.name.substring(0, 12) + '...' : p.name);
       const data = topProducts.map(p => p.quantity);
       
       if (state.charts.products) {
@@ -1224,8 +1322,10 @@
       
       refreshAll();
       
+      // Rafraîchir automatiquement toutes les 30 secondes
       setInterval(refreshAll, 30000);
       
+      // Rafraîchir quand l'utilisateur revient sur la page
       document.addEventListener('visibilitychange', function() {
         if (!document.hidden) {
           refreshAll();
