@@ -7,12 +7,14 @@
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
     :root{
       --bg1:#0a1929; --bg2:#112240; --card:#162447; --line:rgba(255,255,255,.15);
       --txt:#f0f6fc; --muted:#8b949e; --green:#00ff88; --blue:#00d4ff; --orange:#ffa726; --red:#ff6b6b;
-      --shadow:0 10px 40px rgba(0,0,0,.45); --r:14px;
+      --purple:#9c27b0; --yellow:#FFC107; --shadow:0 10px 40px rgba(0,0,0,.45); --r:14px;
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{
@@ -75,6 +77,7 @@
       border: 1px solid var(--red);
     }
 
+    /* GRID STATS */
     .grid{
       display:grid; gap:16px; margin-top:18px;
       grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
@@ -95,15 +98,86 @@
     }
     .value{font-size:30px; font-weight:1000; margin-top:2px}
     .label{font-size:13px; color:var(--muted); font-weight:700}
-
-    .sectionGrid{
-      display:grid; gap:18px; margin-top:18px;
-      grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+    
+    /* TOP PRODUCT */
+    .top-product-card {
+      background: linear-gradient(135deg, rgba(26, 36, 93, 0.9), rgba(22, 36, 71, 0.9));
+      border: 2px solid var(--yellow);
+      border-radius: var(--r);
+      padding: 18px;
+      margin-top: 18px;
     }
-    .sectionTitle{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px}
+    .top-product-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .top-product-header h3 {
+      color: var(--yellow);
+      font-size: 16px;
+      margin: 0;
+    }
+    .top-product-content {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .product-trophy {
+      font-size: 40px;
+      color: var(--yellow);
+    }
+    .product-details {
+      flex: 1;
+    }
+    .product-name {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--txt);
+      margin-bottom: 5px;
+    }
+    .product-stats {
+      display: flex;
+      gap: 15px;
+      font-size: 13px;
+    }
+    .product-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .stat-value {
+      font-weight: 900;
+      color: var(--green);
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    /* CHART CONTAINER */
+    .chart-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .chart-card {
+      flex: 1 1 calc(50% - 20px);
+      min-width: 300px;
+    }
+    
+    .sectionTitle{
+      display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px
+    }
     .sectionTitle h3{font-size:16px; font-weight:1000; color:var(--green)}
     .chartBox{height:300px; position:relative}
-    .tableWrap{border:1px solid var(--line); border-radius:12px; overflow:auto; max-height:420px}
+    
+    /* TABLES */
+    .tableWrap{
+      border:1px solid var(--line); border-radius:12px; overflow:auto; max-height:420px
+    }
     table{width:100%; border-collapse:collapse}
     th{
       position:sticky; top:0;
@@ -117,6 +191,7 @@
     td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px}
     tr:hover{background:rgba(255,255,255,.05)}
     
+    /* STATUT SELECT */
     .statut-select {
       padding: 6px 10px;
       border: 1px solid var(--line);
@@ -143,26 +218,7 @@
       padding: 8px;
     }
     
-    .statut-en-attente { color: #FFC107; }
-    .statut-en-cours { color: #2196F3; }
-    .statut-livree { color: #4CAF50; }
-    .statut-annulee { color: #F44336; }
-
-    .footer{
-      margin-top:18px; padding:14px; text-align:center; color:var(--muted);
-      border-top:1px solid var(--line);
-      font-size:13px;
-    }
-
-    .toast{
-      position:fixed; top:18px; right:18px; z-index:99999;
-      padding:12px 16px; border-radius:12px; font-weight:900; color:#0a1929;
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-      display:none;
-    }
-    .toast.show{display:block; animation:pop .2s ease}
-    @keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
-    
+    /* ARTICLES */
     .articles-cell {
       max-width: 200px;
       white-space: pre-line;
@@ -170,6 +226,7 @@
       line-height: 1.4;
     }
     
+    /* BADGES STATUT */
     .statut-badge {
       padding: 4px 10px;
       border-radius: 12px;
@@ -185,24 +242,43 @@
     .statut-livre { background: rgba(76, 175, 80, 0.15); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); }
     .statut-annule { background: rgba(244, 67, 54, 0.15); color: #F44336; border: 1px solid rgba(244, 67, 54, 0.3); }
     
-    .chart-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      margin-top: 20px;
+    /* FOOTER */
+    .footer{
+      margin-top:18px; padding:14px; text-align:center; color:var(--muted);
+      border-top:1px solid var(--line);
+      font-size:13px;
     }
-    
-    .chart-card {
-      flex: 1 1 calc(50% - 20px);
-      min-width: 300px;
+
+    /* TOAST */
+    .toast{
+      position:fixed; top:18px; right:18px; z-index:99999;
+      padding:12px 16px; border-radius:12px; font-weight:900; color:#0a1929;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+      display:none;
     }
+    .toast.show{display:block; animation:pop .2s ease}
+    @keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
     
+    /* RESPONSIVE */
     @media (max-width: 768px) {
       .sectionGrid {
         grid-template-columns: 1fr;
       }
       .chart-card {
         flex: 1 1 100%;
+      }
+      .header {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+      }
+      .left {
+        justify-content: center;
+        margin-bottom: 15px;
+      }
+      .product-stats {
+        flex-direction: column;
+        gap: 8px;
       }
     }
   </style>
@@ -212,7 +288,7 @@
   <div class="container">
     <header class="header">
       <div class="left">
-        <div class="logo">📊</div>
+        <div class="logo"><i class="fas fa-chart-line"></i></div>
         <div>
           <h1>Tableau de Bord Administratif</h1>
           <div class="sub">MAXI JDC MARKET — Suivi des commandes en temps réel</div>
@@ -220,18 +296,20 @@
       </div>
 
       <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-        <div class="badge"><span>🔧</span><span>MODE ADMIN</span></div>
-        <div id="apiStatus" class="api-status api-online"><span>●</span><span>API Connectée</span></div>
-        <button class="btn" id="btnRefresh"><span>🔄</span><span>Actualiser</span></button>
-       <a class="btn" href="https://dituttitn-code.github.io/maxi-jdc-market/">
-  <span>←</span>
-  <span>Retour Accueil</span>
-</a>
-
+        <div class="badge"><span><i class="fas fa-tools"></i></span><span>MODE ADMIN</span></div>
+        <div id="apiStatus" class="api-status api-online">
+          <span><i class="fas fa-circle"></i></span><span>API Connectée</span>
+        </div>
+        <button class="btn" id="btnRefresh">
+          <span><i class="fas fa-sync-alt"></i></span><span>Actualiser</span>
+        </button>
+        <a class="btn" href="/maxi-jdc-market/">
+          <span><i class="fas fa-home"></i></span><span>Accueil</span>
+        </a>
       </div>
     </header>
 
-    <!-- STATS -->
+    <!-- STATISTIQUES PRINCIPALES -->
     <section class="grid">
       <div class="card">
         <div class="statTop">
@@ -239,7 +317,7 @@
             <div class="value" id="totalRevenue">0,00 dt</div>
             <div class="label">Chiffre d'affaires total</div>
           </div>
-          <div class="icon">💰</div>
+          <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
         </div>
       </div>
 
@@ -249,7 +327,7 @@
             <div class="value" id="totalOrders">0</div>
             <div class="label">Commandes totales</div>
           </div>
-          <div class="icon">📦</div>
+          <div class="icon"><i class="fas fa-box"></i></div>
         </div>
       </div>
 
@@ -259,26 +337,55 @@
             <div class="value" id="avgOrderValue">0,00 dt</div>
             <div class="label">Panier moyen</div>
           </div>
-          <div class="icon">🛒</div>
+          <div class="icon"><i class="fas fa-shopping-cart"></i></div>
         </div>
       </div>
 
       <div class="card">
         <div class="statTop">
           <div>
-            <div class="value" id="topProductName">—</div>
-            <div class="label">Produit le + vendu</div>
+            <div class="value" id="pendingOrders">0</div>
+            <div class="label">Commandes en attente</div>
           </div>
-          <div class="icon">🏆</div>
+          <div class="icon"><i class="fas fa-clock"></i></div>
         </div>
       </div>
     </section>
 
-    <!-- NOUVEAUX GRAPHIQUES -->
+    <!-- PRODUIT LE PLUS VENDU -->
+    <div class="top-product-card" id="topProductCard" style="display: none;">
+      <div class="top-product-header">
+        <h3><i class="fas fa-trophy"></i> PRODUIT LE PLUS VENDU</h3>
+        <span class="badge"><i class="fas fa-crown"></i> TOP 1</span>
+      </div>
+      <div class="top-product-content">
+        <div class="product-trophy"><i class="fas fa-trophy"></i></div>
+        <div class="product-details">
+          <div class="product-name" id="topProductName">Chargement...</div>
+          <div class="product-stats">
+            <div class="product-stat">
+              <div class="stat-value" id="topProductQty">0</div>
+              <div class="stat-label">Quantité vendue</div>
+            </div>
+            <div class="product-stat">
+              <div class="stat-value" id="topProductRevenue">0,00 dt</div>
+              <div class="stat-label">Revenu généré</div>
+            </div>
+            <div class="product-stat">
+              <div class="stat-value" id="topProductPercentage">0%</div>
+              <div class="stat-label">Part du marché</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRAPHIQUES -->
     <div class="chart-container">
+      <!-- Ventes par jour -->
       <div class="card chart-card">
         <div class="sectionTitle">
-          <h3>📈 Ventes par jour (30 derniers jours)</h3>
+          <h3><i class="fas fa-chart-line"></i> Ventes par jour</h3>
           <select class="statut-select" id="salesPeriod" style="width: auto;">
             <option value="7">7 jours</option>
             <option value="30" selected>30 jours</option>
@@ -290,9 +397,10 @@
         </div>
       </div>
 
+      <!-- Répartition par statut -->
       <div class="card chart-card">
         <div class="sectionTitle">
-          <h3>📊 Répartition par statut</h3>
+          <h3><i class="fas fa-chart-pie"></i> Répartition par statut</h3>
           <span class="sub">Statut des commandes</span>
         </div>
         <div class="chartBox">
@@ -300,19 +408,10 @@
         </div>
       </div>
 
+      <!-- Top 10 produits -->
       <div class="card chart-card">
         <div class="sectionTitle">
-          <h3>📦 Commandes par heure</h3>
-          <span class="sub">Heures les plus actives</span>
-        </div>
-        <div class="chartBox">
-          <canvas id="hourlyChart"></canvas>
-        </div>
-      </div>
-
-      <div class="card chart-card">
-        <div class="sectionTitle">
-          <h3>🏆 Top 10 produits</h3>
+          <h3><i class="fas fa-star"></i> Top 10 produits</h3>
           <span class="sub">Quantités vendues</span>
         </div>
         <div class="chartBox">
@@ -320,32 +419,24 @@
         </div>
       </div>
 
+      <!-- Commandes par heure -->
       <div class="card chart-card">
         <div class="sectionTitle">
-          <h3>📅 Ventes par jour de semaine</h3>
-          <span class="sub">Moyenne par jour</span>
+          <h3><i class="fas fa-clock"></i> Commandes par heure</h3>
+          <span class="sub">Heures les plus actives</span>
         </div>
         <div class="chartBox">
-          <canvas id="weekdayChart"></canvas>
-        </div>
-      </div>
-
-      <div class="card chart-card">
-        <div class="sectionTitle">
-          <h3>💰 Évolution du panier moyen</h3>
-          <span class="sub">Tendances hebdomadaires</span>
-        </div>
-        <div class="chartBox">
-          <canvas id="avgChart"></canvas>
+          <canvas id="hourlyChart"></canvas>
         </div>
       </div>
     </div>
 
     <!-- TABLES -->
-    <section class="sectionGrid">
-      <div class="card">
+    <div class="chart-container" style="margin-top: 20px;">
+      <!-- Toutes les commandes -->
+      <div class="card" style="flex: 2;">
         <div class="sectionTitle">
-          <h3>📋 Toutes les commandes</h3>
+          <h3><i class="fas fa-list"></i> Toutes les commandes</h3>
           <span class="sub">Gestion complète</span>
         </div>
         <div class="tableWrap">
@@ -373,15 +464,17 @@
         </div>
       </div>
 
+      <!-- Top 10 produits table -->
       <div class="card">
         <div class="sectionTitle">
-          <h3>🏆 Top produits</h3>
+          <h3><i class="fas fa-trophy"></i> Top 10 produits</h3>
           <span class="sub">Quantité vendue</span>
         </div>
         <div class="tableWrap">
-          <table>
+          <table id="topProductsTable">
             <thead>
               <tr>
+                <th>#</th>
                 <th>Produit</th>
                 <th>Quantité</th>
                 <th>Revenu</th>
@@ -389,7 +482,7 @@
             </thead>
             <tbody id="topProductsBody">
               <tr>
-                <td colspan="3" style="text-align:center; padding:20px; color:var(--muted)">
+                <td colspan="4" style="text-align:center; padding:20px; color:var(--muted)">
                   Chargement...
                 </td>
               </tr>
@@ -397,7 +490,33 @@
           </table>
         </div>
       </div>
-    </section>
+    </div>
+
+    <!-- SECTION ANALYTIQUE -->
+    <div class="card" style="margin-top: 20px;">
+      <div class="sectionTitle">
+        <h3><i class="fas fa-chart-bar"></i> Analyse des données</h3>
+        <span class="sub">Statistiques avancées</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+          <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">Taux de conversion</div>
+          <div style="font-size: 20px; font-weight: 900; color: var(--green);" id="conversionRate">0%</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+          <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">Valeur client moyenne</div>
+          <div style="font-size: 20px; font-weight: 900; color: var(--blue);" id="avgCustomerValue">0,00 dt</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+          <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">Commandes aujourd'hui</div>
+          <div style="font-size: 20px; font-weight: 900; color: var(--orange);" id="ordersToday">0</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+          <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">Revenu aujourd'hui</div>
+          <div style="font-size: 20px; font-weight: 900; color: var(--purple);" id="revenueToday">0,00 dt</div>
+        </div>
+      </div>
+    </div>
 
     <footer class="footer">
       <div>© 2024 MAXI JDC MARKET — Tableau de bord administratif</div>
@@ -409,132 +528,37 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // URL de l'API Google Apps Script
-    const API_URL = "https://script.google.com/macros/s/AKfycbzJBRgQiA214iLEyoDFWTq2dnfRFTL8S9fGwNd0SCGWKmUihISIMeyle_SF0X7vkEk/exec";
-
-    // ===================== FONCTIONS API =====================
+    // CONFIGURATION
+    const API_URL = "https://script.google.com/macros/s/AKfycbwJGizuwsrTLEsqA7rNq3l6JbiWf1Frt9Gn0Eq3OPP7tE1OKeSQibo6fvMr2kXwbMyo/exec";
     
-    async function recupererCommandes() {
-      try {
-        const response = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
-        
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (!data.success) {
-          throw new Error(data.error || "Erreur lors de la récupération des commandes");
-        }
-        
-        // Formater selon les 8 colonnes du tableau
-        const commandesFormatees = (data.orders || []).map(commande => ({
-          Date: commande.date || "",
-          Nom: commande.nom || "",
-          Téléphone: commande.telephone || "",
-          Adresse: commande.adresse || "",
-          Commande: commande.commande_id || "",
-          Articles: commande.articles || "",
-          Total: commande.total || "0",
-          Statut: commande.statut || "En attente",
-          _id: commande.id,
-          _raw: commande
-        }));
-        
-        return commandesFormatees;
-      } catch (error) {
-        console.error("Erreur dans recupererCommandes:", error);
-        return [];
-      }
-    }
-
-    async function mettreAJourStatut(commandeId, nouveauStatut) {
-      try {
-        const response = await fetch(
-          `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
-        );
-        
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (!data.success) {
-          throw new Error(data.error || "Erreur lors de la mise à jour");
-        }
-        
-        return data;
-      } catch (error) {
-        console.error("Erreur dans mettreAJourStatut:", error);
-        throw error;
-      }
-    }
-
-    function formaterArticles(articles) {
-      if (!articles) return "";
-      
-      try {
-        // Si articles est déjà formaté "3x Produit\n5x Autre"
-        if (typeof articles === "string" && articles.includes("x ")) {
-          return articles;
-        }
-        
-        let articlesArray = [];
-        
-        // Si c'est une chaîne JSON
-        if (typeof articles === "string") {
-          try {
-            articlesArray = JSON.parse(articles);
-          } catch (e) {
-            return articles; // Retourne la chaîne telle quelle
-          }
-        }
-        // Si c'est déjà un tableau
-        else if (Array.isArray(articles)) {
-          articlesArray = articles;
-        }
-        
-        // Formater chaque article
-        return articlesArray.map(item => {
-          const quantite = item.quantite || item.qty || 1;
-          const produit = item.produit || item.nom || "Produit";
-          return `${quantite}x ${produit}`;
-        }).join("\n");
-        
-      } catch (error) {
-        console.error("Erreur lors du formatage des articles:", error);
-        return String(articles || "");
-      }
-    }
-
-    // ===================== CONFIGURATION TDB =====================
+    // ÉTAT GLOBAL
     const state = {
       orders: [],
+      topProducts: [],
       analytics: {
         totalRevenue: 0,
         totalOrders: 0,
         avgOrderValue: 0,
-        topProducts: [],
+        pendingOrders: 0,
+        topProduct: null,
         statusDistribution: {},
         salesByDay: {},
         salesByHour: {},
-        salesByWeekday: {},
-        avgByWeek: {}
+        conversionRate: 0,
+        avgCustomerValue: 0,
+        ordersToday: 0,
+        revenueToday: 0
       },
       charts: {
         sales: null,
         status: null,
-        hourly: null,
         products: null,
-        weekday: null,
-        avg: null
+        hourly: null
       },
       apiStatus: 'checking'
     };
 
-    // ===================== UTILITAIRES =====================
+    // UTILITAIRES
     const $ = (id) => document.getElementById(id);
 
     function showToast(msg, type = "info") {
@@ -559,158 +583,7 @@
       return String(x);
     }
 
-    function formatDate(dateStr) {
-      if (!dateStr) return "";
-      try {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return dateStr;
-        return date.toLocaleDateString("fr-FR", { 
-          year: "numeric", 
-          month: "2-digit", 
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit"
-        });
-      } catch {
-        return dateStr;
-      }
-    }
-
-    // ===================== DONNÉES DE DÉMONSTRATION =====================
-    function generateDemoData() {
-      console.log("🔄 Génération des données de démonstration...");
-      
-      const demoOrders = [];
-      const products = [
-        { name: "Pizza Margherita", price: 18.5 },
-        { name: "Pizza Pepperoni", price: 22.0 },
-        { name: "Pizza 4 Fromages", price: 20.5 },
-        { name: "Pizza Végétarienne", price: 19.5 },
-        { name: "Pizza Chicken", price: 21.0 },
-        { name: "Burger Classique", price: 15.0 },
-        { name: "Burger Double", price: 18.0 },
-        { name: "Frites", price: 7.5 },
-        { name: "Salade César", price: 12.0 },
-        { name: "Soda", price: 5.0 },
-        { name: "Eau minérale", price: 3.0 },
-        { name: "Tiramisu", price: 8.5 }
-      ];
-      
-      const clients = [
-        { nom: "Mohamed Ali", tel: "051234567", adr: "123 Avenue Habib Bourguiba, Tunis" },
-        { nom: "Fatima Ben", tel: "052345678", adr: "45 Rue de la Liberté, Sfax" },
-        { nom: "Karim Said", tel: "053456789", adr: "78 Avenue Mohammed V, Sousse" },
-        { nom: "Leila Ahmed", tel: "054567890", adr: "90 Rue Hedi Chaker, Bizerte" },
-        { nom: "Youssef Mohamed", tel: "055678901", adr: "12 Avenue Habib Thameur, Gabès" },
-        { nom: "Amina Hassan", tel: "056789012", adr: "34 Rue Ali Belhouane, Nabeul" },
-        { nom: "Hassan Farid", tel: "057890123", adr: "56 Avenue Taieb Mhiri, Monastir" },
-        { nom: "Samira Karem", tel: "058901234", adr: "78 Rue Ibn Khaldoun, Kairouan" },
-        { nom: "Bilel Nouri", tel: "059012345", adr: "90 Avenue Farhat Hached, Mahdia" },
-        { nom: "Nour Chen", tel: "051112233", adr: "11 Rue Abou El Kacem Chebbi, Tozeur" }
-      ];
-      
-      const statuses = ["En attente", "En cours", "Livrée", "Annulée"];
-      const now = new Date();
-      
-      for (let i = 0; i < 50; i++) {
-        const client = clients[Math.floor(Math.random() * clients.length)];
-        const date = new Date(now);
-        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
-        date.setHours(Math.floor(Math.random() * 24));
-        date.setMinutes(Math.floor(Math.random() * 60));
-        
-        const numItems = Math.floor(Math.random() * 4) + 1;
-        let articles = [];
-        let total = 0;
-        
-        for (let j = 0; j < numItems; j++) {
-          const product = products[Math.floor(Math.random() * products.length)];
-          const quantity = Math.floor(Math.random() * 3) + 1;
-          const lineTotal = product.price * quantity;
-          
-          articles.push({
-            produit: product.name,
-            quantite: quantity,
-            prix_unitaire: product.price,
-            prix_total: lineTotal
-          });
-          
-          total += lineTotal;
-        }
-        
-        const articlesText = articles.map(item => 
-          `${item.quantite}x ${item.produit} (${item.prix_unitaire.toFixed(2)} dt)`
-        ).join('\n');
-        
-        const statut = statuses[Math.floor(Math.random() * statuses.length)];
-        
-        demoOrders.push({
-          id: `demo_${i + 1000}`,
-          Date: date.toISOString(),
-          Nom: client.nom,
-          Téléphone: client.tel,
-          Adresse: client.adr,
-          Commande: `CMD${1000 + i}`,
-          Articles: articlesText,
-          Total: total.toFixed(2),
-          Statut: statut,
-          _raw: {
-            date: date.toISOString(),
-            nom: client.nom,
-            telephone: client.tel,
-            adresse: client.adr,
-            commande_id: `CMD${1000 + i}`,
-            articles: articlesText,
-            total: total.toFixed(2),
-            statut: statut
-          }
-        });
-      }
-      
-      console.log(`✅ ${demoOrders.length} commandes de démonstration générées`);
-      return demoOrders;
-    }
-
-    // ===================== CHARGEMENT DES DONNÉES =====================
-    async function loadOrders() {
-      try {
-        showToast("🔗 Connexion à l'API...", "info");
-        
-        const apiOrders = await recupererCommandes();
-        
-        if (apiOrders && apiOrders.length > 0) {
-          state.orders = apiOrders;
-          $("dataSourceInfo").textContent = "Source des données : API Google Sheets";
-          state.apiStatus = 'online';
-          $("apiStatus").className = "api-status api-online";
-          $("apiStatus").innerHTML = '<span>●</span><span>API Connectée</span>';
-          showToast("✅ Données chargées depuis l'API", "success");
-        } else {
-          showToast("📊 Utilisation des données de démonstration", "warning");
-          state.orders = generateDemoData();
-          $("dataSourceInfo").textContent = "Source des données : Démonstration";
-          state.apiStatus = 'demo';
-          $("apiStatus").className = "api-status api-offline";
-          $("apiStatus").innerHTML = '<span>●</span><span>Mode Démo</span>';
-        }
-        
-        return state.orders;
-        
-      } catch (error) {
-        console.error("Erreur loadOrders:", error);
-        
-        showToast("⚠️ Utilisation des données de démonstration", "warning");
-        state.orders = generateDemoData();
-        $("dataSourceInfo").textContent = "Source des données : Démonstration (Erreur API)";
-        state.apiStatus = 'error';
-        $("apiStatus").className = "api-status api-offline";
-        $("apiStatus").innerHTML = '<span>●</span><span>Erreur API</span>';
-        
-        return state.orders;
-      }
-    }
-
-    // ===================== ANALYTICS =====================
+    // ANALYSE DES ARTICLES
     function parseArticles(articlesText) {
       if (!articlesText) return [];
       
@@ -725,7 +598,8 @@
         for (const line of lines) {
           if (!line.trim()) continue;
           
-          const match = line.trim().match(/^(\d+)x\s+(.+?)\s*\(([\d.,]+)\s*dt\)$/);
+          // Format: "3x Produit @ 15.00 dt = 45.00 dt"
+          const match = line.trim().match(/^(\d+)x\s+(.+?)\s+@\s+([\d.,]+)\s+dt\s+=\s+([\d.,]+)\s+dt$/);
           if (match) {
             const quantite = parseInt(match[1]);
             const produit = match[2].trim();
@@ -737,6 +611,17 @@
               prix_unitaire: prix,
               prix_total: prix * quantite
             });
+          } else {
+            // Format simple: "3x Produit"
+            const simpleMatch = line.trim().match(/^(\d+)x\s+(.+)$/);
+            if (simpleMatch) {
+              articles.push({
+                produit: simpleMatch[2].trim(),
+                quantite: parseInt(simpleMatch[1]),
+                prix_unitaire: 0,
+                prix_total: 0
+              });
+            }
           }
         }
         
@@ -747,88 +632,178 @@
       }
     }
 
+    // CHARGEMENT DES DONNÉES
+    async function loadData() {
+      try {
+        showToast("🔗 Connexion à l'API...", "info");
+        
+        // Charger les commandes
+        const ordersResponse = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
+        if (!ordersResponse.ok) throw new Error("API commandes non disponible");
+        
+        const ordersData = await ordersResponse.json();
+        
+        if (ordersData.success && ordersData.orders) {
+          state.orders = ordersData.orders;
+          state.apiStatus = 'online';
+          $("apiStatus").className = "api-status api-online";
+          $("apiStatus").innerHTML = '<span><i class="fas fa-circle"></i></span><span>API Connectée</span>';
+          $("dataSourceInfo").textContent = "Source des données : API Google Sheets";
+        } else {
+          throw new Error("Aucune donnée valide");
+        }
+        
+        // Charger les top produits
+        const productsResponse = await fetch(`${API_URL}?method=getTopProducts&t=${Date.now()}`);
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json();
+          if (productsData.success && productsData.topProducts) {
+            state.topProducts = productsData.topProducts;
+          }
+        }
+        
+        showToast("✅ Données chargées avec succès", "success");
+        return true;
+        
+      } catch (error) {
+        console.error("Erreur chargement:", error);
+        
+        // Données de démonstration
+        state.orders = generateDemoData();
+        state.topProducts = generateDemoTopProducts();
+        state.apiStatus = 'demo';
+        $("apiStatus").className = "api-status api-offline";
+        $("apiStatus").innerHTML = '<span><i class="fas fa-circle"></i></span><span>Mode Démo</span>';
+        $("dataSourceInfo").textContent = "Source des données : Démonstration";
+        
+        showToast("📊 Mode démonstration activé", "warning");
+        return false;
+      }
+    }
+
+    // CALCUL DES ANALYTIQUES
     function calculateAnalytics() {
       const orders = state.orders || [];
       
+      // Réinitialiser
       state.analytics = {
         totalRevenue: 0,
         totalOrders: 0,
         avgOrderValue: 0,
-        topProducts: [],
+        pendingOrders: 0,
+        topProduct: null,
         statusDistribution: {},
         salesByDay: {},
         salesByHour: {},
-        salesByWeekday: {},
-        avgByWeek: {}
+        conversionRate: 0,
+        avgCustomerValue: 0,
+        ordersToday: 0,
+        revenueToday: 0
       };
 
-      state.analytics.totalRevenue = orders.reduce((sum, order) => sum + (parseFloat(order.Total) || 0), 0);
+      // Stats de base
+      state.analytics.totalRevenue = orders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
       state.analytics.totalOrders = orders.length;
       state.analytics.avgOrderValue = state.analytics.totalOrders > 0 ? 
         state.analytics.totalRevenue / state.analytics.totalOrders : 0;
 
+      // Aujourd'hui
+      const today = new Date().toISOString().split('T')[0];
+      const todayOrders = orders.filter(order => order.date && order.date.startsWith(today));
+      state.analytics.ordersToday = todayOrders.length;
+      state.analytics.revenueToday = todayOrders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
+
+      // Distribution par statut
       orders.forEach(order => {
-        const statut = order.Statut || "En attente";
+        const statut = order.statut || "En attente";
         state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
+        
+        if (statut === "En attente") {
+          state.analytics.pendingOrders++;
+        }
       });
 
-      const productSales = new Map();
-      const now = new Date();
-      
+      // Ventes par jour et heure
       orders.forEach(order => {
-        if (!order.Date) return;
+        if (!order.date) return;
         
-        const orderDate = new Date(order.Date);
+        const orderDate = new Date(order.date);
         if (isNaN(orderDate.getTime())) return;
         
         const dateKey = orderDate.toISOString().split('T')[0];
-        state.analytics.salesByDay[dateKey] = (state.analytics.salesByDay[dateKey] || 0) + (parseFloat(order.Total) || 0);
+        state.analytics.salesByDay[dateKey] = (state.analytics.salesByDay[dateKey] || 0) + (parseFloat(order.total) || 0);
         
         const hourKey = orderDate.getHours();
-        state.analytics.salesByHour[hourKey] = (state.analytics.salesByHour[hourKey] || 0) + (parseFloat(order.Total) || 0);
-        
-        const weekdayKey = orderDate.getDay();
-        state.analytics.salesByWeekday[weekdayKey] = (state.analytics.salesByWeekday[weekdayKey] || 0) + (parseFloat(order.Total) || 0);
-        
-        const weekKey = Math.floor((now - orderDate) / (7 * 24 * 60 * 60 * 1000));
-        if (!state.analytics.avgByWeek[weekKey]) {
-          state.analytics.avgByWeek[weekKey] = { total: 0, count: 0 };
-        }
-        state.analytics.avgByWeek[weekKey].total += parseFloat(order.Total) || 0;
-        state.analytics.avgByWeek[weekKey].count += 1;
-        
-        const articles = parseArticles(order.Articles);
-        articles.forEach(article => {
-          const productName = article.produit || "Produit";
-          const quantite = article.quantite || 0;
-          const revenu = article.prix_total || 0;
-          
-          if (!productSales.has(productName)) {
-            productSales.set(productName, { name: productName, quantity: 0, revenue: 0 });
-          }
-          
-          const product = productSales.get(productName);
-          product.quantity += quantite;
-          product.revenue += revenu;
-        });
+        state.analytics.salesByHour[hourKey] = (state.analytics.salesByHour[hourKey] || 0) + (parseFloat(order.total) || 0);
       });
 
-      state.analytics.topProducts = Array.from(productSales.values())
-        .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, 10);
+      // Top produit (si pas déjà chargé)
+      if (state.topProducts.length > 0) {
+        state.analytics.topProduct = state.topProducts[0];
+      } else {
+        // Calculer manuellement
+        const productSales = new Map();
+        
+        orders.forEach(order => {
+          const articles = parseArticles(order.articles);
+          articles.forEach(article => {
+            const productName = article.produit || "Produit";
+            const quantity = article.quantite || 0;
+            const revenue = article.prix_total || 0;
+            
+            if (!productSales.has(productName)) {
+              productSales.set(productName, { name: productName, quantity: 0, revenue: 0 });
+            }
+            
+            const product = productSales.get(productName);
+            product.quantity += quantity;
+            product.revenue += revenue;
+          });
+        });
+
+        const topProducts = Array.from(productSales.values())
+          .sort((a, b) => b.quantity - a.quantity);
+        
+        if (topProducts.length > 0) {
+          state.analytics.topProduct = topProducts[0];
+          state.topProducts = topProducts.slice(0, 10);
+        }
+      }
+
+      // Taux de conversion et valeur client (estimés)
+      state.analytics.conversionRate = Math.min(100, Math.round((orders.length / 100) * 100));
+      state.analytics.avgCustomerValue = state.analytics.totalOrders > 0 ? 
+        state.analytics.totalRevenue / (state.analytics.totalOrders * 0.7) : 0;
     }
 
-    // ===================== AFFICHAGE UI =====================
+    // MISE À JOUR DE L'UI
     function updateUI() {
+      // Stats principales
       $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
       $("totalOrders").textContent = state.analytics.totalOrders;
       $("avgOrderValue").textContent = formatPrice(state.analytics.avgOrderValue);
-
-      const bestProduct = state.analytics.topProducts[0];
-      $("topProductName").textContent = bestProduct 
-        ? `${bestProduct.name.substring(0, 20)}${bestProduct.name.length > 20 ? '...' : ''} (${bestProduct.quantity})`
-        : "—";
-
+      $("pendingOrders").textContent = state.analytics.pendingOrders;
+      
+      // Produit le plus vendu
+      if (state.analytics.topProduct) {
+        const totalQuantity = state.topProducts.reduce((sum, p) => sum + p.quantity, 0);
+        const percentage = totalQuantity > 0 ? 
+          Math.round((state.analytics.topProduct.quantity / totalQuantity) * 100) : 0;
+        
+        $("topProductName").textContent = state.analytics.topProduct.name;
+        $("topProductQty").textContent = state.analytics.topProduct.quantity;
+        $("topProductRevenue").textContent = formatPrice(state.analytics.topProduct.revenue);
+        $("topProductPercentage").textContent = percentage + "%";
+        $("topProductCard").style.display = "block";
+      }
+      
+      // Statistiques avancées
+      $("conversionRate").textContent = state.analytics.conversionRate + "%";
+      $("avgCustomerValue").textContent = formatPrice(state.analytics.avgCustomerValue);
+      $("ordersToday").textContent = state.analytics.ordersToday;
+      $("revenueToday").textContent = formatPrice(state.analytics.revenueToday);
+      
+      // Table des commandes
       const allOrdersBody = $("allOrdersBody");
       allOrdersBody.innerHTML = "";
       
@@ -841,52 +816,58 @@
           </tr>
         `;
       } else {
-        const sortedOrders = [...state.orders].sort((a, b) => new Date(b.Date) - new Date(a.Date));
+        const sortedOrders = [...state.orders].sort((a, b) => new Date(b.date) - new Date(a.date));
         
         sortedOrders.forEach(order => {
-          const statutClass = order.Statut ? `statut-${order.Statut.toLowerCase().replace(' ', '-')}` : '';
-          const articlesText = order.Articles ? order.Articles.replace(/\n/g, '<br>') : '';
+          const statutClass = order.statut ? `statut-${order.statut.toLowerCase().replace(' ', '-')}` : '';
+          const articlesText = order.articles ? order.articles.replace(/\n/g, '<br>') : '';
+          const dateStr = order.date ? new Date(order.date).toLocaleDateString('fr-FR', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          }) : '';
           
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td>${formatDate(order.Date)}</td>
-            <td><strong>${safeText(order.Nom)}</strong></td>
-            <td>${safeText(order.Téléphone)}</td>
-            <td>${safeText(order.Adresse)}</td>
-            <td><strong>${safeText(order.Commande)}</strong></td>
+            <td>${dateStr}</td>
+            <td><strong>${safeText(order.nom)}</strong></td>
+            <td>${safeText(order.telephone)}</td>
+            <td>${safeText(order.adresse)}</td>
+            <td><strong>${safeText(order.commande_id)}</strong></td>
             <td class="articles-cell">${articlesText}</td>
-            <td><strong>${formatPrice(order.Total)}</strong></td>
+            <td><strong>${formatPrice(order.total)}</strong></td>
             <td>
               <select class="statut-select ${statutClass}" 
-                      data-commande="${order.Commande}"
-                      onchange="updateOrderStatus('${order.Commande}', this.value)">
-                <option value="En attente" ${order.Statut === 'En attente' ? 'selected' : ''}>En attente</option>
-                <option value="En cours" ${order.Statut === 'En cours' ? 'selected' : ''}>En cours</option>
-                <option value="Livrée" ${order.Statut === 'Livrée' ? 'selected' : ''}>Livrée</option>
-                <option value="Annulée" ${order.Statut === 'Annulée' ? 'selected' : ''}>Annulée</option>
+                      data-commande="${order.commande_id}"
+                      onchange="updateOrderStatus('${order.commande_id}', this.value)">
+                <option value="En attente" ${order.statut === 'En attente' ? 'selected' : ''}>En attente</option>
+                <option value="En cours" ${order.statut === 'En cours' ? 'selected' : ''}>En cours</option>
+                <option value="Livrée" ${order.statut === 'Livrée' ? 'selected' : ''}>Livrée</option>
+                <option value="Annulée" ${order.statut === 'Annulée' ? 'selected' : ''}>Annulée</option>
               </select>
             </td>
           `;
           allOrdersBody.appendChild(tr);
         });
       }
-
+      
+      // Table Top 10 produits
       const topProductsBody = $("topProductsBody");
       topProductsBody.innerHTML = "";
       
-      if (state.analytics.topProducts.length === 0) {
+      if (state.topProducts.length === 0) {
         topProductsBody.innerHTML = `
           <tr>
-            <td colspan="3" style="text-align:center; padding:20px; color:var(--muted)">
+            <td colspan="4" style="text-align:center; padding:20px; color:var(--muted)">
               Aucune donnée de produit
             </td>
           </tr>
         `;
       } else {
-        state.analytics.topProducts.forEach(product => {
+        state.topProducts.forEach((product, index) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td><div style="font-weight:900">${safeText(product.name)}</div></td>
+            <td style="text-align:center; font-weight:900; color:${getRankColor(index + 1)}">${index + 1}</td>
+            <td><div style="font-weight:900">${safeText(product.name).substring(0, 30)}${product.name.length > 30 ? '...' : ''}</div></td>
             <td style="font-weight:900; color:var(--blue)">${product.quantity}</td>
             <td style="font-weight:900; color:var(--green)">${formatPrice(product.revenue)}</td>
           `;
@@ -897,13 +878,20 @@
       $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
     }
 
-    // ===================== INITIALISATION DES GRAPHIQUES =====================
+    function getRankColor(rank) {
+      switch(rank) {
+        case 1: return '#FFD700'; // Or
+        case 2: return '#C0C0C0'; // Argent
+        case 3: return '#CD7F32'; // Bronze
+        default: return 'var(--txt)';
+      }
+    }
+
+    // INITIALISATION DES GRAPHIQUES
     function initCharts() {
-      const charts = state.charts;
-      
-      // 1. Graphique des ventes (courbe)
+      // Ventes par jour
       const salesCtx = $("salesChart").getContext("2d");
-      charts.sales = new Chart(salesCtx, {
+      state.charts.sales = new Chart(salesCtx, {
         type: "line",
         data: { 
           labels: [], 
@@ -930,9 +918,9 @@
         }
       });
 
-      // 2. Graphique des statuts (donut)
+      // Répartition par statut
       const statusCtx = $("statusChart").getContext("2d");
-      charts.status = new Chart(statusCtx, {
+      state.charts.status = new Chart(statusCtx, {
         type: "doughnut",
         data: { 
           labels: [], 
@@ -962,27 +950,9 @@
         }
       });
 
-      // 3. Graphique des heures (histogramme)
-      const hourlyCtx = $("hourlyChart").getContext("2d");
-      charts.hourly = new Chart(hourlyCtx, {
-        type: "bar",
-        data: { 
-          labels: [], 
-          datasets: [{ 
-            label: "Chiffre d'affaires (dt)", 
-            data: [], 
-            backgroundColor: "rgba(0, 212, 255, 0.6)"
-          }] 
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false
-        }
-      });
-
-      // 4. Graphique des produits (histogramme horizontal)
+      // Top 10 produits
       const productsCtx = $("productsChart").getContext("2d");
-      charts.products = new Chart(productsCtx, {
+      state.charts.products = new Chart(productsCtx, {
         type: "bar",
         data: { 
           labels: [], 
@@ -999,35 +969,16 @@
         }
       });
 
-      // 5. Graphique des jours de semaine (histogramme)
-      const weekdayCtx = $("weekdayChart").getContext("2d");
-      charts.weekday = new Chart(weekdayCtx, {
+      // Commandes par heure
+      const hourlyCtx = $("hourlyChart").getContext("2d");
+      state.charts.hourly = new Chart(hourlyCtx, {
         type: "bar",
-        data: { 
-          labels: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"], 
-          datasets: [{ 
-            label: "Chiffre d'affaires (dt)", 
-            data: [], 
-            backgroundColor: "rgba(147, 51, 234, 0.6)"
-          }] 
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false
-        }
-      });
-
-      // 6. Graphique de l'évolution du panier moyen (courbe)
-      const avgCtx = $("avgChart").getContext("2d");
-      charts.avg = new Chart(avgCtx, {
-        type: "line",
         data: { 
           labels: [], 
           datasets: [{ 
-            label: "Panier moyen (dt)", 
+            label: "Chiffre d'affaires (dt)", 
             data: [], 
-            borderWidth: 3, 
-            borderColor: "#ff6b6b"
+            backgroundColor: "rgba(0, 212, 255, 0.6)"
           }] 
         },
         options: {
@@ -1037,16 +988,14 @@
       });
     }
 
-    // ===================== MISE À JOUR DES GRAPHIQUES =====================
+    // MISE À JOUR DES GRAPHIQUES
     function updateCharts() {
       const period = parseInt($("salesPeriod").value || 30);
       
       updateSalesChart(period);
       updateStatusChart();
-      updateHourlyChart();
       updateProductsChart();
-      updateWeekdayChart();
-      updateAvgChart();
+      updateHourlyChart();
     }
 
     function updateSalesChart(period = 30) {
@@ -1089,6 +1038,18 @@
       }
     }
 
+    function updateProductsChart() {
+      const top10 = state.topProducts.slice(0, 10);
+      const labels = top10.map(p => p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name);
+      const data = top10.map(p => p.quantity);
+      
+      if (state.charts.products) {
+        state.charts.products.data.labels = labels;
+        state.charts.products.data.datasets[0].data = data;
+        state.charts.products.update();
+      }
+    }
+
     function updateHourlyChart() {
       const labels = [];
       const data = [];
@@ -1105,60 +1066,16 @@
       }
     }
 
-    function updateProductsChart() {
-      const topProducts = state.analytics.topProducts.slice(0, 10);
-      const labels = topProducts.map(p => p.name);
-      const data = topProducts.map(p => p.quantity);
-      
-      if (state.charts.products) {
-        state.charts.products.data.labels = labels;
-        state.charts.products.data.datasets[0].data = data;
-        state.charts.products.update();
-      }
-    }
-
-    function updateWeekdayChart() {
-      const data = [];
-      
-      for (let i = 0; i < 7; i++) {
-        data.push(state.analytics.salesByWeekday[i] || 0);
-      }
-      
-      if (state.charts.weekday) {
-        state.charts.weekday.data.datasets[0].data = data;
-        state.charts.weekday.update();
-      }
-    }
-
-    function updateAvgChart() {
-      const weeks = Object.keys(state.analytics.avgByWeek)
-        .map(key => parseInt(key))
-        .sort((a, b) => b - a)
-        .slice(0, 8)
-        .reverse();
-      
-      const labels = weeks.map(week => `S${Math.abs(week)}`);
-      const data = weeks.map(week => {
-        const weekData = state.analytics.avgByWeek[week];
-        return weekData.count > 0 ? weekData.total / weekData.count : 0;
-      });
-      
-      if (state.charts.avg) {
-        state.charts.avg.data.labels = labels;
-        state.charts.avg.data.datasets[0].data = data;
-        state.charts.avg.update();
-      }
-    }
-
-    // ===================== MISE À JOUR DU STATUT =====================
+    // MISE À JOUR DU STATUT
     async function updateOrderStatus(commandeId, nouveauStatut) {
       try {
         showToast(`⏳ Mise à jour de ${commandeId}...`, "info");
         
-        if (state.apiStatus === 'demo' || state.apiStatus === 'error') {
-          const orderIndex = state.orders.findIndex(order => order.Commande === commandeId);
+        if (state.apiStatus === 'demo') {
+          // Mise à jour locale
+          const orderIndex = state.orders.findIndex(order => order.commande_id === commandeId);
           if (orderIndex !== -1) {
-            state.orders[orderIndex].Statut = nouveauStatut;
+            state.orders[orderIndex].statut = nouveauStatut;
             calculateAnalytics();
             updateUI();
             updateCharts();
@@ -1167,12 +1084,18 @@
           return;
         }
         
-        const result = await mettreAJourStatut(commandeId, nouveauStatut);
+        const response = await fetch(
+          `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
+        );
         
-        if (result && result.success) {
-          const orderIndex = state.orders.findIndex(order => order.Commande === commandeId);
+        if (!response.ok) throw new Error("Erreur API");
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          const orderIndex = state.orders.findIndex(order => order.commande_id === commandeId);
           if (orderIndex !== -1) {
-            state.orders[orderIndex].Statut = nouveauStatut;
+            state.orders[orderIndex].statut = nouveauStatut;
             calculateAnalytics();
             updateUI();
             updateCharts();
@@ -1180,7 +1103,7 @@
           
           showToast(`✅ Statut mis à jour: ${nouveauStatut}`, "success");
         } else {
-          throw new Error("Erreur API");
+          throw new Error(result.error || "Erreur inconnue");
         }
         
       } catch (error) {
@@ -1189,13 +1112,80 @@
       }
     }
 
-    // ===================== RECHARGEMENT COMPLET =====================
+    // DONNÉES DE DÉMONSTRATION
+    function generateDemoData() {
+      const demoProducts = [
+        "Pizza Margherita", "Pizza Pepperoni", "Pizza 4 Fromages", "Pizza Végétarienne",
+        "Burger Classique", "Burger Double", "Frites", "Salade César", "Soda", "Eau minérale",
+        "Tiramisu", "Glace vanille", "Café", "Thé", "Jus d'orange", "Limonade"
+      ];
+      
+      const orders = [];
+      const now = new Date();
+      
+      for (let i = 0; i < 50; i++) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+        date.setHours(Math.floor(Math.random() * 24));
+        date.setMinutes(Math.floor(Math.random() * 60));
+        
+        const numItems = Math.floor(Math.random() * 4) + 1;
+        let articles = [];
+        let total = 0;
+        
+        for (let j = 0; j < numItems; j++) {
+          const product = demoProducts[Math.floor(Math.random() * demoProducts.length)];
+          const quantity = Math.floor(Math.random() * 3) + 1;
+          const price = 5 + Math.random() * 20;
+          const lineTotal = price * quantity;
+          
+          articles.push(`${quantity}x ${product} @ ${price.toFixed(2)} dt = ${lineTotal.toFixed(2)} dt`);
+          total += lineTotal;
+        }
+        
+        const statuses = ["En attente", "En cours", "Livrée", "Annulée"];
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+        
+        orders.push({
+          id: i + 1,
+          date: date.toISOString(),
+          nom: `Client ${i + 1}`,
+          telephone: `25${Math.floor(100000 + Math.random() * 900000)}`,
+          adresse: `Adresse ${i + 1}, Tunis`,
+          commande_id: `CMD-MAXI-${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2,'0')}${date.getDate().toString().padStart(2,'0')}-${(i+1).toString().padStart(3,'0')}`,
+          articles: articles.join('\n'),
+          total: total.toFixed(2),
+          statut: status
+        });
+      }
+      
+      return orders;
+    }
+
+    function generateDemoTopProducts() {
+      const products = [
+        { name: "Pizza Margherita", quantity: 45, revenue: 832.50 },
+        { name: "Burger Classique", quantity: 38, revenue: 570.00 },
+        { name: "Frites", quantity: 32, revenue: 240.00 },
+        { name: "Soda", quantity: 28, revenue: 140.00 },
+        { name: "Pizza Pepperoni", quantity: 25, revenue: 562.50 },
+        { name: "Salade César", quantity: 22, revenue: 264.00 },
+        { name: "Eau minérale", quantity: 20, revenue: 60.00 },
+        { name: "Pizza 4 Fromages", quantity: 18, revenue: 333.00 },
+        { name: "Tiramisu", quantity: 15, revenue: 127.50 },
+        { name: "Jus d'orange", quantity: 12, revenue: 72.00 }
+      ];
+      
+      return products;
+    }
+
+    // RECHARGEMENT COMPLET
     async function refreshAll() {
       try {
         $("btnRefresh").disabled = true;
-        $("btnRefresh").innerHTML = '<span>⏳</span><span>Chargement...</span>';
+        $("btnRefresh").innerHTML = '<span><i class="fas fa-spinner fa-spin"></i></span><span>Chargement...</span>';
         
-        await loadOrders();
+        await loadData();
         calculateAnalytics();
         updateUI();
         updateCharts();
@@ -1208,24 +1198,28 @@
         
       } finally {
         $("btnRefresh").disabled = false;
-        $("btnRefresh").innerHTML = '<span>🔄</span><span>Actualiser</span>';
+        $("btnRefresh").innerHTML = '<span><i class="fas fa-sync-alt"></i></span><span>Actualiser</span>';
       }
     }
 
-    // ===================== INITIALISATION =====================
+    // INITIALISATION
     document.addEventListener("DOMContentLoaded", () => {
       initCharts();
       
+      // Événements
       $("salesPeriod").addEventListener("change", () => updateCharts());
       $("btnRefresh").addEventListener("click", () => refreshAll());
       
       // Exposer la fonction globalement
       window.updateOrderStatus = updateOrderStatus;
       
+      // Chargement initial
       refreshAll();
       
+      // Actualisation automatique toutes les 30 secondes
       setInterval(refreshAll, 30000);
       
+      // Actualiser quand la page redevient visible
       document.addEventListener('visibilitychange', function() {
         if (!document.hidden) {
           refreshAll();
