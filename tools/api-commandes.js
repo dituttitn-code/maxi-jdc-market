@@ -7,6 +7,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbz01QnoaxYg8OwAd5BGm_L6
 
 /*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
+ * CORRIGÉ : Envoie TOUS les articles
  *********************************/
 export async function envoyerCommande(dataCommande) {
   if (!dataCommande || typeof dataCommande !== "object") {
@@ -16,31 +17,68 @@ export async function envoyerCommande(dataCommande) {
   // Formatage des articles selon la nouvelle structure
   let articlesFormat = [];
   
-  if (Array.isArray(dataCommande.articles)) {
+  // Vérifier si dataCommande.articles est un objet (panier)
+  if (dataCommande.articles && typeof dataCommande.articles === 'object' && !Array.isArray(dataCommande.articles)) {
+    // Convertir l'objet panier en tableau
+    articlesFormat = Object.values(dataCommande.articles).map(item => ({
+      produit: item.name || item.produit || "Produit",
+      quantite: item.quantity || item.quantite || 1,
+      prix_unitaire: item.price || item.prix_unitaire || 0,
+      prix_total: (item.price || 0) * (item.quantity || 1),
+      code: item.code || "",
+      isPromotion: item.isPromotion || false,
+      oldPrice: item.oldPrice || null,
+      discountPercent: item.discountPercent || 0
+    }));
+  } else if (Array.isArray(dataCommande.articles)) {
+    // Si c'est déjà un tableau
     articlesFormat = dataCommande.articles.map(item => ({
-      produit: item.produit || item.nom || "",
-      quantite: item.quantite || item.qty || 1,
-      prix_unitaire: item.prix_unitaire || item.prix || 0,
-      prix_total: item.prix_total || ((item.quantite || 1) * (item.prix_unitaire || 0))
+      produit: item.produit || item.nom || item.name || "",
+      quantite: item.quantite || item.qty || item.quantity || 1,
+      prix_unitaire: item.prix_unitaire || item.prix || item.price || 0,
+      prix_total: item.prix_total || ((item.quantite || 1) * (item.prix_unitaire || 0)),
+      code: item.code || "",
+      isPromotion: item.isPromotion || false,
+      oldPrice: item.oldPrice || null,
+      discountPercent: item.discountPercent || 0
     }));
   } else if (typeof dataCommande.articles === 'string') {
     try {
       articlesFormat = JSON.parse(dataCommande.articles);
     } catch (e) {
-      articlesFormat = [];
+      // Si c'est une chaîne formatée "3x Produit\n5x Autre"
+      const lines = dataCommande.articles.split('\n');
+      articlesFormat = lines.map(line => {
+        const match = line.match(/^(\d+)x\s+(.+)$/);
+        if (match) {
+          return {
+            produit: match[2].trim(),
+            quantite: parseInt(match[1]),
+            prix_unitaire: 0,
+            prix_total: 0
+          };
+        }
+        return { produit: line, quantite: 1, prix_unitaire: 0, prix_total: 0 };
+      });
     }
+  }
+
+  // Calculer le total si non fourni
+  let total = dataCommande.total || 0;
+  if (!total && articlesFormat.length > 0) {
+    total = articlesFormat.reduce((sum, item) => sum + (item.prix_total || 0), 0);
   }
 
   const payload = {
     method: "saveOrder",
-    nom: dataCommande.nom || dataCommande.client_nom || "",
-    telephone: dataCommande.telephone || dataCommande.client_telephone || "",
-    adresse: dataCommande.adresse || dataCommande.client_adresse || "",
+    nom: dataCommande.nom || dataCommande.client_nom || dataCommande.name || "",
+    telephone: dataCommande.telephone || dataCommande.client_telephone || dataCommande.phone || "",
+    adresse: dataCommande.adresse || dataCommande.client_adresse || dataCommande.address || "",
     articles: JSON.stringify(articlesFormat),
-    total: String(dataCommande.total || dataCommande.sousTotal || 0)
+    total: String(total || dataCommande.sousTotal || 0)
   };
 
-  console.log("Envoi de la commande:", payload);
+  console.log("Envoi de la commande avec", articlesFormat.length, "articles:", payload);
 
   try {
     const response = await fetch(API_URL, {
@@ -61,12 +99,11 @@ export async function envoyerCommande(dataCommande) {
     console.error("Erreur dans envoyerCommande:", error);
     
     // Fallback pour no-cors
-    return fetch(API_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(payload).toString()
-    });
+    return {
+      success: false,
+      error: error.message,
+      fallback: true
+    };
   }
 }
 
@@ -113,10 +150,12 @@ export async function recupererCommandes() {
 
 /*********************************
  * SUIVRE UNE COMMANDE (Client)
- * Pour la fonctionnalité de suivi
+ * Pour la fonctionnalité de suivi - AMÉLIORÉ
  *********************************/
 export async function suivreCommande(commandeId, telephone) {
   try {
+    console.log("Recherche commande:", commandeId, "téléphone:", telephone);
+    
     const response = await fetch(
       `${API_URL}?method=getOrderStatus&commande_id=${encodeURIComponent(commandeId)}&telephone=${encodeURIComponent(telephone)}&t=${Date.now()}`
     );
@@ -126,6 +165,7 @@ export async function suivreCommande(commandeId, telephone) {
     }
     
     const data = await response.json();
+    console.log("Réponse suivi:", data);
     
     if (!data.success) {
       throw new Error(data.error || "Commande non trouvée");
@@ -152,11 +192,72 @@ export async function suivreCommande(commandeId, telephone) {
 }
 
 /*********************************
+ * RECHERCHER COMMANDES PAR TÉLÉPHONE
+ * Nouvelle fonction pour la recherche
+ *********************************/
+export async function rechercherCommandesParTelephone(telephone) {
+  try {
+    console.log("Recherche par téléphone:", telephone);
+    
+    // D'abord récupérer toutes les commandes
+    const allOrders = await recupererCommandes();
+    
+    // Nettoyer le numéro de téléphone pour la comparaison
+    const cleanPhone = telephone.replace(/\D/g, '');
+    
+    // Filtrer les commandes par téléphone
+    const commandesFiltrees = allOrders.filter(commande => {
+      const commandePhone = commande.Téléphone.replace(/\D/g, '');
+      return commandePhone.includes(cleanPhone) || cleanPhone.includes(commandePhone);
+    });
+    
+    console.log(`${commandesFiltrees.length} commandes trouvées pour ce téléphone`);
+    
+    return commandesFiltrees;
+  } catch (error) {
+    console.error("Erreur dans rechercherCommandesParTelephone:", error);
+    return [];
+  }
+}
+
+/*********************************
+ * RECHERCHER COMMANDE PAR ID
+ * Nouvelle fonction pour la recherche par ID
+ *********************************/
+export async function rechercherCommandeParId(commandeId) {
+  try {
+    console.log("Recherche commande par ID:", commandeId);
+    
+    // D'abord récupérer toutes les commandes
+    const allOrders = await recupererCommandes();
+    
+    // Chercher la commande par ID
+    const commande = allOrders.find(c => 
+      c.Commande === commandeId || 
+      c.Commande.includes(commandeId) || 
+      commandeId.includes(c.Commande)
+    );
+    
+    if (commande) {
+      console.log("Commande trouvée:", commande.Commande);
+      return commande;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Erreur dans rechercherCommandeParId:", error);
+    return null;
+  }
+}
+
+/*********************************
  * RECUPERER L'HISTORIQUE D'UN CLIENT
  * Pour la fonctionnalité historique
  *********************************/
 export async function recupererHistorique(telephone) {
   try {
+    console.log("Récupération historique pour téléphone:", telephone);
+    
     const response = await fetch(
       `${API_URL}?method=getOrderHistory&telephone=${encodeURIComponent(telephone)}&t=${Date.now()}`
     );
@@ -186,6 +287,8 @@ export async function recupererHistorique(telephone) {
       _raw: commande
     }));
     
+    console.log(`${historiqueFormate.length} commandes dans l'historique`);
+    
     return historiqueFormate;
   } catch (error) {
     console.error("Erreur dans recupererHistorique:", error);
@@ -199,6 +302,8 @@ export async function recupererHistorique(telephone) {
  *********************************/
 export async function mettreAJourStatut(commandeId, nouveauStatut) {
   try {
+    console.log("Mise à jour statut:", commandeId, "->", nouveauStatut);
+    
     const response = await fetch(
       `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
     );
@@ -213,6 +318,7 @@ export async function mettreAJourStatut(commandeId, nouveauStatut) {
       throw new Error(data.error || "Erreur lors de la mise à jour");
     }
     
+    console.log("Statut mis à jour avec succès");
     return data;
   } catch (error) {
     console.error("Erreur dans mettreAJourStatut:", error);
@@ -250,9 +356,15 @@ export function formaterArticles(articles) {
     
     // Formater chaque article
     return articlesArray.map(item => {
-      const quantite = item.quantite || item.qty || 1;
-      const produit = item.produit || item.nom || "Produit";
-      return `${quantite}x ${produit}`;
+      const quantite = item.quantite || item.qty || item.quantity || 1;
+      const produit = item.produit || item.nom || item.name || "Produit";
+      const prix = item.prix_unitaire || item.prix || item.price;
+      
+      if (prix) {
+        return `${quantite}x ${produit} (${prix.toFixed(2)} dt)`;
+      } else {
+        return `${quantite}x ${produit}`;
+      }
     }).join("\n");
     
   } catch (error) {
@@ -272,13 +384,14 @@ export function parserArticles(texteArticles) {
   const articles = [];
   
   for (const ligne of lignes) {
-    const match = ligne.trim().match(/^(\d+)x\s+(.+)$/);
+    // Format: "3x Produit (12.50 dt)" ou "3x Produit"
+    const match = ligne.trim().match(/^(\d+)x\s+(.+?)(?:\s+\(([\d.,]+)\s*dt\))?$/);
     if (match) {
       articles.push({
         produit: match[2].trim(),
         quantite: parseInt(match[1]),
-        prix_unitaire: 0,
-        prix_total: 0
+        prix_unitaire: match[3] ? parseFloat(match[3].replace(',', '.')) : 0,
+        prix_total: match[3] ? parseFloat(match[3].replace(',', '.')) * parseInt(match[1]) : 0
       });
     }
   }
@@ -287,7 +400,7 @@ export function parserArticles(texteArticles) {
 }
 
 /*********************************
- * GENERER UN TABLEAU HTML POUR L'AFFICHAGE
+ * GÉNÉRER UN TABLEAU HTML POUR L'AFFICHAGE
  * Affiche les 8 colonnes exactes
  *********************************/
 export function genererTableauCommandes(commandes) {
@@ -343,18 +456,20 @@ export function genererTableauCommandes(commandes) {
 }
 
 /*********************************
- * GENERER UN TABLEAU POUR LE SUIVI CLIENT
+ * GÉNÉRER UN TABLEAU POUR LE SUIVI CLIENT
  *********************************/
 export function genererTableauSuivi(commande) {
   if (!commande) {
     return '<p class="no-data">Commande non trouvée</p>';
   }
   
+  const statutClass = commande.Statut ? commande.Statut.toLowerCase().replace(' ', '-').replace('é', 'e').replace('è', 'e') : '';
+  
   return `
     <div class="suivi-commande">
       <div class="suivi-header">
         <h3>Commande: ${commande.Commande || ''}</h3>
-        <span class="statut-badge ${commande.Statut?.toLowerCase().replace(' ', '-') || ''}">
+        <span class="statut-badge ${statutClass}">
           ${commande.Statut || 'En attente'}
         </span>
       </div>
@@ -405,6 +520,7 @@ export const stylesTableau = `
       border-collapse: collapse;
       margin: 20px 0;
       font-family: Arial, sans-serif;
+      table-layout: fixed;
     }
     
     .commandes-table th {
@@ -414,12 +530,15 @@ export const stylesTableau = `
       text-align: left;
       font-weight: bold;
       border: 1px solid #ddd;
+      position: sticky;
+      top: 0;
     }
     
     .commandes-table td {
       padding: 10px;
       border: 1px solid #ddd;
       vertical-align: top;
+      word-wrap: break-word;
     }
     
     .commandes-table tr:nth-child(even) {
@@ -431,9 +550,10 @@ export const stylesTableau = `
     }
     
     .articles-cell {
-      max-width: 250px;
+      max-width: 300px; /* Plus large */
       white-space: pre-line;
       font-size: 14px;
+      line-height: 1.4;
     }
     
     .statut-select {
@@ -458,6 +578,7 @@ export const stylesTableau = `
       padding: 20px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       margin: 20px 0;
+      max-width: 600px;
     }
     
     .suivi-header {
@@ -479,21 +600,25 @@ export const stylesTableau = `
     .statut-badge.en-attente {
       background: #FFF3CD;
       color: #856404;
+      border: 1px solid #FFC107;
     }
     
     .statut-badge.en-cours {
       background: #CCE5FF;
       color: #004085;
+      border: 1px solid #2196F3;
     }
     
-    .statut-badge.livrée {
+    .statut-badge.livree {
       background: #D4EDDA;
       color: #155724;
+      border: 1px solid #4CAF50;
     }
     
-    .statut-badge.annulée {
+    .statut-badge.annulee {
       background: #F8D7DA;
       color: #721C24;
+      border: 1px solid #F44336;
     }
     
     .suivi-details {
@@ -515,6 +640,7 @@ export const stylesTableau = `
     .detail-value {
       flex: 1;
       color: #333;
+      word-break: break-word;
     }
     
     .suivi-articles h4 {
@@ -527,6 +653,8 @@ export const stylesTableau = `
       border-radius: 5px;
       padding: 15px;
       margin-bottom: 20px;
+      max-height: 300px;
+      overflow-y: auto;
     }
     
     .article-item {
@@ -598,6 +726,8 @@ export default {
   envoyerCommande,
   recupererCommandes,
   suivreCommande,
+  rechercherCommandesParTelephone,
+  rechercherCommandeParId,
   recupererHistorique,
   mettreAJourStatut,
   formaterArticles,
@@ -614,6 +744,8 @@ if (typeof window !== 'undefined') {
     envoyerCommande,
     recupererCommandes,
     suivreCommande,
+    rechercherCommandesParTelephone,
+    rechercherCommandeParId,
     recupererHistorique,
     mettreAJourStatut,
     formaterArticles
