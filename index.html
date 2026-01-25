@@ -1850,6 +1850,12 @@
       color: #9c27b0;
     }
 
+    .admin-btn.mostsold {
+      border-color: #FFD700;
+      background: rgba(255, 215, 0, 0.1);
+      color: #FFD700;
+    }
+
     .admin-icon {
       font-size: 18px;
     }
@@ -3568,6 +3574,10 @@
             <span class="admin-icon">📦</span>
             <span class="admin-label">Gérer stock</span>
           </button>
+          <button class="admin-btn mostsold" id="adminMostSoldBtn">
+            <span class="admin-icon">🏆</span>
+            <span class="admin-label">Plus vendu</span>
+          </button>
         </div>
       </section>
 
@@ -4010,7 +4020,7 @@
       commandeApiUrl: "https://script.google.com/macros/s/AKfycbz01QnoaxYg8OwAd5BGm_L6JbaOPaQ0FGuu7Cm3dGbJ_M07F_4aKDNcy7BfPtr7hA3T/exec",
       
       // Configuration pour le son uniquement sur la tablette du magasin
-      tabletDeviceId: 'maxi_jdc_tablet', // ID unique pour la tablette du magasin
+      tabletDeviceId: 'maxi_jdc_tablet',
       playSoundOnTabletOnly: true
     };
 
@@ -4086,7 +4096,10 @@
         toastCartCleared: "Panier vidé",
         toastAccountSaved: "Compte enregistré avec succès !",
         toastOrderPlaced: "Commande créée !",
-        trackingMessage: "Pour suivre votre commande, veuillez saisir votre numéro de commande dans le champ de suivi de commande"
+        trackingMessage: "Pour suivre votre commande, veuillez saisir votre numéro de commande dans le champ de suivi de commande",
+        
+        // Admin
+        mostSoldBtn: "Plus vendu"
       },
       en: {
         // Main interface
@@ -4158,7 +4171,10 @@
         toastCartCleared: "Cart cleared",
         toastAccountSaved: "Account saved successfully!",
         toastOrderPlaced: "Order created!",
-        trackingMessage: "To track your order, please enter your order number in the order tracking field"
+        trackingMessage: "To track your order, please enter your order number in the order tracking field",
+        
+        // Admin
+        mostSoldBtn: "Most sold"
       },
       ar: {
         // الواجهة الرئيسية
@@ -4230,7 +4246,10 @@
         toastCartCleared: "تم تفريغ السلة",
         toastAccountSaved: "تم حفظ الحساب بنجاح!",
         toastOrderPlaced: "تم إنشاء الطلب!",
-        trackingMessage: "لمتابعة طلبك، يرجى إدخال رقم طلبك في حقل متابعة الطلبات"
+        trackingMessage: "لمتابعة طلبك، يرجى إدخال رقم طلبك في حقل متابعة الطلبات",
+        
+        // Admin
+        mostSoldBtn: "الأكثر مبيعاً"
       }
     };
 
@@ -4287,19 +4306,18 @@
       lastOrderId: null,
       currentLanguage: 'fr',
       clientSpaceVisible: false,
-      isTabletDevice: false, // Nouveau: pour détecter la tablette du magasin
-      catScrollPosition: 0
+      isTabletDevice: false,
+      catScrollPosition: 0,
+      mostSoldItem: null
     };
 
     // ===================== DÉTECTION DE LA TABLETTE =====================
     function detectTabletDevice() {
-      // Vérifier si c'est la tablette du magasin
       const savedDeviceId = localStorage.getItem('maxi_jdc_device_id');
       if (savedDeviceId === CONFIG.tabletDeviceId) {
         state.isTabletDevice = true;
         console.log('📱 Tablette du magasin détectée');
       } else if (!savedDeviceId) {
-        // Première visite - demander si c'est la tablette du magasin
         const isTablet = confirm("Êtes-vous sur la tablette du magasin MAXI JDC MARKET ?\n\nCliquez sur OK pour activer les notifications sonores des nouvelles commandes.\nCliquez sur Annuler si vous êtes un client.");
         if (isTablet) {
           localStorage.setItem('maxi_jdc_device_id', CONFIG.tabletDeviceId);
@@ -4379,6 +4397,9 @@
       $('activeCategoryLabel').textContent = t.productsTitle;
       $('activeCategoryMeta').textContent = t.selectCategory;
       updatePageInfo();
+      
+      // Admin
+      $('adminMostSoldBtn .admin-label').textContent = t.mostSoldBtn;
       
       // Mettre à jour les boutons langue
       document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -5466,7 +5487,6 @@
       if (state.clientSpaceVisible) {
         $('clientSpaceSection').classList.add('visible');
         $('toggleClientSpaceBtn').style.display = 'none';
-        // Masquer les autres sections par défaut
         $('accountDetailsSection').classList.remove('visible');
         $('historySearchSection').classList.remove('visible');
         $('orderHistorySection').classList.remove('visible');
@@ -5480,7 +5500,6 @@
       state.clientSpaceVisible = false;
       $('clientSpaceSection').classList.remove('visible');
       $('toggleClientSpaceBtn').style.display = 'block';
-      // Masquer toutes les sections de l'espace client
       $('accountDetailsSection').classList.remove('visible');
       $('historySearchSection').classList.remove('visible');
       $('orderHistorySection').classList.remove('visible');
@@ -5488,7 +5507,6 @@
 
     function initClientSpace() {
       $('clientAccountBtn').onclick = () => {
-        // Afficher la section compte, masquer historique
         $('accountDetailsSection').classList.add('visible');
         $('orderHistorySection').classList.remove('visible');
         $('historySearchSection').classList.remove('visible');
@@ -5506,7 +5524,6 @@
           $('clientAccountBtn').click();
           return;
         }
-        // Afficher la section historique, masquer compte
         $('accountDetailsSection').classList.remove('visible');
         $('historySearchSection').classList.add('visible');
         $('orderHistorySection').classList.add('visible');
@@ -5515,6 +5532,67 @@
         renderHistory(history);
         showToast('📜 Accès à votre historique');
       };
+    }
+
+    // ===================== ARTICLE LE PLUS VENDU =====================
+    function calculateMostSoldItem() {
+      let itemSales = {};
+      
+      // Analyser l'historique des commandes
+      state.orderHistory.forEach(order => {
+        order.items.forEach(item => {
+          const key = `${item.code}_${item.name}`;
+          if (!itemSales[key]) {
+            itemSales[key] = {
+              name: item.name,
+              code: item.code,
+              quantity: 0,
+              totalSales: 0,
+              revenue: 0
+            };
+          }
+          itemSales[key].quantity += item.quantity;
+          itemSales[key].totalSales += item.price * item.quantity;
+          itemSales[key].revenue += item.price * item.quantity;
+        });
+      });
+      
+      // Trouver l'article avec la plus grande quantité vendue
+      let mostSold = null;
+      Object.values(itemSales).forEach(item => {
+        if (!mostSold || item.quantity > mostSold.quantity) {
+          mostSold = item;
+        }
+      });
+      
+      state.mostSoldItem = mostSold;
+      return mostSold;
+    }
+
+    function showMostSoldItem() {
+      if (!state.isAdmin) {
+        showToast('❌ Accès administrateur requis', 'error');
+        return;
+      }
+      
+      const mostSold = calculateMostSoldItem();
+      if (mostSold) {
+        const message = `🏆 ARTICLE LE PLUS VENDU :\n\n` +
+          `📦 Nom: ${mostSold.name}\n` +
+          `🔢 Code: ${mostSold.code}\n` +
+          `📊 Quantité vendue: ${mostSold.quantity} unités\n` +
+          `💰 Chiffre d'affaires: ${formatPrice(mostSold.revenue)}\n\n` +
+          `🌟 Cet article est votre best-seller !`;
+        
+        alert(message);
+        
+        // Enregistrer dans localStorage pour le tableau de bord
+        localStorage.setItem('maxi_jdc_most_sold', JSON.stringify(mostSold));
+        
+        showToast('🏆 Article le plus vendu affiché');
+      } else {
+        showToast('📭 Aucune donnée de vente disponible', 'warning');
+      }
     }
 
     // ===================== GESTION ADMIN STOCK =====================
@@ -5904,19 +5982,16 @@
       window.open(CONFIG.dashboardUrl, '_blank');
     }
 
-    // ===================== SIGNAL SONORE - PLUS FORT ET UNIQUEMENT SUR TABLETTE =====================
+    // ===================== SIGNAL SONORE =====================
     function playOrderNotificationSound() {
-      // Vérifier si c'est la tablette du magasin
       if (CONFIG.playSoundOnTabletOnly && !state.isTabletDevice) {
         console.log('🔕 Son désactivé - Ce n\'est pas la tablette du magasin');
         return;
       }
 
       try {
-        // Créer un contexte audio
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
-        // Fonction pour jouer un bip FORT
         function playBeep(frequency, duration, startTime, volume = 0.5) {
           const oscillator = audioContext.createOscillator();
           const gainNode = audioContext.createGain();
@@ -5927,7 +6002,6 @@
           oscillator.frequency.value = frequency;
           oscillator.type = 'sine';
           
-          // Volume PLUS FORT
           gainNode.gain.setValueAtTime(0, startTime);
           gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
           gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
@@ -5936,29 +6010,21 @@
           oscillator.stop(startTime + duration);
         }
         
-        // Jouer 5 bips FORTS avec un petit délai entre chacun
         const now = audioContext.currentTime;
         
-        // Premier bip très fort (1000Hz)
         playBeep(1000, 0.2, now, 0.7);
-        // Deuxième bip
         playBeep(800, 0.15, now + 0.3, 0.6);
-        // Troisième bip
         playBeep(1200, 0.18, now + 0.6, 0.65);
-        // Quatrième bip
         playBeep(900, 0.16, now + 0.9, 0.6);
-        // Cinquième bip très fort
         playBeep(1100, 0.25, now + 1.2, 0.7);
         
         console.log('🔔 Signal sonore FORT joué pour nouvelle commande');
         
-        // Si c'est la tablette, montrer une notification visuelle aussi
         if (state.isTabletDevice) {
           showToast('🛎️ NOUVELLE COMMANDE !', 'warning');
         }
       } catch (error) {
         console.warn('Impossible de jouer le signal sonore:', error);
-        // Fallback: utiliser un son HTML simple
         try {
           const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ');
           audio.volume = 0.7;
@@ -5993,7 +6059,6 @@
         // 2. PRÉPARER LES ARTICLES - TOUS LES ARTICLES DU PANIER
         const articles = [];
         Object.values(state.cart).forEach(item => {
-            // Ajouter chaque article avec tous ses détails
             articles.push({
                 produit: item.name,
                 code: item.code,
@@ -6008,7 +6073,7 @@
         // 3. ENVOYER LES ARTICLES SOUS FORME DE JSON
         formData.append('articles', JSON.stringify(articles));
         
-        // 4. TOTAL
+        // 4. TOTAL - UTILISER LE TOTAL CALCULÉ PAR L'APPLICATION
         formData.append('total', orderData.total.toFixed(2));
         formData.append('economies', orderData.savings || 0);
         
@@ -6027,9 +6092,7 @@
         console.log('📥 Réponse:', result);
         
         if (result.success) {
-          // Jouer le signal sonore pour alerter l'employé (uniquement sur tablette)
           playOrderNotificationSound();
-          
           showToast('✅ Commande enregistrée dans Google Sheets ! ID: ' + result.commande_id);
           state.lastOrderId = result.commande_id;
           return result.commande_id;
@@ -6065,10 +6128,8 @@
 📞 Nous vous contacterons prochainement pour la livraison.
 ${t.trackingMessage}`;
       
-      // Afficher le message dans une alerte
       alert(message);
       
-      // Copier le message dans le presse-papier
       navigator.clipboard.writeText(message).then(() => {
         showToast('📋 Message copié dans le presse-papier');
       }).catch(err => {
@@ -6099,7 +6160,6 @@ ${t.trackingMessage}`;
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
       const total = subtotal + shippingFee;
 
-      // Générer un numéro de commande
       const commandeId = genererNumeroCommande();
 
       let orderText = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
@@ -6159,7 +6219,6 @@ ${t.trackingMessage}`;
       $('orderDetails').textContent = orderText;
       $('orderModal').classList.add('open');
 
-      // Sauvegarder dans l'historique local MAIS PAS ENCORE DANS GOOGLE SHEETS
       const orderData = {
         subtotal,
         shipping: shippingFee,
@@ -6169,10 +6228,8 @@ ${t.trackingMessage}`;
         commandeId: commandeId
       };
 
-      // Sauvegarder dans l'historique local seulement
       saveOrderToHistory(orderData);
 
-      // Vider le panier après création de la commande
       state.cart = {};
       updateCartUI();
 
@@ -6246,11 +6303,9 @@ ${t.trackingMessage}`;
         state.isAdmin = adminState === 'true';
         $('adminSection').classList.toggle('visible', state.isAdmin);
         
-        // Charger la langue sauvegardée
         const savedLang = localStorage.getItem('maxi_jdc_language') || 'fr';
         setLanguage(savedLang);
         
-        // Détecter si c'est la tablette du magasin
         detectTabletDevice();
       } catch (e) {
         console.warn('Erreur chargement état:', e);
@@ -6364,6 +6419,7 @@ ${t.trackingMessage}`;
       $('secretAdminBtn').onclick = toggleAdminMode;
       $('adminDashboardBtn').onclick = openDashboard;
       $('adminStockBtn').onclick = openStockManagement;
+      $('adminMostSoldBtn').onclick = showMostSoldItem;
 
       $('toggleClientSpaceBtn').onclick = toggleClientSpace;
       $('closeClientSpaceBtn').onclick = closeClientSpace;
@@ -6482,12 +6538,10 @@ ${t.trackingMessage}`;
       };
 
       $('sendOrderBtn').onclick = async () => {
-        // Récupérer les données de commande depuis le modal
         const orderText = $('orderDetails').textContent;
         const lines = orderText.split('\n');
         let commandeId = '';
         
-        // Extraire le numéro de commande du texte
         for (const line of lines) {
           if (line.includes('N° Commande:')) {
             commandeId = line.split(':')[1].trim();
@@ -6499,13 +6553,11 @@ ${t.trackingMessage}`;
           commandeId = genererNumeroCommande();
         }
         
-        // Calculer les totaux
         const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
         const shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
         const total = subtotal + shippingFee;
         const savings = calculateTotalSavings();
         
-        // Préparer les données pour l'envoi
         const orderData = {
           subtotal,
           shipping: shippingFee,
@@ -6515,19 +6567,15 @@ ${t.trackingMessage}`;
           commandeId: commandeId
         };
         
-        // Envoyer vers Google Sheets (SEULEMENT maintenant)
         const enregistrementReussi = await enregistrerCommandeGoogleSheets(orderData);
         
-        // Fermer le modal
         $('orderModal').classList.remove('open');
         
         if (enregistrementReussi) {
-          // Envoyer le message au client
           envoyerMessageClient(enregistrementReussi);
           showToast('✅ Commande envoyée avec succès !');
         } else {
           showToast('⚠️ Commande créée mais erreur d\'enregistrement', 'warning');
-          // Envoyer quand même le message avec le numéro généré localement
           envoyerMessageClient(commandeId);
         }
       };
