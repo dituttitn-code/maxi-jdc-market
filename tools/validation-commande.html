@@ -4,6 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Validation commande - MAXI JDC MARKET</title>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
     :root{
       --bg:#05070a;
@@ -17,6 +21,7 @@
       --btn2:#0f1b2b;
       --danger:#ff5c5c;
       --ok:#20e3b2;
+      --warning:#ffa726;
       --shadow: 0 18px 55px rgba(0,0,0,.6);
       --radius:16px;
       --radius2:12px;
@@ -78,8 +83,11 @@
       color: var(--text);
       cursor:pointer;
       font-size:18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
-    .close:hover{border-color:rgba(18,230,165,.55)}
+    .close:hover{border-color:rgba(18,230,165,.55); transform:rotate(90deg);}
     .content{
       padding:16px;
     }
@@ -102,6 +110,7 @@
       padding:14px 16px 16px;
       border-top:1px solid rgba(18,230,165,.20);
       background: rgba(8, 18, 28, .55);
+      flex-wrap: wrap;
     }
     .btn{
       flex:1;
@@ -118,12 +127,14 @@
       gap:10px;
       box-shadow: 0 8px 24px rgba(0,0,0,.30);
       transition:.15s ease;
+      min-width: 140px;
     }
     .btn:hover{transform: translateY(-1px); border-color:rgba(18,230,165,.45)}
     .btn:active{transform: translateY(0px); opacity:.95}
     .btn.secondary{background: var(--btn2)}
     .btn.whatsapp{
       border-color: rgba(18,230,165,.55);
+      background: linear-gradient(180deg, rgba(18,230,165,.18), rgba(18,230,165,.08));
       box-shadow: 0 10px 30px rgba(18,230,165,.10);
     }
     .btn.validate{
@@ -131,6 +142,11 @@
                   var(--btn);
       border-color: rgba(18,230,165,.70);
       color:#c9fff0;
+    }
+    .btn.cancel{
+      border-color: rgba(255,92,92,.55);
+      background: linear-gradient(180deg, rgba(255,92,92,.18), rgba(255,92,92,.08));
+      color:#ffb3b3;
     }
     .pill{
       display:inline-flex;
@@ -161,14 +177,17 @@
       font-size:13px;
       display:none;
       max-width:min(680px, 92vw);
+      z-index: 10000;
     }
-    .toast.show{display:block}
+    .toast.show{display:block; animation: slideUp 0.3s ease;}
     .toast.ok{border-color: rgba(18,230,165,.55)}
     .toast.err{border-color: rgba(255,92,92,.55)}
+    .toast.warn{border-color: rgba(255,167,38,.55)}
     .small{
       font-size:12px;
       color: var(--muted);
       margin-top:10px;
+      line-height: 1.4;
     }
     .row{
       display:flex;
@@ -176,13 +195,84 @@
       justify-content:space-between;
       gap:10px;
       margin-top:10px;
+      flex-wrap: wrap;
     }
     .link{
       color:#9feee0;
       text-decoration: none;
       border-bottom:1px dashed rgba(18,230,165,.35);
+      cursor: pointer;
     }
     .link:hover{border-bottom-color:rgba(18,230,165,.8)}
+    
+    .sound-alert {
+      display: none;
+      padding: 10px;
+      background: rgba(255,167,38,.15);
+      border: 1px solid rgba(255,167,38,.3);
+      border-radius: 8px;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .sound-alert.show {
+      display: block;
+      animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+    
+    .order-id-display {
+      font-family: var(--mono);
+      background: rgba(0,0,0,.3);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(18,230,165,.3);
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .copy-btn {
+      background: rgba(255,255,255,.1);
+      border: none;
+      color: var(--text);
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    
+    .copy-btn:hover {
+      background: rgba(18,230,165,.2);
+    }
+    
+    .whatsapp-info {
+      background: rgba(37,211,102,.1);
+      border: 1px solid rgba(37,211,102,.3);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 15px;
+      font-size: 12px;
+    }
+    
+    @media (max-width: 768px) {
+      .footer {
+        flex-direction: column;
+      }
+      .btn {
+        min-width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -190,10 +280,12 @@
   <div class="modal" role="dialog" aria-modal="true" aria-label="Validation commande">
     <div class="header">
       <div class="title">
-        <span class="dot">✓</span>
+        <span class="dot"><i class="fas fa-check"></i></span>
         <span id="headerTitle">Commande confirmée</span>
       </div>
-      <button class="close" id="closeBtn" title="Fermer">×</button>
+      <button class="close" id="closeBtn" title="Fermer">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
 
     <div class="content">
@@ -201,24 +293,48 @@
 
       <div class="row">
         <div class="pill" id="statusPill">
-          Statut : <strong id="statusText">En attente</strong>
+          <i class="fas fa-info-circle"></i> Statut : <strong id="statusText">En attente</strong>
         </div>
 
         <div class="pill">
-          Commande : <strong id="orderIdText">—</strong>
+          <i class="fas fa-hashtag"></i> Commande : <strong id="orderIdText">—</strong>
         </div>
+      </div>
+      
+      <div class="order-id-display" id="orderIdDisplay">
+        <span id="orderIdValue">—</span>
+        <button class="copy-btn" onclick="copyOrderId()">
+          <i class="far fa-copy"></i> Copier
+        </button>
+      </div>
+
+      <div class="sound-alert" id="soundAlert">
+        <i class="fas fa-bell"></i> 🔊 Son de notification joué sur la tablette du magasin
+      </div>
+      
+      <div class="whatsapp-info">
+        <i class="fab fa-whatsapp"></i> <strong>WhatsApp Business:</strong> +216 25 600 978<br>
+        <small>Votre commande a été envoyée au WhatsApp du magasin</small>
       </div>
 
       <div class="small">
-        Astuce : “Valider et envoyer” met la commande en <b>Validée</b> puis ouvre WhatsApp avec le message prêt.
+        <i class="fas fa-lightbulb"></i> Astuce : Cliquez sur "Valider et envoyer" pour marquer la commande comme <b>Validée</b> et ouvrir WhatsApp avec le message prêt.
       </div>
     </div>
 
     <div class="footer">
-      <!-- Remplace "Copier" par Valider et envoyer -->
-      <button class="btn validate" id="validateSendBtn">✅ Valider et envoyer</button>
-      <button class="btn secondary" id="downloadBtn">⬇️ Télécharger</button>
-      <button class="btn whatsapp" id="whatsappBtn">📱 WhatsApp</button>
+      <button class="btn validate" id="validateSendBtn">
+        <i class="fas fa-check-double"></i> ✅ Valider et envoyer
+      </button>
+      <button class="btn secondary" id="downloadBtn">
+        <i class="fas fa-download"></i> 📥 Télécharger
+      </button>
+      <button class="btn whatsapp" id="whatsappBtn">
+        <i class="fab fa-whatsapp"></i> 📱 WhatsApp
+      </button>
+      <button class="btn cancel" id="cancelBtn">
+        <i class="fas fa-times"></i> ❌ Annuler
+      </button>
     </div>
   </div>
 
@@ -227,36 +343,36 @@
 <script>
 /**
  * ==========================
- *  CONFIGURATION OBLIGATOIRE
+ *  CONFIGURATION
  * ==========================
- * Mets ici l’URL de ton Apps Script WebApp (celle qui finit par /exec)
- * Exemple: https://script.google.com/macros/s/AKfycbxxxxxxx/exec
  */
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz01QnoaxYg8OwAd5BGm_L6JbaOPaQ0FGuu7Cm3dGbJ_M07F_4aKDNcy7BfPtr7hA3T/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwJGizuwsrTLEsqA7rNq3l6JbiWf1Frt9Gn0Eq3OPP7tE1OKeSQibo6fvMr2kXwbMyo/exec";
+const WHATSAPP_NUMBER = "0021625600978";
 
 /**
  * ==========================
  *  LECTURE DES DONNÉES COMMANDE
  * ==========================
- * Le fichier accepte 3 sources (dans cet ordre) :
- * 1) URL params: ?commande_id=...&telephone=...&nom=...&adresse=...&message=...&statut=...
- * 2) localStorage: key "MAXI_CURRENT_ORDER" (JSON)
- * 3) placeholder si rien
  */
 function getOrderFromUrlOrStorage() {
   const params = new URLSearchParams(location.search);
 
+  // Récupérer depuis l'URL
   const fromUrl = {
     commande_id: params.get("commande_id") || "",
     telephone: params.get("telephone") || "",
     nom: params.get("nom") || "",
     adresse: params.get("adresse") || "",
     statut: params.get("statut") || "En attente",
-    message: params.get("message") || ""
+    message: params.get("message") || "",
+    articles: params.get("articles") || "",
+    total: params.get("total") || "0",
+    date: params.get("date") || new Date().toISOString()
   };
 
   if (fromUrl.commande_id || fromUrl.message) return fromUrl;
 
+  // Essayer localStorage
   try {
     const raw = localStorage.getItem("MAXI_CURRENT_ORDER");
     if (raw) {
@@ -267,59 +383,187 @@ function getOrderFromUrlOrStorage() {
         nom: obj.nom || "",
         adresse: obj.adresse || "",
         statut: obj.statut || "En attente",
-        message: obj.message || obj.text || ""
+        message: obj.message || obj.text || "",
+        articles: obj.articles || "",
+        total: obj.total || "0",
+        date: obj.date || new Date().toISOString()
       };
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn("Erreur lecture localStorage:", e);
+  }
 
+  // Données par défaut
   return {
     commande_id: "",
     telephone: "",
     nom: "",
     adresse: "",
     statut: "En attente",
-    message: ""
+    message: "",
+    articles: "",
+    total: "0",
+    date: new Date().toISOString()
   };
 }
 
-function normalizeTNPhone(phone) {
-  const digits = String(phone || "").replace(/\D/g, "");
-  if (digits.length === 8) return "216" + digits;
-  if (digits.startsWith("216") && digits.length === 11) return digits;
-  return digits; // fallback
-}
-
+/**
+ * ==========================
+ *  FONCTIONS UTILITAIRES
+ * ==========================
+ */
 function showToast(text, type="ok") {
   const el = document.getElementById("toast");
   el.textContent = text;
-  el.className = "toast show " + (type === "err" ? "err" : "ok");
+  el.className = "toast show " + type;
   setTimeout(()=> el.className = "toast", 3200);
 }
 
-function buildReceiptText(order) {
-  // Si le message complet existe déjà, on l’affiche directement (comme sur ta capture)
-  if (order.message && order.message.trim().length > 0) return order.message;
-
-  // Sinon, on construit un reçu simple
-  const now = new Date();
-  const date = now.toLocaleDateString("fr-FR");
-  const time = now.toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"});
-  return (
-`📦 NOUVELLE COMMANDE - MAXI JDC MARKET
-🗓️ ${date} ${time}
-
-👤 CLIENT
-Nom: ${order.nom || "-"}
-Téléphone: ${order.telephone || "-"}
-Adresse: ${order.adresse || "-"}
-
-🛒 ARTICLES
-(Le détail n'a pas été fourni dans cette page)
-
-✅ Statut: ${order.statut || "En attente"}`
-  );
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("📋 Copié dans le presse-papier", "ok");
+  }).catch(err => {
+    console.error("Erreur copie:", err);
+    showToast("❌ Erreur lors de la copie", "err");
+  });
 }
 
+function formatDate(dateString) {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("fr-FR", {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch {
+    return dateString;
+  }
+}
+
+function formatPrice(amount) {
+  const num = parseFloat(amount) || 0;
+  return num.toFixed(2).replace('.', ',') + ' dt';
+}
+
+/**
+ * ==========================
+ *  CONSTRUCTION DU REÇU
+ * ==========================
+ */
+function buildReceiptText(order) {
+  // Si le message complet existe déjà
+  if (order.message && order.message.trim().length > 0) {
+    return order.message;
+  }
+
+  // Construire un reçu détaillé
+  const date = formatDate(order.date);
+  const articles = order.articles ? parseArticles(order.articles) : [];
+  
+  let receipt = `📦 COMMANDE MAXI JDC MARKET\n`;
+  receipt += `═══════════════════════════════\n\n`;
+  receipt += `📅 DATE : ${date}\n`;
+  receipt += `🆔 COMMANDE : ${order.commande_id || "N/A"}\n\n`;
+  receipt += `👤 CLIENT\n`;
+  receipt += `   Nom : ${order.nom || "-"}\n`;
+  receipt += `   Téléphone : ${order.telephone || "-"}\n`;
+  receipt += `   Adresse : ${order.adresse || "-"}\n\n`;
+  
+  if (articles.length > 0) {
+    receipt += `🛒 ARTICLES COMMANDÉS\n`;
+    receipt += `═══════════════════════════════\n`;
+    
+    let subtotal = 0;
+    articles.forEach((item, index) => {
+      const quantity = item.quantite || item.qty || 1;
+      const name = item.produit || item.nom || "Article";
+      const price = parseFloat(item.prix_unitaire || item.prix || 0);
+      const total = quantity * price;
+      subtotal += total;
+      
+      receipt += `${(index + 1).toString().padStart(2, '0')}. ${quantity}x ${name}\n`;
+      receipt += `     ${price.toFixed(2)} dt × ${quantity} = ${total.toFixed(2)} dt\n`;
+    });
+    
+    receipt += `═══════════════════════════════\n`;
+    receipt += `SOUS-TOTAL : ${formatPrice(subtotal)}\n`;
+    
+    const shipping = subtotal >= 100 ? 0 : 3;
+    receipt += `LIVRAISON : ${shipping === 0 ? "GRATUIT" : formatPrice(shipping)}\n`;
+    
+    const finalTotal = subtotal + shipping;
+    receipt += `═══════════════════════════════\n`;
+    receipt += `💳 TOTAL À PAYER : ${formatPrice(finalTotal)}\n\n`;
+  } else {
+    receipt += `🛒 ARTICLES : ${order.articles || "Non spécifié"}\n\n`;
+    receipt += `💰 TOTAL : ${formatPrice(order.total)}\n\n`;
+  }
+  
+  receipt += `📊 STATUT : ${order.statut || "En attente"}\n`;
+  receipt += `═══════════════════════════════\n`;
+  receipt += `📱 WhatsApp : +216 25 600 978\n`;
+  receipt += `🕒 Horaires : 7h - 1h\n`;
+  receipt += `📍 Adresse : Jardins de Carthage\n`;
+  
+  return receipt;
+}
+
+function parseArticles(articlesText) {
+  if (!articlesText) return [];
+  
+  try {
+    // Si c'est du JSON
+    if (articlesText.trim().startsWith("[")) {
+      return JSON.parse(articlesText);
+    }
+    
+    // Si c'est du texte formaté
+    const articles = [];
+    const lines = articlesText.split('\n');
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      
+      // Format: "3x Produit @ 15.00 dt = 45.00 dt"
+      const match = trimmed.match(/^(\d+)x\s+(.+?)\s+@\s+([\d.,]+)\s+dt\s+=\s+([\d.,]+)\s+dt$/);
+      if (match) {
+        articles.push({
+          produit: match[2].trim(),
+          quantite: parseInt(match[1]),
+          prix_unitaire: parseFloat(match[3].replace(',', '.')),
+          prix_total: parseFloat(match[4].replace(',', '.'))
+        });
+      }
+      // Format simple: "3x Produit"
+      else {
+        const simpleMatch = trimmed.match(/^(\d+)x\s+(.+)$/);
+        if (simpleMatch) {
+          articles.push({
+            produit: simpleMatch[2].trim(),
+            quantite: parseInt(simpleMatch[1]),
+            prix_unitaire: 0,
+            prix_total: 0
+          });
+        }
+      }
+    }
+    
+    return articles;
+  } catch (error) {
+    console.error("Erreur parsing articles:", error);
+    return [];
+  }
+}
+
+/**
+ * ==========================
+ *  TÉLÉCHARGEMENT
+ * ==========================
+ */
 function downloadText(filename, text) {
   const blob = new Blob([text], {type: "text/plain;charset=utf-8"});
   const a = document.createElement("a");
@@ -333,102 +577,234 @@ function downloadText(filename, text) {
   }, 0);
 }
 
+/**
+ * ==========================
+ *  WHATSAPP
+ * ==========================
+ */
 function openWhatsApp(order) {
+  if (!order.telephone) {
+    showToast("❌ Numéro de téléphone manquant pour WhatsApp", "err");
+    return;
+  }
+  
   const phone = normalizeTNPhone(order.telephone);
-  const msg = (order.message && order.message.trim()) ? order.message : buildReceiptText(order);
+  const msg = buildWhatsAppMessage(order);
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
   window.open(url, "_blank", "noopener");
 }
 
+function openWhatsAppMagasin(order) {
+  const msg = buildWhatsAppMessage(order);
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+  window.open(url, "_blank", "noopener");
+}
+
+function normalizeTNPhone(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (digits.length === 8) return "216" + digits;
+  if (digits.startsWith("216") && digits.length === 11) return digits;
+  if (digits.startsWith("00216")) return digits.substring(2);
+  return "216" + digits.substring(digits.length - 8);
+}
+
+function buildWhatsAppMessage(order) {
+  const receipt = buildReceiptText(order);
+  return `Bonjour MAXI JDC MARKET,\n\n${receipt}\n\nCordialement.`;
+}
+
 /**
  * ==========================
- *  ACTION PRINCIPALE:
- *  VALIDER + OUVRIR WHATSAPP
+ *  JOUER SON SUR TABLETTE
+ * ==========================
+ */
+function playTabletSound() {
+  try {
+    // Créer un contexte audio
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Fonction pour jouer un bip
+    function playBeep(frequency, duration, startTime, volume = 0.5) {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+      
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    }
+    
+    // Jouer 5 bips (simulation tablette magasin)
+    const now = audioContext.currentTime;
+    playBeep(1000, 0.2, now, 0.7);
+    playBeep(800, 0.15, now + 0.3, 0.6);
+    playBeep(1200, 0.18, now + 0.6, 0.65);
+    playBeep(900, 0.16, now + 0.9, 0.6);
+    playBeep(1100, 0.25, now + 1.2, 0.7);
+    
+    console.log("🔔 Son tablette joué");
+    document.getElementById("soundAlert").classList.add("show");
+    setTimeout(() => {
+      document.getElementById("soundAlert").classList.remove("show");
+    }, 5000);
+    
+  } catch (error) {
+    console.warn("Impossible de jouer le son:", error);
+    document.getElementById("soundAlert").innerHTML = 
+      '<i class="fas fa-volume-mute"></i> 🔊 Son désactivé (navigateur)';
+    document.getElementById("soundAlert").classList.add("show");
+  }
+}
+
+/**
+ * ==========================
+ *  VALIDER ET ENVOYER
  * ==========================
  */
 async function validateAndSend(order) {
-  if (!WEBAPP_URL || WEBAPP_URL.includes("COLLE_ICI")) {
-    showToast("⚠️ WEBAPP_URL non configuré dans validation-commande.html", "err");
+  if (!API_URL || API_URL.includes("COLLE_ICI")) {
+    showToast("⚠️ API_URL non configuré", "err");
     return;
   }
+  
   if (!order.commande_id) {
-    showToast("❌ commande_id introuvable (URL ou localStorage).", "err");
+    showToast("❌ Numéro de commande manquant", "err");
     return;
   }
 
   const btn = document.getElementById("validateSendBtn");
-  const oldTxt = btn.textContent;
+  const oldTxt = btn.innerHTML;
   btn.disabled = true;
-  btn.textContent = "⏳ Validation...";
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validation...';
 
   try {
-    // 1) valider dans Google Sheet (met à jour toutes les lignes côté Apps Script)
-    const url = `${WEBAPP_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(order.commande_id)}&statut=${encodeURIComponent("Validée")}`;
+    // 1) Valider dans Google Sheet
+    const url = `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(order.commande_id)}&statut=${encodeURIComponent("Validée")}`;
     const resp = await fetch(url, { method: "GET" });
     const json = await resp.json();
 
     if (!json || json.success !== true) {
       console.error(json);
-      showToast("❌ Erreur validation (WebApp). Vérifie permissions / URL.", "err");
+      showToast("❌ Erreur validation API", "err");
       btn.disabled = false;
-      btn.textContent = oldTxt;
+      btn.innerHTML = oldTxt;
       return;
     }
 
-    // 2) maj UI statut
+    // 2) Mettre à jour l'interface
     order.statut = "Validée";
     document.getElementById("statusText").textContent = "Validée";
     document.getElementById("headerTitle").textContent = "Commande validée";
-
+    
+    // 3) Jouer le son sur la tablette
+    playTabletSound();
+    
     showToast("✅ Commande validée. Ouverture WhatsApp...", "ok");
 
-    // 3) ouvrir WhatsApp avec le message prêt
-    openWhatsApp(order);
-
-    btn.textContent = "✅ Validée";
+    // 4) Ouvrir WhatsApp Business du magasin
+    setTimeout(() => {
+      openWhatsAppMagasin(order);
+      btn.innerHTML = '<i class="fas fa-check-double"></i> ✅ Validée et envoyée';
+      btn.style.background = "linear-gradient(180deg, rgba(76,175,80,.18), rgba(76,175,80,.08))";
+      btn.style.borderColor = "rgba(76,175,80,.7)";
+    }, 1000);
 
   } catch (e) {
     console.error(e);
     showToast("❌ Erreur: " + e.message, "err");
     btn.disabled = false;
-    btn.textContent = oldTxt;
+    btn.innerHTML = oldTxt;
   }
 }
 
 /**
  * ==========================
- *  INIT PAGE
+ *  INITIALISATION PAGE
  * ==========================
  */
 const order = getOrderFromUrlOrStorage();
+
+// Afficher les informations
 document.getElementById("orderIdText").textContent = order.commande_id || "—";
+document.getElementById("orderIdValue").textContent = order.commande_id || "—";
 document.getElementById("statusText").textContent = order.statut || "En attente";
 document.getElementById("receipt").textContent = buildReceiptText(order);
 
-// Buttons
+// Fonction pour copier le numéro de commande
+window.copyOrderId = function() {
+  copyToClipboard(order.commande_id || "");
+};
+
+// Boutons
 document.getElementById("validateSendBtn").addEventListener("click", () => validateAndSend(order));
 
 document.getElementById("downloadBtn").addEventListener("click", () => {
   const text = buildReceiptText(order);
   const safeId = (order.commande_id || "commande").replace(/[^\w\-]/g, "_");
-  downloadText(`${safeId}.txt`, text);
-  showToast("⬇️ Fichier téléchargé.", "ok");
+  downloadText(`commande-maxi-jdc-${safeId}.txt`, text);
+  showToast("📥 Fichier téléchargé.", "ok");
 });
 
 document.getElementById("whatsappBtn").addEventListener("click", () => {
   openWhatsApp(order);
 });
 
+document.getElementById("cancelBtn").addEventListener("click", () => {
+  if (confirm("Êtes-vous sûr de vouloir annuler cette validation ?")) {
+    if (history.length > 1) {
+      history.back();
+    } else {
+      window.close();
+    }
+  }
+});
+
 document.getElementById("closeBtn").addEventListener("click", () => {
-  // Sur GitHub Pages, souvent on revient à la page précédente
   if (history.length > 1) history.back();
   else window.close();
 });
 
-// Optionnel: CTRL+Enter = WhatsApp
+// Raccourci clavier : Ctrl+Enter = WhatsApp
 document.addEventListener("keydown", (e) => {
-  if (e.ctrlKey && e.key === "Enter") openWhatsApp(order);
+  if (e.ctrlKey && e.key === "Enter") {
+    e.preventDefault();
+    openWhatsApp(order);
+  }
+  if (e.key === "Escape") {
+    document.getElementById("closeBtn").click();
+  }
 });
+
+// Au chargement, vérifier si c'est une nouvelle commande
+document.addEventListener("DOMContentLoaded", () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const isNewOrder = urlParams.get("new") === "true";
+  
+  if (isNewOrder) {
+    // Jouer le son pour la tablette du magasin
+    setTimeout(() => {
+      playTabletSound();
+      showToast("🎉 Nouvelle commande reçue !", "ok");
+    }, 1000);
+  }
+  
+  // Afficher l'heure actuelle
+  const now = new Date();
+  document.getElementById("receipt").textContent += `\n\n🕒 Heure de validation : ${now.toLocaleTimeString("fr-FR", {hour: '2-digit', minute: '2-digit'})}`;
+});
+
+// Exposer certaines fonctions globalement
+window.openWhatsApp = openWhatsApp;
+window.copyOrderId = copyOrderId;
+window.validateAndSend = () => validateAndSend(order);
 </script>
 
 </body>
