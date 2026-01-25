@@ -19,9 +19,6 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   
   <style>
-    /* [Tous les styles CSS précédents restent inchangés] */
-    /* Pour gagner de l'espace, je garde uniquement les styles essentiels */
-    
     :root {
       --bg0: #0a1929;
       --bg1: #112240;
@@ -55,7 +52,7 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoi UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
       color: var(--text);
       background: linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
       line-height: 1.6;
@@ -78,6 +75,10 @@
       padding: 0 8px 70px;
       transition: transform .3s ease;
       height: 100%;
+    }
+
+    body.drawer-open .wrap {
+      transform: translateX(-20vw);
     }
 
     /* BARRE DE LANGUE EN HAUT */
@@ -110,6 +111,11 @@
       box-shadow: 0 2px 8px rgba(0, 212, 255, 0.2);
     }
 
+    .lang-top-bar .lang-btn:hover {
+      background: rgba(0, 212, 255, 0.25);
+      transform: translateY(-2px);
+    }
+
     .lang-top-bar .lang-btn.active {
       background: var(--accent2);
       border-color: var(--accent);
@@ -132,6 +138,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
     }
 
     .logo-brand {
@@ -171,6 +178,7 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
       line-height: 1.2;
+      letter-spacing: -0.2px;
     }
 
     .brand-text p {
@@ -196,6 +204,15 @@
       gap: 2px;
       flex-shrink: 0;
       transition: all 0.2s ease;
+    }
+
+    .cart-btn-header:hover {
+      background: rgba(0, 255, 136, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .cart-btn-header .icon {
+      font-size: 18px;
     }
 
     .cart-btn-header .count {
@@ -254,6 +271,11 @@
       padding-right: 44px;
     }
 
+    .search-input input:focus {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, .12);
+    }
+
     .search-buttons {
       display: flex;
       gap: 4px;
@@ -276,10 +298,68 @@
       white-space: nowrap;
     }
 
+    .search-btn:hover {
+      background: rgba(255, 255, 255, .15);
+      border-color: var(--accent);
+    }
+
     .search-btn.green {
       background: rgba(0, 255, 136, 0.15);
       border-color: var(--accent);
       color: var(--accent);
+    }
+
+    .search-btn.green:hover {
+      background: rgba(0, 255, 136, 0.25);
+    }
+
+    /* INFO BAR */
+    .info-bar {
+      margin-top: 8px;
+      padding: 8px;
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .info-bar-container {
+      display: flex;
+      gap: 20px;
+      animation: scrollHorizontal 30s linear infinite;
+      white-space: nowrap;
+      padding: 5px 0;
+    }
+
+    .info-bar-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+
+    .info-bar-item strong {
+      font-weight: 800;
+      color: var(--accent2);
+    }
+
+    .info-bar-item.qr-item {
+      border-color: var(--accent2);
+      background: rgba(0, 212, 255, 0.1);
+      color: var(--accent2);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .info-bar-item.qr-item:hover {
+      background: rgba(0, 212, 255, 0.2);
     }
 
     /* CATÉGORIES */
@@ -294,6 +374,10 @@
       z-index: 980;
       background: var(--bg0);
       height: 38px;
+    }
+
+    .categories-scroll::-webkit-scrollbar {
+      display: none;
     }
 
     .cat-scroll-container {
@@ -322,6 +406,11 @@
       min-height: 28px;
     }
 
+    .cat-btn:hover {
+      background: rgba(255, 255, 255, .1);
+      border-color: var(--accent2);
+    }
+
     .cat-btn.active {
       border-color: var(--accent);
       background: rgba(0, 255, 136, 0.15);
@@ -333,7 +422,16 @@
       color: #ffffff;
       border-color: #ff9900;
       font-weight: 900;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       animation: pulse 2s infinite;
+    }
+
+    .cat-btn.promo.active {
+      background: linear-gradient(135deg, #ff4444, #ff9900);
+      color: #ffffff;
+      border-color: #ffcc00;
+      box-shadow: 0 0 15px rgba(255, 107, 0, 0.7);
+      transform: scale(1.05);
     }
 
     .cat-count {
@@ -367,6 +465,12 @@
       color: var(--accent);
     }
 
+    .content-header .meta {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
     /* GRID PRODUITS */
     .products-grid {
       display: grid;
@@ -378,12 +482,21 @@
     @media (min-width: 480px) {
       .products-grid {
         grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
       }
     }
 
     @media (min-width: 768px) {
       .products-grid {
         grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .products-grid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 16px;
       }
     }
 
@@ -410,6 +523,18 @@
       box-shadow: 0 5px 12px rgba(0, 212, 255, 0.15);
     }
 
+    .product-card.promo-card {
+      border: 2px solid #ff9900;
+      background: linear-gradient(135deg, var(--card2) 0%, #1a1a2e 100%);
+      box-shadow: 0 3px 10px rgba(255, 107, 0, 0.2);
+    }
+
+    .product-card.promo-card:hover {
+      border-color: #ffcc00;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(255, 107, 0, 0.3);
+    }
+
     .product-image {
       width: 100%;
       height: 110px;
@@ -424,6 +549,11 @@
       padding: 5px;
     }
 
+    .product-card.promo-card .product-image {
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      background: linear-gradient(135deg, #0a1929 0%, #1a1a2e 100%);
+    }
+
     .product-image img {
       max-width: 90%;
       max-height: 90%;
@@ -431,6 +561,11 @@
       height: auto;
       object-fit: contain;
       display: block;
+      transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .product-image img {
+      transform: scale(1.05);
     }
 
     .no-photo {
@@ -445,6 +580,24 @@
       background: linear-gradient(135deg, var(--card) 0%, var(--card2) 100%);
       text-align: center;
       padding: 15px;
+    }
+
+    /* BADGE PROMO SUR L'IMAGE */
+    .image-promo-badge {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: linear-gradient(135deg, #ff0000 0%, #ff6b00 100%);
+      color: white;
+      font-weight: 900;
+      font-size: 9px;
+      padding: 2px 5px;
+      border-radius: 12px;
+      z-index: 2;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 2px 6px rgba(255, 107, 0, 0.5);
+      animation: pulse 1.5s infinite;
+      transform: rotate(5deg);
     }
 
     .product-info {
@@ -467,6 +620,14 @@
       color: var(--text);
     }
 
+    .product-price-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      margin-top: auto;
+    }
+
     .product-price {
       font-weight: 900;
       padding: 4px 6px;
@@ -478,7 +639,46 @@
       white-space: nowrap;
       text-align: center;
       width: 100%;
-      margin-top: auto;
+    }
+
+    .product-card.promo-card .product-price {
+      border: 2px solid #ff9900;
+      background: rgba(255, 153, 0, 0.15);
+      color: #ffcc00;
+    }
+
+    .product-old-price {
+      font-size: 8px;
+      color: var(--muted);
+      text-decoration: line-through;
+      margin-bottom: 1px;
+    }
+
+    .product-card.promo-card .product-old-price {
+      color: #ff8888;
+    }
+
+    .product-discount {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      background: linear-gradient(135deg, #ff0000, #ff6b00);
+      color: white;
+      font-weight: 900;
+      font-size: 8px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      z-index: 2;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 2px 6px rgba(255, 0, 0, 0.3);
+    }
+
+    .product-meta {
+      color: var(--muted);
+      font-size: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
 
     .product-stock-tag {
@@ -512,6 +712,469 @@
       background: rgba(255, 107, 107, .08);
     }
 
+    /* PANIER */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s ease;
+      z-index: 1500;
+      backdrop-filter: blur(5px);
+    }
+
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: 100vw;
+      max-width: 450px;
+      background: linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
+      border-left: 2px solid var(--accent);
+      box-shadow: -20px 0 60px rgba(0, 0, 0, .7);
+      transform: translateX(100%);
+      transition: transform .3s ease;
+      z-index: 1501;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(20px);
+    }
+
+    .drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 18px;
+      border-bottom: 2px solid var(--accent);
+      background: rgba(0, 255, 136, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .drawer-header h3 {
+      margin: 0;
+      font-size: 18px;
+      color: var(--accent);
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      font-weight: 900;
+    }
+
+    .drawer-close {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 2px solid var(--line);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .drawer-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: var(--accent);
+    }
+
+    .drawer-content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    /* SECTION PANIER */
+    .cart-section {
+      background: var(--card2);
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cart-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      overflow-y: auto;
+      max-height: none;
+      padding-right: 5px;
+    }
+
+    .cart-item {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      transition: all 0.2s ease;
+    }
+
+    .cart-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent2);
+    }
+
+    .cart-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .cart-item-name {
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--text);
+      margin-bottom: 3px;
+      line-height: 1.3;
+    }
+
+    .cart-item-details {
+      font-size: 10px;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cart-item-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .cart-item-stepper {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .cart-item-qty-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .cart-item-qty-btn:hover {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .cart-item-qty {
+      min-width: 26px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--accent);
+    }
+
+    .cart-item-price {
+      font-weight: 900;
+      font-size: 13px;
+      color: var(--accent);
+      min-width: 70px;
+      text-align: right;
+    }
+
+    .cart-empty {
+      text-align: center;
+      padding: 30px 15px;
+      color: var(--muted);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .cart-empty-icon {
+      font-size: 42px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+
+    .cart-empty h4 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .cart-empty p {
+      margin: 0;
+      font-size: 12px;
+    }
+
+    /* TOTAUX PANIER */
+    .cart-totals {
+      margin-top: 15px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+    }
+
+    .total-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .total-value {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .total-value.grand {
+      font-size: 16px;
+      color: var(--accent);
+    }
+
+    /* CONDITIONS LIVRAISON */
+    .delivery-info {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--line);
+    }
+
+    .delivery-info h5 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .delivery-rules {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .rule {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    /* FOOTER DRAWER */
+    .drawer-footer {
+      padding: 18px;
+      border-top: 1px solid var(--line);
+      background: rgba(10, 25, 47, 0.95);
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .footer-btn {
+      flex: 1;
+      height: 45px;
+      padding: 0 12px;
+      border-radius: 8px;
+      border: 2px solid;
+      font-weight: 900;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .footer-btn.clear {
+      background: rgba(255, 107, 107, 0.1);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .footer-btn.clear:hover {
+      background: rgba(255, 107, 107, 0.2);
+    }
+
+    .footer-btn.order {
+      background: rgba(0, 255, 136, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .footer-btn.order:hover {
+      background: rgba(0, 255, 136, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(0, 255, 136, 0.2);
+    }
+
+    .footer-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* MODAL CONFIRMATION */
+    .order-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .order-modal-overlay.open {
+      display: flex;
+    }
+
+    .order-modal {
+      width: 100%;
+      max-width: 450px;
+      background: linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
+      border-radius: var(--radius);
+      border: 2px solid var(--accent);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .order-modal-header {
+      padding: 18px;
+      background: rgba(0, 255, 136, 0.1);
+      border-bottom: 1px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .order-modal-header h3 {
+      margin: 0;
+      font-size: 16px;
+      color: var(--accent);
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .order-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+    }
+
+    .order-summary {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .order-details {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .order-modal-footer {
+      padding: 18px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .order-btn {
+      flex: 1;
+      min-width: 110px;
+      height: 40px;
+      padding: 0 12px;
+      border-radius: 6px;
+      border: 2px solid;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+
+    .order-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .order-btn.copy {
+      background: rgba(0, 212, 255, 0.1);
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+
+    .order-btn.copy:hover {
+      background: rgba(0, 212, 255, 0.2);
+    }
+
+    .order-btn.whatsapp {
+      background: rgba(37, 211, 102, 0.1);
+      border-color: #25D366;
+      color: #25D366;
+    }
+
+    .order-btn.whatsapp:hover {
+      background: rgba(37, 211, 102, 0.2);
+    }
+
     /* BOUTON QR */
     .qr-direct-btn {
       position: fixed;
@@ -531,6 +1194,13 @@
       z-index: 999;
       box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
       transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .qr-direct-btn:hover {
+      background: rgba(0, 212, 255, 0.3);
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
     }
 
     /* BOUTON ADMIN */
@@ -552,9 +1222,74 @@
       z-index: 999;
       box-shadow: 0 4px 15px rgba(255, 167, 38, 0.3);
       transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .secret-admin-btn:hover {
+      background: rgba(255, 167, 38, 0.3);
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(255, 167, 38, 0.4);
+    }
+
+    /* TOAST NOTIFICATIONS */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 18px;
+      background: var(--accent);
+      color: var(--bg0);
+      border-radius: 8px;
+      font-weight: 900;
+      z-index: 5000;
+      box-shadow: 0 5px 20px rgba(0, 255, 136, 0.3);
+      animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.5s forwards;
+      max-width: 280px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.warning {
+      background: var(--warning);
+      color: #000;
+    }
+
+    .toast.error {
+      background: var(--danger);
+      color: #fff;
     }
 
     /* ANIMATIONS */
+    @keyframes scrollHorizontal {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+
     @keyframes pulse {
       0%, 100% {
         transform: scale(1);
@@ -578,11 +1313,44 @@
         height: 36px;
         font-size: 12px;
       }
+      
+      .qr-direct-btn {
+        bottom: 80px;
+        right: 10px;
+        width: 48px;
+        height: 48px;
+        font-size: 18px;
+      }
+      
+      .secret-admin-btn {
+        bottom: 140px;
+        right: 10px;
+        width: 42px;
+        height: 42px;
+        font-size: 18px;
+      }
+      
+      .drawer {
+        width: 90vw;
+      }
     }
 
     /* MASQUER LA BARRE DE DÉFILEMENT */
     .categories-scroll::-webkit-scrollbar {
       display: none;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 3px;
     }
   </style>
 </head>
@@ -600,7 +1368,6 @@
     <header class="header">
       <div class="logo-brand">
         <div class="logo">
-          <!-- Logo temporaire avec emoji -->
           <div style="font-size: 24px; color: var(--accent);">🛒</div>
         </div>
         <div class="brand-text">
@@ -624,6 +1391,20 @@
           <button class="search-btn" id="clearSearchBtn">Effacer</button>
           <button class="search-btn green" id="showAllBtn">Tous</button>
         </div>
+      </div>
+    </div>
+
+    <!-- INFO BAR -->
+    <div class="info-bar">
+      <div class="info-bar-container">
+        <div class="info-bar-item">📍 Jardins de Carthage</div>
+        <div class="info-bar-item">🕒 7am -- 1am</div>
+        <div class="info-bar-item"><strong>WhatsApp:</strong> +216 25 600 978</div>
+        <div class="info-bar-item qr-item" id="qrInfoBtn">📱 QR Code</div>
+        <div class="info-bar-item">📍 Jardins de Carthage</div>
+        <div class="info-bar-item">🕒 7am -- 1am</div>
+        <div class="info-bar-item"><strong>WhatsApp:</strong> +216 25 600 978</div>
+        <div class="info-bar-item qr-item">📱 QR Code</div>
       </div>
     </div>
 
@@ -661,375 +1442,479 @@
     </button>
   </div>
 
+  <!-- OVERLAY -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+
+  <!-- PANIER -->
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <h3 id="drawerTitle">🛒 Mon Panier</h3>
+      <button class="drawer-close" id="closeDrawerBtn">×</button>
+    </div>
+    <div class="drawer-content">
+      <!-- PANIER -->
+      <section class="cart-section">
+        <div class="section-title">
+          <h4 id="cartSectionTitle">🧺 Mon Panier</h4>
+          <span class="account-status" id="cartItemsCount">0 article(s)</span>
+        </div>
+        <div class="cart-items" id="cartItemsList"></div>
+
+        <!-- PANIER VIDE -->
+        <div class="cart-empty" id="cartEmptyMessage" style="display:none">
+          <div class="cart-empty-icon">🛒</div>
+          <h4 id="cartEmptyTitle">Panier vide</h4>
+          <p id="cartEmptyText">Ajoutez des articles pour commencer votre commande</p>
+        </div>
+
+        <!-- TOTAUX -->
+        <div class="cart-totals">
+          <div class="total-row">
+            <span class="total-label" id="subtotalLabel">Sous-total</span>
+            <span class="total-value" id="cartSubtotal">0,00 dt</span>
+          </div>
+          <div class="total-row">
+            <span class="total-label" id="shippingLabel">Livraison</span>
+            <span class="total-value" id="cartShipping">0,00 dt</span>
+          </div>
+          <div class="total-row">
+            <span class="total-label" id="totalLabel">Total</span>
+            <span class="total-value grand" id="cartTotal">0,00 dt</span>
+          </div>
+        </div>
+
+        <!-- CONDITIONS LIVRAISON -->
+        <div class="delivery-info">
+          <h5>📦 Conditions de livraison</h5>
+          <div class="delivery-rules">
+            <div class="rule" id="minOrderRule">
+              <span class="rule-icon">💰</span>
+              <span id="minOrderText">Minimum commande: <strong>15 dt</strong></span>
+            </div>
+            <div class="rule" id="shippingRule">
+              <span class="rule-icon">🚚</span>
+              <span id="shippingFeeText">Frais livraison: <strong>3 dt</strong></span>
+            </div>
+            <div class="rule" id="freeShippingRule">
+              <span class="rule-icon">🎁</span>
+              <span id="freeShippingText">Livraison gratuite à partir de <strong>100 dt</strong></span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- FOOTER DRAWER -->
+    <div class="drawer-footer">
+      <button class="footer-btn clear" id="clearCartBtn">
+        🗑️ Vider le panier
+      </button>
+      <button class="footer-btn order" id="placeOrderBtn" disabled>
+        🚀 Commander
+      </button>
+    </div>
+  </aside>
+
+  <!-- MODAL CONFIRMATION -->
+  <div class="order-modal-overlay" id="orderModal">
+    <div class="order-modal">
+      <div class="order-modal-header">
+        <h3>✅ Commande confirmée</h3>
+        <button class="drawer-close" id="closeOrderModalBtn">×</button>
+      </div>
+      <div class="order-modal-body">
+        <div class="order-summary">
+          <pre class="order-details" id="orderDetails"></pre>
+        </div>
+      </div>
+      <div class="order-modal-footer">
+        <button class="order-btn copy" id="copyOrderBtn">
+          📋 Copier
+        </button>
+        <button class="order-btn whatsapp" id="sendOrderBtn">
+          📱 Envoyer sur WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // ===================== CONFIGURATION SIMPLIFIÉE =====================
+    // ===================== CONFIGURATION =====================
     const CONFIG = {
       minOrder: 15,
       freeShipping: 100,
       shippingFee: 3,
       whatsappNumber: "21625600978",
-      itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app',
+      localStorageKey: 'maxi_jdc_market_app_v2',
       imagesBasePath: 'images/products/',
-      adminPassword: "admin123"
+      adminPassword: "admin123",
+      storeLocation: {
+        lat: 36.851234,
+        lng: 10.301234
+      }
     };
 
-    // ===================== DONNÉES DE TEST =====================
-    // Données de test pour les produits (à remplacer par vos données réelles)
+    // ===================== DONNÉES DE TEST COMPLÈTES =====================
     const TEST_PRODUCTS = [
-      // PROMOTIONS
-      { code: "PROMO001", name: "Café Arabica Premium", price: 12.5, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 10, isPromotion: true, oldPrice: 18.0, discountPercent: 30 },
-      { code: "PROMO002", name: "Thé Vert Menthe", price: 8.0, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 15, isPromotion: true, oldPrice: 12.0, discountPercent: 33 },
-      { code: "PROMO003", name: "Lait UHT 1L", price: 2.8, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 20, isPromotion: true, oldPrice: 3.5, discountPercent: 20 },
-      { code: "PROMO004", name: "Huile d'Olive Extra Vierge", price: 22.0, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 8, isPromotion: true, oldPrice: 28.0, discountPercent: 21 },
+      // PROMOTIONS - 20 produits
+      { code: "PROMO001", name: "Café Arabica Premium 500g", price: 12.5, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 10, isPromotion: true, oldPrice: 18.0, discountPercent: 30 },
+      { code: "PROMO002", name: "Thé Vert Menthe 100 sachets", price: 8.0, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 15, isPromotion: true, oldPrice: 12.0, discountPercent: 33 },
+      { code: "PROMO003", name: "Lait UHT 1L - Pack de 6", price: 16.8, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 8, isPromotion: true, oldPrice: 21.0, discountPercent: 20 },
+      { code: "PROMO004", name: "Huile d'Olive Extra Vierge 2L", price: 22.0, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 12, isPromotion: true, oldPrice: 28.0, discountPercent: 21 },
+      { code: "PROMO005", name: "Chocolat Noir 70% - 200g", price: 5.5, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 25, isPromotion: true, oldPrice: 8.0, discountPercent: 31 },
+      { code: "PROMO006", name: "Jus d'Orange 100% Pur - 1L", price: 4.2, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 18, isPromotion: true, oldPrice: 6.0, discountPercent: 30 },
+      { code: "PROMO007", name: "Pâtes Italiennes 1kg", price: 3.2, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 30, isPromotion: true, oldPrice: 4.5, discountPercent: 29 },
+      { code: "PROMO008", name: "Riz Basmati 5kg", price: 22.5, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 10, isPromotion: true, oldPrice: 30.0, discountPercent: 25 },
+      { code: "PROMO009", name: "Thon à l'Huile - Boîte de 6", price: 18.0, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 15, isPromotion: true, oldPrice: 24.0, discountPercent: 25 },
+      { code: "PROMO010", name: "Café Moulu 250g", price: 6.5, category: "🔥 PROMOTIONS", categoryKey: "promotions", stock: 20, isPromotion: true, oldPrice: 9.0, discountPercent: 28 },
       
-      // Café & Thés
-      { code: "CAFE001", name: "Café Nescafé Classic", price: 9.5, category: "☕ Café & Thés", categoryKey: "cafe", stock: 25 },
-      { code: "CAFE002", name: "Thé Lipton Yellow", price: 6.8, category: "☕ Café & Thés", categoryKey: "cafe", stock: 30 },
-      { code: "CAFE003", name: "Café en Grains", price: 15.0, category: "☕ Café & Thés", categoryKey: "cafe", stock: 12 },
-      { code: "CAFE004", name: "Thé à la Menthe", price: 5.5, category: "☕ Café & Thés", categoryKey: "cafe", stock: 40 },
+      // Café & Thés - 15 produits
+      { code: "CAFE001", name: "Café Nescafé Classic 200g", price: 9.5, category: "☕ Café & Thés", categoryKey: "cafe", stock: 25 },
+      { code: "CAFE002", name: "Thé Lipton Yellow 100 sachets", price: 12.8, category: "☕ Café & Thés", categoryKey: "cafe", stock: 18 },
+      { code: "CAFE003", name: "Café en Grains 1kg", price: 28.0, category: "☕ Café & Thés", categoryKey: "cafe", stock: 12 },
+      { code: "CAFE004", name: "Thé à la Menthe 250g", price: 8.5, category: "☕ Café & Thés", categoryKey: "cafe", stock: 22 },
+      { code: "CAFE005", name: "Café Turc 500g", price: 15.0, category: "☕ Café & Thés", categoryKey: "cafe", stock: 16 },
+      { code: "CAFE006", name: "Thé Vert Bio 150g", price: 10.5, category: "☕ Café & Thés", categoryKey: "cafe", stock: 20 },
+      { code: "CAFE007", name: "Café Décaféiné 200g", price: 11.0, category: "☕ Café & Thés", categoryKey: "cafe", stock: 14 },
+      { code: "CAFE008", name: "Thé Noir English Breakfast", price: 9.8, category: "☕ Café & Thés", categoryKey: "cafe", stock: 17 },
       
-      // Animaux de Compagnie
-      { code: "ANIM001", name: "Croquettes Chien 5kg", price: 45.0, category: "🐶 Animaux de Compagnie", categoryKey: "animaux_compagnie", stock: 15 },
-      { code: "ANIM002", name: "Litière Chat", price: 12.0, category: "🐶 Animaux de Compagnie", categoryKey: "animaux_compagnie", stock: 20 },
-      { code: "ANIM003", name: "Jouet pour Chien", price: 8.5, category: "🐶 Animaux de Compagnie", categoryKey: "animaux_compagnie", stock: 30 },
-      { code: "ANIM004", name: "Nourriture Poisson", price: 6.0, category: "🐶 Animaux de Compagnie", categoryKey: "animaux_compagnie", stock: 25 },
+      // Animaux de Compagnie - 12 produits
+      { code: "ANIM001", name: "Croquettes Chien Adulte 5kg", price: 45.0, category: "🐶 Animaux de Compagnie", categoryKey: "animaux_compagnie", stock: 15 },
+      { code: "ANIM002", name: "Litière Chat Silicium 10L", price: 18.0, category: "🐶 Animaux de Compagnie", categoryKey: "animaux_compagnie", stock: 20 },
+      { code: "ANIM003", name: "Jouet pour Chien - Balle", price: 8.5, category: "🐶 Animaux de Compagnie", categoryKey: "animaux_compagnie", stock: 30 },
+      { code: "ANIM004", name: "Nourriture Poisson Flocons", price: 6.0, category: "🐶 Animaux de Compagnie", categoryKey: "animaux_compagnie", stock: 25 },
+      { code: "ANIM005", name: "Croquettes Chat Sterilisé 3kg", price: 32.0, category: "🐶 Animaux de Compagnie", categoryKey: "animaux_compagnie", stock: 18 },
+      { code: "ANIM006", name: "Friandises pour Chien", price: 12.5, category: "🐶 Animaux de Compagnie", categoryKey: "animaux_compagnie", stock: 22 },
       
-      // Bébé & Maman
-      { code: "BEBE001", name: "Couches Size 3", price: 28.0, category: "👶 Bébé & Maman", categoryKey: "bebe_maman", stock: 18 },
-      { code: "BEBE002", name: "Lait Infantile 1", price: 32.0, category: "👶 Bébé & Maman", categoryKey: "bebe_maman", stock: 10 },
-      { code: "BEBE003", name: "Biberon", price: 7.5, category: "👶 Bébé & Maman", categoryKey: "bebe_maman", stock: 35 },
-      { code: "BEBE004", name: "Crème pour Bébé", price: 9.0, category: "👶 Bébé & Maman", categoryKey: "bebe_maman", stock: 22 },
+      // Bébé & Maman - 10 produits
+      { code: "BEBE001", name: "Couches Size 3 - Pack de 56", price: 28.0, category: "👶 Bébé & Maman", categoryKey: "bebe_maman", stock: 18 },
+      { code: "BEBE002", name: "Lait Infantile 1 - 800g", price: 32.0, category: "👶 Bébé & Maman", categoryKey: "bebe_maman", stock: 10 },
+      { code: "BEBE003", name: "Biberon Anti-Colique", price: 12.5, category: "👶 Bébé & Maman", categoryKey: "bebe_maman", stock: 25 },
+      { code: "BEBE004", name: "Crème pour Bébé 400ml", price: 9.0, category: "👶 Bébé & Maman", categoryKey: "bebe_maman", stock: 22 },
+      { code: "BEBE005", name: "Lingettes Bébé Sensibles", price: 6.5, category: "👶 Bébé & Maman", categoryKey: "bebe_maman", stock: 30 },
       
-      // Boulangerie & Pâtisserie
-      { code: "BOUL001", name: "Pain Complet", price: 1.2, category: "🥖 Boulangerie & Pâtisserie", categoryKey: "boulangerie_patisserie", stock: 50 },
-      { code: "BOUL002", name: "Croissant", price: 0.8, category: "🥖 Boulangerie & Pâtisserie", categoryKey: "boulangerie_patisserie", stock: 60 },
-      { code: "BOUL003", name: "Pain de Mie", price: 2.5, category: "🥖 Boulangerie & Pâtisserie", categoryKey: "boulangerie_patisserie", stock: 25 },
+      // Boulangerie & Pâtisserie - 8 produits
+      { code: "BOUL001", name: "Pain Complet 500g", price: 1.8, category: "🥖 Boulangerie & Pâtisserie", categoryKey: "boulangerie_patisserie", stock: 50 },
+      { code: "BOUL002", name: "Croissant au Beurre", price: 1.2, category: "🥖 Boulangerie & Pâtisserie", categoryKey: "boulangerie_patisserie", stock: 60 },
+      { code: "BOUL003", name: "Pain de Mie Complet", price: 3.5, category: "🥖 Boulangerie & Pâtisserie", categoryKey: "boulangerie_patisserie", stock: 25 },
       { code: "BOUL004", name: "Baguette Tradition", price: 1.0, category: "🥖 Boulangerie & Pâtisserie", categoryKey: "boulangerie_patisserie", stock: 40 },
       
-      // Chips & Snacks
-      { code: "CHIP001", name: "Chips Lays Nature", price: 3.5, category: "🥔 Chips & Snacks", categoryKey: "chips_snacks", stock: 45 },
-      { code: "CHIP002", name: "Cacahuètes Grillées", price: 4.0, category: "🥔 Chips & Snacks", categoryKey: "chips_snacks", stock: 30 },
-      { code: "CHIP003", name: "Popcorn Caramel", price: 2.8, category: "🥔 Chips & Snacks", categoryKey: "chips_snacks", stock: 35 },
-      { code: "CHIP004", name: "Biscuits Apéritif", price: 3.2, category: "🥔 Chips & Snacks", categoryKey: "chips_snacks", stock: 28 },
+      // Chips & Snacks - 10 produits
+      { code: "CHIP001", name: "Chips Lays Nature 150g", price: 3.5, category: "🥔 Chips & Snacks", categoryKey: "chips_snacks", stock: 45 },
+      { code: "CHIP002", name: "Cacahuètes Grillées 200g", price: 5.0, category: "🥔 Chips & Snacks", categoryKey: "chips_snacks", stock: 30 },
+      { code: "CHIP003", name: "Popcorn Caramel 100g", price: 2.8, category: "🥔 Chips & Snacks", categoryKey: "chips_snacks", stock: 35 },
+      { code: "CHIP004", name: "Biscuits Apéritif 250g", price: 4.2, category: "🥔 Chips & Snacks", categoryKey: "chips_snacks", stock: 28 },
+      { code: "CHIP005", name: "Mix Noix & Fruits Secs", price: 12.0, category: "🥔 Chips & Snacks", categoryKey: "chips_snacks", stock: 15 },
       
-      // Chocolats & Biscuits
-      { code: "CHOC001", name: "Chocolat Noir 70%", price: 6.5, category: "🍫 Chocolats & Biscuits", categoryKey: "chocolats_biscuits", stock: 20 },
-      { code: "CHOC002", name: "Biscuits Petit Beurre", price: 4.2, category: "🍫 Chocolats & Biscuits", categoryKey: "chocolats_biscuits", stock: 35 },
-      { code: "CHOC003", name: "Chocolat au Lait", price: 5.8, category: "🍫 Chocolats & Biscuits", categoryKey: "chocolats_biscuits", stock: 25 },
-      { code: "CHOC004", name: "Gâteaux Fourrés", price: 3.9, category: "🍫 Chocolats & Biscuits", categoryKey: "chocolats_biscuits", stock: 40 },
+      // Chocolats & Biscuits - 12 produits
+      { code: "CHOC001", name: "Chocolat Noir 70% - 100g", price: 3.5, category: "🍫 Chocolats & Biscuits", categoryKey: "chocolats_biscuits", stock: 40 },
+      { code: "CHOC002", name: "Biscuits Petit Beurre 400g", price: 4.2, category: "🍫 Chocolats & Biscuits", categoryKey: "chocolats_biscuits", stock: 35 },
+      { code: "CHOC003", name: "Chocolat au Lait 200g", price: 5.8, category: "🍫 Chocolats & Biscuits", categoryKey: "chocolats_biscuits", stock: 25 },
+      { code: "CHOC004", name: "Gâteaux Fourrés Chocolat", price: 3.9, category: "🍫 Chocolats & Biscuits", categoryKey: "chocolats_biscuits", stock: 40 },
+      { code: "CHOC005", name: "Tablette Chocolat Blanc", price: 4.5, category: "🍫 Chocolats & Biscuits", categoryKey: "chocolats_biscuits", stock: 22 },
       
-      // Conserves & Bocaux
-      { code: "CONS001", name: "Thon à l'Huile", price: 4.5, category: "🥫 Conserves & Bocaux", categoryKey: "conserves", stock: 30 },
-      { code: "CONS002", name: "Haricots Verts", price: 3.2, category: "🥫 Conserves & Bocaux", categoryKey: "conserves", stock: 25 },
-      { code: "CONS003", name: "Confiture Fraise", price: 5.0, category: "🥫 Conserves & Bocaux", categoryKey: "conserves", stock: 20 },
-      { code: "CONS004", name: "Maïs en Boîte", price: 2.8, category: "🥫 Conserves & Bocaux", categoryKey: "conserves", stock: 35 },
+      // Conserves & Bocaux - 10 produits
+      { code: "CONS001", name: "Thon à l'Huile 140g", price: 3.0, category: "🥫 Conserves & Bocaux", categoryKey: "conserves", stock: 50 },
+      { code: "CONS002", name: "Haricots Verts 400g", price: 2.2, category: "🥫 Conserves & Bocaux", categoryKey: "conserves", stock: 35 },
+      { code: "CONS003", name: "Confiture Fraise 370g", price: 5.0, category: "🥫 Conserves & Bocaux", categoryKey: "conserves", stock: 20 },
+      { code: "CONS004", name: "Maïs en Boîte 340g", price: 2.5, category: "🥫 Conserves & Bocaux", categoryKey: "conserves", stock: 45 },
+      { code: "CONS005", name: "Sardines à l'Huile 120g", price: 2.8, category: "🥫 Conserves & Bocaux", categoryKey: "conserves", stock: 30 },
       
-      // Cuisine du Monde
-      { code: "CUIS001", name: "Pâtes Italiennes", price: 3.8, category: "🌍 Cuisine du Monde", categoryKey: "cuisine_monde", stock: 40 },
-      { code: "CUIS002", name: "Sauce Tomate", price: 2.5, category: "🌍 Cuisine du Monde", categoryKey: "cuisine_monde", stock: 30 },
-      { code: "CUIS003", name: "Riz Basmati", price: 6.0, category: "🌍 Cuisine du Monde", categoryKey: "cuisine_monde", stock: 25 },
-      { code: "CUIS004", name: "Curry Indien", price: 4.2, category: "🌍 Cuisine du Monde", categoryKey: "cuisine_monde", stock: 15 },
+      // Cuisine du Monde - 8 produits
+      { code: "CUIS001", name: "Pâtes Italiennes 500g", price: 2.8, category: "🌍 Cuisine du Monde", categoryKey: "cuisine_monde", stock: 40 },
+      { code: "CUIS002", name: "Sauce Tomate Basilic 500g", price: 3.5, category: "🌍 Cuisine du Monde", categoryKey: "cuisine_monde", stock: 30 },
+      { code: "CUIS003", name: "Riz Basmati 2kg", price: 12.0, category: "🌍 Cuisine du Monde", categoryKey: "cuisine_monde", stock: 25 },
+      { code: "CUIS004", name: "Curry Indien 200g", price: 4.2, category: "🌍 Cuisine du Monde", categoryKey: "cuisine_monde", stock: 15 },
       
-      // Eaux & Boissons
-      { code: "EAUX001", name: "Eau Minérale 1.5L", price: 1.0, category: "💧 Eaux & Boissons", categoryKey: "eaux", stock: 100 },
-      { code: "EAUX002", name: "Soda Citron", price: 1.8, category: "💧 Eaux & Boissons", categoryKey: "eaux", stock: 60 },
-      { code: "EAUX003", name: "Jus d'Orange", price: 3.5, category: "💧 Eaux & Boissons", categoryKey: "eaux", stock: 40 },
-      { code: "EAUX004", name: "Boisson Énergisante", price: 2.2, category: "💧 Eaux & Boissons", categoryKey: "eaux", stock: 45 }
+      // Eaux & Boissons - 15 produits
+      { code: "EAUX001", name: "Eau Minérale 1.5L", price: 0.8, category: "💧 Eaux & Boissons", categoryKey: "eaux", stock: 100 },
+      { code: "EAUX002", name: "Soda Citron 33cl", price: 1.2, category: "💧 Eaux & Boissons", categoryKey: "eaux", stock: 80 },
+      { code: "EAUX003", name: "Jus d'Orange 1L", price: 4.5, category: "💧 Eaux & Boissons", categoryKey: "eaux", stock: 40 },
+      { code: "EAUX004", name: "Boisson Énergisante 250ml", price: 2.5, category: "💧 Eaux & Boissons", categoryKey: "eaux", stock: 45 },
+      { code: "EAUX005", name: "Eau Gazeuse 1L", price: 1.0, category: "💧 Eaux & Boissons", categoryKey: "eaux", stock: 60 },
+      { code: "EAUX006", name: "Jus de Pomme 1L", price: 4.0, category: "💧 Eaux & Boissons", categoryKey: "eaux", stock: 35 },
+      { code: "EAUX007", name: "Soda Cola 1.5L", price: 2.8, category: "💧 Eaux & Boissons", categoryKey: "eaux", stock: 50 },
+      { code: "EAUX008", name: "Eau Minérale 5L", price: 2.5, category: "💧 Eaux & Boissons", categoryKey: "eaux", stock: 30 },
+      
+      // Fruits & Légumes - 12 produits
+      { code: "FRUI001", name: "Pommes Golden 1kg", price: 4.5, category: "🍎 Fruits & Légumes", categoryKey: "fruits_legumes", stock: 25 },
+      { code: "FRUI002", name: "Bananes 1kg", price: 3.8, category: "🍎 Fruits & Légumes", categoryKey: "fruits_legumes", stock: 30 },
+      { code: "FRUI003", name: "Tomates 1kg", price: 2.5, category: "🍎 Fruits & Légumes", categoryKey: "fruits_legumes", stock: 40 },
+      { code: "FRUI004", name: "Carottes 1kg", price: 2.0, category: "🍎 Fruits & Légumes", categoryKey: "fruits_legumes", stock: 35 },
+      { code: "FRUI005", name: "Salade Iceberg", price: 1.5, category: "🍎 Fruits & Légumes", categoryKey: "fruits_legumes", stock: 20 },
+      
+      // Fruits Secs & Noix - 8 produits
+      { code: "SEC001", name: "Amandes Décortiquées 500g", price: 18.0, category: "🌰 Fruits Secs & Noix", categoryKey: "fruits_secs_noix", stock: 15 },
+      { code: "SEC002", name: "Noix de Cajou 500g", price: 22.0, category: "🌰 Fruits Secs & Noix", categoryKey: "fruits_secs_noix", stock: 12 },
+      { code: "SEC003", name: "Raisins Secs 500g", price: 8.5, category: "🌰 Fruits Secs & Noix", categoryKey: "fruits_secs_noix", stock: 20 },
+      { code: "SEC004", name: "Abricots Secs 500g", price: 12.0, category: "🌰 Fruits Secs & Noix", categoryKey: "fruits_secs_noix", stock: 18 },
+      
+      // Hygiène & Entretien - 15 produits
+      { code: "HYG001", name: "Liquide Vaisselle 1L", price: 4.5, category: "🧼 Hygiène & Entretien", categoryKey: "hygiene_entretien", stock: 30 },
+      { code: "HYG002", name: "Lessive 3L", price: 18.0, category: "🧼 Hygiène & Entretien", categoryKey: "hygiene_entretien", stock: 20 },
+      { code: "HYG003", name: "Papier Toilette 12 rouleaux", price: 12.0, category: "🧼 Hygiène & Entretien", categoryKey: "hygiene_entretien", stock: 25 },
+      { code: "HYG004", name: "Nettoyant Multi-surfaces", price: 6.5, category: "🧼 Hygiène & Entretien", categoryKey: "hygiene_entretien", stock: 22 },
+      { code: "HYG005", name: "Sacs Poubelle 30L - 20 unités", price: 8.0, category: "🧼 Hygiène & Entretien", categoryKey: "hygiene_entretien", stock: 28 },
+      
+      // Lait & Œufs Frais - 10 produits
+      { code: "LAIT001", name: "Lait UHT Demi-écrémé 1L", price: 2.8, category: "🥛 Lait & Œufs Frais", categoryKey: "lait_oeufs_produits_frais", stock: 40 },
+      { code: "LAIT002", name: "Œufs Bio - Boîte de 6", price: 5.5, category: "🥛 Lait & Œufs Frais", categoryKey: "lait_oeufs_produits_frais", stock: 30 },
+      { code: "LAIT003", name: "Yaourt Nature - Pack de 8", price: 6.0, category: "🥛 Lait & Œufs Frais", categoryKey: "lait_oeufs_produits_frais", stock: 25 },
+      { code: "LAIT004", name: "Beurre Doux 250g", price: 4.2, category: "🥛 Lait & Œufs Frais", categoryKey: "lait_oeufs_produits_frais", stock: 35 },
+      { code: "LAIT005", name: "Fromage Blanc 500g", price: 3.8, category: "🥛 Lait & Œufs Frais", categoryKey: "lait_oeufs_produits_frais", stock: 20 },
+      
+      // Pâtes & Riz - 8 produits
+      { code: "PATE001", name: "Spaghetti 500g", price: 2.2, category: "🍝 Pâtes & Riz", categoryKey: "pates", stock: 50 },
+      { code: "PATE002", name: "Riz Long Grain 2kg", price: 8.5, category: "🍝 Pâtes & Riz", categoryKey: "pates", stock: 30 },
+      { code: "PATE003", name: "Penne Rigate 500g", price: 2.3, category: "🍝 Pâtes & Riz", categoryKey: "pates", stock: 45 },
+      { code: "PATE004", name: "Riz Complet 1kg", price: 6.0, category: "🍝 Pâtes & Riz", categoryKey: "pates", stock: 25 },
+      
+     
+      // Produits Surgelés - suite
+      { code: "SURG001", name: "Pizza 4 Fromages 400g", price: 8.5, category: "🧊 Produits Surgelés", categoryKey: "produits_surgeles", stock: 20 },
+      { code: "SURG002", name: "Frites Surgelées 1kg", price: 5.0, category: "🧊 Produits Surgelés", categoryKey: "produits_surgeles", stock: 25 },
+      { code: "SURG003", name: "Légumes Mélangés 500g", price: 4.2, category: "🧊 Produits Surgelés", categoryKey: "produits_surgeles", stock: 30 },
+      { code: "SURG004", name: "Poisson Pané 450g", price: 9.5, category: "🧊 Produits Surgelés", categoryKey: "produits_surgeles", stock: 18 },
+      { code: "SURG005", name: "Glace Vanille 1L", price: 12.0, category: "🧊 Produits Surgelés", categoryKey: "produits_surgeles", stock: 15 },
+      { code: "SURG006", name: "Nuggets de Poulet 500g", price: 11.0, category: "🧊 Produits Surgelés", categoryKey: "produits_surgeles", stock: 22 },
+      { code: "SURG007", name: "Lasagnes Surgelées 500g", price: 8.8, category: "🧊 Produits Surgelés", categoryKey: "produits_surgeles", stock: 16 },
+      { code: "SURG008", name: "Feuilles de Brick", price: 4.5, category: "🧊 Produits Surgelés", categoryKey: "produits_surgeles", stock: 35 },
+      { code: "SURG009", name: "Beignets de Crevettes", price: 13.5, category: "🧊 Produits Surgelés", categoryKey: "produits_surgeles", stock: 12 },
+      { code: "SURG010", name: "Pâte à Pizza", price: 3.8, category: "🧊 Produits Surgelés", categoryKey: "produits_surgeles", stock: 28 }
     ];
-
-    // Catégories
-    const CATEGORIES = [
-      { key: "all", label: "🌐 Tous les produits", isAll: true },
-      { key: "promotions", label: "🔥 PROMOTIONS", isPromo: true },
-      { key: "cafe", label: "☕ Café & Thés" },
-      { key: "animaux_compagnie", label: "🐶 Animaux de Compagnie" },
-      { key: "bebe_maman", label: "👶 Bébé & Maman" },
-      { key: "boulangerie_patisserie", label: "🥖 Boulangerie & Pâtisserie" },
-      { key: "chips_snacks", label: "🥔 Chips & Snacks" },
-      { key: "chocolats_biscuits", label: "🍫 Chocolats & Biscuits" },
-      { key: "conserves", label: "🥫 Conserves & Bocaux" },
-      { key: "cuisine_monde", label: "🌍 Cuisine du Monde" },
-      { key: "eaux", label: "💧 Eaux & Boissons" }
-    ];
-
-    // ===================== TRADUCTIONS =====================
-    const TRANSLATIONS = {
-      fr: {
-        appTitle: "MAXI JDC MARKET",
-        appSubtitle: "Des prix mini --- Un MAXI choix",
-        searchPlaceholder: "🔍 Rechercher un produit...",
-        searchClear: "Effacer",
-        searchAll: "Tous",
-        productsTitle: "Produits",
-        selectCategory: "Sélectionnez une catégorie",
-        items: "article(s)",
-        noProductsFound: "Aucun produit trouvé",
-        toastAdded: "ajouté au panier !"
-      },
-      en: {
-        appTitle: "MAXI JDC MARKET",
-        appSubtitle: "Mini prices --- MAXI choice",
-        searchPlaceholder: "🔍 Search a product...",
-        searchClear: "Clear",
-        searchAll: "All",
-        productsTitle: "Products",
-        selectCategory: "Select a category",
-        items: "item(s)",
-        noProductsFound: "No products found",
-        toastAdded: "added to cart!"
-      },
-      ar: {
-        appTitle: "ماكسي جي دي سي ماركت",
-        appSubtitle: "أسعار مصغرة --- اختيار ماكسي",
-        searchPlaceholder: "🔍 ابحث عن منتج...",
-        searchClear: "مسح",
-        searchAll: "الكل",
-        productsTitle: "المنتجات",
-        selectCategory: "اختر فئة",
-        items: "منتج(ات)",
-        noProductsFound: "لم يتم العثور على منتجات",
-        toastAdded: "تمت الإضافة إلى السلة!"
-      }
-    };
 
     // ===================== ÉTAT GLOBAL =====================
-    const state = {
-      user: null,
-      products: TEST_PRODUCTS,
-      cart: {},
+    let state = {
+      products: [...TEST_PRODUCTS],
+      cart: [],
+      currentCategory: 'all',
       searchQuery: '',
-      activeCategory: 'all',
-      showAllCategories: true,
+      isDrawerOpen: false,
+      isAdminMode: false,
       currentLanguage: 'fr',
-      isAdmin: false
+      translations: {
+        fr: {
+          appTitle: "MAXI JDC MARKET",
+          appSubtitle: "Des prix mini --- Un MAXI choix",
+          searchPlaceholder: "🔍 Rechercher un produit...",
+          clearSearch: "Effacer",
+          showAll: "Tous",
+          categoryAll: "🏠 Tous",
+          categoryPromo: "🔥 PROMOTIONS",
+          activeCategoryLabel: "Produits",
+          activeCategoryMeta: "Sélectionnez une catégorie",
+          cartTitle: "🛒 Mon Panier",
+          cartSectionTitle: "🧺 Mon Panier",
+          cartEmptyTitle: "Panier vide",
+          cartEmptyText: "Ajoutez des articles pour commencer votre commande",
+          subtotalLabel: "Sous-total",
+          shippingLabel: "Livraison",
+          totalLabel: "Total",
+          minOrderText: "Minimum commande:",
+          shippingFeeText: "Frais livraison:",
+          freeShippingText: "Livraison gratuite à partir de",
+          clearCart: "🗑️ Vider le panier",
+          placeOrder: "🚀 Commander",
+          orderConfirmed: "✅ Commande confirmée",
+          copyOrder: "📋 Copier",
+          sendWhatsApp: "📱 Envoyer sur WhatsApp",
+          whatsAppNumber: "WhatsApp: +216 25 600 978",
+          storeHours: "🕒 7am -- 1am",
+          storeLocation: "📍 Jardins de Carthage",
+          qrCode: "📱 QR Code",
+          close: "×",
+          addToCart: "Ajouter",
+          removeFromCart: "Retirer",
+          outOfStock: "Rupture",
+          lowStock: "Stock bas",
+          inStock: "En stock",
+          discount: "Réduction",
+          oldPrice: "Ancien prix",
+          newPrice: "Nouveau prix",
+          items: "article(s)",
+          dt: "dt",
+          free: "GRATUIT",
+          orderSummary: "RÉSUMÉ DE LA COMMANDE",
+          orderDate: "Date",
+          orderNumber: "N°",
+          orderItems: "Articles",
+          orderTotal: "Total",
+          orderDelivery: "Livraison",
+          orderAddress: "Adresse",
+          orderPhone: "Téléphone",
+          orderNotes: "Notes",
+          copySuccess: "Commande copiée!",
+          whatsAppSuccess: "WhatsApp ouvert!",
+          adminMode: "Mode admin activé",
+          normalMode: "Mode admin désactivé"
+        },
+        en: {
+          appTitle: "MAXI JDC MARKET",
+          appSubtitle: "Mini prices --- MAXI choice",
+          searchPlaceholder: "🔍 Search a product...",
+          clearSearch: "Clear",
+          showAll: "All",
+          categoryAll: "🏠 All",
+          categoryPromo: "🔥 PROMOTIONS",
+          activeCategoryLabel: "Products",
+          activeCategoryMeta: "Select a category",
+          cartTitle: "🛒 My Cart",
+          cartSectionTitle: "🧺 My Cart",
+          cartEmptyTitle: "Empty cart",
+          cartEmptyText: "Add items to start your order",
+          subtotalLabel: "Subtotal",
+          shippingLabel: "Shipping",
+          totalLabel: "Total",
+          minOrderText: "Minimum order:",
+          shippingFeeText: "Shipping fee:",
+          freeShippingText: "Free shipping from",
+          clearCart: "🗑️ Clear cart",
+          placeOrder: "🚀 Order",
+          orderConfirmed: "✅ Order confirmed",
+          copyOrder: "📋 Copy",
+          sendWhatsApp: "📱 Send via WhatsApp",
+          whatsAppNumber: "WhatsApp: +216 25 600 978",
+          storeHours: "🕒 7am -- 1am",
+          storeLocation: "📍 Jardins de Carthage",
+          qrCode: "📱 QR Code",
+          close: "×",
+          addToCart: "Add",
+          removeFromCart: "Remove",
+          outOfStock: "Out of stock",
+          lowStock: "Low stock",
+          inStock: "In stock",
+          discount: "Discount",
+          oldPrice: "Old price",
+          newPrice: "New price",
+          items: "item(s)",
+          dt: "dt",
+          free: "FREE",
+          orderSummary: "ORDER SUMMARY",
+          orderDate: "Date",
+          orderNumber: "No.",
+          orderItems: "Items",
+          orderTotal: "Total",
+          orderDelivery: "Delivery",
+          orderAddress: "Address",
+          orderPhone: "Phone",
+          orderNotes: "Notes",
+          copySuccess: "Order copied!",
+          whatsAppSuccess: "WhatsApp opened!",
+          adminMode: "Admin mode enabled",
+          normalMode: "Admin mode disabled"
+        },
+        ar: {
+          appTitle: "ماكسي جي دي سي ماركت",
+          appSubtitle: "أسعار صغيرة --- اختيار ماكسي",
+          searchPlaceholder: "🔍 بحث عن منتج...",
+          clearSearch: "مسح",
+          showAll: "الكل",
+          categoryAll: "🏠 الكل",
+          categoryPromo: "🔥 العروض",
+          activeCategoryLabel: "المنتجات",
+          activeCategoryMeta: "اختر فئة",
+          cartTitle: "🛒 عربة التسوق",
+          cartSectionTitle: "🧺 عربة التسوق",
+          cartEmptyTitle: "عربة فارغة",
+          cartEmptyText: "أضف عناصر لبدء طلبك",
+          subtotalLabel: "المجموع الفرعي",
+          shippingLabel: "التوصيل",
+          totalLabel: "المجموع",
+          minOrderText: "الحد الأدنى للطلب:",
+          shippingFeeText: "رسوم التوصيل:",
+          freeShippingText: "توصيل مجاني من",
+          clearCart: "🗑️ تفريغ العربة",
+          placeOrder: "🚀 اطلب",
+          orderConfirmed: "✅ تم تأكيد الطلب",
+          copyOrder: "📋 نسخ",
+          sendWhatsApp: "📱 إرسال عبر واتساب",
+          whatsAppNumber: "واتساب: 216 25 600 978+",
+          storeHours: "🕒 7 صباحا -- 1 صباحا",
+          storeLocation: "📍 حدائق قرطاج",
+          qrCode: "📱 رمز QR",
+          close: "×",
+          addToCart: "إضافة",
+          removeFromCart: "إزالة",
+          outOfStock: "نفذ من المخزون",
+          lowStock: "مخزون منخفض",
+          inStock: "متوفر",
+          discount: "خصم",
+          oldPrice: "السعر القديم",
+          newPrice: "السعر الجديد",
+          items: "عنصر(ات)",
+          dt: "د.ت",
+          free: "مجاني",
+          orderSummary: "ملخص الطلب",
+          orderDate: "التاريخ",
+          orderNumber: "رقم",
+          orderItems: "العناصر",
+          orderTotal: "المجموع",
+          orderDelivery: "التوصيل",
+          orderAddress: "العنوان",
+          orderPhone: "الهاتف",
+          orderNotes: "ملاحظات",
+          copySuccess: "تم نسخ الطلب!",
+          whatsAppSuccess: "تم فتح واتساب!",
+          adminMode: "تم تفعيل وضع المدير",
+          normalMode: "تم تعطيل وضع المدير"
+        }
+      }
     };
 
-    // ===================== UTILITAIRES =====================
-    function $(id) { return document.getElementById(id); }
-
-    function formatPrice(amount) {
-      return Number(amount).toFixed(2).replace('.', ',') + ' dt';
+    // ===================== FONCTIONS UTILITAIRES =====================
+    function formatPrice(price) {
+      return price.toFixed(2).replace('.', ',') + ' ' + t('dt');
     }
 
-    function showToast(message, type = 'success') {
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      toast.innerHTML = `
-        <span>${type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '❌'}</span>
-        <span>${message}</span>
-      `;
-      document.body.appendChild(toast);
-      setTimeout(() => {
-        toast.remove();
-      }, 3000);
+    function t(key) {
+      return state.translations[state.currentLanguage][key] || key;
     }
 
-    function getStockStatus(stock) {
-      if (stock <= 0) {
-        return { class: 'out', text: 'Rupture de stock', available: false };
-      } else if (stock <= 5) {
-        return { class: 'low', text: `${stock} en stock`, available: true };
-      } else {
-        return { class: 'ok', text: 'En stock', available: true };
-      }
+    function updateTextElements() {
+      // Mise à jour des textes selon la langue
+      document.getElementById('appTitle').textContent = t('appTitle');
+      document.getElementById('appSubtitle').textContent = t('appSubtitle');
+      document.getElementById('searchInput').placeholder = t('searchPlaceholder');
+      document.getElementById('clearSearchBtn').textContent = t('clearSearch');
+      document.getElementById('showAllBtn').textContent = t('showAll');
+      document.getElementById('activeCategoryLabel').textContent = t('activeCategoryLabel');
+      document.getElementById('drawerTitle').textContent = t('cartTitle');
+      document.getElementById('cartSectionTitle').textContent = t('cartSectionTitle');
+      document.getElementById('cartEmptyTitle').textContent = t('cartEmptyTitle');
+      document.getElementById('cartEmptyText').textContent = t('cartEmptyText');
+      document.getElementById('subtotalLabel').textContent = t('subtotalLabel');
+      document.getElementById('shippingLabel').textContent = t('shippingLabel');
+      document.getElementById('totalLabel').textContent = t('totalLabel');
+      document.getElementById('minOrderText').innerHTML = t('minOrderText') + ' <strong>' + formatPrice(CONFIG.minOrder) + '</strong>';
+      document.getElementById('shippingFeeText').innerHTML = t('shippingFeeText') + ' <strong>' + formatPrice(CONFIG.shippingFee) + '</strong>';
+      document.getElementById('freeShippingText').innerHTML = t('freeShippingText') + ' <strong>' + formatPrice(CONFIG.freeShipping) + '</strong>';
+      document.getElementById('clearCartBtn').innerHTML = t('clearCart');
+      document.getElementById('placeOrderBtn').innerHTML = t('placeOrder');
+      document.getElementById('copyOrderBtn').innerHTML = t('copyOrder');
+      document.getElementById('sendOrderBtn').innerHTML = t('sendWhatsApp');
+      
+      // Mise à jour de la barre d'info
+      document.querySelectorAll('.info-bar-item')[0].textContent = t('storeLocation');
+      document.querySelectorAll('.info-bar-item')[1].textContent = t('storeHours');
+      document.querySelectorAll('.info-bar-item')[2].innerHTML = '<strong>' + t('whatsAppNumber').split(':')[0] + ':</strong> ' + t('whatsAppNumber').split(':')[1];
+      document.querySelectorAll('.info-bar-item')[3].textContent = t('qrCode');
+      
+      // Re-rendre les catégories et produits
+      renderCategories();
+      renderProducts();
+      updateCartDisplay();
     }
 
-    // ===================== TRADUCTION =====================
-    function setLanguage(lang) {
-      if (!TRANSLATIONS[lang]) return;
-      state.currentLanguage = lang;
-      
-      const t = TRANSLATIONS[lang];
-      
-      $('appTitle').textContent = t.appTitle;
-      $('appSubtitle').textContent = t.appSubtitle;
-      $('searchInput').placeholder = t.searchPlaceholder;
-      $('clearSearchBtn').textContent = t.searchClear;
-      $('showAllBtn').textContent = t.searchAll;
-      $('activeCategoryLabel').textContent = t.productsTitle;
-      $('activeCategoryMeta').textContent = t.selectCategory;
-      
-      document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      $(`langTop${lang.charAt(0).toUpperCase() + lang.slice(1)}Btn`).classList.add('active');
-      
-      localStorage.setItem('maxi_jdc_language', lang);
-      updateItemCount();
-    }
-
-    function updateItemCount() {
-      const t = TRANSLATIONS[state.currentLanguage];
-      const filteredProducts = getFilteredProducts();
-      $('itemCount').textContent = `${filteredProducts.length} ${t.items}`;
-    }
-
-    // ===================== AFFICHAGE =====================
-    function renderCategories() {
-      const container = $('categoriesContainer');
-      container.innerHTML = '';
-      
-      CATEGORIES.forEach(category => {
-        const products = state.products.filter(p => 
-          category.key === 'all' ? true : p.categoryKey === category.key
-        );
-        
-        const button = document.createElement('button');
-        button.className = `cat-btn ${category.isPromo ? 'promo' : ''} ${
-          state.activeCategory === category.key ? 'active' : ''
-        }`;
-        button.innerHTML = `${category.label} <span class="cat-count">${products.length}</span>`;
-        button.onclick = () => {
-          state.activeCategory = category.key;
-          state.showAllCategories = category.key === 'all';
-          renderCategories();
-          renderProducts();
-        };
-        container.appendChild(button);
-      });
-    }
-
-    function getFilteredProducts() {
-      let products = state.products;
-      
-      // Filtrer par catégorie
-      if (state.activeCategory !== 'all') {
-        products = products.filter(p => p.categoryKey === state.activeCategory);
-      }
-      
-      // Filtrer par recherche
-      if (state.searchQuery) {
-        const query = state.searchQuery.toLowerCase();
-        products = products.filter(p =>
-          p.name.toLowerCase().includes(query) ||
-          p.code.toLowerCase().includes(query) ||
-          p.category.toLowerCase().includes(query)
-        );
-      }
-      
-      return products;
-    }
-
-    function renderProducts() {
-      const filteredProducts = getFilteredProducts();
-      const grid = $('productsGrid');
-      grid.innerHTML = '';
-      
-      if (filteredProducts.length === 0) {
-        const t = TRANSLATIONS[state.currentLanguage];
-        grid.innerHTML = `
-          <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);">
-            <div style="font-size:42px;margin-bottom:12px;">🔍</div>
-            <h3 style="margin-bottom:8px;color:var(--text);">${t.noProductsFound}</h3>
-            <p style="font-size:12px;">Essayez de modifier votre recherche ou sélectionnez une autre catégorie</p>
-          </div>
-        `;
-        updateItemCount();
-        return;
-      }
-      
-      filteredProducts.forEach(product => {
-        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-        const stockStatus = getStockStatus(product.stock);
-        const card = document.createElement('div');
-        card.className = `product-card ${product.isPromotion ? 'promo-card' : ''}`;
-        
-        // Badge promo
-        let discountBadge = '';
-        if (product.isPromotion && product.discountPercent > 0) {
-          discountBadge = `<div class="product-discount">-${product.discountPercent}%</div>`;
-        }
-        
-        // Prix avec ancien prix si promotion
-        let priceDisplay = '';
-        if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
-          priceDisplay = `
-            <div style="font-size:8px;color:#ff8888;text-decoration:line-through;margin-bottom:2px;">
-              ${formatPrice(product.oldPrice)}
-            </div>
-            <div class="product-price" style="background:rgba(255,153,0,0.15);border-color:#ff9900;color:#ffcc00;">
-              ${formatPrice(product.price)}
-            </div>
-          `;
-        } else {
-          priceDisplay = `<div class="product-price">${formatPrice(product.price)}</div>`;
-        }
-        
-        card.innerHTML = `
-          <div class="product-image">
-            <img src="${imgSrc}"
-              alt="${product.name}"
-              loading="lazy"
-              onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
-              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-            <div class="no-photo">${product.code}</div>
-            ${discountBadge}
-            ${product.isPromotion ? '<div class="image-promo-badge">PROMO</div>' : ''}
-          </div>
-          <div class="product-info">
-            <div class="product-name">${product.name}</div>
-            <div style="color:var(--muted);font-size:8px;">
-              <div>Code: ${product.code}</div>
-              <div>${product.category}</div>
-            </div>
-            ${priceDisplay}
-          </div>
-          <div class="product-stock-tag ${stockStatus.class}">
-            ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
-          </div>
-        `;
-        
-        card.addEventListener('click', () => {
-          if (stockStatus.available) {
-            addToCart(product);
-          } else {
-            showToast('❌ Ce produit est en rupture de stock', 'error');
-          }
-        });
-        
-        grid.appendChild(card);
-      });
-      
-      updateItemCount();
-    }
-
-    // ===================== GESTION PANIER =====================
-    function addToCart(product) {
-      const productId = `${product.categoryKey}_${product.code}`;
-      
-      if (!state.cart[productId]) {
-        state.cart[productId] = {
-          ...product,
-          quantity: 0
-        };
-      }
-      
-      if (state.cart[productId].quantity < product.stock) {
-        state.cart[productId].quantity++;
-        updateCartUI();
-        
-        const t = TRANSLATIONS[state.currentLanguage];
-        showToast(`${product.name} ${t.toastAdded}`);
-      } else {
-        showToast('❌ Stock insuffisant', 'error');
-      }
-    }
-
-    function updateCartUI() {
-      const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
-      $('cartTopCount').textContent = cartCount;
-      saveState();
-    }
-
-    // ===================== GESTION DES DONNÉES =====================
     function saveState() {
-      const data = {
-        user: state.user,
-        cart: state.cart,
-        version: '1.0'
-      };
-      localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
+      try {
+        localStorage.setItem(CONFIG.localStorageKey, JSON.stringify({
+          cart: state.cart,
+          currentLanguage: state.currentLanguage,
+          isAdminMode: state.isAdminMode
+        }));
+      } catch (e) {
+        console.error('Erreur sauvegarde:', e);
+      }
     }
 
     function loadState() {
@@ -1037,24 +1922,363 @@
         const saved = localStorage.getItem(CONFIG.localStorageKey);
         if (saved) {
           const data = JSON.parse(saved);
-          state.user = data.user || null;
-          state.cart = data.cart || {};
-          updateCartUI();
+          state.cart = data.cart || [];
+          state.currentLanguage = data.currentLanguage || 'fr';
+          state.isAdminMode = data.isAdminMode || false;
+          
+          // Mettre à jour les boutons de langue
+          document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+          document.getElementById(`langTop${state.currentLanguage.toUpperCase()}Btn`).classList.add('active');
         }
       } catch (e) {
-        console.warn('Erreur chargement état:', e);
+        console.error('Erreur chargement:', e);
       }
     }
 
-    // ===================== ADMIN =====================
-    function toggleAdminMode() {
-      const password = prompt("Entrez le mot de passe administrateur:");
-      if (password === CONFIG.adminPassword) {
-        state.isAdmin = !state.isAdmin;
-        alert(`Mode admin ${state.isAdmin ? 'activé' : 'désactivé'}`);
-      } else if (password !== null) {
-        alert("Mot de passe incorrect");
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    // ===================== GESTION DU PANIER =====================
+    function addToCart(product) {
+      const existing = state.cart.find(item => item.code === product.code);
+      
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        state.cart.push({
+          ...product,
+          quantity: 1
+        });
       }
+      
+      updateCartDisplay();
+      saveState();
+      showToast(t('addToCart') + ' ✓', 'success');
+    }
+
+    function removeFromCart(productCode) {
+      const index = state.cart.findIndex(item => item.code === productCode);
+      
+      if (index !== -1) {
+        if (state.cart[index].quantity > 1) {
+          state.cart[index].quantity -= 1;
+        } else {
+          state.cart.splice(index, 1);
+        }
+      }
+      
+      updateCartDisplay();
+      saveState();
+      showToast(t('removeFromCart') + ' ✓', 'warning');
+    }
+
+    function clearCart() {
+      if (state.cart.length === 0) return;
+      
+      if (confirm("Vider tout le panier ?")) {
+        state.cart = [];
+        updateCartDisplay();
+        saveState();
+        showToast('Panier vidé', 'warning');
+      }
+    }
+
+    function updateCartDisplay() {
+      const cartCount = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+      const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const shipping = subtotal >= CONFIG.freeShipping ? 0 : 
+                      subtotal >= CONFIG.minOrder ? CONFIG.shippingFee : 0;
+      const total = subtotal + shipping;
+      
+      // Mettre à jour le compteur
+      document.getElementById('cartTopCount').textContent = cartCount;
+      document.getElementById('cartItemsCount').textContent = cartCount + ' ' + t('items');
+      document.getElementById('itemCount').textContent = cartCount + ' ' + t('items');
+      
+      // Mettre à jour les totaux
+      document.getElementById('cartSubtotal').textContent = formatPrice(subtotal);
+      document.getElementById('cartShipping').textContent = shipping === 0 ? t('free') : formatPrice(shipping);
+      document.getElementById('cartTotal').textContent = formatPrice(total);
+      
+      // Activer/désactiver le bouton commander
+      document.getElementById('placeOrderBtn').disabled = subttotal < CONFIG.minOrder || cartCount === 0;
+      
+      // Afficher/masquer le panier vide
+      const cartEmpty = document.getElementById('cartEmptyMessage');
+      const cartItemsList = document.getElementById('cartItemsList');
+      
+      if (state.cart.length === 0) {
+        cartEmpty.style.display = 'flex';
+        cartItemsList.innerHTML = '';
+      } else {
+        cartEmpty.style.display = 'none';
+        cartItemsList.innerHTML = state.cart.map(item => `
+          <div class="cart-item" data-code="${item.code}">
+            <div class="cart-item-info">
+              <div class="cart-item-name">${item.name}</div>
+              <div class="cart-item-details">
+                <span>${item.code}</span>
+                <span>${formatPrice(item.price)}</span>
+                ${item.isPromotion ? `<span class="promo-badge">-${item.discountPercent}%</span>` : ''}
+              </div>
+              <div class="cart-item-controls">
+                <div class="cart-item-stepper">
+                  <button class="cart-item-qty-btn minus" onclick="removeFromCart('${item.code}')">-</button>
+                  <span class="cart-item-qty">${item.quantity}</span>
+                  <button class="cart-item-qty-btn plus" onclick="addToCart(${JSON.stringify(item).replace(/'/g, "\\'")})">+</button>
+                </div>
+              </div>
+            </div>
+            <div class="cart-item-price">
+              ${formatPrice(item.price * item.quantity)}
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // ===================== GESTION DES CATÉGORIES =====================
+    function getCategories() {
+      const categories = {};
+      state.products.forEach(product => {
+        if (!categories[product.categoryKey]) {
+          categories[product.categoryKey] = {
+            name: product.category,
+            key: product.categoryKey,
+            count: 0,
+            isPromo: product.categoryKey === 'promotions'
+          };
+        }
+        categories[product.categoryKey].count++;
+      });
+      
+      // Ajouter la catégorie "Tous"
+      return [
+        { key: 'all', name: t('categoryAll'), count: state.products.length, isPromo: false },
+        ...Object.values(categories).sort((a, b) => b.count - a.count)
+      ];
+    }
+
+    function renderCategories() {
+      const container = document.getElementById('categoriesContainer');
+      const categories = getCategories();
+      
+      container.innerHTML = categories.map(cat => `
+        <button class="cat-btn ${cat.isPromo ? 'promo' : ''} ${state.currentCategory === cat.key ? 'active' : ''}" 
+                data-category="${cat.key}">
+          ${cat.name}
+          <span class="cat-count">${cat.count}</span>
+        </button>
+      `).join('');
+      
+      // Ajouter les écouteurs d'événements
+      container.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const category = btn.dataset.category;
+          state.currentCategory = category;
+          renderCategories();
+          renderProducts();
+          
+          // Mettre à jour le header
+          const categoryObj = categories.find(c => c.key === category);
+          document.getElementById('activeCategoryLabel').textContent = categoryObj.name;
+          document.getElementById('activeCategoryMeta').textContent = `${categoryObj.count} produits`;
+        });
+      });
+    }
+
+    // ===================== GESTION DES PRODUITS =====================
+    function getFilteredProducts() {
+      let filtered = [...state.products];
+      
+      // Filtre par catégorie
+      if (state.currentCategory !== 'all') {
+        filtered = filtered.filter(p => p.categoryKey === state.currentCategory);
+      }
+      
+      // Filtre par recherche
+      if (state.searchQuery.trim()) {
+        const query = state.searchQuery.toLowerCase();
+        filtered = filtered.filter(p => 
+          p.name.toLowerCase().includes(query) || 
+          p.code.toLowerCase().includes(query)
+        );
+      }
+      
+      return filtered;
+    }
+
+    function renderProducts() {
+      const container = document.getElementById('productsGrid');
+      const products = getFilteredProducts();
+      
+      container.innerHTML = products.map(product => {
+        const stockStatus = product.stock === 0 ? 'out' : 
+                          product.stock <= 5 ? 'low' : 'ok';
+        const stockText = product.stock === 0 ? t('outOfStock') : 
+                         product.stock <= 5 ? t('lowStock') : t('inStock');
+        
+        return `
+          <div class="product-card ${product.isPromotion ? 'promo-card' : ''}" 
+               onclick="addToCart(${JSON.stringify(product).replace(/'/g, "\\'")})">
+            ${product.isPromotion ? `<div class="product-discount">-${product.discountPercent}%</div>` : ''}
+            <div class="product-image">
+              ${product.isPromotion ? `<div class="image-promo-badge">PROMO</div>` : ''}
+              <div class="no-photo">${product.code}</div>
+            </div>
+            <div class="product-info">
+              <div class="product-name">${product.name}</div>
+              <div class="product-meta">
+                <span>${product.code}</span>
+                <span class="product-stock-tag ${stockStatus}">${stockText} (${product.stock})</span>
+              </div>
+              <div class="product-price-container">
+                ${product.isPromotion ? `
+                  <div class="product-old-price">${t('oldPrice')}: ${formatPrice(product.oldPrice)}</div>
+                  <div class="product-price">${t('newPrice')}: ${formatPrice(product.price)}</div>
+                ` : `
+                  <div class="product-price">${formatPrice(product.price)}</div>
+                `}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // Mettre à jour le compteur
+      document.getElementById('itemCount').textContent = products.length + ' ' + t('items');
+    }
+
+    // ===================== GESTION DES COMMANDES =====================
+    function placeOrder() {
+      const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+      if (subtotal < CONFIG.minOrder) {
+        showToast(`Minimum commande: ${formatPrice(CONFIG.minOrder)}`, 'error');
+        return;
+      }
+      
+      // Générer un numéro de commande
+      const orderNumber = 'CMD-' + Date.now().toString().slice(-6);
+      const now = new Date();
+      
+      // Construire le résumé
+      let summary = `\n`;
+      summary += `════════════════════════════════════\n`;
+      summary += `        ${t('orderSummary').toUpperCase()}\n`;
+      summary += `════════════════════════════════════\n\n`;
+      summary += `${t('orderNumber')}: ${orderNumber}\n`;
+      summary += `${t('orderDate')}: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}\n`;
+      summary += `════════════════════════════════════\n\n`;
+      summary += `${t('orderItems').toUpperCase()}:\n`;
+      summary += `────────────────────────────────────\n`;
+      
+      state.cart.forEach(item => {
+        const lineTotal = item.price * item.quantity;
+        summary += `• ${item.name}\n`;
+        summary += `  ${item.quantity} × ${formatPrice(item.price)} = ${formatPrice(lineTotal)}\n`;
+      });
+      
+      summary += `\n════════════════════════════════════\n`;
+      summary += `SOUS-TOTAL: ${formatPrice(subtotal)}\n`;
+      
+      const shipping = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
+      summary += `${t('orderDelivery')}: ${shipping === 0 ? t('free') : formatPrice(shipping)}\n`;
+      
+      const total = subtotal + shipping;
+      summary += `TOTAL: ${formatPrice(total)}\n`;
+      summary += `════════════════════════════════════\n\n`;
+      summary += `${t('orderNotes')}:\n`;
+      summary += `────────────────────────────────────\n`;
+      summary += `• Livraison: Jardins de Carthage\n`;
+      summary += `• Paiement: À la livraison\n`;
+      summary += `• Contact: +216 25 600 978\n`;
+      summary += `════════════════════════════════════\n`;
+      
+      // Afficher le modal
+      document.getElementById('orderDetails').textContent = summary;
+      document.getElementById('orderModal').classList.add('open');
+      
+      // Sauvegarder la commande
+      saveOrder(orderNumber, summary);
+    }
+
+    function saveOrder(orderNumber, summary) {
+      try {
+        const orders = JSON.parse(localStorage.getItem('maxi_orders') || '[]');
+        orders.unshift({
+          number: orderNumber,
+          date: new Date().toISOString(),
+          summary: summary,
+          cart: [...state.cart],
+          total: state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+        });
+        localStorage.setItem('maxi_orders', JSON.stringify(orders.slice(0, 50))); // Garder les 50 dernières
+      } catch (e) {
+        console.error('Erreur sauvegarde commande:', e);
+      }
+    }
+
+    function copyOrderToClipboard() {
+      const text = document.getElementById('orderDetails').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(t('copySuccess'), 'success');
+      }).catch(err => {
+        console.error('Erreur copie:', err);
+        showToast('Erreur copie', 'error');
+      });
+    }
+
+    function sendOrderViaWhatsApp() {
+      const text = encodeURIComponent(document.getElementById('orderDetails').textContent);
+      const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${text}`;
+      window.open(url, '_blank');
+      showToast(t('whatsAppSuccess'), 'success');
+    }
+
+    // ===================== GESTION DU QR CODE =====================
+    function showQRCode() {
+      // Dans une vraie application, vous auriez un vrai QR code
+      // Pour l'exemple, on affiche une alerte
+      alert("QR Code pour MAXI JDC MARKET\n\nScannez ce code pour accéder au magasin en ligne!\n\n📍 Jardins de Carthage\n📱 +216 25 600 978\n🕒 7am - 1am");
+    }
+
+    // ===================== GESTION MODE ADMIN =====================
+    function toggleAdminMode() {
+      if (!state.isAdminMode) {
+        const password = prompt("Mot de passe admin:");
+        if (password !== CONFIG.adminPassword) {
+          showToast("Mot de passe incorrect", "error");
+          return;
+        }
+      }
+      
+      state.isAdminMode = !state.isAdminMode;
+      showToast(state.isAdminMode ? t('adminMode') : t('normalMode'), 'success');
+      
+      // Afficher/masquer le bouton admin
+      const adminBtn = document.getElementById('secretAdminBtn');
+      if (state.isAdminMode) {
+        adminBtn.style.background = "rgba(0, 255, 136, 0.3)";
+        adminBtn.style.borderColor = "var(--accent)";
+        adminBtn.style.color = "var(--accent)";
+        adminBtn.innerHTML = "🔒";
+      } else {
+        adminBtn.style.background = "rgba(255, 167, 38, 0.2)";
+        adminBtn.style.borderColor = "var(--warning)";
+        adminBtn.style.color = "var(--warning)";
+        adminBtn.innerHTML = "🔓";
+      }
+      
+      saveState();
     }
 
     // ===================== INITIALISATION =====================
@@ -1062,56 +2286,125 @@
       // Charger l'état sauvegardé
       loadState();
       
-      // Charger la langue
-      const savedLang = localStorage.getItem('maxi_jdc_language') || 'fr';
-      setLanguage(savedLang);
+      // Initialiser les textes
+      updateTextElements();
       
-      // Événements
-      $('cartTopBtn').onclick = () => {
-        alert('Fonctionnalité panier à implémenter');
-      };
-
-      $('searchInput').addEventListener('input', (e) => {
+      // Initialiser les catégories et produits
+      renderCategories();
+      renderProducts();
+      updateCartDisplay();
+      
+      // ===================== ÉCOUTEURS D'ÉVÉNEMENTS =====================
+      // Langues
+      document.getElementById('langTopFrBtn').addEventListener('click', () => {
+        state.currentLanguage = 'fr';
+        updateTextElements();
+        saveState();
+        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+      });
+      
+      document.getElementById('langTopEnBtn').addEventListener('click', function() {
+        state.currentLanguage = 'en';
+        updateTextElements();
+        saveState();
+        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+      });
+      
+      document.getElementById('langTopArBtn').addEventListener('click', function() {
+        state.currentLanguage = 'ar';
+        updateTextElements();
+        saveState();
+        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+      });
+      
+      // Recherche
+      document.getElementById('searchInput').addEventListener('input', function(e) {
         state.searchQuery = e.target.value;
         renderProducts();
       });
-
-      $('clearSearchBtn').onclick = () => {
-        $('searchInput').value = '';
+      
+      document.getElementById('clearSearchBtn').addEventListener('click', () => {
+        document.getElementById('searchInput').value = '';
         state.searchQuery = '';
         renderProducts();
-        $('searchInput').focus();
-      };
-
-      $('showAllBtn').onclick = () => {
-        state.activeCategory = 'all';
-        state.showAllCategories = true;
+      });
+      
+      document.getElementById('showAllBtn').addEventListener('click', () => {
+        state.currentCategory = 'all';
+        state.searchQuery = '';
+        document.getElementById('searchInput').value = '';
         renderCategories();
         renderProducts();
-      };
-
-      // Langue
-      $('langTopFrBtn').onclick = () => setLanguage('fr');
-      $('langTopEnBtn').onclick = () => setLanguage('en');
-      $('langTopArBtn').onclick = () => setLanguage('ar');
-
-      // Admin
-      $('secretAdminBtn').onclick = toggleAdminMode;
-
-      // QR Code
-      $('qrDirectBtn').onclick = () => {
-        alert('Fonctionnalité QR Code à implémenter');
-      };
-
-      // Initialiser l'affichage
-      renderCategories();
-      renderProducts();
+      });
       
-      showToast('👋 Bienvenue sur MAXI JDC MARKET !');
+      // Panier
+      document.getElementById('cartTopBtn').addEventListener('click', () => {
+        state.isDrawerOpen = true;
+        document.getElementById('drawer').classList.add('open');
+        document.getElementById('drawerOverlay').classList.add('open');
+      });
+      
+      document.getElementById('closeDrawerBtn').addEventListener('click', closeDrawer);
+      document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
+      
+      // Commandes
+      document.getElementById('placeOrderBtn').addEventListener('click', placeOrder);
+      document.getElementById('clearCartBtn').addEventListener('click', clearCart);
+      
+      // Modal commande
+      document.getElementById('closeOrderModalBtn').addEventListener('click', () => {
+        document.getElementById('orderModal').classList.remove('open');
+      });
+      
+      document.getElementById('copyOrderBtn').addEventListener('click', copyOrderToClipboard);
+      document.getElementById('sendOrderBtn').addEventListener('click', sendOrderViaWhatsApp);
+      
+      // QR Code
+      document.getElementById('qrInfoBtn').addEventListener('click', showQRCode);
+      document.getElementById('qrDirectBtn').addEventListener('click', showQRCode);
+      
+      // Admin
+      document.getElementById('secretAdminBtn').addEventListener('click', toggleAdminMode);
+      
+      // Empêcher le zoom sur mobile
+      document.addEventListener('gesturestart', function(e) {
+        e.preventDefault();
+      });
+      
+      // Gestion du PWA
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('service-worker.js').catch(err => {
+            console.log('ServiceWorker non enregistré:', err);
+          });
+        });
+      }
+      
+      // Gestion de l'installation
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        // Vous pouvez afficher un bouton d'installation ici
+      });
     }
-
+    
+    function closeDrawer() {
+      state.isDrawerOpen = false;
+      document.getElementById('drawer').classList.remove('open');
+      document.getElementById('drawerOverlay').classList.remove('open');
+    }
+    
     // Démarrer l'application
     document.addEventListener('DOMContentLoaded', init);
+    
+    // Exposer les fonctions globales
+    window.addToCart = addToCart;
+    window.removeFromCart = removeFromCart;
+    window.showQRCode = showQRCode;
   </script>
 </body>
 </html>
