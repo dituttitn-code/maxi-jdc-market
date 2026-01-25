@@ -16,12 +16,18 @@
       font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;
       background:linear-gradient(135deg,var(--bg1),var(--bg2));
       color:var(--txt);min-height:100vh;padding:18px;
+      overflow-x: hidden;
     }
-    .container{max-width:900px;margin:0 auto}
+    .container{
+      max-width:900px;
+      margin:0 auto;
+      width: 100%;
+    }
     .header{
       background:rgba(10,25,47,.95);border:2px solid var(--green);border-radius:var(--r);
       padding:18px 22px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;
       box-shadow:var(--shadow);margin-bottom:20px;
+      width: 100%;
     }
     .left{display:flex;align-items:center;gap:14px}
     .logo{
@@ -40,16 +46,21 @@
       display:flex;gap:8px;align-items:center;text-decoration:none;justify-content:center;
     }
     .btn:hover{transform:translateY(-2px);border-color:var(--blue);background:rgba(255,255,255,.15)}
-    .card{background:var(--card);border:2px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:22px;margin-bottom:20px}
+    .card{
+      background:var(--card);border:2px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+      padding:22px;margin-bottom:20px;width:100%;
+    }
     .search-section{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap}
     .search-input{
       flex:1;min-width:260px;padding:14px 18px;border-radius:10px;border:2px solid var(--line);
       background:rgba(255,255,255,.08);color:var(--txt);font-size:16px;outline:none;
+      width: 100%;
     }
     .search-input:focus{border-color:var(--green)}
     .search-btn{
       padding:14px 24px;border-radius:10px;border:2px solid var(--green);
       background:rgba(0,255,136,.15);color:var(--green);font-weight:900;font-size:16px;cursor:pointer;transition:.3s;
+      white-space: nowrap;
     }
     .search-btn:hover{background:rgba(0,255,136,.25);transform:translateY(-2px)}
     .hint{font-size:12px;color:var(--muted)}
@@ -57,6 +68,7 @@
       background:linear-gradient(135deg,rgba(26,36,93,.8),rgba(22,36,71,.8));
       border:2px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px;transition:.3s;
       box-shadow:var(--shadow);
+      width: 100%;
     }
     .order-card:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,212,255,.2)}
     .order-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line);gap:10px;flex-wrap:wrap}
@@ -139,10 +151,10 @@
       <h2 style="margin-bottom: 14px; color: var(--green);">🔍 Suivre une commande</h2>
       <div class="search-section">
         <input type="text" id="orderIdInput" class="search-input"
-               placeholder="Numéro commande (CMD-MAXI-20260118-001) ou téléphone (ex: 55532482)">
+               placeholder="Numéro commande (ex: CMD-MAXI-20260118-001) ou téléphone (ex: 25123456)">
         <button class="search-btn" id="searchOrderBtn"><span>🔎</span><span>Rechercher</span></button>
       </div>
-      <div class="hint">💡 Astuce : tu peux saisir ton téléphone pour voir tes commandes (on affiche la dernière + une liste).</div>
+      <div class="hint">💡 Vous pouvez saisir votre numéro de commande ou votre téléphone pour voir vos commandes.</div>
 
       <div id="phoneOrdersList" class="mini-list" style="display:none;"></div>
     </div>
@@ -230,16 +242,14 @@
     </div>
   </div>
 
-  <!-- ✅ IMPORTANT : ton fichier est dans tools/api/api-commandes.js -->
+  <!-- IMPORT API CORRIGÉE -->
   <script src="./api/api-commandes.js"></script>
 
   <script>
-    // (Optionnel) Ton Apps Script existant : si tu veux garder la recherche backend en priorité.
-    // Si tu veux 100% via Google Sheet (ApiCommandes), laisse comme ça, c’est OK.
-    const APPS_SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbz01QnoaxYg8OwAd5BGm_L6JbaOPaQ0FGuu7Cm3dGbJ_M07F_4aKDNcy7BfPtr7hA3T/exec";
-
+    // Configuration
     const SHOP_WHATSAPP = "21625600978";
 
+    // Éléments DOM
     const el = {
       orderIdInput: document.getElementById("orderIdInput"),
       searchOrderBtn: document.getElementById("searchOrderBtn"),
@@ -272,6 +282,7 @@
       progressBar: document.getElementById("progressBar")
     };
 
+    // États de progression
     const progressStates = {
       "En attente":    { width: "25%",  steps: [true,  false, false, false] },
       "En cours":      { width: "50%",  steps: [true,  true,  false, false] },
@@ -294,39 +305,33 @@
       "Annulee": "status-cancelled"
     };
 
+    // Fonctions utilitaires
     function show(x){ x.style.display = "block"; }
     function hide(x){ x.style.display = "none"; }
 
     function normalizeStatus(s){
       const v = String(s || "").trim();
       if (!v) return "En attente";
-      // Harmoniser quelques variantes
       if (v.toLowerCase() === "livree") return "Livrée";
       if (v.toLowerCase() === "annulee") return "Annulée";
       return v;
     }
 
     function formatDateSmart(value){
-      // value peut être Date, string, ou un format dd/mm/yyyy (sheet)
       if (!value) return "—";
       if (value instanceof Date) {
-        return value.toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"});
+        return value.toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric", hour:"2-digit", minute:"2-digit"});
       }
       const str = String(value);
 
-      // cas "2026-01-19" ou ISO
-      const d1 = new Date(str);
-      if (!Number.isNaN(d1.getTime())) {
-        return d1.toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"});
+      try {
+        const d = new Date(str);
+        if (!Number.isNaN(d.getTime())) {
+          return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric", hour:"2-digit", minute:"2-digit"});
+        }
+      } catch (e) {
+        return str;
       }
-
-      // cas "19/01/2026"
-      const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if (m) {
-        const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
-        return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"});
-      }
-
       return str;
     }
 
@@ -360,17 +365,23 @@
     }
 
     function parseArticlesText(text){
-      // Exemples:
-      // "2x CHIPS LAYS SEL 80GR\n3x Harissa du Cap Vert 380 g"
       const t = String(text || "").trim();
       if (!t) return [];
       const lines = t.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
 
       const out = [];
       for (const line of lines) {
-        const m = line.match(/^(\d+)\s*x\s*(.+)$/i);
-        if (m) out.push({ name: m[2].trim(), quantity: Number(m[1]) });
-        else out.push({ name: line, quantity: 1 });
+        // Format: "3x Produit (12.50 dt)" ou "3x Produit"
+        const m = line.match(/^(\d+)\s*x\s*(.+?)(?:\s+\(([\d.,]+)\s*dt\))?$/i);
+        if (m) {
+          out.push({ 
+            name: m[2].trim(), 
+            quantity: Number(m[1]),
+            price: m[3] ? parseFloat(m[3].replace(',', '.')) : 0
+          });
+        } else {
+          out.push({ name: line, quantity: 1, price: 0 });
+        }
       }
       return out;
     }
@@ -385,8 +396,9 @@
       for (const a of list) {
         const div = document.createElement("div");
         div.className = "article-item";
+        const priceText = a.price > 0 ? ` (${formatPrice(a.price)})` : '';
         div.innerHTML = `
-          <div class="article-name">${escapeHtml(a.name || "Article")}</div>
+          <div class="article-name">${a.name}${priceText}</div>
           <div class="article-qty">${Number(a.quantity || 0)}x</div>
         `;
         el.articlesList.appendChild(div);
@@ -429,104 +441,49 @@
     }
 
     function displayOrder(order){
-      // order: { id, date, clientName, clientPhone, clientAddress, status, articles[], total }
-      el.orderIdDisplay.textContent = order.id || "—";
-      el.orderDateDisplay.textContent = formatDateSmart(order.date);
-      el.clientName.textContent = order.clientName || "—";
-      el.clientPhone.textContent = order.clientPhone || "—";
-      el.clientAddress.textContent = order.clientAddress || "—";
-      el.paymentMethod.textContent = order.paymentMethod || "À la livraison";
-      el.orderTotal.textContent = formatPrice(order.total);
+      el.orderIdDisplay.textContent = order.Commande || "—";
+      el.orderDateDisplay.textContent = formatDateSmart(order.Date);
+      el.clientName.textContent = order.Nom || "—";
+      el.clientPhone.textContent = order.Téléphone || "—";
+      el.clientAddress.textContent = order.Adresse || "—";
+      el.paymentMethod.textContent = "À la livraison";
+      el.orderTotal.textContent = formatPrice(order.Total);
 
-      updateStatusBadge(order.status);
-      updateProgress(order.status);
-      displayArticles(order.articles);
+      updateStatusBadge(order.Statut);
+      updateProgress(order.Statut);
+      
+      const articles = parseArticlesText(order.Articles);
+      displayArticles(articles);
 
       hide(el.loadingState);
       show(el.orderCard);
       showSuccessFlash();
-    }
-
-    // ---------- 1) Optionnel : recherche via ton Apps Script ----------
-    async function fetchOrderFromAppsScript(commandeId){
-      try{
-        const res = await fetch(`${APPS_SCRIPT_API_URL}?method=getOrder&commande_id=${encodeURIComponent(commandeId)}&t=${Date.now()}`);
-        if (!res.ok) return null;
-        const data = await res.json();
-        if (!(data && data.success && data.order)) return null;
-
-        let arts = [];
-        if (data.order.articles) {
-          if (Array.isArray(data.order.articles)) arts = data.order.articles;
-          else {
-            try { arts = JSON.parse(data.order.articles); } catch { arts = []; }
-          }
-        }
-
-        // Si tes articles backend sont déjà {name, quantity, price} on prend, sinon on adapte.
-        const normalizedArts = (arts || []).map(x => ({
-          name: x.name || x.article || x.libelle || String(x),
-          quantity: Number(x.quantity || x.qty || 1)
-        }));
-
-        return {
-          id: data.order.commande_id || commandeId,
-          date: data.order.date || new Date().toISOString(),
-          clientName: data.order.nom || "Client",
-          clientPhone: data.order.telephone || "",
-          clientAddress: data.order.adresse || "",
-          status: data.order.statut || "En attente",
-          paymentMethod: "À la livraison",
-          articles: normalizedArts,
-          total: Number(data.order.total || 0)
-        };
-      } catch {
-        return null;
-      }
-    }
-
-    // ---------- 2) Recherche via Google Sheet (ApiCommandes) ----------
-    function orderFromSheetObj(c){
-      // c vient de ApiCommandes (commandeId, date, nom, telephone, adresse, articles, total, statut)
-      return {
-        id: c.commandeId || c.id || "—",
-        date: c.date || "",
-        clientName: c.nom || c.clientName || "Client",
-        clientPhone: c.telephone || c.clientPhone || "",
-        clientAddress: c.adresse || c.clientAddress || "",
-        status: c.statut || c.status || "En attente",
-        paymentMethod: "À la livraison",
-        articles: parseArticlesText(c.articles),
-        total: c.total ?? 0
-      };
-    }
-
-    function looksLikeOrderId(value){
-      return /^CMD-MAXI-\d{8}-\d{3}$/i.test(String(value||"").trim());
-    }
-
-    function normalizePhoneDigits(value){
-      return String(value||"").replace(/[^\d]/g,"");
+      
+      // Scroll vers la carte
+      el.orderCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function renderPhoneOrdersList(items){
-      // items: array sheet objects (ApiCommandes)
       if (!items || !items.length) return;
 
       el.phoneOrdersList.innerHTML = "";
       show(el.phoneOrdersList);
 
-      // Trier par date si possible (sinon ordre)
-      const sorted = [...items].sort((a,b) => String(b.date||"").localeCompare(String(a.date||"")));
+      // Trier par date
+      const sorted = [...items].sort((a,b) => {
+        const dateA = new Date(a.Date || 0);
+        const dateB = new Date(b.Date || 0);
+        return dateB - dateA;
+      });
 
-      // Petite entête
+      // En-tête
       const header = document.createElement("div");
       header.className = "mini-item";
       header.style.cursor = "default";
       header.innerHTML = `
         <div class="mini-left">
           <div style="font-weight:900;color:var(--txt)">📱 ${sorted.length} commande(s) trouvée(s)</div>
-          <div class="mini-sub">Clique sur une commande pour l’afficher</div>
+          <div class="mini-sub">Cliquez sur une commande pour afficher les détails</div>
         </div>
         <div class="mini-status">Liste</div>
       `;
@@ -537,14 +494,13 @@
         div.className = "mini-item";
         div.innerHTML = `
           <div class="mini-left">
-            <div class="mini-id">${escapeHtml(String(c.commandeId||""))}</div>
-            <div class="mini-sub">${escapeHtml(String(c.date||""))} • ${escapeHtml(String(c.total||""))} </div>
+            <div class="mini-id">${escapeHtml(String(c.Commande || ""))}</div>
+            <div class="mini-sub">${formatDateSmart(c.Date)} • ${formatPrice(c.Total)}</div>
           </div>
-          <div class="mini-status">${escapeHtml(String(c.statut||""))}</div>
+          <div class="mini-status">${escapeHtml(String(c.Statut || ""))}</div>
         `;
         div.addEventListener("click", () => {
-          displayOrder(orderFromSheetObj(c));
-          // remonter en haut
+          displayOrder(c);
           window.scrollTo({ top: 0, behavior: "smooth" });
         });
         el.phoneOrdersList.appendChild(div);
@@ -553,49 +509,78 @@
 
     async function searchOrder(){
       const qRaw = el.orderIdInput.value.trim();
-      if (!qRaw) { el.orderIdInput.focus(); return; }
+      if (!qRaw) { 
+        el.orderIdInput.focus(); 
+        return; 
+      }
 
       clearStates();
       showLoading();
 
       const q = qRaw.trim();
 
-      try{
-        // Si c’est un ID commande => on tente Apps Script (si dispo) puis fallback Sheet
-        if (looksLikeOrderId(q)) {
-          const qUpper = q.toUpperCase();
+      try {
+        // Vérifier si l'API est disponible
+        if (!window.apiCommandes) {
+          throw new Error("API non chargée");
+        }
 
-          // 1) Apps Script
-          const fromBackend = await fetchOrderFromAppsScript(qUpper);
-          if (fromBackend) { displayOrder(fromBackend); return; }
+        // Si ça ressemble à un numéro de commande
+        if (q.toUpperCase().startsWith('CMD-MAXI-')) {
+          try {
+            // Rechercher par téléphone d'abord (car besoin des deux pour l'API)
+            const allOrders = await apiCommandes.recupererCommandes();
+            const order = allOrders.find(o => o.Commande === q.toUpperCase());
+            
+            if (order) {
+              // Afficher un message pour demander le téléphone
+              const phone = prompt(`Pour afficher la commande ${q}, veuillez entrer votre numéro de téléphone:`);
+              if (phone) {
+                // Maintenant utiliser l'API avec commande et téléphone
+                const orderDetails = await apiCommandes.suivreCommande(q.toUpperCase(), phone);
+                if (orderDetails) {
+                  displayOrder(orderDetails);
+                  return;
+                }
+              } else {
+                showEmpty();
+                return;
+              }
+            }
+          } catch (error) {
+            console.error("Erreur recherche commande:", error);
+          }
+        }
 
-          // 2) Sheet
-          if (!window.ApiCommandes) { showEmpty(); return; }
-          const fromSheet = await ApiCommandes.findCommande(qUpper);
-          if (fromSheet) { displayOrder(orderFromSheetObj(fromSheet)); return; }
+        // Sinon, traiter comme un téléphone
+        const phoneDigits = q.replace(/\D/g, '');
+        if (phoneDigits.length >= 8) {
+          const orders = await apiCommandes.rechercherCommandesParTelephone(phoneDigits);
+          if (orders && orders.length > 0) {
+            // Afficher la dernière commande
+            displayOrder(orders[0]);
+            // Afficher la liste des autres commandes
+            if (orders.length > 1) {
+              renderPhoneOrdersList(orders.slice(1));
+            }
+            return;
+          }
+        }
 
-          showEmpty();
+        // Dernier essai: recherche par ID de commande (partiel)
+        const allOrders = await apiCommandes.recupererCommandes();
+        const foundOrder = allOrders.find(o => 
+          o.Commande.includes(q) || q.includes(o.Commande)
+        );
+        
+        if (foundOrder) {
+          displayOrder(foundOrder);
           return;
         }
 
-        // Sinon => téléphone (ou texte). On essaie d’abord téléphone.
-        const digits = normalizePhoneDigits(q);
-        if (digits.length >= 6) {
-          if (!window.ApiCommandes) { showEmpty(); return; }
-          const list = await ApiCommandes.findCommandesByPhone(digits);
-          if (!list || !list.length) { showEmpty(); return; }
-
-          // afficher la dernière commande + liste
-          renderPhoneOrdersList(list);
-          displayOrder(orderFromSheetObj(list[0]));
-          return;
-        }
-
-        // fallback : recherche “findCommande” (au cas où)
-        if (!window.ApiCommandes) { showEmpty(); return; }
-        const any = await ApiCommandes.findCommande(q);
-        if (any) { displayOrder(orderFromSheetObj(any)); return; }
-
+        showEmpty();
+      } catch (error) {
+        console.error("Erreur dans searchOrder:", error);
         showEmpty();
       } finally {
         hide(el.loadingState);
@@ -603,15 +588,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      // sécurité : vérifier que ApiCommandes est chargé
-      if (!window.ApiCommandes) {
-        console.warn("ApiCommandes non chargé. Vérifie le chemin: ./api/api-commandes.js");
-      }
-
-      el.searchOrderBtn.addEventListener("click", searchOrder);
-      el.orderIdInput.addEventListener("keypress", (e) => { if (e.key === "Enter") searchOrder(); });
-
-      // Contact WhatsApp magasin (inclut le numéro de commande affiché)
+      // Contact WhatsApp
       el.contactBtn.addEventListener("click", () => {
         const currentId = (el.orderIdDisplay.textContent || "").trim();
         const msg = currentId
@@ -623,12 +600,25 @@
       // Appeler
       el.helpBtn.addEventListener("click", () => window.open(`tel:+${SHOP_WHATSAPP}`, "_blank"));
 
+      // Recherche
+      el.searchOrderBtn.addEventListener("click", searchOrder);
+      el.orderIdInput.addEventListener("keypress", (e) => { 
+        if (e.key === "Enter") searchOrder(); 
+      });
+
       // Support URL param ?order=CMD...
       const urlParams = new URLSearchParams(window.location.search);
       const orderIdFromUrl = urlParams.get("order");
-      if (orderIdFromUrl) {
+      const phoneFromUrl = urlParams.get("phone");
+      
+      if (orderIdFromUrl && phoneFromUrl) {
         el.orderIdInput.value = orderIdFromUrl;
-        setTimeout(searchOrder, 250);
+        setTimeout(() => {
+          // Simuler la recherche
+          searchOrder();
+        }, 500);
+      } else if (orderIdFromUrl) {
+        el.orderIdInput.value = orderIdFromUrl;
       } else {
         el.orderIdInput.focus();
       }
@@ -636,4 +626,3 @@
   </script>
 </body>
 </html>
-
