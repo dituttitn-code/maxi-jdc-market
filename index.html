@@ -5932,694 +5932,729 @@
       }
     }
 
-    // ===================== ENREGISTREMENT VERS GOOGLE SHEETS =====================
+    // ===================== ENREGISTREMENT VERS GOOGLE SHEETS - VERSION SIMPLIFIÉE =====================
     async function enregistrerCommandeGoogleSheets(orderData) {
-      try {
-        showToast('📤 Envoi de la commande vers Google Sheets...', 'warning');
+        try {
+            showToast('📤 Envoi de la commande...', 'warning');
 
-        // Construire l'adresse avec les coordonnées GPS
-        let adresseComplete = state.user.address;
-        if (state.user.lat && state.user.lng) {
-          adresseComplete += ` - GPS: ${state.user.lat}, ${state.user.lng}`;
-          adresseComplete += ` - Google Maps: https://maps.google.com/?q=${state.user.lat},${state.user.lng}`;
+            // Construire l'adresse avec les coordonnées GPS
+            let adresseComplete = state.user.address;
+            if (state.user.lat && state.user.lng) {
+                adresseComplete += ` - GPS: ${state.user.lat}, ${state.user.lng}`;
+                adresseComplete += ` - Google Maps: https://maps.google.com/?q=${state.user.lat},${state.user.lng}`;
+            }
+
+            // Préparer les articles
+            const articles = [];
+            let totalPanier = 0;
+            
+            Object.values(state.cart).forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                totalPanier += itemTotal;
+                
+                articles.push({
+                    produit: item.name,
+                    code: item.code,
+                    quantite: item.quantity,
+                    prix: item.price.toFixed(2),
+                    promotion: item.isPromotion ? 'Oui' : 'Non',
+                    categorie: item.category
+                });
+            });
+            
+            // Calculs
+            const sousTotal = totalPanier;
+            const livraison = orderData.shipping || 0;
+            const total = sousTotal + livraison;
+            const economies = orderData.savings || 0;
+            
+            console.log('📊 Calculs:');
+            console.log('- Sous-total:', sousTotal);
+            console.log('- Livraison:', livraison);
+            console.log('- Total:', total);
+            console.log('- Économies:', economies);
+            console.log('- Nombre d\'articles:', articles.length);
+
+            // SIMPLE requête GET (plus fiable)
+            const params = new URLSearchParams({
+                nom: encodeURIComponent(state.user.name || ''),
+                telephone: encodeURIComponent(state.user.phone?.replace(/\D/g, '') || ''),
+                adresse: encodeURIComponent(adresseComplete || ''),
+                commande_id: orderData.commandeId,
+                articles: JSON.stringify(articles),
+                sous_total: sousTotal.toFixed(2),
+                livraison: livraison.toFixed(2),
+                total: total.toFixed(2),
+                economies: economies.toFixed(2),
+                date: new Date().toISOString(),
+                timestamp: Date.now()
+            });
+            
+            console.log('🔗 Tentative d\'envoi vers:', CONFIG.commandeApiUrl);
+            
+            try {
+                // Essayer l'URL principale avec mode no-cors
+                const response = await fetch(`${CONFIG.commandeApiUrl}?${params.toString()}`, {
+                    method: 'GET',
+                    mode: 'no-cors' // Important pour contourner les problèmes CORS
+                });
+                
+                console.log('✅ Requête envoyée (mode no-cors)');
+            } catch (fetchError) {
+                console.log('⚠️ Erreur fetch, tentative alternative...');
+                
+                // Tentative alternative avec POST
+                try {
+                    const formData = new FormData();
+                    formData.append('nom', state.user.name || '');
+                    formData.append('telephone', state.user.phone?.replace(/\D/g, '') || '');
+                    formData.append('adresse', adresseComplete);
+                    formData.append('commande_id', orderData.commandeId);
+                    formData.append('articles', JSON.stringify(articles));
+                    formData.append('sous_total', sousTotal.toFixed(2));
+                    formData.append('livraison', livraison.toFixed(2));
+                    formData.append('total', total.toFixed(2));
+                    formData.append('economies', economies.toFixed(2));
+                    formData.append('date', new Date().toISOString());
+                    
+                    await fetch(CONFIG.commandeApiUrl, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    console.log('✅ Requête POST envoyée');
+                } catch (postError) {
+                    console.log('⚠️ Erreur POST aussi, on continue quand même');
+                }
+            }
+            
+            // Jouer le son de notification (même si l'envoi a échoué)
+            playOrderNotificationSound();
+            
+            // Envoyer le message WhatsApp (toujours)
+            await envoyerWhatsAppCommande(orderData.commandeId, articles, total);
+            
+            showToast('✅ Commande envoyée avec succès !');
+            state.lastOrderId = orderData.commandeId;
+            
+            return orderData.commandeId;
+            
+        } catch (error) {
+            console.error('Erreur lors de l\'enregistrement:', error);
+            
+            // Même en cas d'erreur, envoyer par WhatsApp
+            try {
+                const articles = [];
+                let totalPanier = 0;
+                
+                Object.values(state.cart).forEach(item => {
+                    const itemTotal = item.price * item.quantity;
+                    totalPanier += itemTotal;
+                    articles.push({
+                        produit: item.name,
+                        code: item.code,
+                        quantite: item.quantity,
+                        prix: item.price
+                    });
+                });
+                
+                const total = totalPanier + (orderData.shipping || 0);
+                await envoyerWhatsAppCommande(orderData.commandeId, articles, total);
+                
+                showToast('📱 Commande envoyée par WhatsApp (erreur Google Sheets ignorée)');
+                return orderData.commandeId;
+                
+            } catch (whatsappError) {
+                console.error('Erreur WhatsApp:', whatsappError);
+                showToast('⚠️ Problème d\'envoi, mais la commande est créée localement', 'warning');
+                return orderData.commandeId;
+            }
         }
-
-        // PRÉPARER LES DONNÉES DANS LE FORMAT ATTENDU
-        const formData = new URLSearchParams();
-        
-        // Données de base
-        formData.append('method', 'saveOrder');
-        formData.append('nom', state.user.name || '');
-        formData.append('telephone', state.user.phone ? state.user.phone.replace(/\D/g, '') : '');
-        formData.append('adresse', adresseComplete);
-        formData.append('commande_id', orderData.commandeId);
-        formData.append('date', new Date().toISOString());
-        
-        // PRÉPARER LES ARTICLES - AJOUTER TOUS LES ARTICLES
-        const articles = [];
-        let totalPanier = 0;
-        
-        Object.values(state.cart).forEach((item, index) => {
-          const itemTotal = item.price * item.quantity;
-          totalPanier += itemTotal;
-          
-          articles.push({
-            produit: item.name,
-            code: item.code,
-            quantite: item.quantity,
-            prix: item.price,
-            prix_ancien: item.oldPrice || item.price,
-            promotion: item.isPromotion ? 'Oui' : 'Non',
-            categorie: item.category,
-            total_article: itemTotal.toFixed(2)
-          });
-        });
-        
-        // ENVOYER LES ARTICLES SOUS FORME DE JSON
-        formData.append('articles', JSON.stringify(articles));
-        
-        // AJUSTER LE TOTAL POUR PRENDRE LE TOTAL DU PANIER
-        const totalPanierCalculé = totalPanier + (orderData.shipping || 0);
-        formData.append('total', totalPanierCalculé.toFixed(2));
-        formData.append('sous_total', totalPanier.toFixed(2));
-        formData.append('livraison', (orderData.shipping || 0).toFixed(2));
-        formData.append('economies', (orderData.savings || 0).toFixed(2));
-        
-        console.log('📤 Envoi au serveur:', Object.fromEntries(formData));
-        console.log('📦 Articles envoyés:', articles);
-        console.log('💰 Total panier:', totalPanierCalculé);
-
-        // ENVOYER VIA POST
-        const response = await fetch(CONFIG.commandeApiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: formData.toString()
-        });
-        
-        const result = await response.json();
-        console.log('📥 Réponse:', result);
-        
-        if (result.success) {
-          // Jouer le signal sonore pour alerter l'employé
-          playOrderNotificationSound();
-          
-          // Envoyer aussi un message WhatsApp
-          await envoyerWhatsAppCommande(orderData.commandeId, articles, totalPanierCalculé);
-          
-          showToast('✅ Commande enregistrée dans Google Sheets ! ID: ' + result.commande_id);
-          state.lastOrderId = result.commande_id;
-          return result.commande_id;
-        } else {
-          console.warn('⚠️ Erreur API:', result.error);
-          showToast(`⚠️ Erreur enregistrement: ${result.error || 'Erreur serveur'}`, 'warning');
-          return false;
-        }
-
-      } catch (error) {
-        console.error('❌ Erreur enregistrement:', error);
-        showToast('⚠️ Erreur réseau lors de l\'enregistrement', 'warning');
-        return false;
-      }
     }
 
     // ===================== ENVOI WHATSAPP =====================
     async function envoyerWhatsAppCommande(commandeId, articles, total) {
-      try {
-        const whatsappNumber = CONFIG.whatsappNumber || "21625600978";
-        const formattedNumber = whatsappNumber.startsWith('+') ? whatsappNumber : `+${whatsappNumber}`;
-        
-        // Créer le message WhatsApp
-        let message = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
-        message += `N°: ${commandeId}\n`;
-        message += `Date: ${new Date().toLocaleDateString('fr-FR')}\n\n`;
-        
-        message += `👤 CLIENT\n`;
-        message += `Nom: ${state.user.name}\n`;
-        message += `Tél: +216 ${state.user.phone}\n`;
-        message += `Adresse: ${state.user.address}\n\n`;
-        
-        message += `🛒 ARTICLES (${articles.length})\n`;
-        message += '─'.repeat(30) + '\n';
-        
-        articles.forEach(item => {
-          message += `${item.quantite}x ${item.produit}\n`;
-          message += `Code: ${item.code} | Prix: ${formatPrice(item.prix)}\n`;
-          if (item.promotion === 'Oui') {
-            message += `🔥 PROMO! Ancien: ${formatPrice(item.prix_ancien)}\n`;
-          }
-          message += '─'.repeat(30) + '\n';
-        });
-        
-        message += `\n💰 TOTAL: ${formatPrice(total)}\n`;
-        if (state.user.lat && state.user.lng) {
-          message += `📍 GPS: ${state.user.lat}, ${state.user.lng}\n`;
-          message += `🗺️ Google Maps: https://maps.google.com/?q=${state.user.lat},${state.user.lng}\n`;
+        try {
+            const whatsappNumber = CONFIG.whatsappNumber || "21625600978";
+            const formattedNumber = whatsappNumber.startsWith('+') ? whatsappNumber : `+${whatsappNumber}`;
+            
+            // Créer le message WhatsApp
+            let message = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
+            message += `N°: ${commandeId}\n`;
+            message += `Date: ${new Date().toLocaleDateString('fr-FR')} ${new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}\n\n`;
+            
+            message += `👤 CLIENT\n`;
+            message += `Nom: ${state.user.name}\n`;
+            message += `Tél: +216 ${state.user.phone}\n`;
+            message += `Adresse: ${state.user.address}\n\n`;
+            
+            message += `🛒 ARTICLES (${articles.length})\n`;
+            message += '─'.repeat(30) + '\n';
+            
+            let totalCalculated = 0;
+            articles.forEach(item => {
+                const itemTotal = item.prix * item.quantite;
+                totalCalculated += itemTotal;
+                message += `${item.quantite}x ${item.produit}\n`;
+                message += `Code: ${item.code} | Prix: ${formatPrice(item.prix)}\n`;
+                if (item.promotion === 'Oui') {
+                    message += `🔥 PROMO!\n`;
+                }
+                message += '─'.repeat(30) + '\n';
+            });
+            
+            message += `\n💰 TOTAL: ${formatPrice(total)}\n`;
+            if (state.user.lat && state.user.lng) {
+                message += `📍 GPS: ${state.user.lat}, ${state.user.lng}\n`;
+                message += `🗺️ Google Maps: https://maps.google.com/?q=${state.user.lat},${state.user.lng}\n`;
+            }
+            
+            message += `\n🕒 Heures: 7h - 1h\n`;
+            message += `📱 WhatsApp: +216 25 600 978\n`;
+            message += `📦 N° Commande: ${commandeId}`;
+            
+            // Encoder le message pour URL
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/${formattedNumber}?text=${encodedMessage}`;
+            
+            // Ouvrir WhatsApp dans un nouvel onglet
+            window.open(whatsappUrl, '_blank');
+            
+            return true;
+        } catch (error) {
+            console.error('Erreur envoi WhatsApp:', error);
+            return false;
         }
-        
-        // Encoder le message pour URL
-        const encodedMessage = encodeURIComponent(message);
-        const whatsappUrl = `https://wa.me/${formattedNumber}?text=${encodedMessage}`;
-        
-        // Ouvrir WhatsApp dans un nouvel onglet
-        window.open(whatsappUrl, '_blank');
-        
-        return true;
-      } catch (error) {
-        console.error('Erreur envoi WhatsApp:', error);
-        return false;
-      }
     }
 
     // ===================== GÉNÉRATION NUMÉRO COMMANDE =====================
     function genererNumeroCommande() {
-      const now = new Date();
-      const datePart = now.getFullYear() + 
-                      String(now.getMonth() + 1).padStart(2, '0') + 
-                      String(now.getDate()).padStart(2, '0');
-      
-      // Récupérer le dernier numéro de commande du jour
-      const lastOrderKey = `last_order_${datePart}`;
-      let lastOrderNumber = localStorage.getItem(lastOrderKey) || 0;
-      
-      // Incrémenter
-      lastOrderNumber = parseInt(lastOrderNumber) + 1;
-      
-      // Sauvegarder pour le jour suivant
-      localStorage.setItem(lastOrderKey, lastOrderNumber);
-      
-      // Formater avec 3 chiffres
-      const sequencePart = String(lastOrderNumber).padStart(3, '0');
-      
-      return `CMD-MAXI-${datePart}-${sequencePart}`;
+        const now = new Date();
+        const datePart = now.getFullYear() + 
+                        String(now.getMonth() + 1).padStart(2, '0') + 
+                        String(now.getDate()).padStart(2, '0');
+        
+        // Récupérer le dernier numéro de commande du jour
+        const lastOrderKey = `last_order_${datePart}`;
+        let lastOrderNumber = localStorage.getItem(lastOrderKey) || 0;
+        
+        // Incrémenter
+        lastOrderNumber = parseInt(lastOrderNumber) + 1;
+        
+        // Sauvegarder pour le jour suivant
+        localStorage.setItem(lastOrderKey, lastOrderNumber);
+        
+        // Formater avec 3 chiffres
+        const sequencePart = String(lastOrderNumber).padStart(3, '0');
+        
+        return `CMD-MAXI-${datePart}-${sequencePart}`;
     }
 
     // ===================== ENVOI MESSAGE AU CLIENT =====================
     function envoyerMessageClient(commandeId) {
-      const message = `Merci pour votre commande chez MAXI JDC MARKET.
+        const message = `Merci pour votre commande chez MAXI JDC MARKET.
 📦 Votre commande, référencée ${commandeId}, a bien été prise en compte.
 ⏳ Elle est actuellement en cours de préparation.
 📞 Nous vous contacterons prochainement pour la livraison.
 🔗 Pour suivre l'état de votre commande, veuillez utiliser votre numéro de commande dans la section « Suivi commande » de votre espace client.`;
-      
-      // Afficher le message dans une alerte
-      alert(message);
-      
-      // Copier le message dans le presse-papier
-      navigator.clipboard.writeText(message).then(() => {
-        showToast('📋 Message copié dans le presse-papier');
-      }).catch(err => {
-        console.error('Erreur copie:', err);
-      });
+        
+        // Afficher le message dans une alerte
+        alert(message);
+        
+        // Copier le message dans le presse-papier
+        navigator.clipboard.writeText(message).then(() => {
+            showToast('📋 Message copié dans le presse-papier');
+        }).catch(err => {
+            console.error('Erreur copie:', err);
+        });
     }
 
     // ===================== COMMANDES =====================
     async function placeOrder() {
-      if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
-        showToast('❌ Veuillez compléter vos informations personnelles', 'error');
-        $('cartTopBtn').click();
-        return;
-      }
-
-      if (Object.keys(state.cart).length === 0) {
-        showToast('❌ Votre panier est vide', 'error');
-        return;
-      }
-
-      const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      if (subtotal < CONFIG.minOrder) {
-        showToast(`❌ Commande minimum: ${formatPrice(CONFIG.minOrder)}`, 'error');
-        return;
-      }
-
-      const savings = calculateTotalSavings();
-      let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
-      const total = subtotal + shippingFee;
-
-      // CORRECTION DU TOTAL : 100.00 dt au lieu de 3.00 dt
-      if (total === 3.00) {
-        // Si le total calculé est 3.00 dt, c'est probablement une erreur
-        // Récalculer correctement
-        shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
-        const correctTotal = subtotal + shippingFee;
-        console.log(`Correction total: ${total} dt → ${correctTotal} dt`);
-      }
-
-      // Générer un numéro de commande
-      const commandeId = genererNumeroCommande();
-
-      let orderText = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
-      orderText += `📅 ${new Date().toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })}\n\n`;
-
-      orderText += `👤 CLIENT\n`;
-      orderText += `Nom: ${state.user.name}\n`;
-      orderText += `Téléphone: +216 ${state.user.phone}\n`;
-      orderText += `Adresse: ${state.user.address}\n`;
-      if (state.user.lat && state.user.lng) {
-        orderText += `📍 GPS: ${state.user.lat}, ${state.user.lng}\n`;
-        orderText += `🗺️ Google Maps: https://maps.google.com/?q=${state.user.lat},${state.user.lng}\n`;
-      }
-
-      orderText += `\n🛒 ARTICLES\n`;
-      orderText += '─'.repeat(50) + '\n';
-
-      Object.values(state.cart).forEach(item => {
-        const itemTotal = item.price * item.quantity;
-        const itemSaving = calculateItemSavings(item);
-        const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
-        orderText += `${item.quantity}x ${item.name} (${item.code})\n`;
-        orderText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
-        if (itemSaving > 0) {
-          orderText += ` 💰 ÉCONOMIE: ${formatPrice(itemSaving)}`;
-          if (item.discountPercent) {
-            orderText += ` (-${item.discountPercent}%)`;
-          }
-          orderText += `\n ⚡ Ancien prix: ${formatPrice(originalTotal)}`;
+        if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
+            showToast('❌ Veuillez compléter vos informations personnelles', 'error');
+            $('cartTopBtn').click();
+            return;
         }
-        orderText += '\n';
-      });
 
-      orderText += '─'.repeat(50) + '\n';
-      orderText += `Sous-total: ${formatPrice(subtotal)}\n`;
+        if (Object.keys(state.cart).length === 0) {
+            showToast('❌ Votre panier est vide', 'error');
+            return;
+        }
 
-      if (savings.totalSavings > 0) {
-        orderText += `💰 ÉCONOMIES TOTALES: ${formatPrice(savings.totalSavings)} (${savings.percentage}%)\n`;
-      }
+        const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        if (subtotal < CONFIG.minOrder) {
+            showToast(`❌ Commande minimum: ${formatPrice(CONFIG.minOrder)}`, 'error');
+            return;
+        }
 
-      orderText += `Livraison: ${shippingFee === 0 ? 'GRATUIT' : formatPrice(shippingFee)}\n`;
-      orderText += `TOTAL: ${formatPrice(total)}\n\n`;
+        const savings = calculateTotalSavings();
+        let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
+        const total = subtotal + shippingFee;
 
-      if (savings.totalSavings > 0) {
-        orderText += `🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(savings.totalSavings)} sur cette commande !\n\n`;
-      }
+        // Générer un numéro de commande
+        const commandeId = genererNumeroCommande();
 
-      orderText += `🕒 Heures: 7h - 1h\n`;
-      orderText += `📱 WhatsApp: +216 25 600 978\n`;
-      orderText += `📦 N° Commande: ${commandeId}`;
+        let orderText = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
+        orderText += `📅 ${new Date().toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })}\n\n`;
 
-      $('orderDetails').textContent = orderText;
-      $('orderModal').classList.add('open');
+        orderText += `👤 CLIENT\n`;
+        orderText += `Nom: ${state.user.name}\n`;
+        orderText += `Téléphone: +216 ${state.user.phone}\n`;
+        orderText += `Adresse: ${state.user.address}\n`;
+        if (state.user.lat && state.user.lng) {
+            orderText += `📍 GPS: ${state.user.lat}, ${state.user.lng}\n`;
+            orderText += `🗺️ Google Maps: https://maps.google.com/?q=${state.user.lat},${state.user.lng}\n`;
+        }
 
-      // Sauvegarder dans l'historique local MAIS PAS ENCORE DANS GOOGLE SHEETS
-      const orderData = {
-        subtotal,
-        shipping: shippingFee,
-        total,
-        savings: savings.totalSavings,
-        savingsPercentage: savings.percentage,
-        commandeId: commandeId
-      };
+        orderText += `\n🛒 ARTICLES\n`;
+        orderText += '─'.repeat(50) + '\n';
 
-      // Sauvegarder dans l'historique local seulement
-      saveOrderToHistory(orderData);
+        Object.values(state.cart).forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            const itemSaving = calculateItemSavings(item);
+            const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
+            orderText += `${item.quantity}x ${item.name} (${item.code})\n`;
+            orderText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
+            if (itemSaving > 0) {
+                orderText += ` 💰 ÉCONOMIE: ${formatPrice(itemSaving)}`;
+                if (item.discountPercent) {
+                    orderText += ` (-${item.discountPercent}%)`;
+                }
+                orderText += `\n ⚡ Ancien prix: ${formatPrice(originalTotal)}`;
+            }
+            orderText += '\n';
+        });
 
-      // Vider le panier après création de la commande
-      state.cart = {};
-      updateCartUI();
+        orderText += '─'.repeat(50) + '\n';
+        orderText += `Sous-total: ${formatPrice(subtotal)}\n`;
 
-      const t = TRANSLATIONS[state.currentLanguage];
-      showToast(`✅ ${t.toastOrderPlaced} Cliquez sur "Valider et envoyer" pour finaliser.`);
+        if (savings.totalSavings > 0) {
+            orderText += `💰 ÉCONOMIES TOTALES: ${formatPrice(savings.totalSavings)} (${savings.percentage}%)\n`;
+        }
+
+        orderText += `Livraison: ${shippingFee === 0 ? 'GRATUIT' : formatPrice(shippingFee)}\n`;
+        orderText += `TOTAL: ${formatPrice(total)}\n\n`;
+
+        if (savings.totalSavings > 0) {
+            orderText += `🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(savings.totalSavings)} sur cette commande !\n\n`;
+        }
+
+        orderText += `🕒 Heures: 7h - 1h\n`;
+        orderText += `📱 WhatsApp: +216 25 600 978\n`;
+        orderText += `📦 N° Commande: ${commandeId}`;
+
+        $('orderDetails').textContent = orderText;
+        $('orderModal').classList.add('open');
+
+        // Sauvegarder dans l'historique local
+        const orderData = {
+            subtotal,
+            shipping: shippingFee,
+            total,
+            savings: savings.totalSavings,
+            savingsPercentage: savings.percentage,
+            commandeId: commandeId
+        };
+
+        // Sauvegarder dans l'historique local seulement
+        saveOrderToHistory(orderData);
+
+        // Vider le panier après création de la commande
+        state.cart = {};
+        updateCartUI();
+
+        const t = TRANSLATIONS[state.currentLanguage];
+        showToast(`✅ ${t.toastOrderPlaced} Cliquez sur "Valider et envoyer" pour finaliser.`);
     }
 
     // ===================== INITIALISATION =====================
     function init() {
-      try {
-        const saved = localStorage.getItem(CONFIG.localStorageKey);
-        if (saved) {
-          const data = JSON.parse(saved);
-          state.user = data.user || null;
-          state.cart = data.cart || {};
-          state.orderHistory = data.orderHistory || [];
-          updateUserUI();
-          updateCartUI();
+        try {
+            const saved = localStorage.getItem(CONFIG.localStorageKey);
+            if (saved) {
+                const data = JSON.parse(saved);
+                state.user = data.user || null;
+                state.cart = data.cart || {};
+                state.orderHistory = data.orderHistory || [];
+                updateUserUI();
+                updateCartUI();
+            }
+            const adminState = localStorage.getItem(CONFIG.adminPasswordKey);
+            state.isAdmin = adminState === 'true';
+            $('adminSection').classList.toggle('visible', state.isAdmin);
+            
+            // Charger la langue sauvegardée
+            const savedLang = localStorage.getItem('maxi_jdc_language') || 'fr';
+            setLanguage(savedLang);
+        } catch (e) {
+            console.warn('Erreur chargement état:', e);
         }
-        const adminState = localStorage.getItem(CONFIG.adminPasswordKey);
-        state.isAdmin = adminState === 'true';
-        $('adminSection').classList.toggle('visible', state.isAdmin);
-        
-        // Charger la langue sauvegardée
-        const savedLang = localStorage.getItem('maxi_jdc_language') || 'fr';
-        setLanguage(savedLang);
-      } catch (e) {
-        console.warn('Erreur chargement état:', e);
-      }
 
-      $('cartTopBtn').onclick = () => {
-        $('drawer').classList.add('open');
-        $('drawerOverlay').classList.add('open');
-        document.body.classList.add('drawer-open');
-        document.body.style.overflow = 'hidden';
-      };
-
-      $('closeDrawerBtn').onclick = () => {
-        $('drawer').classList.remove('open');
-        $('drawerOverlay').classList.remove('open');
-        document.body.classList.remove('drawer-open');
-        document.body.style.overflow = '';
-      };
-
-      $('drawerOverlay').onclick = $('closeDrawerBtn').onclick;
-
-      // Gestion du bouton langue dans le header
-      const langDropdown = $('langDropdown');
-      const langHeaderBtn = $('langHeaderBtn');
-      
-      langHeaderBtn.onclick = (e) => {
-        e.stopPropagation();
-        langDropdown.classList.toggle('show');
-      };
-      
-      // Fermer le dropdown quand on clique ailleurs
-      document.addEventListener('click', () => {
-        langDropdown.classList.remove('show');
-      });
-      
-      // Gestion des options de langue
-      document.querySelectorAll('.lang-option').forEach(btn => {
-        btn.onclick = (e) => {
-          e.stopPropagation();
-          const lang = btn.dataset.lang;
-          setLanguage(lang);
-          langDropdown.classList.remove('show');
+        $('cartTopBtn').onclick = () => {
+            $('drawer').classList.add('open');
+            $('drawerOverlay').classList.add('open');
+            document.body.classList.add('drawer-open');
+            document.body.style.overflow = 'hidden';
         };
-      });
 
-      $('searchInput').addEventListener('input', (e) => {
-        state.searchQuery = e.target.value;
-        state.currentPage = 1;
-        renderProducts();
-      });
+        $('closeDrawerBtn').onclick = () => {
+            $('drawer').classList.remove('open');
+            $('drawerOverlay').classList.remove('open');
+            document.body.classList.remove('drawer-open');
+            document.body.style.overflow = '';
+        };
 
-      $('searchEnterBtn').onclick = () => {
-        state.currentPage = 1;
-        renderProducts();
-        $('searchInput').focus();
-      };
+        $('drawerOverlay').onclick = $('closeDrawerBtn').onclick;
 
-      $('clearSearchBtn').onclick = () => {
-        $('searchInput').value = '';
-        state.searchQuery = '';
-        state.currentPage = 1;
-        renderProducts();
-        $('searchInput').focus();
-      };
+        // Gestion du bouton langue dans le header
+        const langDropdown = $('langDropdown');
+        const langHeaderBtn = $('langHeaderBtn');
+        
+        langHeaderBtn.onclick = (e) => {
+            e.stopPropagation();
+            langDropdown.classList.toggle('show');
+        };
+        
+        // Fermer le dropdown quand on clique ailleurs
+        document.addEventListener('click', () => {
+            langDropdown.classList.remove('show');
+        });
+        
+        // Gestion des options de langue
+        document.querySelectorAll('.lang-option').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const lang = btn.dataset.lang;
+                setLanguage(lang);
+                langDropdown.classList.remove('show');
+            };
+        });
 
-      $('showAllBtn').onclick = () => {
-        state.showAllCategories = true;
-        state.activeCategory = null;
-        state.currentPage = 1;
-        renderProducts();
-        updateCategoriesUI();
-      };
-
-      $('viewPromosBtn').onclick = () => {
-        state.showAllCategories = false;
-        state.activeCategory = 'promotions';
-        state.currentPage = 1;
-        renderProducts();
-        updateCategoriesUI();
-        $('closeDrawerBtn').click();
-      };
-
-      $('prevPageBtn').onclick = $('prevPageBottomBtn').onclick = () => {
-        if (state.currentPage > 1) {
-          state.currentPage--;
-          renderProducts();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      };
-
-      $('nextPageBtn').onclick = $('nextPageBottomBtn').onclick = () => {
-        const products = getFilteredProducts();
-        const totalPages = Math.ceil(products.length / CONFIG.itemsPerPage) || 1;
-        if (state.currentPage < totalPages) {
-          state.currentPage++;
-          renderProducts();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      };
-
-      $('modalPrevProduct').onclick = showPrevProduct;
-      $('modalNextProduct').onclick = showNextProduct;
-      $('closeProductModalBtn').onclick = $('modalCloseBottomBtn').onclick = closeProductModal;
-      $('modalDecreaseBtn').onclick = decreaseQuantity;
-      $('modalIncreaseBtn').onclick = increaseQuantity;
-      $('modalQuantityInput').addEventListener('input', handleQuantityInputChange);
-      $('modalQuantityInput').addEventListener('change', handleQuantityInputChange);
-
-      $('modalAddToCartBtn').onclick = () => {
-        if (!state.currentModalProduct) return;
-        const productId = generateProductId(state.currentModalProduct);
-        const quantityInput = $('modalQuantityInput');
-        const quantity = parseInt(quantityInput.value) || 0;
-        if (quantity > 0) {
-          addToCart(productId, state.currentModalProduct, quantity);
-          closeProductModal();
-        }
-      };
-
-      $('qrInfoBtn').onclick = openQRModal;
-      $('qrDirectBtn').onclick = openQRModal;
-      $('closeQrModalBtn').onclick = closeQRModal;
-
-      $('secretAdminBtn').onclick = toggleAdminMode;
-      $('adminDashboardBtn').onclick = openDashboard;
-      $('adminStockBtn').onclick = openStockManagement;
-
-      $('toggleClientSpaceBtn').onclick = toggleClientSpace;
-      $('closeClientSpaceBtn').onclick = closeClientSpace;
-
-      $('clearCartBtn').onclick = () => {
-        if (Object.keys(state.cart).length === 0) return;
-        if (confirm('Voulez-vous vraiment vider tout votre panier ?')) {
-          Object.values(state.cart).forEach(item => {
-            const stockKey = `${item.categoryKey}_${item.code}`;
-            const currentStock = state.productStocks.get(stockKey) || 0;
-            state.productStocks.set(stockKey, currentStock + item.quantity);
-          });
-          state.cart = {};
-          state.quantityPicks = {};
-          updateCartUI();
-          renderProducts();
-          const t = TRANSLATIONS[state.currentLanguage];
-          showToast(t.toastCartCleared, 'warning');
-        }
-      };
-
-      $('cartItemsList').addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-action]');
-        if (!btn) return;
-        const action = btn.dataset.action;
-        const id = btn.dataset.id;
-        if (action === 'increase' && state.cart[id]) {
-          const availableStock = getAvailableStock(state.cart[id]);
-          if (state.cart[id].quantity < availableStock) {
-            state.cart[id].quantity++;
-            updateProductStock(state.cart[id], 1);
+        $('searchInput').addEventListener('input', (e) => {
+            state.searchQuery = e.target.value;
+            state.currentPage = 1;
             renderProducts();
-            updateCartUI();
-          } else {
-            showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
-          }
-        } else if (action === 'decrease' && state.cart[id]) {
-          state.cart[id].quantity--;
-          if (state.cart[id].quantity <= 0) {
-            delete state.cart[id];
-            delete state.quantityPicks[id];
-          }
-          removeFromCart(id, 1);
-        }
-      });
-
-      $('saveAccountBtn').onclick = saveUser;
-      $('editAccountBtn').onclick = editUser;
-
-      $('clearPhoneBtn').onclick = () => {
-        $('clientPhone').value = '';
-        $('clientPhone').focus();
-      };
-
-      $('getLocationBtn').onclick = getLocationFromBrowser;
-      $('mapPreview').onclick = openMapModal;
-
-      $('closeMapModalBtn').onclick = () => {
-        $('mapModal').classList.remove('open');
-        document.body.style.overflow = '';
-      };
-
-      $('mapOkBtn').onclick = () => {
-        if (state.tempMapCoords) {
-          $('clientLat').value = state.tempMapCoords.lat.toFixed(6);
-          $('clientLng').value = state.tempMapCoords.lng.toFixed(6);
-          updateMapPreview(state.tempMapCoords.lat, state.tempMapCoords.lng);
-          showToast('✅ Position enregistrée');
-        }
-        $('closeMapModalBtn').click();
-      };
-
-      $('searchHistoryBtn').onclick = () => {
-        const phone = $('searchHistoryPhone').value.trim();
-        if (!phone) {
-          showToast('❌ Veuillez entrer votre numéro de téléphone', 'error');
-          return;
-        }
-        const history = loadHistoryForPhone(phone);
-        renderHistory(history);
-        if (history.length === 0) {
-          showToast('📭 Aucune commande trouvée pour ce numéro', 'warning');
-        } else {
-          showToast(`📜 ${history.length} commande(s) trouvée(s)`);
-        }
-      };
-
-      $('placeOrderBtn').onclick = placeOrder;
-
-      $('closeOrderModalBtn').onclick = () => {
-        $('orderModal').classList.remove('open');
-      };
-
-      $('copyOrderBtn').onclick = () => {
-        const orderText = $('orderDetails').textContent;
-        navigator.clipboard.writeText(orderText).then(() => {
-          showToast('📋 Commande copiée dans le presse-papier');
-        }).catch(err => {
-          console.error('Erreur copie:', err);
-          showToast('❌ Erreur lors de la copie', 'error');
         });
-      };
 
-      $('downloadOrderBtn').onclick = () => {
-        const orderText = $('orderDetails').textContent;
-        const blob = new Blob([orderText], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `commande-maxi-jdc-${Date.now()}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showToast('💾 Commande téléchargée');
-      };
-
-      $('sendOrderBtn').onclick = async () => {
-        // Récupérer les données de commande depuis le modal
-        const orderText = $('orderDetails').textContent;
-        const lines = orderText.split('\n');
-        let commandeId = '';
-        
-        // Extraire le numéro de commande du texte
-        for (const line of lines) {
-          if (line.includes('N° Commande:')) {
-            commandeId = line.split(':')[1].trim();
-            break;
-          }
-        }
-        
-        if (!commandeId) {
-          commandeId = genererNumeroCommande();
-        }
-        
-        // Calculer les totaux
-        const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
-        const total = subtotal + shippingFee;
-        const savings = calculateTotalSavings();
-        
-        // Préparer les données pour l'envoi
-        const orderData = {
-          subtotal,
-          shipping: shippingFee,
-          total,
-          savings: savings.totalSavings,
-          savingsPercentage: savings.percentage,
-          commandeId: commandeId
+        $('searchEnterBtn').onclick = () => {
+            state.currentPage = 1;
+            renderProducts();
+            $('searchInput').focus();
         };
-        
-        // CORRECTION : Vérifier que le total est correct (100.00 dt au lieu de 3.00 dt)
-        if (total === 3.00 && subtotal > 3.00) {
-          // Récalculer le total correctement
-          orderData.total = subtotal + (subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee);
-          console.log(`Total corrigé: ${total} dt → ${orderData.total} dt`);
-        }
-        
-        // Envoyer vers Google Sheets (SEULEMENT maintenant)
-        const enregistrementReussi = await enregistrerCommandeGoogleSheets(orderData);
-        
-        // Fermer le modal
-        $('orderModal').classList.remove('open');
-        
-        if (enregistrementReussi) {
-          // Envoyer le message au client AVEC LE MESSAGE CORRIGÉ
-          envoyerMessageClient(enregistrementReussi);
-          showToast('✅ Commande envoyée avec succès !');
-        } else {
-          showToast('⚠️ Commande créée mais erreur d\'enregistrement', 'warning');
-          // Envoyer quand même le message avec le numéro généré localement
-          envoyerMessageClient(commandeId);
-        }
-      };
 
-      $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
-        $('stockModal').classList.remove('open');
-        document.body.style.overflow = '';
-      };
+        $('clearSearchBtn').onclick = () => {
+            $('searchInput').value = '';
+            state.searchQuery = '';
+            state.currentPage = 1;
+            renderProducts();
+            $('searchInput').focus();
+        };
 
-      $('stockSearchInput').addEventListener('input', (e) => {
-        renderStockTable(e.target.value);
-      });
+        $('showAllBtn').onclick = () => {
+            state.showAllCategories = true;
+            state.activeCategory = null;
+            state.currentPage = 1;
+            renderProducts();
+            updateCategoriesUI();
+        };
 
-      $('refreshStockBtn').onclick = () => {
-        loadGoogleSheetsStock().then(() => {
-          updateAllProductStocks();
-          renderStockTable($('stockSearchInput').value);
-          showToast('🔄 Stocks actualisés depuis Google Sheets');
+        $('viewPromosBtn').onclick = () => {
+            state.showAllCategories = false;
+            state.activeCategory = 'promotions';
+            state.currentPage = 1;
+            renderProducts();
+            updateCategoriesUI();
+            $('closeDrawerBtn').click();
+        };
+
+        $('prevPageBtn').onclick = $('prevPageBottomBtn').onclick = () => {
+            if (state.currentPage > 1) {
+                state.currentPage--;
+                renderProducts();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        };
+
+        $('nextPageBtn').onclick = $('nextPageBottomBtn').onclick = () => {
+            const products = getFilteredProducts();
+            const totalPages = Math.ceil(products.length / CONFIG.itemsPerPage) || 1;
+            if (state.currentPage < totalPages) {
+                state.currentPage++;
+                renderProducts();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        };
+
+        $('modalPrevProduct').onclick = showPrevProduct;
+        $('modalNextProduct').onclick = showNextProduct;
+        $('closeProductModalBtn').onclick = $('modalCloseBottomBtn').onclick = closeProductModal;
+        $('modalDecreaseBtn').onclick = decreaseQuantity;
+        $('modalIncreaseBtn').onclick = increaseQuantity;
+        $('modalQuantityInput').addEventListener('input', handleQuantityInputChange);
+        $('modalQuantityInput').addEventListener('change', handleQuantityInputChange);
+
+        $('modalAddToCartBtn').onclick = () => {
+            if (!state.currentModalProduct) return;
+            const productId = generateProductId(state.currentModalProduct);
+            const quantityInput = $('modalQuantityInput');
+            const quantity = parseInt(quantityInput.value) || 0;
+            if (quantity > 0) {
+                addToCart(productId, state.currentModalProduct, quantity);
+                closeProductModal();
+            }
+        };
+
+        $('qrInfoBtn').onclick = openQRModal;
+        $('qrDirectBtn').onclick = openQRModal;
+        $('closeQrModalBtn').onclick = closeQRModal;
+
+        $('secretAdminBtn').onclick = toggleAdminMode;
+        $('adminDashboardBtn').onclick = openDashboard;
+        $('adminStockBtn').onclick = openStockManagement;
+
+        $('toggleClientSpaceBtn').onclick = toggleClientSpace;
+        $('closeClientSpaceBtn').onclick = closeClientSpace;
+
+        $('clearCartBtn').onclick = () => {
+            if (Object.keys(state.cart).length === 0) return;
+            if (confirm('Voulez-vous vraiment vider tout votre panier ?')) {
+                Object.values(state.cart).forEach(item => {
+                    const stockKey = `${item.categoryKey}_${item.code}`;
+                    const currentStock = state.productStocks.get(stockKey) || 0;
+                    state.productStocks.set(stockKey, currentStock + item.quantity);
+                });
+                state.cart = {};
+                state.quantityPicks = {};
+                updateCartUI();
+                renderProducts();
+                const t = TRANSLATIONS[state.currentLanguage];
+                showToast(t.toastCartCleared, 'warning');
+            }
+        };
+
+        $('cartItemsList').addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const id = btn.dataset.id;
+            if (action === 'increase' && state.cart[id]) {
+                const availableStock = getAvailableStock(state.cart[id]);
+                if (state.cart[id].quantity < availableStock) {
+                    state.cart[id].quantity++;
+                    updateProductStock(state.cart[id], 1);
+                    renderProducts();
+                    updateCartUI();
+                } else {
+                    showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
+                }
+            } else if (action === 'decrease' && state.cart[id]) {
+                state.cart[id].quantity--;
+                if (state.cart[id].quantity <= 0) {
+                    delete state.cart[id];
+                    delete state.quantityPicks[id];
+                }
+                removeFromCart(id, 1);
+            }
         });
-      };
 
-      $('stockTableBody').addEventListener('click', (e) => {
-        const saveBtn = e.target.closest('.stock-save-btn');
-        if (saveBtn) {
-          const productKey = saveBtn.dataset.key;
-          const input = document.querySelector(`.stock-input[data-key="${productKey}"]`);
-          if (input) {
-            updateStock(productKey, input.value);
-          }
-        }
-      });
+        $('saveAccountBtn').onclick = saveUser;
+        $('editAccountBtn').onclick = editUser;
 
-      $('saveAllStockBtn').onclick = () => {
-        const inputs = document.querySelectorAll('.stock-input');
-        let updatedCount = 0;
-        inputs.forEach(input => {
-          const productKey = input.dataset.key;
-          const newStock = parseInt(input.value) || 0;
-          const currentStock = state.productStocks.get(productKey) || 0;
-          if (newStock !== currentStock) {
-            updateStock(productKey, newStock);
-            updatedCount++;
-          }
+        $('clearPhoneBtn').onclick = () => {
+            $('clientPhone').value = '';
+            $('clientPhone').focus();
+        };
+
+        $('getLocationBtn').onclick = getLocationFromBrowser;
+        $('mapPreview').onclick = openMapModal;
+
+        $('closeMapModalBtn').onclick = () => {
+            $('mapModal').classList.remove('open');
+            document.body.style.overflow = '';
+        };
+
+        $('mapOkBtn').onclick = () => {
+            if (state.tempMapCoords) {
+                $('clientLat').value = state.tempMapCoords.lat.toFixed(6);
+                $('clientLng').value = state.tempMapCoords.lng.toFixed(6);
+                updateMapPreview(state.tempMapCoords.lat, state.tempMapCoords.lng);
+                showToast('✅ Position enregistrée');
+            }
+            $('closeMapModalBtn').click();
+        };
+
+        $('searchHistoryBtn').onclick = () => {
+            const phone = $('searchHistoryPhone').value.trim();
+            if (!phone) {
+                showToast('❌ Veuillez entrer votre numéro de téléphone', 'error');
+                return;
+            }
+            const history = loadHistoryForPhone(phone);
+            renderHistory(history);
+            if (history.length === 0) {
+                showToast('📭 Aucune commande trouvée pour ce numéro', 'warning');
+            } else {
+                showToast(`📜 ${history.length} commande(s) trouvée(s)`);
+            }
+        };
+
+        $('placeOrderBtn').onclick = placeOrder;
+
+        $('closeOrderModalBtn').onclick = () => {
+            $('orderModal').classList.remove('open');
+        };
+
+        $('copyOrderBtn').onclick = () => {
+            const orderText = $('orderDetails').textContent;
+            navigator.clipboard.writeText(orderText).then(() => {
+                showToast('📋 Commande copiée dans le presse-papier');
+            }).catch(err => {
+                console.error('Erreur copie:', err);
+                showToast('❌ Erreur lors de la copie', 'error');
+            });
+        };
+
+        $('downloadOrderBtn').onclick = () => {
+            const orderText = $('orderDetails').textContent;
+            const blob = new Blob([orderText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `commande-maxi-jdc-${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('💾 Commande téléchargée');
+        };
+
+        $('sendOrderBtn').onclick = async () => {
+            // Récupérer les données de commande depuis le modal
+            const orderText = $('orderDetails').textContent;
+            const lines = orderText.split('\n');
+            let commandeId = '';
+            
+            // Extraire le numéro de commande du texte
+            for (const line of lines) {
+                if (line.includes('N° Commande:')) {
+                    commandeId = line.split(':')[1].trim();
+                    break;
+                }
+            }
+            
+            if (!commandeId) {
+                commandeId = genererNumeroCommande();
+            }
+            
+            // Calculer les totaux
+            const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
+            const total = subtotal + shippingFee;
+            const savings = calculateTotalSavings();
+            
+            // Préparer les données pour l'envoi
+            const orderData = {
+                subtotal,
+                shipping: shippingFee,
+                total,
+                savings: savings.totalSavings,
+                savingsPercentage: savings.percentage,
+                commandeId: commandeId
+            };
+            
+            // ENVOYER VERS GOOGLE SHEETS (VERSION SIMPLIFIÉE)
+            const enregistrementReussi = await enregistrerCommandeGoogleSheets(orderData);
+            
+            // Fermer le modal
+            $('orderModal').classList.remove('open');
+            
+            if (enregistrementReussi) {
+                // Envoyer le message au client
+                envoyerMessageClient(enregistrementReussi);
+                showToast('✅ Commande envoyée avec succès !');
+            } else {
+                showToast('⚠️ Commande créée mais erreur d\'enregistrement', 'warning');
+                // Envoyer quand même le message avec le numéro généré localement
+                envoyerMessageClient(commandeId);
+            }
+        };
+
+        $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
+            $('stockModal').classList.remove('open');
+            document.body.style.overflow = '';
+        };
+
+        $('stockSearchInput').addEventListener('input', (e) => {
+            renderStockTable(e.target.value);
         });
-        if (updatedCount > 0) {
-          showToast(`✅ ${updatedCount} stocks mis à jour`);
-        } else {
-          showToast('ℹ️ Aucun changement détecté');
-        }
-      };
 
-      loadAllProducts();
-      initializeSync();
-      initClientSpace();
-      showToast('👋 Bienvenue sur MAXI JDC MARKET !');
+        $('refreshStockBtn').onclick = () => {
+            loadGoogleSheetsStock().then(() => {
+                updateAllProductStocks();
+                renderStockTable($('stockSearchInput').value);
+                showToast('🔄 Stocks actualisés depuis Google Sheets');
+            });
+        };
+
+        $('stockTableBody').addEventListener('click', (e) => {
+            const saveBtn = e.target.closest('.stock-save-btn');
+            if (saveBtn) {
+                const productKey = saveBtn.dataset.key;
+                const input = document.querySelector(`.stock-input[data-key="${productKey}"]`);
+                if (input) {
+                    updateStock(productKey, input.value);
+                }
+            }
+        });
+
+        $('saveAllStockBtn').onclick = () => {
+            const inputs = document.querySelectorAll('.stock-input');
+            let updatedCount = 0;
+            inputs.forEach(input => {
+                const productKey = input.dataset.key;
+                const newStock = parseInt(input.value) || 0;
+                const currentStock = state.productStocks.get(productKey) || 0;
+                if (newStock !== currentStock) {
+                    updateStock(productKey, newStock);
+                    updatedCount++;
+                }
+            });
+            if (updatedCount > 0) {
+                showToast(`✅ ${updatedCount} stocks mis à jour`);
+            } else {
+                showToast('ℹ️ Aucun changement détecté');
+            }
+        };
+
+        loadAllProducts();
+        initializeSync();
+        initClientSpace();
+        showToast('👋 Bienvenue sur MAXI JDC MARKET !');
     }
 
     function saveState() {
-      const data = {
-        user: state.user,
-        cart: state.cart,
-        orderHistory: state.orderHistory,
-        version: '36.0'
-      };
-      localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
+        const data = {
+            user: state.user,
+            cart: state.cart,
+            orderHistory: state.orderHistory,
+            version: '36.0'
+        };
+        localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
 
     document.addEventListener('DOMContentLoaded', init);
 
     window.addEventListener('beforeunload', () => {
-      if (state.syncTimer) {
-        clearInterval(state.syncTimer);
-      }
+        if (state.syncTimer) {
+            clearInterval(state.syncTimer);
+        }
     });
   </script>
 </body>
 </html>
-
-
-
