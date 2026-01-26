@@ -9,7 +9,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwSUfxfKqjkjtlDeyUybpw-
  * ENVOYER UNE COMMANDE (ECRITURE)
  * Envoie la commande au Google Sheet et génère WhatsApp
  *********************************/
-export async function envoyerCommande(dataCommande) {
+export async async function envoyerCommande(dataCommande) {
   if (!dataCommande || typeof dataCommande !== "object") {
     throw new Error("Données de commande invalides.");
   }
@@ -576,7 +576,7 @@ export function genererTableauSuivi(commande) {
       </div>
       
       <div class="suivi-actions">
-        <button onclick="contacterMagasin('${commande.Téléphone || ''}')" class="btn-contact">
+        <button onclick="(window.apiCommandes?window.apiCommandes.contacterMagasin:window.contacterMagasin)('${commande.Téléphone || ''}')" class="btn-contact">
           📱 Contacter le magasin
         </button>
       </div>
@@ -966,4 +966,10 @@ if (typeof window !== 'undefined') {
     testerConnexionAPI,
     contacterMagasin
   };
+
+  // Alias globaux (pour les boutons onclick=\"contacterMagasin(...)\" etc.)
+  window.contacterMagasin = contacterMagasin;
+  window.envoyerCommande = envoyerCommande;
+  window.suivreCommande = suivreCommande;
+  window.mettreAJourStatut = mettreAJourStatut;
 }
