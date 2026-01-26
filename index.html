@@ -3755,8 +3755,9 @@
           💾 Télécharger
         </button>
         <button class="order-btn whatsapp" id="sendOrderBtn">
-          ✅ Valider et envoyer
-        </button>
+  ✅ Valider et envoyer
+</button>
+
       </div>
     </div>
   </div>
@@ -3773,7 +3774,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v35',
+      localStorageKey: 'maxi_jdc_market_app_v34',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -3786,7 +3787,6 @@
       },
       syncInterval: 30000,
       dashboardUrl: 'tools/tableau-de-bord.html',
-      trackingUrl: 'tools/suivi-commandes.html',
 
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
       commandeApiUrl: "https://script.google.com/macros/s/AKfycbz01QnoaxYg8OwAd5BGm_L6JbaOPaQ0FGuu7Cm3dGbJ_M07F_4aKDNcy7BfPtr7hA3T/exec",
@@ -3883,8 +3883,7 @@
       pendingStockUpdates: new Map(),
       lastSyncTime: null,
       syncTimer: null,
-      googleSheetsStock: new Map(),
-      lastOrderId: null
+      googleSheetsStock: new Map()
     };
 
     // ===================== UTILITAIRES =====================
@@ -5124,8 +5123,7 @@
         coords: state.user.lat && state.user.lng ? {
           lat: state.user.lat,
           lng: state.user.lng
-        } : null,
-        orderId: orderDetails.commandeId
+        } : null
       };
       state.orderHistory.unshift(historyEntry);
       const twoYearsAgo = new Date();
@@ -5189,11 +5187,6 @@
               💰 Économies: ${formatPrice(orderSavings)}
             </div>
           ` : ''}
-          ${order.orderId ? `
-            <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
-              📦 N°: ${order.orderId}
-            </div>
-          ` : ''}
         `;
         historyItem.addEventListener('click', () => {
           showOrderDetails(order);
@@ -5204,7 +5197,7 @@
 
     function showOrderDetails(order) {
       const orderDetails = $('orderDetails');
-      let detailsText = `📦 COMMANDE #${order.orderId || order.id}\n`;
+      let detailsText = `📦 COMMANDE #${order.id}\n`;
       detailsText += `📅 ${new Date(order.date).toLocaleDateString('fr-FR', {
         day: '2-digit',
         month: '2-digit',
@@ -5214,12 +5207,8 @@
       })}\n`;
       detailsText += `👤 ${order.clientName}\n`;
       detailsText += `📱 ${order.clientPhone}\n`;
-      detailsText += `📍 ${order.address}\n`;
-      if (order.coords) {
-        detailsText += `🗺️ GPS: ${order.coords.lat}, ${order.coords.lng}\n`;
-        detailsText += `🔗 Maps: https://maps.google.com/?q=${order.coords.lat},${order.coords.lng}\n`;
-      }
-      detailsText += `\n🛒 ARTICLES :\n`;
+      detailsText += `📍 ${order.address}\n\n`;
+      detailsText += `🛒 ARTICLES :\n`;
       detailsText += '─'.repeat(50) + '\n';
       let totalSavingsInOrder = 0;
       let totalOriginalInOrder = 0;
@@ -5289,9 +5278,10 @@
           $('clientAccountBtn').click();
           return;
         }
-        // Ouvrir la page de suivi des commandes avec le numéro de téléphone
-        const trackingUrl = `${CONFIG.trackingUrl}?phone=${encodeURIComponent(state.user.phone)}`;
-        window.open(trackingUrl, '_blank');
+        // Ouvrir la page de suivi des commandes
+       window.open('/maxi-jdc-market/tools/suivi-commandes.html', '_blank');
+
+
       };
 
       $('clientHistoryBtn').onclick = () => {
@@ -5381,88 +5371,38 @@
       $('accountStatus').textContent = 'Modification';
     }
 
-    // ===================== SIGNAL SONORE POUR NOUVELLE COMMANDE =====================
-    function playOrderNotificationSound() {
+    // ===================== ENREGISTREMENT AUTOMATIQUE VERS GOOGLE SHEETS =====================
+    async function enregistrerCommandeAutomatique(orderData) {
       try {
-        // Créer un contexte audio
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Fonction pour jouer un bip
-        function playBeep(frequency, duration, startTime) {
-          const oscillator = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-          
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-          
-          oscillator.frequency.value = frequency;
-          oscillator.type = 'sine';
-          
-          gainNode.gain.setValueAtTime(0, startTime);
-          gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
-          
-          oscillator.start(startTime);
-          oscillator.stop(startTime + duration);
-        }
-        
-        // Jouer 5 bips avec un petit délai entre chacun
-        const now = audioContext.currentTime;
-        for (let i = 0; i < 5; i++) {
-          playBeep(800 + (i * 50), 0.15, now + (i * 0.3));
-        }
-        
-        console.log('🔔 Signal sonore joué pour nouvelle commande');
-      } catch (error) {
-        console.warn('Impossible de jouer le signal sonore:', error);
-      }
-    }
+        showToast('📤 Enregistrement automatique de la commande...', 'warning');
 
-    // ===================== ENREGISTREMENT VERS GOOGLE SHEETS =====================
-    async function enregistrerCommandeGoogleSheets(orderData) {
-      try {
-        showToast('📤 Envoi de la commande vers Google Sheets...', 'warning');
-
-        // Construire l'adresse avec les coordonnées GPS
-        let adresseComplete = state.user.address;
-        if (state.user.lat && state.user.lng) {
-          adresseComplete += ` - GPS: ${state.user.lat}, ${state.user.lng}`;
-          adresseComplete += ` - Google Maps: https://maps.google.com/?q=${state.user.lat},${state.user.lng}`;
-        }
-
-        // 1. PRÉPARER LES DONNÉES DANS LE FORMAT ATTENDU
+        // 1. PRÉPARER LES DONNÉES DANS LE FORMAT ATTENDU PAR LE SERVEUR
         const formData = new URLSearchParams();
         
-        // Données de base
+        // Données de base - FORMAT CORRECT pour Code.gs
         formData.append('method', 'saveOrder');
         formData.append('nom', state.user.name || '');
         formData.append('telephone', state.user.phone ? state.user.phone.replace(/\D/g, '') : '');
-        formData.append('adresse', adresseComplete);
-        formData.append('commande_id', orderData.commandeId);
+        formData.append('adresse', state.user.address || '');
         
-        // 2. PRÉPARER LES ARTICLES
+        // 2. PRÉPARER LES ARTICLES DANS LE FORMAT ATTENDU
         const articles = [];
         Object.values(state.cart).forEach(item => {
             articles.push({
                 produit: item.name,
-                code: item.code,
-                quantite: item.quantity,
-                prix: item.price,
-                prix_ancien: item.oldPrice || item.price,
-                promotion: item.isPromotion ? 'Oui' : 'Non'
+                quantite: item.quantity
             });
         });
         
         // 3. ENVOYER LES ARTICLES SOUS FORME DE JSON
         formData.append('articles', JSON.stringify(articles));
         
-        // 4. TOTAL
+        // 4. TOTAL (format string)
         formData.append('total', orderData.total.toFixed(2));
-        formData.append('economies', orderData.savings || 0);
         
-        console.log('📤 Envoi au serveur:', Object.fromEntries(formData));
+        console.log('📤 Données envoyées au serveur:', Object.fromEntries(formData));
 
-        // 5. ENVOYER VIA POST
+        // 5. ENVOYER VIA POST - FORMAT URL ENCODED
         const response = await fetch(CONFIG.commandeApiUrl, {
             method: 'POST',
             headers: {
@@ -5472,56 +5412,25 @@
         });
         
         const result = await response.json();
-        console.log('📥 Réponse:', result);
+        console.log('📥 Réponse du serveur:', result);
         
         if (result.success) {
-          // Jouer le signal sonore pour alerter l'employé
-          playOrderNotificationSound();
-          
-          showToast('✅ Commande enregistrée dans Google Sheets ! ID: ' + result.commande_id);
-          state.lastOrderId = result.commande_id;
-          return result.commande_id;
-        } else {
+  showToast('✅ Commande enregistrée dans Google Sheets ! ID: ' + result.commande_id);
+  return result.commande_id; // ✅ on renvoie l'ID
+}
+
+        else {
             console.warn('⚠️ Erreur API:', result.error);
-            showToast(`⚠️ Erreur enregistrement: ${result.error || 'Erreur serveur'}`, 'warning');
+            showToast(`⚠️ Commande créée (non enregistrée: ${result.error || 'Erreur serveur'})`, 'warning');
             return false;
         }
 
-      } catch (error) {
+    } catch (error) {
         console.error('❌ Erreur enregistrement:', error);
-        showToast('⚠️ Erreur réseau lors de l\'enregistrement', 'warning');
+        showToast('⚠️ Commande créée (erreur réseau)', 'warning');
         return false;
-      }
     }
-
-    // ===================== GÉNÉRATION NUMÉRO COMMANDE =====================
-    function genererNumeroCommande() {
-      const now = new Date();
-      const datePart = now.getFullYear() + 
-                      String(now.getMonth() + 1).padStart(2, '0') + 
-                      String(now.getDate()).padStart(2, '0');
-      const randomPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-      return `CMD-MAXI-${datePart}-${randomPart}`;
-    }
-
-    // ===================== ENVOI MESSAGE AU CLIENT =====================
-    function envoyerMessageClient(commandeId) {
-      const message = `Merci pour votre commande chez MAXI JDC MARKET.
-📦 Votre commande, référencée ${commandeId}, a bien été prise en compte.
-⏳ Elle est actuellement en cours de préparation.
-📞 Nous vous contacterons prochainement pour la livraison.
-🔗 Pour suivre votre commande: ${window.location.origin}/${CONFIG.trackingUrl}?id=${commandeId}`;
-      
-      // Afficher le message dans une alerte
-      alert(message);
-      
-      // Copier le message dans le presse-papier
-      navigator.clipboard.writeText(message).then(() => {
-        showToast('📋 Message copié dans le presse-papier');
-      }).catch(err => {
-        console.error('Erreur copie:', err);
-      });
-    }
+}
 
     // ===================== COMMANDES =====================
     async function placeOrder() {
@@ -5546,8 +5455,19 @@
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
       const total = subtotal + shippingFee;
 
-      // Générer un numéro de commande
-      const commandeId = genererNumeroCommande();
+// 🔹 Enregistrement de la commande + récupération de l'ID
+const commandeId = await enregistrerCommandeAutomatique({
+  nom: state.user_name,
+  telephone: state.user_phone,
+  adresse: state.user_address,
+  articles: state.cart,
+  total: total
+});
+
+// 🔹 Mémorisation de l'ID pour l'utiliser ailleurs (message client)
+state.lastOrderId = commandeId || null;
+
+      
 
       let orderText = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
       orderText += `📅 ${new Date().toLocaleDateString('fr-FR', {
@@ -5601,30 +5521,35 @@
       }
 
       orderText += `🕒 Heures: 7h - 1h\n`;
-      orderText += `📱 WhatsApp: +216 25 600 978\n`;
-      orderText += `📦 N° Commande: ${commandeId}`;
+      orderText += `📱 WhatsApp: +216 25 600 978`;
 
       $('orderDetails').textContent = orderText;
       $('orderModal').classList.add('open');
 
-      // Sauvegarder dans l'historique local MAIS PAS ENCORE DANS GOOGLE SHEETS
+      // ENREGISTREMENT AUTOMATIQUE DE LA COMMANDE
       const orderData = {
         subtotal,
         shipping: shippingFee,
         total,
         savings: savings.totalSavings,
-        savingsPercentage: savings.percentage,
-        commandeId: commandeId
+        savingsPercentage: savings.percentage
       };
 
-      // Sauvegarder dans l'historique local seulement
+      // Appeler la fonction d'enregistrement automatique
+      const enregistrementReussi = await enregistrerCommandeAutomatique(orderData);
+
+      // Sauvegarder dans l'historique local
       saveOrderToHistory(orderData);
 
-      // Vider le panier après création de la commande
+      // Vider le panier après envoi
       state.cart = {};
       updateCartUI();
 
-      showToast('✅ Commande créée ! Cliquez sur "Valider et envoyer" pour finaliser.');
+      if (enregistrementReussi) {
+        showToast('✅ Commande créée et enregistrée avec succès !');
+      } else {
+        showToast('✅ Commande créée ! (Erreur d\'enregistrement automatique)', 'warning');
+      }
     }
 
     // ===================== INITIALISATION =====================
@@ -5856,56 +5781,38 @@
         showToast('💾 Commande téléchargée');
       };
 
-      $('sendOrderBtn').onclick = async () => {
-        // Récupérer les données de commande depuis le modal
-        const orderText = $('orderDetails').textContent;
-        const lines = orderText.split('\n');
-        let commandeId = '';
-        
-        // Extraire le numéro de commande du texte
-        for (const line of lines) {
-          if (line.includes('N° Commande:')) {
-            commandeId = line.split(':')[1].trim();
-            break;
-          }
-        }
-        
-        if (!commandeId) {
-          commandeId = genererNumeroCommande();
-        }
-        
-        // Calculer les totaux
-        const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
-        const total = subtotal + shippingFee;
-        const savings = calculateTotalSavings();
-        
-        // Préparer les données pour l'envoi
-        const orderData = {
-          subtotal,
-          shipping: shippingFee,
-          total,
-          savings: savings.totalSavings,
-          savingsPercentage: savings.percentage,
-          commandeId: commandeId
-        };
-        
-        // Envoyer vers Google Sheets (SEULEMENT maintenant)
-        const enregistrementReussi = await enregistrerCommandeGoogleSheets(orderData);
-        
-        // Fermer le modal
-        $('orderModal').classList.remove('open');
-        
-        if (enregistrementReussi) {
-          // Envoyer le message au client
-          envoyerMessageClient(enregistrementReussi);
-          showToast('✅ Commande envoyée avec succès !');
-        } else {
-          showToast('⚠️ Commande créée mais erreur d\'enregistrement', 'warning');
-          // Envoyer quand même le message avec le numéro généré localement
-          envoyerMessageClient(commandeId);
-        }
-      };
+     $('sendOrderBtn').onclick = async () => {
+  // On récupère l'ID de commande mémorisé au moment du "placeOrder()"
+  const commandeId = state.lastOrderId || 'CMD-MAXI-AAAAmmjj-XXX';
+
+  const messageClient =
+    `Merci pour votre commande MAXI JDC MARKET.\n` +
+    `📦 Votre commande est bien reçue sous le numero de commande ${commandeId}\n` +
+    `⏳ Elle est en cours de préparation.\n` +
+    `Nous vous contacterons pour la livraison.`;
+
+  // Affichage "automatique" à l'écran
+  showToast('✅ Commande validée ! Message client affiché.', 'success');
+
+  // Option pratique : copier le message dans le presse-papier
+  try {
+    await navigator.clipboard.writeText(messageClient);
+    showToast('📋 Message client copié (vous pouvez le coller où vous voulez).');
+  } catch (e) {
+    // si le navigateur bloque le clipboard
+    alert(messageClient);
+
+
+// 🔹 Fermer la fenêtre de confirmation après envoi
+const modal = document.querySelector('.order-confirm-modal');
+if (modal) {
+  modal.classList.remove('open');
+}
+
+    
+  }
+};
+
 
       $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
         $('stockModal').classList.remove('open');
@@ -5965,7 +5872,7 @@
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '35.0'
+        version: '34.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
@@ -5980,3 +5887,14 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
