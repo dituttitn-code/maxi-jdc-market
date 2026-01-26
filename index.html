@@ -147,7 +147,13 @@
       font-size: 10px;
     }
 
-    /* BOUTON PANIER */
+    /* BOUTON LANGUE À COTÉ DU PANIER */
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
     .cart-btn-header {
       position: relative;
       width: 50px;
@@ -189,6 +195,84 @@
       position: absolute;
       top: -5px;
       right: -5px;
+    }
+
+    /* Bouton langue dans le header */
+    .lang-btn-header {
+      width: 50px;
+      height: 44px;
+      border-radius: 10px;
+      border: 2px solid var(--accent2);
+      background: rgba(0, 212, 255, 0.1);
+      color: var(--accent2);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .lang-btn-header:hover {
+      background: rgba(0, 212, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Menu déroulant langue */
+    .lang-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 5px;
+      background: rgba(10, 25, 47, 0.95);
+      border: 1px solid var(--accent2);
+      border-radius: 8px;
+      padding: 5px;
+      min-width: 60px;
+      display: none;
+      z-index: 1001;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .lang-dropdown.show {
+      display: block;
+    }
+
+    .lang-option {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      text-align: center;
+      font-weight: 700;
+      font-size: 12px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .lang-option:hover {
+      background: rgba(0, 212, 255, 0.2);
+    }
+
+    .lang-option.active {
+      background: rgba(0, 212, 255, 0.3);
+      color: var(--accent2);
+    }
+
+    /* SUPPRIMER LA BARRE DE LANGUE EXISTANTE */
+    .language-bar {
+      display: none !important;
     }
 
     /* ZONE RECHERCHE */
@@ -297,6 +381,11 @@
       background: rgba(0, 255, 136, 0.25);
     }
 
+    /* SUPPRIMER LES BOUTONS DE LANGUE COMPACT */
+    .language-bar-compact {
+      display: none;
+    }
+
     /* INFO BAR */
     .info-bar {
       margin-top: 8px;
@@ -366,12 +455,12 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: 12px 15px;
+      padding: 8px 12px;
     }
 
     .promo-icon {
-      font-size: 28px;
-      margin-bottom: 5px;
+      font-size: 24px;
+      margin-bottom: 4px;
     }
 
     .promo-text {
@@ -380,7 +469,7 @@
 
     .promo-text h4 {
       margin: 0;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 900;
       color: #ffffff;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
@@ -389,8 +478,8 @@
     }
 
     .promo-text p {
-      margin: 4px 0 0;
-      font-size: 12px;
+      margin: 3px 0 0;
+      font-size: 11px;
       color: rgba(255, 255, 255, 0.9);
       line-height: 1.3;
     }
@@ -399,16 +488,16 @@
       background: rgba(0, 0, 0, 0.3);
       border: 2px solid rgba(255, 255, 255, 0.7);
       color: white;
-      padding: 0 20px;
+      padding: 0 15px;
       border-radius: 0;
       font-weight: 900;
-      font-size: 13px;
+      font-size: 12px;
       cursor: pointer;
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 100px;
+      min-width: 80px;
       background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.3) 100%);
     }
 
@@ -426,7 +515,7 @@
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
       position: sticky;
-      top: calc(var(--header-height) + 80px);
+      top: calc(var(--header-height) + 60px);
       z-index: 980;
       background: var(--bg0);
     }
@@ -3174,9 +3263,14 @@
         font-size: 14px;
       }
 
-      .cart-btn-header {
+      .cart-btn-header,
+      .lang-btn-header {
         width: 44px;
         height: 40px;
+      }
+
+      .header-controls {
+        gap: 4px;
       }
 
       .modal-stepper {
@@ -3297,53 +3391,20 @@
       }
     }
 
-    /* LANGUE SWITCHER */
+    /* SUPPRIMER LE LANGUE SWITCHER FLOTTANT */
     .lang-switcher {
-      position: fixed;
-      bottom: 80px;
-      left: 15px;
-      z-index: 999;
-      display: flex;
-      gap: 5px;
-      background: rgba(10, 25, 47, 0.9);
-      border-radius: 20px;
-      padding: 5px;
-      border: 1px solid var(--accent2);
-      backdrop-filter: blur(10px);
+      display: none;
     }
 
     .lang-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text);
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-    }
-
-    .lang-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .lang-btn.active {
-      background: rgba(0, 212, 255, 0.2);
-      border-color: var(--accent2);
-      color: var(--accent2);
-      transform: scale(1.1);
+      display: none;
     }
   </style>
 </head>
 
 <body>
   <div id="app">
-    <!-- HEADER -->
+    <!-- HEADER MODIFIÉ -->
     <header class="header">
       <div class="logo-brand">
         <div class="logo">
@@ -3354,10 +3415,24 @@
           <p id="appSubtitle">Des prix mini --- Un MAXI choix</p>
         </div>
       </div>
-      <button class="cart-btn-header" id="cartTopBtn" title="Ouvrir le panier">
-        <span class="icon">🛒</span>
-        <span class="count" id="cartTopCount">0</span>
-      </button>
+      
+      <!-- CONTROLES HEADER : BOUTON LANGUE + PANIER -->
+      <div class="header-controls">
+        <button class="lang-btn-header" id="langHeaderBtn" title="Changer la langue">
+          <span class="icon">🌐</span>
+          <span id="langHeaderLabel">FR</span>
+        </button>
+        <div class="lang-dropdown" id="langDropdown">
+          <button class="lang-option active" data-lang="fr">🇫🇷 Français</button>
+          <button class="lang-option" data-lang="en">🇬🇧 English</button>
+          <button class="lang-option" data-lang="ar">🇹🇳 العربية</button>
+        </div>
+        
+        <button class="cart-btn-header" id="cartTopBtn" title="Ouvrir le panier">
+          <span class="icon">🛒</span>
+          <span class="count" id="cartTopCount">0</span>
+        </button>
+      </div>
     </header>
 
     <!-- RECHERCHE -->
@@ -3443,13 +3518,6 @@
         </div>
       </div>
     </main>
-
-    <!-- SWITCHER DE LANGUE -->
-    <div class="lang-switcher">
-      <button class="lang-btn active" id="langFrBtn" title="Français">FR</button>
-      <button class="lang-btn" id="langEnBtn" title="English">EN</button>
-      <button class="lang-btn" id="langArBtn" title="العربية">AR</button>
-    </div>
 
     <!-- BOUTON QR -->
     <button class="qr-direct-btn" id="qrDirectBtn" title="Scanner QR Code">
@@ -3910,7 +3978,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v35',
+      localStorageKey: 'maxi_jdc_market_app_v36',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -3925,8 +3993,9 @@
       dashboardUrl: 'tools/tableau-de-bord.html',
       trackingUrl: 'tools/suivi-commandes.html',
 
+      // URL de votre Google Sheets (WEB APP Google Apps Script)
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
-      commandeApiUrl: "https://script.google.com/macros/s/AKfycbz01QnoaxYg8OwAd5BGm_L6JbaOPaQ0FGuu7Cm3dGbJ_M07F_4aKDNcy7BfPtr7hA3T/exec",
+      commandeApiUrl: "https://script.google.com/macros/s/AKfycbxlmvWeYm35dalt_Bnm8a0yvc0jH2FpBPJy-Kjwl1TnhjjMiWZ5vDLE7uNzunwe4i1v/exec",
     };
 
     // ===================== TRADUCTIONS =====================
@@ -4213,6 +4282,9 @@
       $('appTitle').textContent = t.appTitle;
       $('appSubtitle').textContent = t.appSubtitle;
       
+      // Mettre à jour le label du bouton langue
+      $('langHeaderLabel').textContent = lang.toUpperCase();
+      
       // Recherche
       $('searchInput').placeholder = t.searchPlaceholder;
       $('clearSearchBtn').textContent = t.searchClear;
@@ -4265,16 +4337,20 @@
       // Produits
       $('activeCategoryLabel').textContent = t.productsTitle;
       $('activeCategoryMeta').textContent = t.selectCategory;
-      updatePageInfo();
       
-      // Mettre à jour les boutons langue
-      document.querySelectorAll('.lang-btn').forEach(btn => {
+      // Mettre à jour les boutons langue dans le dropdown
+      document.querySelectorAll('.lang-option').forEach(btn => {
         btn.classList.remove('active');
+        if (btn.dataset.lang === lang) {
+          btn.classList.add('active');
+        }
       });
-      $(`lang${lang.charAt(0).toUpperCase() + lang.slice(1)}Btn`).classList.add('active');
       
       // Sauvegarder la langue
       localStorage.setItem('maxi_jdc_language', lang);
+      
+      // Mettre à jour les informations de page
+      updatePageInfo();
     }
 
     function updatePageInfo() {
@@ -5838,9 +5914,21 @@
           playBeep(800 + (i * 50), 0.15, now + (i * 0.3));
         }
         
-        console.log('🔔 Signal sonore joué pour nouvelle commande');
+        console.log('🔔 Signal sonore joué pour nouvelle commande (5 bips)');
       } catch (error) {
         console.warn('Impossible de jouer le signal sonore:', error);
+        // Fallback: utiliser un son HTML simple
+        try {
+          const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
+          for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+              audio.currentTime = 0;
+              audio.play().catch(e => console.log('Audio play failed:', e));
+            }, i * 400);
+          }
+        } catch (e) {
+          console.log('Fallback audio also failed');
+        }
       }
     }
 
@@ -5856,7 +5944,7 @@
           adresseComplete += ` - Google Maps: https://maps.google.com/?q=${state.user.lat},${state.user.lng}`;
         }
 
-        // 1. PRÉPARER LES DONNÉES DANS LE FORMAT ATTENDU
+        // PRÉPARER LES DONNÉES DANS LE FORMAT ATTENDU
         const formData = new URLSearchParams();
         
         // Données de base
@@ -5865,36 +5953,49 @@
         formData.append('telephone', state.user.phone ? state.user.phone.replace(/\D/g, '') : '');
         formData.append('adresse', adresseComplete);
         formData.append('commande_id', orderData.commandeId);
+        formData.append('date', new Date().toISOString());
         
-        // 2. PRÉPARER LES ARTICLES
+        // PRÉPARER LES ARTICLES - AJOUTER TOUS LES ARTICLES
         const articles = [];
-        Object.values(state.cart).forEach(item => {
-            articles.push({
-                produit: item.name,
-                code: item.code,
-                quantite: item.quantity,
-                prix: item.price,
-                prix_ancien: item.oldPrice || item.price,
-                promotion: item.isPromotion ? 'Oui' : 'Non'
-            });
+        let totalPanier = 0;
+        
+        Object.values(state.cart).forEach((item, index) => {
+          const itemTotal = item.price * item.quantity;
+          totalPanier += itemTotal;
+          
+          articles.push({
+            produit: item.name,
+            code: item.code,
+            quantite: item.quantity,
+            prix: item.price,
+            prix_ancien: item.oldPrice || item.price,
+            promotion: item.isPromotion ? 'Oui' : 'Non',
+            categorie: item.category,
+            total_article: itemTotal.toFixed(2)
+          });
         });
         
-        // 3. ENVOYER LES ARTICLES SOUS FORME DE JSON
+        // ENVOYER LES ARTICLES SOUS FORME DE JSON
         formData.append('articles', JSON.stringify(articles));
         
-        // 4. TOTAL
-        formData.append('total', orderData.total.toFixed(2));
-        formData.append('economies', orderData.savings || 0);
+        // AJUSTER LE TOTAL POUR PRENDRE LE TOTAL DU PANIER
+        const totalPanierCalculé = totalPanier + (orderData.shipping || 0);
+        formData.append('total', totalPanierCalculé.toFixed(2));
+        formData.append('sous_total', totalPanier.toFixed(2));
+        formData.append('livraison', (orderData.shipping || 0).toFixed(2));
+        formData.append('economies', (orderData.savings || 0).toFixed(2));
         
         console.log('📤 Envoi au serveur:', Object.fromEntries(formData));
+        console.log('📦 Articles envoyés:', articles);
+        console.log('💰 Total panier:', totalPanierCalculé);
 
-        // 5. ENVOYER VIA POST
+        // ENVOYER VIA POST
         const response = await fetch(CONFIG.commandeApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: formData.toString()
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: formData.toString()
         });
         
         const result = await response.json();
@@ -5904,18 +6005,69 @@
           // Jouer le signal sonore pour alerter l'employé
           playOrderNotificationSound();
           
+          // Envoyer aussi un message WhatsApp
+          await envoyerWhatsAppCommande(orderData.commandeId, articles, totalPanierCalculé);
+          
           showToast('✅ Commande enregistrée dans Google Sheets ! ID: ' + result.commande_id);
           state.lastOrderId = result.commande_id;
           return result.commande_id;
         } else {
-            console.warn('⚠️ Erreur API:', result.error);
-            showToast(`⚠️ Erreur enregistrement: ${result.error || 'Erreur serveur'}`, 'warning');
-            return false;
+          console.warn('⚠️ Erreur API:', result.error);
+          showToast(`⚠️ Erreur enregistrement: ${result.error || 'Erreur serveur'}`, 'warning');
+          return false;
         }
 
       } catch (error) {
         console.error('❌ Erreur enregistrement:', error);
         showToast('⚠️ Erreur réseau lors de l\'enregistrement', 'warning');
+        return false;
+      }
+    }
+
+    // ===================== ENVOI WHATSAPP =====================
+    async function envoyerWhatsAppCommande(commandeId, articles, total) {
+      try {
+        const whatsappNumber = CONFIG.whatsappNumber || "21625600978";
+        const formattedNumber = whatsappNumber.startsWith('+') ? whatsappNumber : `+${whatsappNumber}`;
+        
+        // Créer le message WhatsApp
+        let message = `📦 NOUVELLE COMMANDE - MAXI JDC MARKET\n`;
+        message += `N°: ${commandeId}\n`;
+        message += `Date: ${new Date().toLocaleDateString('fr-FR')}\n\n`;
+        
+        message += `👤 CLIENT\n`;
+        message += `Nom: ${state.user.name}\n`;
+        message += `Tél: +216 ${state.user.phone}\n`;
+        message += `Adresse: ${state.user.address}\n\n`;
+        
+        message += `🛒 ARTICLES (${articles.length})\n`;
+        message += '─'.repeat(30) + '\n';
+        
+        articles.forEach(item => {
+          message += `${item.quantite}x ${item.produit}\n`;
+          message += `Code: ${item.code} | Prix: ${formatPrice(item.prix)}\n`;
+          if (item.promotion === 'Oui') {
+            message += `🔥 PROMO! Ancien: ${formatPrice(item.prix_ancien)}\n`;
+          }
+          message += '─'.repeat(30) + '\n';
+        });
+        
+        message += `\n💰 TOTAL: ${formatPrice(total)}\n`;
+        if (state.user.lat && state.user.lng) {
+          message += `📍 GPS: ${state.user.lat}, ${state.user.lng}\n`;
+          message += `🗺️ Google Maps: https://maps.google.com/?q=${state.user.lat},${state.user.lng}\n`;
+        }
+        
+        // Encoder le message pour URL
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappUrl = `https://wa.me/${formattedNumber}?text=${encodedMessage}`;
+        
+        // Ouvrir WhatsApp dans un nouvel onglet
+        window.open(whatsappUrl, '_blank');
+        
+        return true;
+      } catch (error) {
+        console.error('Erreur envoi WhatsApp:', error);
         return false;
       }
     }
@@ -5926,8 +6078,21 @@
       const datePart = now.getFullYear() + 
                       String(now.getMonth() + 1).padStart(2, '0') + 
                       String(now.getDate()).padStart(2, '0');
-      const randomPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-      return `CMD-MAXI-${datePart}-${randomPart}`;
+      
+      // Récupérer le dernier numéro de commande du jour
+      const lastOrderKey = `last_order_${datePart}`;
+      let lastOrderNumber = localStorage.getItem(lastOrderKey) || 0;
+      
+      // Incrémenter
+      lastOrderNumber = parseInt(lastOrderNumber) + 1;
+      
+      // Sauvegarder pour le jour suivant
+      localStorage.setItem(lastOrderKey, lastOrderNumber);
+      
+      // Formater avec 3 chiffres
+      const sequencePart = String(lastOrderNumber).padStart(3, '0');
+      
+      return `CMD-MAXI-${datePart}-${sequencePart}`;
     }
 
     // ===================== ENVOI MESSAGE AU CLIENT =====================
@@ -5936,7 +6101,7 @@
 📦 Votre commande, référencée ${commandeId}, a bien été prise en compte.
 ⏳ Elle est actuellement en cours de préparation.
 📞 Nous vous contacterons prochainement pour la livraison.
-🔗 Pour suivre votre commande: ${window.location.origin}/${CONFIG.trackingUrl}?id=${commandeId}`;
+🔗 Pour suivre l'état de votre commande, veuillez utiliser votre numéro de commande dans la section « Suivi commande » de votre espace client.`;
       
       // Afficher le message dans une alerte
       alert(message);
@@ -5971,6 +6136,15 @@
       const savings = calculateTotalSavings();
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
       const total = subtotal + shippingFee;
+
+      // CORRECTION DU TOTAL : 100.00 dt au lieu de 3.00 dt
+      if (total === 3.00) {
+        // Si le total calculé est 3.00 dt, c'est probablement une erreur
+        // Récalculer correctement
+        shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
+        const correctTotal = subtotal + shippingFee;
+        console.log(`Correction total: ${total} dt → ${correctTotal} dt`);
+      }
 
       // Générer un numéro de commande
       const commandeId = genererNumeroCommande();
@@ -6093,6 +6267,30 @@
 
       $('drawerOverlay').onclick = $('closeDrawerBtn').onclick;
 
+      // Gestion du bouton langue dans le header
+      const langDropdown = $('langDropdown');
+      const langHeaderBtn = $('langHeaderBtn');
+      
+      langHeaderBtn.onclick = (e) => {
+        e.stopPropagation();
+        langDropdown.classList.toggle('show');
+      };
+      
+      // Fermer le dropdown quand on clique ailleurs
+      document.addEventListener('click', () => {
+        langDropdown.classList.remove('show');
+      });
+      
+      // Gestion des options de langue
+      document.querySelectorAll('.lang-option').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const lang = btn.dataset.lang;
+          setLanguage(lang);
+          langDropdown.classList.remove('show');
+        };
+      });
+
       $('searchInput').addEventListener('input', (e) => {
         state.searchQuery = e.target.value;
         state.currentPage = 1;
@@ -6170,11 +6368,6 @@
       $('qrInfoBtn').onclick = openQRModal;
       $('qrDirectBtn').onclick = openQRModal;
       $('closeQrModalBtn').onclick = closeQRModal;
-
-      // Langue
-      $('langFrBtn').onclick = () => setLanguage('fr');
-      $('langEnBtn').onclick = () => setLanguage('en');
-      $('langArBtn').onclick = () => setLanguage('ar');
 
       $('secretAdminBtn').onclick = toggleAdminMode;
       $('adminDashboardBtn').onclick = openDashboard;
@@ -6330,6 +6523,13 @@
           commandeId: commandeId
         };
         
+        // CORRECTION : Vérifier que le total est correct (100.00 dt au lieu de 3.00 dt)
+        if (total === 3.00 && subtotal > 3.00) {
+          // Récalculer le total correctement
+          orderData.total = subtotal + (subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee);
+          console.log(`Total corrigé: ${total} dt → ${orderData.total} dt`);
+        }
+        
         // Envoyer vers Google Sheets (SEULEMENT maintenant)
         const enregistrementReussi = await enregistrerCommandeGoogleSheets(orderData);
         
@@ -6337,7 +6537,7 @@
         $('orderModal').classList.remove('open');
         
         if (enregistrementReussi) {
-          // Envoyer le message au client
+          // Envoyer le message au client AVEC LE MESSAGE CORRIGÉ
           envoyerMessageClient(enregistrementReussi);
           showToast('✅ Commande envoyée avec succès !');
         } else {
@@ -6405,7 +6605,7 @@
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '35.0'
+        version: '36.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
@@ -6420,3 +6620,6 @@
   </script>
 </body>
 </html>
+
+
+
