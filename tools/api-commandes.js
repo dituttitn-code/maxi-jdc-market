@@ -1,5 +1,5 @@
 // api-commandes.js - FICHIER COMPLET CORRIGÉ
-const API_URL = "https://script.google.com/macros/s/AKfycbzcDRrT5tGfh9cyX8Pw3DwpSzOj781QGsSxyLrZT-b_v-xi4dmMbCZxAZqQDMjy4Tx0/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwQb9NTSi8iPupv2JrTwkf6zf_jt7-UQ8YtgSrvlxd9Qek5QdvmQI5kg7-eo_Oxkvv5/exec";
 
 export async function envoyerCommande(dataCommande) {
     console.log("📤 Données reçues:", dataCommande);
