@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
@@ -3980,7 +3979,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v37',
+      localStorageKey: 'maxi_jdc_market_app_v38',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -4258,9 +4257,12 @@
       $('totalLabel').textContent = t.totalLabel;
       $('savingsLabel').textContent = t.savingsLabel;
       $('percentageLabel').textContent = t.percentageLabel;
-      $('minOrderText').textContent = `${t.minOrderText} <strong>15 dt</strong>`;
-      $('shippingFeeText').textContent = `${t.shippingFeeText} <strong>3 dt</strong>`;
-      $('freeShippingText').textContent = `${t.freeShippingText} <strong>100 dt</strong>`;
+      
+      // CORRECTION: Enlever les <strong> des conditions de livraison
+      $('minOrderText').innerHTML = `${t.minOrderText} <strong>15 dt</strong>`;
+      $('shippingFeeText').innerHTML = `${t.shippingFeeText} <strong>3 dt</strong>`;
+      $('freeShippingText').innerHTML = `${t.freeShippingText} <strong>100 dt</strong>`;
+      
       $('clearCartBtn').textContent = t.clearCartBtn;
       $('placeOrderBtn').textContent = t.placeOrderBtn;
       $('toggleClientSpaceBtn').textContent = t.toggleClientSpace;
@@ -6483,7 +6485,7 @@
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '37.0'
+        version: '38.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
