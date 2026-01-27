@@ -1,30 +1,14 @@
 /************************************************************
  * api-commandes.js — MAXI JDC MARKET (COMPLET & PROPRE)
- * ----------------------------------------------------------
- * ✅ Compatible avec Google Apps Script WebApp (API)
- * Endpoints attendus côté code.gs :
- *   - POST  : method=saveOrder
- *   - GET   : method=getAllOrders
- *   - GET   : method=getOrderStatus&commande_id=...
- *   - GET   : method=updateOrderStatus&commande_id=...&statut=...
- *
- * ✅ Gère les 8 colonnes Google Sheet :
- *   DATE | NOM CLIENT | TÉLÉPHONE | ADRESSE | N° COMMANDE | ARTICLES | TOTAL | STATUT
- *
- * ✅ Plus d’erreur ".data" (bug supprimé)
- * ✅ Timeout + erreurs propres
  ************************************************************/
 
 /** =========================================================
  * CONFIG
  * ========================================================= */
 const FALLBACK_API_URL =
-  "https://script.google.com/macros/s/REPLACE_ME/exec"; // <- sécurité si pas de CONFIG
+  "https://script.google.com/macros/s/REPLACE_ME/exec"; // optionnel
 
 function getApiUrl() {
-  // Priorité : window.CONFIG.commandeApiUrl (comme ton index.html)
-  // Sinon : window.API_URL (certaines pages)
-  // Sinon : FALLBACK
   if (typeof window !== "undefined") {
     if (window.CONFIG && window.CONFIG.commandeApiUrl) return window.CONFIG.commandeApiUrl;
     if (window.API_URL) return window.API_URL;
@@ -33,7 +17,7 @@ function getApiUrl() {
 }
 
 const DEFAULT_STATUS = "En attente";
-const DEFAULT_WA_NUMBER = "0021625600978"; // WhatsApp magasin (Business)
+const DEFAULT_WA_NUMBER = "0021625600978";
 
 /** =========================================================
  * UTILITAIRES HTTP
@@ -44,14 +28,12 @@ async function requestJson(url, options = {}, timeoutMs = 15000) {
 
   try {
     const res = await fetch(url, { ...options, signal: controller.signal });
-    // Apps Script renvoie souvent 200 + JSON
-    // Mais si erreur HTTP, on la remonte clairement
+
     if (!res.ok) {
       const text = await safeReadText(res);
       throw new Error(`HTTP ${res.status} ${res.statusText}${text ? " — " + text : ""}`);
     }
 
-    // Certains déploiements renvoient text/plain -> on tente JSON
     const text = await res.text();
     try {
       return JSON.parse(text);
@@ -67,11 +49,7 @@ async function requestJson(url, options = {}, timeoutMs = 15000) {
 }
 
 async function safeReadText(res) {
-  try {
-    return await res.text();
-  } catch {
-    return "";
-  }
+  try { return await res.text(); } catch { return ""; }
 }
 
 function buildGetUrl(method, params = {}) {
@@ -81,7 +59,6 @@ function buildGetUrl(method, params = {}) {
 }
 
 function buildPostBody(payload) {
-  // Apps Script doPost lit e.parameter pour x-www-form-urlencoded
   return new URLSearchParams(payload).toString();
 }
 
@@ -89,11 +66,8 @@ function buildPostBody(payload) {
  * ARTICLES: formatage / parsing
  * ========================================================= */
 export function normaliserArticles(input) {
-  // Retourne un tableau d’articles normalisés :
-  // { produit, quantite, prix_unitaire, prix_total }
   if (!input) return [];
 
-  // 1) Si déjà tableau
   if (Array.isArray(input)) {
     return input.map((it) => {
       const produit = String(it.produit || it.nom || it.name || "").trim();
@@ -104,21 +78,15 @@ export function normaliserArticles(input) {
     }).filter(a => a.produit);
   }
 
-  // 2) Si string JSON
   if (typeof input === "string") {
     const s = input.trim();
     if (!s) return [];
     try {
-      if (s.startsWith("[")) {
-        const parsed = JSON.parse(s);
-        return normaliserArticles(parsed);
-      }
+      if (s.startsWith("[")) return normaliserArticles(JSON.parse(s));
     } catch {
-      // pas JSON -> on parse en texte
+      // pas JSON
     }
 
-    // 3) Parse format texte:
-    // "3x Produit @ 15.00 dt = 45.00 dt" ou "3x Produit"
     const lines = s.split("\n").map(x => x.trim()).filter(Boolean);
     const out = [];
     for (const line of lines) {
@@ -143,7 +111,6 @@ export function normaliserArticles(input) {
 }
 
 export function formaterArticlesTexte(articlesNorm) {
-  // Convertit en texte multi-lignes lisible (colonne "ARTICLES")
   const arr = normaliserArticles(articlesNorm);
   if (!arr.length) return "";
   return arr.map(a => {
@@ -162,7 +129,7 @@ export function calculerTotal(articlesNorm, fallbackTotal = 0) {
 }
 
 /** =========================================================
- * NUMÉRO COMMANDE LOCAL (si besoin côté front)
+ * NUMÉRO COMMANDE LOCAL
  * ========================================================= */
 export function genererNumeroCommandeLocal(prefix = "CMD-MAXI") {
   const now = new Date();
@@ -180,8 +147,6 @@ export function genererNumeroCommandeLocal(prefix = "CMD-MAXI") {
  * TEST API
  * ========================================================= */
 export async function testerConnexionAPI() {
-  // Certains code.gs ont method=test, d’autres non.
-  // On essaye "test", sinon on tente "getAllOrders".
   const api = getApiUrl();
   try {
     const r = await requestJson(`${api}?method=test&t=${Date.now()}`, {}, 8000);
@@ -191,13 +156,13 @@ export async function testerConnexionAPI() {
       const r2 = await requestJson(buildGetUrl("getAllOrders"), {}, 8000);
       return { connecte: !!r2.success, message: "OK", url: api, raw: r2 };
     } catch (e2) {
-      return { connecte: false, message: e2.message || "Erreur", url نشان: api };
+      return { connecte: false, message: e2.message || "Erreur", url: api };
     }
   }
 }
 
 /** =========================================================
- * ENVOYER COMMANDE (écriture)
+ * ENVOYER COMMANDE (POST saveOrder)
  * ========================================================= */
 export async function envoyerCommande(dataCommande) {
   if (!dataCommande || typeof dataCommande !== "object") {
@@ -225,7 +190,6 @@ export async function envoyerCommande(dataCommande) {
 
   const payload = {
     method: "saveOrder",
-    // si tu veux générer le numéro côté front, passe commande_id
     ...(commande_id ? { commande_id } : {}),
     nom,
     telephone,
@@ -244,7 +208,6 @@ export async function envoyerCommande(dataCommande) {
     throw new Error(result?.error || result?.message || "Erreur API lors de l'enregistrement");
   }
 
-  // Normaliser la réponse
   return {
     success: true,
     commande_id: result.commande_id || result.order_id || commande_id,
@@ -256,13 +219,12 @@ export async function envoyerCommande(dataCommande) {
 }
 
 /** =========================================================
- * RÉCUPÉRER COMMANDES (lecture)
+ * RÉCUPÉRER COMMANDES (GET getAllOrders)
  * ========================================================= */
 export async function recupererCommandes() {
-  const data = await requestJson(buildGetUrl("getAllOrders), {}, 15000);
+  const data = await requestJson(buildGetUrl("getAllOrders"), {}, 15000);
   if (!data.success) throw new Error(data.error || data.message || "Erreur récupération commandes");
 
-  // attend: orders: [{date, nom, telephone, adresse, commande_id, articles, total, statut}]
   const orders = Array.isArray(data.orders) ? data.orders : [];
   return orders.map(o => ({
     date: o.date || o.Date || "",
@@ -278,7 +240,7 @@ export async function recupererCommandes() {
 }
 
 /** =========================================================
- * SUIVRE UNE COMMANDE (client)
+ * SUIVRE UNE COMMANDE (GET getOrderStatus)
  * ========================================================= */
 export async function suivreCommande(commandeId) {
   if (!commandeId) throw new Error("commandeId manquant");
@@ -303,7 +265,7 @@ export async function suivreCommande(commandeId) {
 }
 
 /** =========================================================
- * HISTORIQUE CLIENT (si code.gs ne l’a pas, on filtre en client)
+ * HISTORIQUE CLIENT
  * ========================================================= */
 export async function recupererHistorique(telephone) {
   const tel = String(telephone || "").trim();
@@ -326,7 +288,7 @@ export async function recupererHistorique(telephone) {
 }
 
 /** =========================================================
- * METTRE À JOUR STATUT
+ * METTRE À JOUR STATUT (GET updateOrderStatus)
  * ========================================================= */
 export async function mettreAJourStatut(commandeId, nouveauStatut) {
   if (!commandeId || !nouveauStatut) throw new Error("Paramètres manquants");
@@ -341,11 +303,11 @@ export async function mettreAJourStatut(commandeId, nouveauStatut) {
 }
 
 /** =========================================================
- * TOP PRODUITS (calcul côté client à partir des commandes)
+ * TOP PRODUITS (calcul côté client)
  * ========================================================= */
 export async function recupererTopProduits(limit = 10) {
   const orders = await recupererCommandes();
-  const map = new Map(); // produit -> {produit, quantite, chiffre}
+  const map = new Map();
 
   for (const o of orders) {
     const items = normaliserArticles(o.articles);
@@ -364,8 +326,7 @@ export async function recupererTopProduits(limit = 10) {
 }
 
 /** =========================================================
- * WHATSAPP — helpers
- * (ne “send” pas via API officielle; construit un lien wa.me)
+ * WHATSAPP helpers
  * ========================================================= */
 export function genererLienWhatsAppMagasin(dataCommande, commandeId, waNumber = DEFAULT_WA_NUMBER) {
   const nom = dataCommande?.nom || dataCommande?.client_nom || "";
@@ -405,7 +366,7 @@ export function ouvrirWhatsApp(url) {
 }
 
 /** =========================================================
- * EXPORT DEFAULT (pratique)
+ * EXPORT DEFAULT
  * ========================================================= */
 const apiCommandes = {
   envoyerCommande,
@@ -425,7 +386,6 @@ const apiCommandes = {
 
 export default apiCommandes;
 
-// Optionnel: exposer en console (debug)
 if (typeof window !== "undefined") {
   window.apiCommandes = apiCommandes;
 }
