@@ -237,10 +237,12 @@
       min-width: 80px;
     }
     
-    .statut-attente { background: rgba(255, 193, 7, 0.15); color: #FFC107; border: 1px solid rgba(255, 193, 7, 0.3); }
-    .statut-cours { background: rgba(33, 150, 243, 0.15); color: #2196F3; border: 1px solid rgba(33, 150, 243, 0.3); }
-    .statut-livre { background: rgba(76, 175, 80, 0.15); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.3); }
-    .statut-annule { background: rgba(244, 67, 54, 0.15); color: #F44336; border: 1px solid rgba(244, 67, 54, 0.3); }
+    .statut-attente { background: rgba(255, 153, 0, 0.15); color: #ff9900; border: 1px solid rgba(255, 153, 0, 0.3); }
+    .statut-nouvelle { background: rgba(255, 204, 0, 0.15); color: #ffcc00; border: 1px solid rgba(255, 204, 0, 0.3); }
+    .statut-préparation { background: rgba(0, 102, 204, 0.15); color: #0066cc; border: 1px solid rgba(0, 102, 204, 0.3); }
+    .statut-livraison { background: rgba(255, 102, 0, 0.15); color: #ff6600; border: 1px solid rgba(255, 102, 0, 0.3); }
+    .statut-livrée { background: rgba(0, 170, 0, 0.15); color: #00aa00; border: 1px solid rgba(0, 170, 0, 0.3); }
+    .statut-annulée { background: rgba(204, 0, 0, 0.15); color: #cc0000; border: 1px solid rgba(204, 0, 0, 0.3); }
     
     /* FOOTER */
     .footer{
@@ -302,6 +304,9 @@
         </div>
         <button class="btn" id="btnRefresh">
           <span><i class="fas fa-sync-alt"></i></span><span>Actualiser</span>
+        </button>
+        <button class="btn" id="btnCreateTest">
+          <span><i class="fas fa-plus"></i></span><span>Créer test</span>
         </button>
         <a class="btn" href="/maxi-jdc-market/">
           <span><i class="fas fa-home"></i></span><span>Accueil</span>
@@ -588,18 +593,28 @@
       if (!articlesText) return [];
       
       try {
+        // Si c'est du JSON
         if (articlesText.trim().startsWith("[")) {
-          return JSON.parse(articlesText);
+          const articles = JSON.parse(articlesText);
+          if (Array.isArray(articles)) {
+            return articles.map(item => ({
+              produit: item.produit || item.nom || "Produit",
+              quantite: parseInt(item.quantite || item.qty || 1),
+              prix_unitaire: parseFloat(item.prix || item.price || 0),
+              prix_total: parseFloat(item.prix || item.price || 0) * parseInt(item.quantite || item.qty || 1)
+            }));
+          }
         }
         
+        // Sinon, parsing des lignes
         const articles = [];
         const lines = articlesText.split('\n');
         
         for (const line of lines) {
           if (!line.trim()) continue;
           
-          // Format: "3x Produit @ 15.00 dt = 45.00 dt"
-          const match = line.trim().match(/^(\d+)x\s+(.+?)\s+@\s+([\d.,]+)\s+dt\s+=\s+([\d.,]+)\s+dt$/);
+          // Format: "3x Produit - 15.50 dt"
+          const match = line.trim().match(/^(\d+)x\s+(.+?)\s+-\s+([\d.,]+)\s+dt$/);
           if (match) {
             const quantite = parseInt(match[1]);
             const produit = match[2].trim();
@@ -638,13 +653,24 @@
         showToast("🔗 Connexion à l'API...", "info");
         
         // Charger les commandes
-        const ordersResponse = await fetch(`${API_URL}?method=getAllOrders&t=${Date.now()}`);
+        const ordersResponse = await fetch(`${API_URL}?method=getorders&t=${Date.now()}`);
         if (!ordersResponse.ok) throw new Error("API commandes non disponible");
         
         const ordersData = await ordersResponse.json();
         
         if (ordersData.success && ordersData.orders) {
-          state.orders = ordersData.orders;
+          state.orders = ordersData.orders.map(order => ({
+            id: order.id || 0,
+            date: order.date,
+            nom: order.nom || order.name,
+            telephone: order.telephone || order.phone,
+            adresse: order.adresse || order.address,
+            commande_id: order.numero || order.commande_id,
+            articles: order.articles || order.items,
+            total: order.total || order.amount,
+            statut: order.statut || "⏳ EN ATTENTE"
+          }));
+          
           state.apiStatus = 'online';
           $("apiStatus").className = "api-status api-online";
           $("apiStatus").innerHTML = '<span><i class="fas fa-circle"></i></span><span>API Connectée</span>';
@@ -653,13 +679,17 @@
           throw new Error("Aucune donnée valide");
         }
         
-        // Charger les top produits
-        const productsResponse = await fetch(`${API_URL}?method=getTopProducts&t=${Date.now()}`);
-        if (productsResponse.ok) {
-          const productsData = await productsResponse.json();
-          if (productsData.success && productsData.topProducts) {
-            state.topProducts = productsData.topProducts;
+        // Essayer de charger les top produits depuis l'API
+        try {
+          const productsResponse = await fetch(`${API_URL}?method=gettopproducts&t=${Date.now()}`);
+          if (productsResponse.ok) {
+            const productsData = await productsResponse.json();
+            if (productsData.success && productsData.topProducts) {
+              state.topProducts = productsData.topProducts;
+            }
           }
+        } catch (error) {
+          console.log("API top produits non disponible, calcul local...");
         }
         
         showToast("✅ Données chargées avec succès", "success");
@@ -715,10 +745,10 @@
 
       // Distribution par statut
       orders.forEach(order => {
-        const statut = order.statut || "En attente";
+        const statut = order.statut || "⏳ EN ATTENTE";
         state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
         
-        if (statut === "En attente") {
+        if (statut === "⏳ EN ATTENTE") {
           state.analytics.pendingOrders++;
         }
       });
@@ -737,17 +767,14 @@
         state.analytics.salesByHour[hourKey] = (state.analytics.salesByHour[hourKey] || 0) + (parseFloat(order.total) || 0);
       });
 
-      // Top produit (si pas déjà chargé)
-      if (state.topProducts.length > 0) {
-        state.analytics.topProduct = state.topProducts[0];
-      } else {
-        // Calculer manuellement
+      // Calculer les top produits si nécessaire
+      if (state.topProducts.length === 0) {
         const productSales = new Map();
         
         orders.forEach(order => {
           const articles = parseArticles(order.articles);
           articles.forEach(article => {
-            const productName = article.produit || "Produit";
+            const productName = article.produit || "Produit inconnu";
             const quantity = article.quantite || 0;
             const revenue = article.prix_total || 0;
             
@@ -761,13 +788,14 @@
           });
         });
 
-        const topProducts = Array.from(productSales.values())
-          .sort((a, b) => b.quantity - a.quantity);
-        
-        if (topProducts.length > 0) {
-          state.analytics.topProduct = topProducts[0];
-          state.topProducts = topProducts.slice(0, 10);
-        }
+        state.topProducts = Array.from(productSales.values())
+          .sort((a, b) => b.quantity - a.quantity)
+          .slice(0, 10);
+      }
+
+      // Top produit
+      if (state.topProducts.length > 0) {
+        state.analytics.topProduct = state.topProducts[0];
       }
 
       // Taux de conversion et valeur client (estimés)
@@ -819,7 +847,8 @@
         const sortedOrders = [...state.orders].sort((a, b) => new Date(b.date) - new Date(a.date));
         
         sortedOrders.forEach(order => {
-          const statutClass = order.statut ? `statut-${order.statut.toLowerCase().replace(' ', '-')}` : '';
+          const statut = order.statut || "⏳ EN ATTENTE";
+          const statutClass = `statut-${statut.toLowerCase().replace(/[⏳🟡🔵🟠✅❌]/g, '').trim().replace(/é/g, 'e').replace(' ', '-')}`;
           const articlesText = order.articles ? order.articles.replace(/\n/g, '<br>') : '';
           const dateStr = order.date ? new Date(order.date).toLocaleDateString('fr-FR', {
             day: '2-digit', month: '2-digit', year: 'numeric',
@@ -839,10 +868,12 @@
               <select class="statut-select ${statutClass}" 
                       data-commande="${order.commande_id}"
                       onchange="updateOrderStatus('${order.commande_id}', this.value)">
-                <option value="En attente" ${order.statut === 'En attente' ? 'selected' : ''}>En attente</option>
-                <option value="En cours" ${order.statut === 'En cours' ? 'selected' : ''}>En cours</option>
-                <option value="Livrée" ${order.statut === 'Livrée' ? 'selected' : ''}>Livrée</option>
-                <option value="Annulée" ${order.statut === 'Annulée' ? 'selected' : ''}>Annulée</option>
+                <option value="⏳ EN ATTENTE" ${statut === '⏳ EN ATTENTE' ? 'selected' : ''}>⏳ EN ATTENTE</option>
+                <option value="🟡 NOUVELLE" ${statut === '🟡 NOUVELLE' ? 'selected' : ''}>🟡 NOUVELLE</option>
+                <option value="🔵 EN PRÉPARATION" ${statut === '🔵 EN PRÉPARATION' ? 'selected' : ''}>🔵 EN PRÉPARATION</option>
+                <option value="🟠 EN LIVRAISON" ${statut === '🟠 EN LIVRAISON' ? 'selected' : ''}>🟠 EN LIVRAISON</option>
+                <option value="✅ LIVRÉE" ${statut === '✅ LIVRÉE' ? 'selected' : ''}>✅ LIVRÉE</option>
+                <option value="❌ ANNULÉE" ${statut === '❌ ANNULÉE' ? 'selected' : ''}>❌ ANNULÉE</option>
               </select>
             </td>
           `;
@@ -928,10 +959,12 @@
             data: [], 
             borderWidth: 2,
             backgroundColor: [
-              "rgba(255, 193, 7, 0.8)",   // En attente
-              "rgba(33, 150, 243, 0.8)",   // En cours
-              "rgba(76, 175, 80, 0.8)",    // Livrée
-              "rgba(244, 67, 54, 0.8)"     // Annulée
+              "rgba(255, 153, 0, 0.8)",     // ⏳ EN ATTENTE
+              "rgba(255, 204, 0, 0.8)",     // 🟡 NOUVELLE
+              "rgba(0, 102, 204, 0.8)",     // 🔵 EN PRÉPARATION
+              "rgba(255, 102, 0, 0.8)",     // 🟠 EN LIVRAISON
+              "rgba(0, 170, 0, 0.8)",       // ✅ LIVRÉE
+              "rgba(204, 0, 0, 0.8)"        // ❌ ANNULÉE
             ]
           }] 
         },
@@ -1019,7 +1052,7 @@
     }
 
     function updateStatusChart() {
-      const statusOrder = ["En attente", "En cours", "Livrée", "Annulée"];
+      const statusOrder = ["⏳ EN ATTENTE", "🟡 NOUVELLE", "🔵 EN PRÉPARATION", "🟠 EN LIVRAISON", "✅ LIVRÉE", "❌ ANNULÉE"];
       const labels = [];
       const data = [];
       
@@ -1085,10 +1118,10 @@
         }
         
         const response = await fetch(
-          `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
+          `${API_URL}?method=updatestatus&numero=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
         );
         
-        if (!response.ok) throw new Error("Erreur API");
+        if (!response.ok) throw new Error("Erreur réseau");
         
         const result = await response.json();
         
@@ -1103,11 +1136,36 @@
           
           showToast(`✅ Statut mis à jour: ${nouveauStatut}`, "success");
         } else {
-          throw new Error(result.error || "Erreur inconnue");
+          throw new Error(result.error || "Erreur API");
         }
         
       } catch (error) {
         console.error("Erreur updateOrderStatus:", error);
+        showToast(`❌ Erreur: ${error.message}`, "error");
+      }
+    }
+
+    // CRÉER UNE COMMANDE DE TEST
+    async function createTestOrder() {
+      try {
+        showToast("⏳ Création d'une commande test...", "info");
+        
+        const response = await fetch(`${API_URL}?method=testorder&t=${Date.now()}`);
+        
+        if (!response.ok) throw new Error("Erreur réseau");
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          showToast(`✅ Commande test créée: ${result.commande_id}`, "success");
+          // Recharger les données
+          setTimeout(() => refreshAll(), 1500);
+        } else {
+          throw new Error(result.error || "Erreur API");
+        }
+        
+      } catch (error) {
+        console.error("Erreur createTestOrder:", error);
         showToast(`❌ Erreur: ${error.message}`, "error");
       }
     }
@@ -1123,7 +1181,7 @@
       const orders = [];
       const now = new Date();
       
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < 20; i++) {
         const date = new Date(now);
         date.setDate(date.getDate() - Math.floor(Math.random() * 30));
         date.setHours(Math.floor(Math.random() * 24));
@@ -1139,11 +1197,11 @@
           const price = 5 + Math.random() * 20;
           const lineTotal = price * quantity;
           
-          articles.push(`${quantity}x ${product} @ ${price.toFixed(2)} dt = ${lineTotal.toFixed(2)} dt`);
+          articles.push(`${quantity}x ${product} - ${price.toFixed(2)} dt`);
           total += lineTotal;
         }
         
-        const statuses = ["En attente", "En cours", "Livrée", "Annulée"];
+        const statuses = ["⏳ EN ATTENTE", "🟡 NOUVELLE", "🔵 EN PRÉPARATION", "🟠 EN LIVRAISON", "✅ LIVRÉE", "❌ ANNULÉE"];
         const status = statuses[Math.floor(Math.random() * statuses.length)];
         
         orders.push({
@@ -1209,6 +1267,7 @@
       // Événements
       $("salesPeriod").addEventListener("change", () => updateCharts());
       $("btnRefresh").addEventListener("click", () => refreshAll());
+      $("btnCreateTest").addEventListener("click", () => createTestOrder());
       
       // Exposer la fonction globalement
       window.updateOrderStatus = updateOrderStatus;
