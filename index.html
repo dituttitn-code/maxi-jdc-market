@@ -3711,7 +3711,7 @@
             </span>
             <span class="savings-value">
               <span id="savingsPercentage">0%</span>
-              <span class="savings-percentage" id="savingsPercentageText"></span>
+              <span class="avings-percentage" id="savingsPercentageText"></span>
             </span>
           </div>
         </div>
@@ -3979,7 +3979,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v38',
+      localStorageKey: 'maxi_jdc_market_app_v39',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -3994,7 +3994,7 @@
       dashboardUrl: 'tools/tableau-de-bord.html',
       trackingUrl: 'tools/suivi-commandes.html',
 
-      // URL de votre Google Sheets (WEB APP Google Apps Script)
+      // URL Google Apps Script corrigée
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
       commandeApiUrl: "https://script.google.com/macros/s/AKfycbzOIsVxlatsaMDIyhL2onPbcxXt-pVt94ImtvYVmIXLPtc-RBDUfclVXAPg8k5Ask6A/exec",
     };
@@ -4230,9 +4230,9 @@
       lastSyncTime: null,
       syncTimer: null,
       googleSheetsStock: new Map(),
-      lastOrderId: null,
       currentLanguage: 'fr',
-      clientSpaceVisible: false
+      clientSpaceVisible: false,
+      pendingOrder: null // CORRECTION : Commande en attente de validation
     };
 
     // ===================== TRADUCTION =====================
@@ -5871,6 +5871,23 @@
       }
     }
 
+    // ===================== GÉNÉRATION NUMÉRO COMMANDE =====================
+    function genererNumeroCommande() {
+      const now = new Date();
+      const datePart = now.getFullYear() + 
+                      String(now.getMonth() + 1).padStart(2, '0') + 
+                      String(now.getDate()).padStart(2, '0');
+      
+      // CORRECTION : Récupérer le dernier numéro de commande pour cette date
+      const lastOrderKey = `last_order_${datePart}`;
+      let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
+      
+      const sequencePart = String(lastOrderNumber + 1).padStart(3, '0');
+      
+      // CORRECTION : Format CMD-MAXI-AAAAAMMJJ-NNN
+      return `CMD-MAXI-${datePart}-${sequencePart}`;
+    }
+
     // ===================== ENREGISTREMENT VERS GOOGLE SHEETS - CORRIGÉ =====================
     async function enregistrerCommandeGoogleSheets(orderData) {
       try {
@@ -5890,7 +5907,6 @@
           const itemTotal = item.price * item.quantity;
           totalPanier += itemTotal;
           
-          // CORRECTION ICI : format correct pour la colonne Articles
           articlesText += `${item.quantity}x ${item.name}`;
           if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
             const saving = (item.oldPrice - item.price) * item.quantity;
@@ -5914,56 +5930,45 @@
           minute: '2-digit'
         });
 
-        // CORRECTION ICI : format correct pour les 8 colonnes du Google Sheets
+        // CORRECTION : Données pour les 8 colonnes
         const sheetData = {
-          date: dateStr,                    // 📅 DATE
-          nom_client: state.user.name,      // 👤 NOM CLIENT
-          telephone: state.user.phone?.replace(/\D/g, '') || '', // 📞 TÉLÉPHONE
-          adresse: adresseComplete,         // 📍 ADRESSE (avec GPS)
-          commande_id: orderData.commandeId,// 🆔 N° COMMANDE
-          articles: articlesText,           // 🛒 ARTICLES (format corrigé)
-          total: total.toFixed(2),          // 💰 TOTAL (DT) - CORRECTION: format avec 2 décimales
-          statut: 'Nouvelle'                // 📊 STATUT
+          Date: dateStr,
+          Nom_Client: state.user.name,
+          Telephone: state.user.phone?.replace(/\D/g, '') || '',
+          Adresse: adresseComplete,
+          N_Commande: orderData.commandeId, // CORRECTION : Format CMD-MAXI-...
+          Articles: articlesText,
+          Total: total.toFixed(2).replace('.', ','), // Format européen
+          Statut: 'NOUVELLE'
         };
 
-        console.log('📊 Données pour Google Sheets (8 colonnes corrigées):', sheetData);
+        console.log('📊 Données pour Google Sheets:', sheetData);
 
-        // CORRECTION: Envoyer via POST avec en-têtes appropriés
-        const formData = new FormData();
+        // CORRECTION CRITIQUE : Envoyer en x-www-form-urlencoded
+        const params = new URLSearchParams();
         Object.keys(sheetData).forEach(key => {
-          formData.append(key, sheetData[key]);
+          params.append(key, sheetData[key]);
         });
-        
-        // Tentative avec POST et mode cors
-        try {
-          const response = await fetch(CONFIG.commandeApiUrl, {
-            method: 'POST',
-            mode: 'cors',
-            body: formData
-          });
-          
-          if (response.ok) {
-            console.log('✅ Commande envoyée avec succès');
-          } else {
-            console.log('⚠️ Réponse non-OK, mais on continue');
-          }
-        } catch (fetchError) {
-          console.log('⚠️ Erreur fetch, tentative alternative avec GET...');
-          
-          // Tentative alternative avec GET
-          try {
-            const params = new URLSearchParams();
-            Object.keys(sheetData).forEach(key => {
-              params.append(key, sheetData[key]);
-            });
-            
-            const getUrl = `${CONFIG.commandeApiUrl}?${params.toString()}`;
-            await fetch(getUrl, { mode: 'no-cors' });
-            console.log('✅ Requête GET envoyée (mode no-cors)');
-          } catch (getError) {
-            console.log('⚠️ Erreur GET aussi, on continue quand même');
-          }
-        }
+
+        // CORRECTION : Appel POST avec content-type correct
+        const response = await fetch(CONFIG.commandeApiUrl, {
+          method: 'POST',
+          mode: 'no-cors', // Mode no-cors pour éviter les problèmes CORS
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: params.toString()
+        });
+
+        console.log('✅ Commande envoyée vers Google Sheets');
+
+        // CORRECTION : Incrémenter le compteur de commandes APRÈS envoi réussi
+        const datePart = now.getFullYear() + 
+                        String(now.getMonth() + 1).padStart(2, '0') + 
+                        String(now.getDate()).padStart(2, '0');
+        const lastOrderKey = `last_order_${datePart}`;
+        let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
+        localStorage.setItem(lastOrderKey, lastOrderNumber + 1);
         
         // Jouer le son de notification
         playOrderNotificationSound();
@@ -5971,52 +5976,101 @@
         const t = TRANSLATIONS[state.currentLanguage];
         showToast(`✅ ${t.toastOrderSaved}`);
         
-        // Retourner l'ID de commande
         return orderData.commandeId;
         
       } catch (error) {
         console.error('Erreur enregistrement Google Sheets:', error);
-        showToast('⚠️ Commande créée (erreur système ignorée)', 'warning');
+        showToast('⚠️ Commande créée mais erreur d\'enregistrement système', 'warning');
         return orderData.commandeId;
       }
     }
 
-    // ===================== GÉNÉRATION NUMÉRO COMMANDE =====================
-    function genererNumeroCommande() {
-      const now = new Date();
-      const datePart = now.getFullYear() + 
-                      String(now.getMonth() + 1).padStart(2, '0') + 
-                      String(now.getDate()).padStart(2, '0');
-      
-      const lastOrderKey = `last_order_${datePart}`;
-      let lastOrderNumber = localStorage.getItem(lastOrderKey) || 0;
-      
-      lastOrderNumber = parseInt(lastOrderNumber) + 1;
-      localStorage.setItem(lastOrderKey, lastOrderNumber);
-      
-      const sequencePart = String(lastOrderNumber).padStart(3, '0');
-      
-      return `MAXI-${datePart}-${sequencePart}`;
-    }
-
     // ===================== ENVOI MESSAGE AU CLIENT =====================
     function envoyerMessageClient(commandeId) {
+      // CORRECTION : Message avec le bon format de numéro de commande
       const message = `Merci pour votre commande chez MAXI JDC MARKET.
-📦 Votre commande, référencée ${commandeId}, a bien été enregistrée.
+📦 Votre commande, référence ${commandeId}, a bien été enregistrée.
 ⏳ Elle est actuellement en cours de préparation.
 📞 Nous vous contacterons prochainement pour la livraison.
 🔗 Pour suivre l'état de votre commande, utilisez le numéro ${commandeId} dans la section « Suivi commande » de votre espace client.`;
       
-      alert(message);
+      // Afficher dans une boîte de dialogue
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #0a1929 0%, #112240 100%);
+        border: 3px solid var(--accent);
+        border-radius: 20px;
+        padding: 30px;
+        z-index: 9999;
+        max-width: 90%;
+        width: 400px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+        color: var(--text);
+        font-family: inherit;
+      `;
       
-      navigator.clipboard.writeText(message).then(() => {
-        showToast('📋 Message copié dans le presse-papier');
-      }).catch(err => {
-        console.error('Erreur copie:', err);
-      });
+      modal.innerHTML = `
+        <h3 style="color: var(--accent); margin-top: 0; text-align: center;">✅ Commande Enregistrée</h3>
+        <div style="white-space: pre-line; margin: 20px 0; font-size: 14px; line-height: 1.5;">${message}</div>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          <button id="copyMsgBtn" style="
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid var(--accent2);
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent2);
+            cursor: pointer;
+            font-weight: 700;
+          ">📋 Copier</button>
+          <button id="closeMsgBtn" style="
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent);
+            cursor: pointer;
+            font-weight: 700;
+          ">✅ OK</button>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Overlay
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.9);
+        z-index: 9998;
+      `;
+      document.body.appendChild(overlay);
+      
+      // Bouton copier
+      modal.querySelector('#copyMsgBtn').onclick = () => {
+        navigator.clipboard.writeText(message).then(() => {
+          showToast('📋 Message copié dans le presse-papier');
+        });
+      };
+      
+      // Bouton fermer
+      const closeModal = () => {
+        document.body.removeChild(modal);
+        document.body.removeChild(overlay);
+      };
+      
+      modal.querySelector('#closeMsgBtn').onclick = closeModal;
+      overlay.onclick = closeModal;
     }
 
-    // ===================== COMMANDES =====================
+    // ===================== COMMANDES - CORRIGÉ =====================
     async function placeOrder() {
       if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
         showToast('❌ Veuillez compléter vos informations personnelles', 'error');
@@ -6039,6 +6093,7 @@
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
       const total = subtotal + shippingFee;
 
+      // CORRECTION : Générer le numéro de commande mais ne pas l'incrémenter encore
       const commandeId = genererNumeroCommande();
 
       let orderText = `📦 COMMANDE - MAXI JDC MARKET\n`;
@@ -6098,8 +6153,9 @@
       $('orderDetails').textContent = orderText;
       $('orderModal').classList.add('open');
 
-      // Sauvegarder dans l'historique local
-      const orderData = {
+      // CORRECTION : Ne pas sauvegarder dans l'historique tant que l'utilisateur n'a pas cliqué sur "Valider et envoyer"
+      // Les données sont conservées temporairement
+      state.pendingOrder = {
         subtotal,
         shipping: shippingFee,
         total,
@@ -6108,15 +6164,45 @@
         commandeId: commandeId
       };
 
-      saveOrderToHistory(orderData);
-
-      // Vider le panier après création de la commande
-      state.cart = {};
-      updateCartUI();
-
       const t = TRANSLATIONS[state.currentLanguage];
-      showToast(`✅ ${t.toastOrderPlaced} Cliquez sur "Valider et envoyer" pour finaliser.`);
+      showToast(`📝 Commande préparée. Cliquez sur "Valider et envoyer" pour finaliser.`);
     }
+
+    // ===================== BOUTON "VALIDER ET ENVOYER" =====================
+    $('sendOrderBtn').onclick = async () => {
+      try {
+        // CORRECTION : Récupérer les données de commande temporaires
+        if (!state.pendingOrder) {
+          showToast('❌ Aucune commande en attente', 'error');
+          return;
+        }
+
+        const orderData = state.pendingOrder;
+        
+        // CORRECTION : Enregistrer D'ABORD dans l'historique local
+        saveOrderToHistory(orderData);
+        
+        // CORRECTION : Envoyer vers Google Sheets
+        const commandeId = await enregistrerCommandeGoogleSheets(orderData);
+        
+        // CORRECTION : Vider le panier APRÈS enregistrement réussi
+        state.cart = {};
+        updateCartUI();
+        
+        // CORRECTION : Nettoyer la commande en attente
+        state.pendingOrder = null;
+        
+        // Fermer le modal
+        $('orderModal').classList.remove('open');
+        
+        // Envoyer le message au client
+        envoyerMessageClient(commandeId);
+        
+      } catch (error) {
+        console.error('Erreur validation commande:', error);
+        showToast('❌ Erreur lors de la validation de la commande', 'error');
+      }
+    };
 
     // ===================== INITIALISATION =====================
     function init() {
@@ -6139,6 +6225,9 @@
       } catch (e) {
         console.warn('Erreur chargement état:', e);
       }
+
+      // CORRECTION : Initialiser la commande en attente
+      state.pendingOrder = null;
 
       $('cartTopBtn').onclick = () => {
         $('drawer').classList.add('open');
@@ -6376,56 +6465,8 @@
         showToast('💾 Commande téléchargée');
       };
 
-      $('sendOrderBtn').onclick = async () => {
-        // Récupérer les données de commande depuis le modal
-        const orderText = $('orderDetails').textContent;
-        const lines = orderText.split('\n');
-        let commandeId = '';
-        
-        // Extraire le numéro de commande
-        for (const line of lines) {
-          if (line.includes('N° Commande:')) {
-            commandeId = line.split(':')[1].trim();
-            break;
-          }
-        }
-        
-        if (!commandeId) {
-          commandeId = genererNumeroCommande();
-        }
-        
-        // Calculer les totaux
-        const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
-        const total = subtotal + shippingFee;
-        const savings = calculateTotalSavings();
-        
-        // Préparer les données pour l'envoi
-        const orderData = {
-          subtotal,
-          shipping: shippingFee,
-          total,
-          savings: savings.totalSavings,
-          savingsPercentage: savings.percentage,
-          commandeId: commandeId
-        };
-        
-        // ENVOYER VERS GOOGLE SHEETS (version corrigée)
-        const enregistrementReussi = await enregistrerCommandeGoogleSheets(orderData);
-        
-        // Fermer le modal
-        $('orderModal').classList.remove('open');
-        
-        if (enregistrementReussi) {
-          // Envoyer le message au client
-          envoyerMessageClient(enregistrementReussi);
-          const t = TRANSLATIONS[state.currentLanguage];
-          showToast(`✅ ${t.toastOrderSaved}`);
-        } else {
-          showToast('⚠️ Commande créée mais erreur d\'enregistrement', 'warning');
-          envoyerMessageClient(commandeId);
-        }
-      };
+      // IMPORTANT : Le bouton "Valider et envoyer" est déjà configuré plus haut
+      // $('sendOrderBtn').onclick est défini dans la fonction sendOrderBtn
 
       $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
         $('stockModal').classList.remove('open');
@@ -6485,7 +6526,7 @@
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '38.0'
+        version: '39.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
