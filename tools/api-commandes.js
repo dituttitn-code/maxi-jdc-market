@@ -6,7 +6,7 @@
  * CONFIG
  * ========================================================= */
 const FALLBACK_API_URL =
-  "https://script.google.com/macros/s/REPLACE_ME/exec"; // optionnel
+  "https://script.google.com/macros/s/AKfycby4V4DxUxcULeL4GGzZfLb8t5B01uwgee_GQcaS-TcYTg5JSk92LIG9O9RD7z5mxcYK/exec"; // optionnel
 
 function getApiUrl() {
   if (typeof window !== "undefined") {
@@ -16,7 +16,16 @@ function getApiUrl() {
   return FALLBACK_API_URL;
 }
 
-const DEFAULT_STATUS = "En attente";
+// TOUS LES STATUTS UNIFIÉS
+const DEFAULT_STATUS = "⏳ EN ATTENTE";
+const STATUTS_VALIDES = [
+  "🟡 NOUVELLE",
+  "🔵 EN PRÉPARATION", 
+  "🟠 EN LIVRAISON",
+  "✅ LIVRÉE",
+  "❌ ANNULÉE",
+  "⏳ EN ATTENTE"
+];
 const DEFAULT_WA_NUMBER = "0021625600978";
 
 /** =========================================================
@@ -292,6 +301,11 @@ export async function recupererHistorique(telephone) {
  * ========================================================= */
 export async function mettreAJourStatut(commandeId, nouveauStatut) {
   if (!commandeId || !nouveauStatut) throw new Error("Paramètres manquants");
+  
+  // Valider que le statut est dans la liste des statuts autorisés
+  if (!STATUTS_VALIDES.includes(nouveauStatut)) {
+    throw new Error(`Statut invalide. Utilisez l'un de: ${STATUTS_VALIDES.join(", ")}`);
+  }
 
   const data = await requestJson(buildGetUrl("updateOrderStatus", {
     commande_id: commandeId,
@@ -300,6 +314,36 @@ export async function mettreAJourStatut(commandeId, nouveauStatut) {
 
   if (!data.success) throw new Error(data.error || data.message || "Erreur mise à jour statut");
   return data;
+}
+
+/** =========================================================
+ * FONCTIONS UTILES POUR LES STATUTS
+ * ========================================================= */
+export function getStatutsValides() {
+  return [...STATUTS_VALIDES];
+}
+
+export function getStatutSuivant(statutActuel) {
+  const index = STATUTS_VALIDES.indexOf(statutActuel);
+  if (index === -1 || index >= STATUTS_VALIDES.length - 1) return null;
+  return STATUTS_VALIDES[index + 1];
+}
+
+export function formaterStatut(statut) {
+  const couleurs = {
+    "⏳ EN ATTENTE": "rgba(255, 193, 7, 0.2)",  // Jaune
+    "🟡 NOUVELLE": "rgba(255, 235, 59, 0.2)",   // Jaune vif
+    "🔵 EN PRÉPARATION": "rgba(33, 150, 243, 0.2)",  // Bleu
+    "🟠 EN LIVRAISON": "rgba(255, 152, 0, 0.2)",     // Orange
+    "✅ LIVRÉE": "rgba(76, 175, 80, 0.2)",      // Vert
+    "❌ ANNULÉE": "rgba(244, 67, 54, 0.2)"      // Rouge
+  };
+  
+  return {
+    texte: statut,
+    couleur: couleurs[statut] || "rgba(158, 158, 158, 0.2)",
+    emoji: statut.substring(0, 2)
+  };
 }
 
 /** =========================================================
@@ -381,11 +425,15 @@ const apiCommandes = {
   genererNumeroCommandeLocal,
   testerConnexionAPI,
   genererLienWhatsAppMagasin,
-  ouvrirWhatsApp
+  ouvrirWhatsApp,
+  getStatutsValides,
+  getStatutSuivant,
+  formaterStatut
 };
 
 export default apiCommandes;
 
 if (typeof window !== "undefined") {
   window.apiCommandes = apiCommandes;
+  window.STATUTS_VALIDES = STATUTS_VALIDES;
 }
