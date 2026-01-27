@@ -6,7 +6,7 @@
  * CONFIG
  * ========================================================= */
 const FALLBACK_API_URL =
-  "https://script.google.com/macros/s/AKfycby4V4DxUxcULeL4GGzZfLb8t5B01uwgee_GQcaS-TcYTg5JSk92LIG9O9RD7z5mxcYK/exec"; // optionnel
+  "https://script.google.com/macros/s/AKfycbxU8ASBEzN_qNF65K2QdtF0XOMbzAD_t26oQhly-2mxhTdP8vPYHTvTCr-lvSdYyzE/exec"; // optionnel
 
 function getApiUrl() {
   if (typeof window !== "undefined") {
