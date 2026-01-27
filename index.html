@@ -3944,7 +3944,8 @@
   <div class="order-modal-overlay" id="orderModal">
     <div class="order-modal">
       <div class="order-modal-header">
-        <h3>✅ Commande confirmée</h3>
+        <!-- MODIFICATION 1: Changer le titre -->
+        <h3>📋 Détails de votre commande</h3>
         <button class="drawer-close" id="closeOrderModalBtn">×</button>
       </div>
       <div class="order-modal-body">
@@ -3959,8 +3960,9 @@
         <button class="order-btn download" id="downloadOrderBtn">
           💾 Télécharger
         </button>
+        <!-- MODIFICATION 2: Changer le texte du bouton -->
         <button class="order-btn" id="sendOrderBtn">
-          📊 Enregistrer dans le système
+          ✅ Valider et envoyer
         </button>
       </div>
     </div>
@@ -5867,634 +5869,632 @@
       }
     }
 
-    // ===================== ENREGISTREMENT VERS GOOGLE SHEETS - ADAPTÉ 8 COLONNES =====================
+    // ===================== ENREGISTREMENT VERS GOOGLE SHEETS - CORRIGÉ =====================
     async function enregistrerCommandeGoogleSheets(orderData) {
+      try {
+        showToast('📤 Enregistrement de la commande...', 'warning');
+
+        // Construire l'adresse complète avec GPS
+        let adresseComplete = state.user.address || '';
+        if (state.user.lat && state.user.lng) {
+          adresseComplete += ` | GPS: ${state.user.lat}, ${state.user.lng}`;
+        }
+
+        // Formater les articles pour la colonne "Articles"
+        let articlesText = '';
+        let totalPanier = 0;
+        
+        Object.values(state.cart).forEach(item => {
+          const itemTotal = item.price * item.quantity;
+          totalPanier += itemTotal;
+          
+          // CORRECTION ICI : format correct pour la colonne Articles
+          articlesText += `${item.quantity}x ${item.name}`;
+          if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
+            const saving = (item.oldPrice - item.price) * item.quantity;
+            articlesText += ` (PROMO: -${formatPrice(saving)})`;
+          }
+          articlesText += `\n`;
+        });
+        
+        // Calculs
+        const sousTotal = totalPanier;
+        const livraison = orderData.shipping || 0;
+        const total = sousTotal + livraison;
+        
+        // Date formatée
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        // CORRECTION ICI : format correct pour les 8 colonnes du Google Sheets
+        const sheetData = {
+          date: dateStr,                    // 📅 DATE
+          nom_client: state.user.name,      // 👤 NOM CLIENT
+          telephone: state.user.phone?.replace(/\D/g, '') || '', // 📞 TÉLÉPHONE
+          adresse: adresseComplete,         // 📍 ADRESSE (avec GPS)
+          commande_id: orderData.commandeId,// 🆔 N° COMMANDE
+          articles: articlesText,           // 🛒 ARTICLES (format corrigé)
+          total: total.toFixed(2),          // 💰 TOTAL (DT) - CORRECTION: format avec 2 décimales
+          statut: 'Nouvelle'                // 📊 STATUT
+        };
+
+        console.log('📊 Données pour Google Sheets (8 colonnes corrigées):', sheetData);
+
+        // CORRECTION: Envoyer via POST avec en-têtes appropriés
+        const formData = new FormData();
+        Object.keys(sheetData).forEach(key => {
+          formData.append(key, sheetData[key]);
+        });
+        
+        // Tentative avec POST et mode cors
         try {
-            showToast('📤 Enregistrement de la commande...', 'warning');
-
-            // Construire l'adresse complète avec GPS
-            let adresseComplete = state.user.address || '';
-            if (state.user.lat && state.user.lng) {
-                adresseComplete += ` | GPS: ${state.user.lat}, ${state.user.lng}`;
-            }
-
-            // Formater les articles pour la colonne "Articles"
-            let articlesText = '';
-            let totalPanier = 0;
-            
-            Object.values(state.cart).forEach(item => {
-                const itemTotal = item.price * item.quantity;
-                totalPanier += itemTotal;
-                
-                articlesText += `${item.quantity}x ${item.name} (${item.code})`;
-                if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
-                    const saving = (item.oldPrice - item.price) * item.quantity;
-                    articlesText += ` - PROMO: ${formatPrice(saving)}`;
-                }
-                articlesText += ` = ${formatPrice(itemTotal)}\n`;
-            });
-            
-            // Calculs
-            const sousTotal = totalPanier;
-            const livraison = orderData.shipping || 0;
-            const total = sousTotal + livraison;
-            const economies = orderData.savings || 0;
-            
-            // Date formatée
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            // Créer les données pour les 8 colonnes
-            const sheetData = {
-                date: dateStr,                    // 📅 DATE
-                nom_client: state.user.name,      // 👤 NOM CLIENT
-                telephone: state.user.phone?.replace(/\D/g, '') || '', // 📞 TÉLÉPHONE
-                adresse: adresseComplete,         // 📍 ADRESSE (avec GPS)
-                commande_id: orderData.commandeId,// 🆔 N° COMMANDE
-                articles: articlesText,           // 🛒 ARTICLES
-                total: total.toFixed(2),          // 💰 TOTAL (DT)
-                statut: 'Nouvelle'                // 📊 STATUT
-            };
-
-            console.log('📊 Données pour Google Sheets (8 colonnes):', sheetData);
-
-            // Envoyer via GET (plus simple pour Google Apps Script)
+          const response = await fetch(CONFIG.commandeApiUrl, {
+            method: 'POST',
+            mode: 'cors',
+            body: formData
+          });
+          
+          if (response.ok) {
+            console.log('✅ Commande envoyée avec succès');
+          } else {
+            console.log('⚠️ Réponse non-OK, mais on continue');
+          }
+        } catch (fetchError) {
+          console.log('⚠️ Erreur fetch, tentative alternative avec GET...');
+          
+          // Tentative alternative avec GET
+          try {
             const params = new URLSearchParams();
             Object.keys(sheetData).forEach(key => {
-                params.append(key, sheetData[key]);
+              params.append(key, sheetData[key]);
             });
             
-            const url = `${CONFIG.commandeApiUrl}?${params.toString()}`;
-            console.log('🔗 URL d\'envoi:', url);
-            
-            try {
-                // Essayer avec mode no-cors
-                await fetch(url, {
-                    method: 'GET',
-                    mode: 'no-cors'
-                });
-                console.log('✅ Requête envoyée (mode no-cors)');
-            } catch (fetchError) {
-                console.log('⚠️ Erreur fetch, tentative alternative...');
-                
-                // Tentative avec POST
-                try {
-                    const formData = new FormData();
-                    Object.keys(sheetData).forEach(key => {
-                        formData.append(key, sheetData[key]);
-                    });
-                    
-                    await fetch(CONFIG.commandeApiUrl, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    console.log('✅ Requête POST envoyée');
-                } catch (postError) {
-                    console.log('⚠️ Erreur POST aussi, on continue quand même');
-                }
-            }
-            
-            // Jouer le son de notification
-            playOrderNotificationSound();
-            
-            const t = TRANSLATIONS[state.currentLanguage];
-            showToast(`✅ ${t.toastOrderSaved}`);
-            
-            // Retourner l'ID de commande
-            return orderData.commandeId;
-            
-        } catch (error) {
-            console.error('Erreur enregistrement Google Sheets:', error);
-            showToast('⚠️ Commande créée (erreur système ignorée)', 'warning');
-            return orderData.commandeId;
+            const getUrl = `${CONFIG.commandeApiUrl}?${params.toString()}`;
+            await fetch(getUrl, { mode: 'no-cors' });
+            console.log('✅ Requête GET envoyée (mode no-cors)');
+          } catch (getError) {
+            console.log('⚠️ Erreur GET aussi, on continue quand même');
+          }
         }
+        
+        // Jouer le son de notification
+        playOrderNotificationSound();
+        
+        const t = TRANSLATIONS[state.currentLanguage];
+        showToast(`✅ ${t.toastOrderSaved}`);
+        
+        // Retourner l'ID de commande
+        return orderData.commandeId;
+        
+      } catch (error) {
+        console.error('Erreur enregistrement Google Sheets:', error);
+        showToast('⚠️ Commande créée (erreur système ignorée)', 'warning');
+        return orderData.commandeId;
+      }
     }
 
     // ===================== GÉNÉRATION NUMÉRO COMMANDE =====================
     function genererNumeroCommande() {
-        const now = new Date();
-        const datePart = now.getFullYear() + 
-                        String(now.getMonth() + 1).padStart(2, '0') + 
-                        String(now.getDate()).padStart(2, '0');
-        
-        const lastOrderKey = `last_order_${datePart}`;
-        let lastOrderNumber = localStorage.getItem(lastOrderKey) || 0;
-        
-        lastOrderNumber = parseInt(lastOrderNumber) + 1;
-        localStorage.setItem(lastOrderKey, lastOrderNumber);
-        
-        const sequencePart = String(lastOrderNumber).padStart(3, '0');
-        
-        return `MAXI-${datePart}-${sequencePart}`;
+      const now = new Date();
+      const datePart = now.getFullYear() + 
+                      String(now.getMonth() + 1).padStart(2, '0') + 
+                      String(now.getDate()).padStart(2, '0');
+      
+      const lastOrderKey = `last_order_${datePart}`;
+      let lastOrderNumber = localStorage.getItem(lastOrderKey) || 0;
+      
+      lastOrderNumber = parseInt(lastOrderNumber) + 1;
+      localStorage.setItem(lastOrderKey, lastOrderNumber);
+      
+      const sequencePart = String(lastOrderNumber).padStart(3, '0');
+      
+      return `MAXI-${datePart}-${sequencePart}`;
     }
 
     // ===================== ENVOI MESSAGE AU CLIENT =====================
     function envoyerMessageClient(commandeId) {
-        const message = `Merci pour votre commande chez MAXI JDC MARKET.
+      const message = `Merci pour votre commande chez MAXI JDC MARKET.
 📦 Votre commande, référencée ${commandeId}, a bien été enregistrée.
 ⏳ Elle est actuellement en cours de préparation.
 📞 Nous vous contacterons prochainement pour la livraison.
 🔗 Pour suivre l'état de votre commande, utilisez le numéro ${commandeId} dans la section « Suivi commande » de votre espace client.`;
-        
-        alert(message);
-        
-        navigator.clipboard.writeText(message).then(() => {
-            showToast('📋 Message copié dans le presse-papier');
-        }).catch(err => {
-            console.error('Erreur copie:', err);
-        });
+      
+      alert(message);
+      
+      navigator.clipboard.writeText(message).then(() => {
+        showToast('📋 Message copié dans le presse-papier');
+      }).catch(err => {
+        console.error('Erreur copie:', err);
+      });
     }
 
     // ===================== COMMANDES =====================
     async function placeOrder() {
-        if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
-            showToast('❌ Veuillez compléter vos informations personnelles', 'error');
-            $('cartTopBtn').click();
-            return;
+      if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
+        showToast('❌ Veuillez compléter vos informations personnelles', 'error');
+        $('cartTopBtn').click();
+        return;
+      }
+
+      if (Object.keys(state.cart).length === 0) {
+        showToast('❌ Votre panier est vide', 'error');
+        return;
+      }
+
+      const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      if (subtotal < CONFIG.minOrder) {
+        showToast(`❌ Commande minimum: ${formatPrice(CONFIG.minOrder)}`, 'error');
+        return;
+      }
+
+      const savings = calculateTotalSavings();
+      let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
+      const total = subtotal + shippingFee;
+
+      const commandeId = genererNumeroCommande();
+
+      let orderText = `📦 COMMANDE - MAXI JDC MARKET\n`;
+      orderText += `📅 ${new Date().toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}\n\n`;
+
+      orderText += `👤 CLIENT\n`;
+      orderText += `Nom: ${state.user.name}\n`;
+      orderText += `Téléphone: +216 ${state.user.phone}\n`;
+      orderText += `Adresse: ${state.user.address}\n`;
+      if (state.user.lat && state.user.lng) {
+        orderText += `📍 GPS: ${state.user.lat}, ${state.user.lng}\n`;
+      }
+
+      orderText += `\n🛒 ARTICLES\n`;
+      orderText += '─'.repeat(50) + '\n';
+
+      Object.values(state.cart).forEach(item => {
+        const itemTotal = item.price * item.quantity;
+        const itemSaving = calculateItemSavings(item);
+        const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
+        orderText += `${item.quantity}x ${item.name} (${item.code})\n`;
+        orderText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
+        if (itemSaving > 0) {
+          orderText += ` 💰 ÉCONOMIE: ${formatPrice(itemSaving)}`;
+          if (item.discountPercent) {
+            orderText += ` (-${item.discountPercent}%)`;
+          }
+          orderText += `\n ⚡ Ancien prix: ${formatPrice(originalTotal)}`;
         }
+        orderText += '\n';
+      });
 
-        if (Object.keys(state.cart).length === 0) {
-            showToast('❌ Votre panier est vide', 'error');
-            return;
-        }
+      orderText += '─'.repeat(50) + '\n';
+      orderText += `Sous-total: ${formatPrice(subtotal)}\n`;
 
-        const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        if (subtotal < CONFIG.minOrder) {
-            showToast(`❌ Commande minimum: ${formatPrice(CONFIG.minOrder)}`, 'error');
-            return;
-        }
+      if (savings.totalSavings > 0) {
+        orderText += `💰 ÉCONOMIES TOTALES: ${formatPrice(savings.totalSavings)} (${savings.percentage}%)\n`;
+      }
 
-        const savings = calculateTotalSavings();
-        let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
-        const total = subtotal + shippingFee;
+      orderText += `Livraison: ${shippingFee === 0 ? 'GRATUIT' : formatPrice(shippingFee)}\n`;
+      orderText += `TOTAL: ${formatPrice(total)}\n\n`;
 
-        const commandeId = genererNumeroCommande();
+      if (savings.totalSavings > 0) {
+        orderText += `🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(savings.totalSavings)} sur cette commande !\n\n`;
+      }
 
-        let orderText = `📦 COMMANDE - MAXI JDC MARKET\n`;
-        orderText += `📅 ${new Date().toLocaleDateString('fr-FR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        })}\n\n`;
+      orderText += `🕒 Heures: 7h - 1h\n`;
+      orderText += `📱 WhatsApp: +216 25 600 978\n`;
+      orderText += `📦 N° Commande: ${commandeId}`;
 
-        orderText += `👤 CLIENT\n`;
-        orderText += `Nom: ${state.user.name}\n`;
-        orderText += `Téléphone: +216 ${state.user.phone}\n`;
-        orderText += `Adresse: ${state.user.address}\n`;
-        if (state.user.lat && state.user.lng) {
-            orderText += `📍 GPS: ${state.user.lat}, ${state.user.lng}\n`;
-        }
+      $('orderDetails').textContent = orderText;
+      $('orderModal').classList.add('open');
 
-        orderText += `\n🛒 ARTICLES\n`;
-        orderText += '─'.repeat(50) + '\n';
+      // Sauvegarder dans l'historique local
+      const orderData = {
+        subtotal,
+        shipping: shippingFee,
+        total,
+        savings: savings.totalSavings,
+        savingsPercentage: savings.percentage,
+        commandeId: commandeId
+      };
 
-        Object.values(state.cart).forEach(item => {
-            const itemTotal = item.price * item.quantity;
-            const itemSaving = calculateItemSavings(item);
-            const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
-            orderText += `${item.quantity}x ${item.name} (${item.code})\n`;
-            orderText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
-            if (itemSaving > 0) {
-                orderText += ` 💰 ÉCONOMIE: ${formatPrice(itemSaving)}`;
-                if (item.discountPercent) {
-                    orderText += ` (-${item.discountPercent}%)`;
-                }
-                orderText += `\n ⚡ Ancien prix: ${formatPrice(originalTotal)}`;
-            }
-            orderText += '\n';
-        });
+      saveOrderToHistory(orderData);
 
-        orderText += '─'.repeat(50) + '\n';
-        orderText += `Sous-total: ${formatPrice(subtotal)}\n`;
+      // Vider le panier après création de la commande
+      state.cart = {};
+      updateCartUI();
 
-        if (savings.totalSavings > 0) {
-            orderText += `💰 ÉCONOMIES TOTALES: ${formatPrice(savings.totalSavings)} (${savings.percentage}%)\n`;
-        }
-
-        orderText += `Livraison: ${shippingFee === 0 ? 'GRATUIT' : formatPrice(shippingFee)}\n`;
-        orderText += `TOTAL: ${formatPrice(total)}\n\n`;
-
-        if (savings.totalSavings > 0) {
-            orderText += `🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(savings.totalSavings)} sur cette commande !\n\n`;
-        }
-
-        orderText += `🕒 Heures: 7h - 1h\n`;
-        orderText += `📱 WhatsApp: +216 25 600 978\n`;
-        orderText += `📦 N° Commande: ${commandeId}`;
-
-        $('orderDetails').textContent = orderText;
-        $('orderModal').classList.add('open');
-
-        // Sauvegarder dans l'historique local
-        const orderData = {
-            subtotal,
-            shipping: shippingFee,
-            total,
-            savings: savings.totalSavings,
-            savingsPercentage: savings.percentage,
-            commandeId: commandeId
-        };
-
-        saveOrderToHistory(orderData);
-
-        // Vider le panier après création de la commande
-        state.cart = {};
-        updateCartUI();
-
-        const t = TRANSLATIONS[state.currentLanguage];
-        showToast(`✅ ${t.toastOrderPlaced} Cliquez sur "Enregistrer dans le système" pour finaliser.`);
+      const t = TRANSLATIONS[state.currentLanguage];
+      showToast(`✅ ${t.toastOrderPlaced} Cliquez sur "Valider et envoyer" pour finaliser.`);
     }
 
     // ===================== INITIALISATION =====================
     function init() {
-        try {
-            const saved = localStorage.getItem(CONFIG.localStorageKey);
-            if (saved) {
-                const data = JSON.parse(saved);
-                state.user = data.user || null;
-                state.cart = data.cart || {};
-                state.orderHistory = data.orderHistory || [];
-                updateUserUI();
-                updateCartUI();
-            }
-            const adminState = localStorage.getItem(CONFIG.adminPasswordKey);
-            state.isAdmin = adminState === 'true';
-            $('adminSection').classList.toggle('visible', state.isAdmin);
-            
-            const savedLang = localStorage.getItem('maxi_jdc_language') || 'fr';
-            setLanguage(savedLang);
-        } catch (e) {
-            console.warn('Erreur chargement état:', e);
+      try {
+        const saved = localStorage.getItem(CONFIG.localStorageKey);
+        if (saved) {
+          const data = JSON.parse(saved);
+          state.user = data.user || null;
+          state.cart = data.cart || {};
+          state.orderHistory = data.orderHistory || [];
+          updateUserUI();
+          updateCartUI();
         }
-
-        $('cartTopBtn').onclick = () => {
-            $('drawer').classList.add('open');
-            $('drawerOverlay').classList.add('open');
-            document.body.classList.add('drawer-open');
-            document.body.style.overflow = 'hidden';
-        };
-
-        $('closeDrawerBtn').onclick = () => {
-            $('drawer').classList.remove('open');
-            $('drawerOverlay').classList.remove('open');
-            document.body.classList.remove('drawer-open');
-            document.body.style.overflow = '';
-        };
-
-        $('drawerOverlay').onclick = $('closeDrawerBtn').onclick;
-
-        // Gestion du bouton langue dans le header
-        const langDropdown = $('langDropdown');
-        const langHeaderBtn = $('langHeaderBtn');
+        const adminState = localStorage.getItem(CONFIG.adminPasswordKey);
+        state.isAdmin = adminState === 'true';
+        $('adminSection').classList.toggle('visible', state.isAdmin);
         
-        langHeaderBtn.onclick = (e) => {
-            e.stopPropagation();
-            langDropdown.classList.toggle('show');
+        const savedLang = localStorage.getItem('maxi_jdc_language') || 'fr';
+        setLanguage(savedLang);
+      } catch (e) {
+        console.warn('Erreur chargement état:', e);
+      }
+
+      $('cartTopBtn').onclick = () => {
+        $('drawer').classList.add('open');
+        $('drawerOverlay').classList.add('open');
+        document.body.classList.add('drawer-open');
+        document.body.style.overflow = 'hidden';
+      };
+
+      $('closeDrawerBtn').onclick = () => {
+        $('drawer').classList.remove('open');
+        $('drawerOverlay').classList.remove('open');
+        document.body.classList.remove('drawer-open');
+        document.body.style.overflow = '';
+      };
+
+      $('drawerOverlay').onclick = $('closeDrawerBtn').onclick;
+
+      // Gestion du bouton langue dans le header
+      const langDropdown = $('langDropdown');
+      const langHeaderBtn = $('langHeaderBtn');
+      
+      langHeaderBtn.onclick = (e) => {
+        e.stopPropagation();
+        langDropdown.classList.toggle('show');
+      };
+      
+      document.addEventListener('click', () => {
+        langDropdown.classList.remove('show');
+      });
+      
+      document.querySelectorAll('.lang-option').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const lang = btn.dataset.lang;
+          setLanguage(lang);
+          langDropdown.classList.remove('show');
+        };
+      });
+
+      $('searchInput').addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        state.currentPage = 1;
+        renderProducts();
+      });
+
+      $('searchEnterBtn').onclick = () => {
+        state.currentPage = 1;
+        renderProducts();
+        $('searchInput').focus();
+      };
+
+      $('clearSearchBtn').onclick = () => {
+        $('searchInput').value = '';
+        state.searchQuery = '';
+        state.currentPage = 1;
+        renderProducts();
+        $('searchInput').focus();
+      };
+
+      $('showAllBtn').onclick = () => {
+        state.showAllCategories = true;
+        state.activeCategory = null;
+        state.currentPage = 1;
+        renderProducts();
+        updateCategoriesUI();
+      };
+
+      $('viewPromosBtn').onclick = () => {
+        state.showAllCategories = false;
+        state.activeCategory = 'promotions';
+        state.currentPage = 1;
+        renderProducts();
+        updateCategoriesUI();
+        $('closeDrawerBtn').click();
+      };
+
+      $('prevPageBtn').onclick = $('prevPageBottomBtn').onclick = () => {
+        if (state.currentPage > 1) {
+          state.currentPage--;
+          renderProducts();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      };
+
+      $('nextPageBtn').onclick = $('nextPageBottomBtn').onclick = () => {
+        const products = getFilteredProducts();
+        const totalPages = Math.ceil(products.length / CONFIG.itemsPerPage) || 1;
+        if (state.currentPage < totalPages) {
+          state.currentPage++;
+          renderProducts();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      };
+
+      $('modalPrevProduct').onclick = showPrevProduct;
+      $('modalNextProduct').onclick = showNextProduct;
+      $('closeProductModalBtn').onclick = $('modalCloseBottomBtn').onclick = closeProductModal;
+      $('modalDecreaseBtn').onclick = decreaseQuantity;
+      $('modalIncreaseBtn').onclick = increaseQuantity;
+      $('modalQuantityInput').addEventListener('input', handleQuantityInputChange);
+      $('modalQuantityInput').addEventListener('change', handleQuantityInputChange);
+
+      $('modalAddToCartBtn').onclick = () => {
+        if (!state.currentModalProduct) return;
+        const productId = generateProductId(state.currentModalProduct);
+        const quantityInput = $('modalQuantityInput');
+        const quantity = parseInt(quantityInput.value) || 0;
+        if (quantity > 0) {
+          addToCart(productId, state.currentModalProduct, quantity);
+          closeProductModal();
+        }
+      };
+
+      $('qrInfoBtn').onclick = openQRModal;
+      $('qrDirectBtn').onclick = openQRModal;
+      $('closeQrModalBtn').onclick = closeQRModal;
+
+      $('secretAdminBtn').onclick = toggleAdminMode;
+      $('adminDashboardBtn').onclick = openDashboard;
+      $('adminStockBtn').onclick = openStockManagement;
+
+      $('toggleClientSpaceBtn').onclick = toggleClientSpace;
+      $('closeClientSpaceBtn').onclick = closeClientSpace;
+
+      $('clearCartBtn').onclick = () => {
+        if (Object.keys(state.cart).length === 0) return;
+        if (confirm('Voulez-vous vraiment vider tout votre panier ?')) {
+          Object.values(state.cart).forEach(item => {
+            const stockKey = `${item.categoryKey}_${item.code}`;
+            const currentStock = state.productStocks.get(stockKey) || 0;
+            state.productStocks.set(stockKey, currentStock + item.quantity);
+          });
+          state.cart = {};
+          state.quantityPicks = {};
+          updateCartUI();
+          renderProducts();
+          const t = TRANSLATIONS[state.currentLanguage];
+          showToast(t.toastCartCleared, 'warning');
+        }
+      };
+
+      $('cartItemsList').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+        if (action === 'increase' && state.cart[id]) {
+          const availableStock = getAvailableStock(state.cart[id]);
+          if (state.cart[id].quantity < availableStock) {
+            state.cart[id].quantity++;
+            updateProductStock(state.cart[id], 1);
+            renderProducts();
+            updateCartUI();
+          } else {
+            showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
+          }
+        } else if (action === 'decrease' && state.cart[id]) {
+          state.cart[id].quantity--;
+          if (state.cart[id].quantity <= 0) {
+            delete state.cart[id];
+            delete state.quantityPicks[id];
+          }
+          removeFromCart(id, 1);
+        }
+      });
+
+      $('saveAccountBtn').onclick = saveUser;
+      $('editAccountBtn').onclick = editUser;
+
+      $('clearPhoneBtn').onclick = () => {
+        $('clientPhone').value = '';
+        $('clientPhone').focus();
+      };
+
+      $('getLocationBtn').onclick = getLocationFromBrowser;
+      $('mapPreview').onclick = openMapModal;
+
+      $('closeMapModalBtn').onclick = () => {
+        $('mapModal').classList.remove('open');
+        document.body.style.overflow = '';
+      };
+
+      $('mapOkBtn').onclick = () => {
+        if (state.tempMapCoords) {
+          $('clientLat').value = state.tempMapCoords.lat.toFixed(6);
+          $('clientLng').value = state.tempMapCoords.lng.toFixed(6);
+          updateMapPreview(state.tempMapCoords.lat, state.tempMapCoords.lng);
+          showToast('✅ Position enregistrée');
+        }
+        $('closeMapModalBtn').click();
+      };
+
+      $('searchHistoryBtn').onclick = () => {
+        const phone = $('searchHistoryPhone').value.trim();
+        if (!phone) {
+          showToast('❌ Veuillez entrer votre numéro de téléphone', 'error');
+          return;
+        }
+        const history = loadHistoryForPhone(phone);
+        renderHistory(history);
+        if (history.length === 0) {
+          showToast('📭 Aucune commande trouvée pour ce numéro', 'warning');
+        } else {
+          showToast(`📜 ${history.length} commande(s) trouvée(s)`);
+        }
+      };
+
+      $('placeOrderBtn').onclick = placeOrder;
+
+      $('closeOrderModalBtn').onclick = () => {
+        $('orderModal').classList.remove('open');
+      };
+
+      $('copyOrderBtn').onclick = () => {
+        const orderText = $('orderDetails').textContent;
+        navigator.clipboard.writeText(orderText).then(() => {
+          showToast('📋 Commande copiée dans le presse-papier');
+        }).catch(err => {
+          console.error('Erreur copie:', err);
+          showToast('❌ Erreur lors de la copie', 'error');
+        });
+      };
+
+      $('downloadOrderBtn').onclick = () => {
+        const orderText = $('orderDetails').textContent;
+        const blob = new Blob([orderText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `commande-maxi-jdc-${Date.now()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('💾 Commande téléchargée');
+      };
+
+      $('sendOrderBtn').onclick = async () => {
+        // Récupérer les données de commande depuis le modal
+        const orderText = $('orderDetails').textContent;
+        const lines = orderText.split('\n');
+        let commandeId = '';
+        
+        // Extraire le numéro de commande
+        for (const line of lines) {
+          if (line.includes('N° Commande:')) {
+            commandeId = line.split(':')[1].trim();
+            break;
+          }
+        }
+        
+        if (!commandeId) {
+          commandeId = genererNumeroCommande();
+        }
+        
+        // Calculer les totaux
+        const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
+        const total = subtotal + shippingFee;
+        const savings = calculateTotalSavings();
+        
+        // Préparer les données pour l'envoi
+        const orderData = {
+          subtotal,
+          shipping: shippingFee,
+          total,
+          savings: savings.totalSavings,
+          savingsPercentage: savings.percentage,
+          commandeId: commandeId
         };
         
-        document.addEventListener('click', () => {
-            langDropdown.classList.remove('show');
-        });
+        // ENVOYER VERS GOOGLE SHEETS (version corrigée)
+        const enregistrementReussi = await enregistrerCommandeGoogleSheets(orderData);
         
-        document.querySelectorAll('.lang-option').forEach(btn => {
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                const lang = btn.dataset.lang;
-                setLanguage(lang);
-                langDropdown.classList.remove('show');
-            };
+        // Fermer le modal
+        $('orderModal').classList.remove('open');
+        
+        if (enregistrementReussi) {
+          // Envoyer le message au client
+          envoyerMessageClient(enregistrementReussi);
+          const t = TRANSLATIONS[state.currentLanguage];
+          showToast(`✅ ${t.toastOrderSaved}`);
+        } else {
+          showToast('⚠️ Commande créée mais erreur d\'enregistrement', 'warning');
+          envoyerMessageClient(commandeId);
+        }
+      };
+
+      $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
+        $('stockModal').classList.remove('open');
+        document.body.style.overflow = '';
+      };
+
+      $('stockSearchInput').addEventListener('input', (e) => {
+        renderStockTable(e.target.value);
+      });
+
+      $('refreshStockBtn').onclick = () => {
+        loadGoogleSheetsStock().then(() => {
+          updateAllProductStocks();
+          renderStockTable($('stockSearchInput').value);
+          showToast('🔄 Stocks actualisés depuis Google Sheets');
         });
+      };
 
-        $('searchInput').addEventListener('input', (e) => {
-            state.searchQuery = e.target.value;
-            state.currentPage = 1;
-            renderProducts();
+      $('stockTableBody').addEventListener('click', (e) => {
+        const saveBtn = e.target.closest('.stock-save-btn');
+        if (saveBtn) {
+          const productKey = saveBtn.dataset.key;
+          const input = document.querySelector(`.stock-input[data-key="${productKey}"]`);
+          if (input) {
+            updateStock(productKey, input.value);
+          }
+        }
+      });
+
+      $('saveAllStockBtn').onclick = () => {
+        const inputs = document.querySelectorAll('.stock-input');
+        let updatedCount = 0;
+        inputs.forEach(input => {
+          const productKey = input.dataset.key;
+          const newStock = parseInt(input.value) || 0;
+          const currentStock = state.productStocks.get(productKey) || 0;
+          if (newStock !== currentStock) {
+            updateStock(productKey, newStock);
+            updatedCount++;
+          }
         });
+        if (updatedCount > 0) {
+          showToast(`✅ ${updatedCount} stocks mis à jour`);
+        } else {
+          showToast('ℹ️ Aucun changement détecté');
+        }
+      };
 
-        $('searchEnterBtn').onclick = () => {
-            state.currentPage = 1;
-            renderProducts();
-            $('searchInput').focus();
-        };
-
-        $('clearSearchBtn').onclick = () => {
-            $('searchInput').value = '';
-            state.searchQuery = '';
-            state.currentPage = 1;
-            renderProducts();
-            $('searchInput').focus();
-        };
-
-        $('showAllBtn').onclick = () => {
-            state.showAllCategories = true;
-            state.activeCategory = null;
-            state.currentPage = 1;
-            renderProducts();
-            updateCategoriesUI();
-        };
-
-        $('viewPromosBtn').onclick = () => {
-            state.showAllCategories = false;
-            state.activeCategory = 'promotions';
-            state.currentPage = 1;
-            renderProducts();
-            updateCategoriesUI();
-            $('closeDrawerBtn').click();
-        };
-
-        $('prevPageBtn').onclick = $('prevPageBottomBtn').onclick = () => {
-            if (state.currentPage > 1) {
-                state.currentPage--;
-                renderProducts();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        };
-
-        $('nextPageBtn').onclick = $('nextPageBottomBtn').onclick = () => {
-            const products = getFilteredProducts();
-            const totalPages = Math.ceil(products.length / CONFIG.itemsPerPage) || 1;
-            if (state.currentPage < totalPages) {
-                state.currentPage++;
-                renderProducts();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        };
-
-        $('modalPrevProduct').onclick = showPrevProduct;
-        $('modalNextProduct').onclick = showNextProduct;
-        $('closeProductModalBtn').onclick = $('modalCloseBottomBtn').onclick = closeProductModal;
-        $('modalDecreaseBtn').onclick = decreaseQuantity;
-        $('modalIncreaseBtn').onclick = increaseQuantity;
-        $('modalQuantityInput').addEventListener('input', handleQuantityInputChange);
-        $('modalQuantityInput').addEventListener('change', handleQuantityInputChange);
-
-        $('modalAddToCartBtn').onclick = () => {
-            if (!state.currentModalProduct) return;
-            const productId = generateProductId(state.currentModalProduct);
-            const quantityInput = $('modalQuantityInput');
-            const quantity = parseInt(quantityInput.value) || 0;
-            if (quantity > 0) {
-                addToCart(productId, state.currentModalProduct, quantity);
-                closeProductModal();
-            }
-        };
-
-        $('qrInfoBtn').onclick = openQRModal;
-        $('qrDirectBtn').onclick = openQRModal;
-        $('closeQrModalBtn').onclick = closeQRModal;
-
-        $('secretAdminBtn').onclick = toggleAdminMode;
-        $('adminDashboardBtn').onclick = openDashboard;
-        $('adminStockBtn').onclick = openStockManagement;
-
-        $('toggleClientSpaceBtn').onclick = toggleClientSpace;
-        $('closeClientSpaceBtn').onclick = closeClientSpace;
-
-        $('clearCartBtn').onclick = () => {
-            if (Object.keys(state.cart).length === 0) return;
-            if (confirm('Voulez-vous vraiment vider tout votre panier ?')) {
-                Object.values(state.cart).forEach(item => {
-                    const stockKey = `${item.categoryKey}_${item.code}`;
-                    const currentStock = state.productStocks.get(stockKey) || 0;
-                    state.productStocks.set(stockKey, currentStock + item.quantity);
-                });
-                state.cart = {};
-                state.quantityPicks = {};
-                updateCartUI();
-                renderProducts();
-                const t = TRANSLATIONS[state.currentLanguage];
-                showToast(t.toastCartCleared, 'warning');
-            }
-        };
-
-        $('cartItemsList').addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-action]');
-            if (!btn) return;
-            const action = btn.dataset.action;
-            const id = btn.dataset.id;
-            if (action === 'increase' && state.cart[id]) {
-                const availableStock = getAvailableStock(state.cart[id]);
-                if (state.cart[id].quantity < availableStock) {
-                    state.cart[id].quantity++;
-                    updateProductStock(state.cart[id], 1);
-                    renderProducts();
-                    updateCartUI();
-                } else {
-                    showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
-                }
-            } else if (action === 'decrease' && state.cart[id]) {
-                state.cart[id].quantity--;
-                if (state.cart[id].quantity <= 0) {
-                    delete state.cart[id];
-                    delete state.quantityPicks[id];
-                }
-                removeFromCart(id, 1);
-            }
-        });
-
-        $('saveAccountBtn').onclick = saveUser;
-        $('editAccountBtn').onclick = editUser;
-
-        $('clearPhoneBtn').onclick = () => {
-            $('clientPhone').value = '';
-            $('clientPhone').focus();
-        };
-
-        $('getLocationBtn').onclick = getLocationFromBrowser;
-        $('mapPreview').onclick = openMapModal;
-
-        $('closeMapModalBtn').onclick = () => {
-            $('mapModal').classList.remove('open');
-            document.body.style.overflow = '';
-        };
-
-        $('mapOkBtn').onclick = () => {
-            if (state.tempMapCoords) {
-                $('clientLat').value = state.tempMapCoords.lat.toFixed(6);
-                $('clientLng').value = state.tempMapCoords.lng.toFixed(6);
-                updateMapPreview(state.tempMapCoords.lat, state.tempMapCoords.lng);
-                showToast('✅ Position enregistrée');
-            }
-            $('closeMapModalBtn').click();
-        };
-
-        $('searchHistoryBtn').onclick = () => {
-            const phone = $('searchHistoryPhone').value.trim();
-            if (!phone) {
-                showToast('❌ Veuillez entrer votre numéro de téléphone', 'error');
-                return;
-            }
-            const history = loadHistoryForPhone(phone);
-            renderHistory(history);
-            if (history.length === 0) {
-                showToast('📭 Aucune commande trouvée pour ce numéro', 'warning');
-            } else {
-                showToast(`📜 ${history.length} commande(s) trouvée(s)`);
-            }
-        };
-
-        $('placeOrderBtn').onclick = placeOrder;
-
-        $('closeOrderModalBtn').onclick = () => {
-            $('orderModal').classList.remove('open');
-        };
-
-        $('copyOrderBtn').onclick = () => {
-            const orderText = $('orderDetails').textContent;
-            navigator.clipboard.writeText(orderText).then(() => {
-                showToast('📋 Commande copiée dans le presse-papier');
-            }).catch(err => {
-                console.error('Erreur copie:', err);
-                showToast('❌ Erreur lors de la copie', 'error');
-            });
-        };
-
-        $('downloadOrderBtn').onclick = () => {
-            const orderText = $('orderDetails').textContent;
-            const blob = new Blob([orderText], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `commande-maxi-jdc-${Date.now()}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('💾 Commande téléchargée');
-        };
-
-        $('sendOrderBtn').onclick = async () => {
-            // Récupérer les données de commande depuis le modal
-            const orderText = $('orderDetails').textContent;
-            const lines = orderText.split('\n');
-            let commandeId = '';
-            
-            // Extraire le numéro de commande
-            for (const line of lines) {
-                if (line.includes('N° Commande:')) {
-                    commandeId = line.split(':')[1].trim();
-                    break;
-                }
-            }
-            
-            if (!commandeId) {
-                commandeId = genererNumeroCommande();
-            }
-            
-            // Calculer les totaux
-            const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
-            const total = subtotal + shippingFee;
-            const savings = calculateTotalSavings();
-            
-            // Préparer les données pour l'envoi
-            const orderData = {
-                subtotal,
-                shipping: shippingFee,
-                total,
-                savings: savings.totalSavings,
-                savingsPercentage: savings.percentage,
-                commandeId: commandeId
-            };
-            
-            // ENVOYER VERS GOOGLE SHEETS
-            const enregistrementReussi = await enregistrerCommandeGoogleSheets(orderData);
-            
-            // Fermer le modal
-            $('orderModal').classList.remove('open');
-            
-            if (enregistrementReussi) {
-                // Envoyer le message au client
-                envoyerMessageClient(enregistrementReussi);
-                const t = TRANSLATIONS[state.currentLanguage];
-                showToast(`✅ ${t.toastOrderSaved}`);
-            } else {
-                showToast('⚠️ Commande créée mais erreur d\'enregistrement', 'warning');
-                envoyerMessageClient(commandeId);
-            }
-        };
-
-        $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
-            $('stockModal').classList.remove('open');
-            document.body.style.overflow = '';
-        };
-
-        $('stockSearchInput').addEventListener('input', (e) => {
-            renderStockTable(e.target.value);
-        });
-
-        $('refreshStockBtn').onclick = () => {
-            loadGoogleSheetsStock().then(() => {
-                updateAllProductStocks();
-                renderStockTable($('stockSearchInput').value);
-                showToast('🔄 Stocks actualisés depuis Google Sheets');
-            });
-        };
-
-        $('stockTableBody').addEventListener('click', (e) => {
-            const saveBtn = e.target.closest('.stock-save-btn');
-            if (saveBtn) {
-                const productKey = saveBtn.dataset.key;
-                const input = document.querySelector(`.stock-input[data-key="${productKey}"]`);
-                if (input) {
-                    updateStock(productKey, input.value);
-                }
-            }
-        });
-
-        $('saveAllStockBtn').onclick = () => {
-            const inputs = document.querySelectorAll('.stock-input');
-            let updatedCount = 0;
-            inputs.forEach(input => {
-                const productKey = input.dataset.key;
-                const newStock = parseInt(input.value) || 0;
-                const currentStock = state.productStocks.get(productKey) || 0;
-                if (newStock !== currentStock) {
-                    updateStock(productKey, newStock);
-                    updatedCount++;
-                }
-            });
-            if (updatedCount > 0) {
-                showToast(`✅ ${updatedCount} stocks mis à jour`);
-            } else {
-                showToast('ℹ️ Aucun changement détecté');
-            }
-        };
-
-        loadAllProducts();
-        initializeSync();
-        initClientSpace();
-        showToast('👋 Bienvenue sur MAXI JDC MARKET !');
+      loadAllProducts();
+      initializeSync();
+      initClientSpace();
+      showToast('👋 Bienvenue sur MAXI JDC MARKET !');
     }
 
     function saveState() {
-        const data = {
-            user: state.user,
-            cart: state.cart,
-            orderHistory: state.orderHistory,
-            version: '37.0'
-        };
-        localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
+      const data = {
+        user: state.user,
+        cart: state.cart,
+        orderHistory: state.orderHistory,
+        version: '37.0'
+      };
+      localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
 
     document.addEventListener('DOMContentLoaded', init);
 
     window.addEventListener('beforeunload', () => {
-        if (state.syncTimer) {
-            clearInterval(state.syncTimer);
-        }
+      if (state.syncTimer) {
+        clearInterval(state.syncTimer);
+      }
     });
   </script>
 </body>
 </html>
-
-
-
