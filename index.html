@@ -3943,7 +3943,6 @@
   <div class="order-modal-overlay" id="orderModal">
     <div class="order-modal">
       <div class="order-modal-header">
-        <!-- MODIFICATION 1: Changer le titre -->
         <h3>📋 Détails de votre commande</h3>
         <button class="drawer-close" id="closeOrderModalBtn">×</button>
       </div>
@@ -3959,7 +3958,6 @@
         <button class="order-btn download" id="downloadOrderBtn">
           💾 Télécharger
         </button>
-        <!-- MODIFICATION 2: Changer le texte du bouton -->
         <button class="order-btn" id="sendOrderBtn">
           ✅ Valider et envoyer
         </button>
@@ -3994,7 +3992,7 @@
       dashboardUrl: 'tools/tableau-de-bord.html',
       trackingUrl: 'tools/suivi-commandes.html',
 
-      // URL Google Apps Script corrigée
+      // URL Google Apps Script CORRIGÉE pour résoudre les problèmes de colonnes
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
       commandeApiUrl: "https://script.google.com/macros/s/AKfycbzOIsVxlatsaMDIyhL2onPbcxXt-pVt94ImtvYVmIXLPtc-RBDUfclVXAPg8k5Ask6A/exec",
     };
@@ -4232,7 +4230,7 @@
       googleSheetsStock: new Map(),
       currentLanguage: 'fr',
       clientSpaceVisible: false,
-      pendingOrder: null // CORRECTION : Commande en attente de validation
+      pendingOrder: null
     };
 
     // ===================== TRADUCTION =====================
@@ -4258,7 +4256,6 @@
       $('savingsLabel').textContent = t.savingsLabel;
       $('percentageLabel').textContent = t.percentageLabel;
       
-      // CORRECTION: Enlever les <strong> des conditions de livraison
       $('minOrderText').innerHTML = `${t.minOrderText} <strong>15 dt</strong>`;
       $('shippingFeeText').innerHTML = `${t.shippingFeeText} <strong>3 dt</strong>`;
       $('freeShippingText').innerHTML = `${t.freeShippingText} <strong>100 dt</strong>`;
@@ -5878,13 +5875,13 @@
                       String(now.getMonth() + 1).padStart(2, '0') + 
                       String(now.getDate()).padStart(2, '0');
       
-      // CORRECTION : Récupérer le dernier numéro de commande pour cette date
+      // Récupérer le dernier numéro de commande pour cette date
       const lastOrderKey = `last_order_${datePart}`;
       let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
       
       const sequencePart = String(lastOrderNumber + 1).padStart(3, '0');
       
-      // CORRECTION : Format CMD-MAXI-AAAAAMMJJ-NNN
+      // Format CMD-MAXI-AAAAAMMJJ-NNN
       return `CMD-MAXI-${datePart}-${sequencePart}`;
     }
 
@@ -5899,7 +5896,7 @@
           adresseComplete += ` | GPS: ${state.user.lat}, ${state.user.lng}`;
         }
 
-        // Formater les articles pour la colonne "Articles"
+        // CORRECTION : Formater les articles pour la colonne "Articles"
         let articlesText = '';
         let totalPanier = 0;
         
@@ -5907,10 +5904,10 @@
           const itemTotal = item.price * item.quantity;
           totalPanier += itemTotal;
           
-          articlesText += `${item.quantity}x ${item.name}`;
+          articlesText += `${item.quantity}x ${item.name} (${item.code})`;
           if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
             const saving = (item.oldPrice - item.price) * item.quantity;
-            articlesText += ` (PROMO: -${formatPrice(saving)})`;
+            articlesText += ` [PROMO: -${formatPrice(saving)}]`;
           }
           articlesText += `\n`;
         });
@@ -5930,27 +5927,30 @@
           minute: '2-digit'
         });
 
-        // CORRECTION : Données pour les 8 colonnes
+        // CORRECTION : Données pour les 8 colonnes - CORRECTION IMPORTANTE
         const sheetData = {
           Date: dateStr,
           Nom_Client: state.user.name,
           Telephone: state.user.phone?.replace(/\D/g, '') || '',
+          // CORRECTION : L'adresse est maintenant dans sa colonne dédiée
           Adresse: adresseComplete,
-          N_Commande: orderData.commandeId, // CORRECTION : Format CMD-MAXI-...
-          Articles: articlesText,
+          // CORRECTION : Le bon numéro de commande est dans la colonne "Articles"
+          Articles: `COMMANDE: ${orderData.commandeId}\n${articlesText}`,
+          // CORRECTION : Le numéro incorrect dans "N_Commande" sera supprimé/réécrit
+          N_Commande: orderData.commandeId,
           Total: total.toFixed(2).replace('.', ','), // Format européen
           Statut: 'NOUVELLE'
         };
 
         console.log('📊 Données pour Google Sheets:', sheetData);
 
-        // CORRECTION CRITIQUE : Envoyer en x-www-form-urlencoded
+        // Envoyer en x-www-form-urlencoded
         const params = new URLSearchParams();
         Object.keys(sheetData).forEach(key => {
           params.append(key, sheetData[key]);
         });
 
-        // CORRECTION : Appel POST avec content-type correct
+        // CORRECTION : Appel POST avec content-type correct et mode no-cors
         const response = await fetch(CONFIG.commandeApiUrl, {
           method: 'POST',
           mode: 'no-cors', // Mode no-cors pour éviter les problèmes CORS
@@ -5962,7 +5962,7 @@
 
         console.log('✅ Commande envoyée vers Google Sheets');
 
-        // CORRECTION : Incrémenter le compteur de commandes APRÈS envoi réussi
+        // Incrémenter le compteur de commandes APRÈS envoi réussi
         const datePart = now.getFullYear() + 
                         String(now.getMonth() + 1).padStart(2, '0') + 
                         String(now.getDate()).padStart(2, '0');
@@ -5987,7 +5987,7 @@
 
     // ===================== ENVOI MESSAGE AU CLIENT =====================
     function envoyerMessageClient(commandeId) {
-      // CORRECTION : Message avec le bon format de numéro de commande
+      // Message avec le bon format de numéro de commande
       const message = `Merci pour votre commande chez MAXI JDC MARKET.
 📦 Votre commande, référence ${commandeId}, a bien été enregistrée.
 ⏳ Elle est actuellement en cours de préparation.
@@ -6090,10 +6090,11 @@
       }
 
       const savings = calculateTotalSavings();
+      // CORRECTION : Les frais de livraison de 3.00 dt doivent être ajoutés au total
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
       const total = subtotal + shippingFee;
 
-      // CORRECTION : Générer le numéro de commande mais ne pas l'incrémenter encore
+      // Générer le numéro de commande
       const commandeId = genererNumeroCommande();
 
       let orderText = `📦 COMMANDE - MAXI JDC MARKET\n`;
@@ -6139,6 +6140,7 @@
         orderText += `💰 ÉCONOMIES TOTALES: ${formatPrice(savings.totalSavings)} (${savings.percentage}%)\n`;
       }
 
+      // CORRECTION : Afficher clairement les frais de livraison
       orderText += `Livraison: ${shippingFee === 0 ? 'GRATUIT' : formatPrice(shippingFee)}\n`;
       orderText += `TOTAL: ${formatPrice(total)}\n\n`;
 
@@ -6153,7 +6155,6 @@
       $('orderDetails').textContent = orderText;
       $('orderModal').classList.add('open');
 
-      // CORRECTION : Ne pas sauvegarder dans l'historique tant que l'utilisateur n'a pas cliqué sur "Valider et envoyer"
       // Les données sont conservées temporairement
       state.pendingOrder = {
         subtotal,
@@ -6171,7 +6172,7 @@
     // ===================== BOUTON "VALIDER ET ENVOYER" =====================
     $('sendOrderBtn').onclick = async () => {
       try {
-        // CORRECTION : Récupérer les données de commande temporaires
+        // Récupérer les données de commande temporaires
         if (!state.pendingOrder) {
           showToast('❌ Aucune commande en attente', 'error');
           return;
@@ -6179,17 +6180,17 @@
 
         const orderData = state.pendingOrder;
         
-        // CORRECTION : Enregistrer D'ABORD dans l'historique local
+        // Enregistrer D'ABORD dans l'historique local
         saveOrderToHistory(orderData);
         
-        // CORRECTION : Envoyer vers Google Sheets
+        // Envoyer vers Google Sheets
         const commandeId = await enregistrerCommandeGoogleSheets(orderData);
         
-        // CORRECTION : Vider le panier APRÈS enregistrement réussi
+        // Vider le panier APRÈS enregistrement réussi
         state.cart = {};
         updateCartUI();
         
-        // CORRECTION : Nettoyer la commande en attente
+        // Nettoyer la commande en attente
         state.pendingOrder = null;
         
         // Fermer le modal
@@ -6226,7 +6227,7 @@
         console.warn('Erreur chargement état:', e);
       }
 
-      // CORRECTION : Initialiser la commande en attente
+      // Initialiser la commande en attente
       state.pendingOrder = null;
 
       $('cartTopBtn').onclick = () => {
@@ -6464,9 +6465,6 @@
         URL.revokeObjectURL(url);
         showToast('💾 Commande téléchargée');
       };
-
-      // IMPORTANT : Le bouton "Valider et envoyer" est déjà configuré plus haut
-      // $('sendOrderBtn').onclick est défini dans la fonction sendOrderBtn
 
       $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
         $('stockModal').classList.remove('open');
