@@ -3,7 +3,7 @@
  *********************************/
 
 // URL de l'API Google Apps Script
-const API_URL = "https://script.google.com/macros/s/AKfycbxzKuIsNZ1FEOzYBMadOaa98L5Gk8hr_ctlev2bAcQF6UnRdqeGl0ZXSm6NZSMN6ChJ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzOIsVxlatsaMDIyhL2onPbcxXt-pVt94ImtvYVmIXLPtc-RBDUfclVXAPg8k5Ask6A/exec";
 
 /*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
