@@ -14,11 +14,13 @@
       --line: rgba(255, 255, 255, .15);
       --txt: #f0f6fc;
       --muted: #8b949e;
-      --green: #00ff88;
+      --new: #FFD700;
+      --preparation: #2196F3;
+      --livraison: #FF9800;
+      --livree: #4CAF50;
+      --annulee: #F44336;
+      --attente: #9C27B0;
       --blue: #00d4ff;
-      --orange: #ffa726;
-      --red: #ff6b6b;
-      --purple: #9c27b0;
       --shadow: 0 10px 40px rgba(0, 0, 0, .45);
       --r: 14px;
     }
@@ -37,7 +39,7 @@
 
     .header {
       background: rgba(10, 25, 47, .95);
-      border: 2px solid var(--green);
+      border: 2px solid var(--new);
       border-radius: var(--r);
       padding: 18px 22px;
       display: flex;
@@ -55,11 +57,11 @@
       width: 56px;
       height: 56px;
       border-radius: 12px;
-      border: 3px solid var(--green);
+      border: 3px solid var(--new);
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(0, 255, 136, .12);
+      background: rgba(255, 215, 0, .12);
       font-size: 22px;
       font-weight: 900;
     }
@@ -67,7 +69,7 @@
     h1 {
       font-size: 22px;
       font-weight: 900;
-      background: linear-gradient(90deg, var(--green), var(--blue));
+      background: linear-gradient(90deg, var(--new), var(--blue));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 4px;
@@ -124,14 +126,14 @@
       outline: none;
     }
 
-    .search-input:focus { border-color: var(--green); }
+    .search-input:focus { border-color: var(--new); }
 
     .search-btn {
       padding: 14px 24px;
       border-radius: 10px;
-      border: 2px solid var(--green);
-      background: rgba(0, 255, 136, .15);
-      color: var(--green);
+      border: 2px solid var(--new);
+      background: rgba(255, 215, 0, .15);
+      color: var(--new);
       font-weight: 900;
       font-size: 16px;
       cursor: pointer;
@@ -139,7 +141,7 @@
     }
 
     .search-btn:hover {
-      background: rgba(0, 255, 136, .25);
+      background: rgba(255, 215, 0, .25);
       transform: translateY(-2px);
     }
 
@@ -167,7 +169,7 @@
       border-bottom: 1px solid var(--line);
     }
 
-    .order-id { font-size: 18px; font-weight: 900; color: var(--green); }
+    .order-id { font-size: 18px; font-weight: 900; color: var(--new); }
     .order-date { color: var(--muted); font-size: 14px; }
 
     .status-badge {
@@ -180,25 +182,35 @@
       gap: 8px;
     }
 
-    .status-pending {
-      background: rgba(255, 193, 7, 0.15);
-      color: #FFC107;
-      border: 2px solid rgba(255, 193, 7, 0.3);
+    .status-new {
+      background: rgba(255, 215, 0, 0.15);
+      color: #FFD700;
+      border: 2px solid rgba(255, 215, 0, 0.3);
     }
-    .status-processing {
+    .status-preparation {
       background: rgba(33, 150, 243, 0.15);
       color: #2196F3;
       border: 2px solid rgba(33, 150, 243, 0.3);
     }
-    .status-delivered {
+    .status-livraison {
+      background: rgba(255, 152, 0, 0.15);
+      color: #FF9800;
+      border: 2px solid rgba(255, 152, 0, 0.3);
+    }
+    .status-livree {
       background: rgba(76, 175, 80, 0.15);
       color: #4CAF50;
       border: 2px solid rgba(76, 175, 80, 0.3);
     }
-    .status-cancelled {
+    .status-annulee {
       background: rgba(244, 67, 54, 0.15);
       color: #F44336;
       border: 2px solid rgba(244, 67, 54, 0.3);
+    }
+    .status-attente {
+      background: rgba(156, 39, 176, 0.15);
+      color: #9C27B0;
+      border: 2px solid rgba(156, 39, 176, 0.3);
     }
 
     .progress-container {
@@ -232,9 +244,10 @@
       top: 20px;
       left: 0;
       height: 4px;
-      background: var(--green);
+      background: linear-gradient(90deg, var(--new), var(--livree));
       z-index: 2;
       transition: width 0.5s ease;
+      border-radius: 2px;
     }
 
     .step {
@@ -260,14 +273,14 @@
     }
 
     .step.active .step-icon {
-      border-color: var(--green);
-      background: rgba(0, 255, 136, 0.15);
-      color: var(--green);
+      border-color: var(--preparation);
+      background: rgba(33, 150, 243, 0.15);
+      color: var(--preparation);
     }
 
     .step.completed .step-icon {
-      border-color: var(--green);
-      background: var(--green);
+      border-color: var(--livree);
+      background: var(--livree);
       color: var(--bg1);
     }
 
@@ -278,7 +291,8 @@
       max-width: 100px;
     }
 
-    .step.active .step-label { color: var(--green); font-weight: 700; }
+    .step.active .step-label { color: var(--preparation); font-weight: 700; }
+    .step.completed .step-label { color: var(--livree); font-weight: 700; }
 
     .order-details {
       display: grid;
@@ -308,7 +322,7 @@
 
     .article-item:last-child { border-bottom: none; }
     .article-name { flex: 1; font-size: 14px; }
-    .article-qty { font-size: 14px; font-weight: 700; color: var(--green); min-width: 40px; text-align: center; }
+    .article-qty { font-size: 14px; font-weight: 700; color: var(--new); min-width: 40px; text-align: center; }
     .article-price { font-size: 14px; font-weight: 700; color: var(--blue); min-width: 80px; text-align: right; }
 
     .order-total {
@@ -321,7 +335,7 @@
     }
 
     .total-label { font-size: 16px; color: var(--muted); }
-    .total-value { font-size: 22px; font-weight: 900; color: var(--green); }
+    .total-value { font-size: 22px; font-weight: 900; color: var(--new); }
 
     .empty-state { text-align: center; padding: 60px 20px; }
     .empty-icon { font-size: 80px; margin-bottom: 20px; opacity: 0.5; }
@@ -334,7 +348,7 @@
       width: 40px;
       height: 40px;
       border: 3px solid var(--line);
-      border-top-color: var(--green);
+      border-top-color: var(--new);
       border-radius: 50%;
       margin: 0 auto 20px;
       animation: spin 1s linear infinite;
@@ -343,22 +357,22 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .error-message {
-      background: rgba(255, 107, 107, 0.15);
-      border: 2px solid var(--red);
+      background: rgba(244, 67, 54, 0.15);
+      border: 2px solid var(--annulee);
       border-radius: var(--r);
       padding: 20px;
       text-align: center;
-      color: var(--red);
+      color: var(--annulee);
       margin-bottom: 20px;
     }
 
     .success-message {
-      background: rgba(0, 255, 136, 0.15);
-      border: 2px solid var(--green);
+      background: rgba(76, 175, 80, 0.15);
+      border: 2px solid var(--livree);
       border-radius: var(--r);
       padding: 20px;
       text-align: center;
-      color: var(--green);
+      color: var(--livree);
       margin-bottom: 20px;
     }
 
@@ -376,9 +390,10 @@
     }
 
     .toast.show { display: block; }
-    .toast.success { background: var(--green); color: #0a1929; }
-    .toast.error { background: var(--red); color: white; }
+    .toast.success { background: var(--livree); color: #0a1929; }
+    .toast.error { background: var(--annulee); color: white; }
     .toast.info { background: var(--blue); color: white; }
+    .toast.warning { background: var(--new); color: #0a1929; }
 
     @keyframes slideIn {
       from { transform: translateX(100%); opacity: 0; }
@@ -411,7 +426,7 @@
 
     .action-btn:hover {
       transform: translateY(-2px);
-      border-color: var(--green);
+      border-color: var(--new);
       background: rgba(255, 255, 255, 0.1);
     }
 
@@ -480,6 +495,52 @@
       object-fit: contain;
     }
 
+    .status-emoji {
+      font-size: 16px;
+      margin-right: 4px;
+    }
+
+    .status-icon {
+      font-size: 14px;
+      width: 20px;
+      text-align: center;
+    }
+
+    .status-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .status-event {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      border-left: 4px solid var(--muted);
+    }
+
+    .status-event.new { border-left-color: var(--new); }
+    .status-event.preparation { border-left-color: var(--preparation); }
+    .status-event.livraison { border-left-color: var(--livraison); }
+    .status-event.livree { border-left-color: var(--livree); }
+    .status-event.annulee { border-left-color: var(--annulee); }
+    .status-event.attente { border-left-color: var(--attente); }
+
+    .event-time {
+      font-size: 11px;
+      color: var(--muted);
+      min-width: 70px;
+    }
+
+    .event-description {
+      font-size: 13px;
+      flex: 1;
+    }
+
     @media (max-width: 768px) {
       .header {
         flex-direction: column;
@@ -498,6 +559,35 @@
       
       .action-buttons {
         flex-direction: column;
+      }
+      
+      .progress-steps {
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start;
+      }
+      
+      .progress-steps::before {
+        display: none;
+      }
+      
+      .progress-bar {
+        display: none;
+      }
+      
+      .step {
+        flex-direction: row;
+        width: 100%;
+      }
+      
+      .step-icon {
+        margin-bottom: 0;
+        margin-right: 12px;
+      }
+      
+      .step-label {
+        text-align: left;
+        max-width: none;
       }
     }
   </style>
@@ -519,7 +609,7 @@
     </header>
 
     <div class="card">
-      <h2 style="margin-bottom: 20px; color: var(--green);">
+      <h2 style="margin-bottom: 20px; color: var(--new);">
         <i class="fas fa-search"></i> 🔍 Suivre une commande
       </h2>
       <div class="search-section">
@@ -566,7 +656,10 @@
           <div class="order-id" id="orderIdDisplay">CMD-MAXI-20250125-001</div>
           <div class="order-date" id="orderDateDisplay">25 janvier 2025 à 14:30</div>
         </div>
-        <div class="status-badge" id="orderStatusBadge">En attente</div>
+        <div class="status-badge" id="orderStatusBadge">
+          <span class="status-icon" id="statusIcon">⏳</span>
+          <span id="statusText">EN ATTENTE</span>
+        </div>
       </div>
 
       <div class="progress-container">
@@ -574,24 +667,29 @@
           <i class="fas fa-box"></i> 📦 Progression de votre commande
         </div>
         <div class="progress-steps">
-          <div class="step completed" id="step1">
-            <div class="step-icon">📝</div>
-            <div class="step-label">Commandé</div>
+          <div class="step" id="stepNew">
+            <div class="step-icon">🟡</div>
+            <div class="step-label">NOUVELLE</div>
           </div>
-          <div class="step" id="step2">
-            <div class="step-icon">👨‍🍳</div>
-            <div class="step-label">En préparation</div>
+          <div class="step" id="stepPreparation">
+            <div class="step-icon">🔵</div>
+            <div class="step-label">EN PRÉPARATION</div>
           </div>
-          <div class="step" id="step3">
-            <div class="step-icon">🚚</div>
-            <div class="step-label">En livraison</div>
+          <div class="step" id="stepLivraison">
+            <div class="step-icon">🟠</div>
+            <div class="step-label">EN LIVRAISON</div>
           </div>
-          <div class="step" id="step4">
+          <div class="step" id="stepLivree">
             <div class="step-icon">✅</div>
-            <div class="step-label">Livré</div>
+            <div class="step-label">LIVRÉE</div>
           </div>
         </div>
-        <div class="progress-bar" id="progressBar" style="width: 25%;"></div>
+        <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+      </div>
+
+      <!-- Timeline des statuts -->
+      <div id="statusTimeline" class="status-timeline">
+        <!-- Les événements seront ajoutés dynamiquement -->
       </div>
 
       <div class="order-details">
@@ -635,11 +733,14 @@
         <button class="action-btn" id="reloadBtn">
           <i class="fas fa-sync-alt"></i> Actualiser
         </button>
+        <button class="action-btn" id="shareBtn">
+          <i class="fas fa-share-alt"></i> Partager
+        </button>
       </div>
     </div>
 
     <div class="card">
-      <h2 style="margin-bottom: 15px; color: var(--green);">
+      <h2 style="margin-bottom: 15px; color: var(--new);">
         <i class="fas fa-question-circle"></i> 📞 Besoin d'aide ?
       </h2>
       <div class="info-grid">
@@ -648,22 +749,22 @@
           <div class="value">+216 25 600 978</div>
         </div>
         <div class="info-card">
-          <div class="title"><i class="fas fa-clock" style="color: var(--green);"></i> Horaires</div>
+          <div class="title"><i class="fas fa-clock" style="color: var(--new);"></i> Horaires</div>
           <div class="value">7h - 1h tous les jours</div>
         </div>
         <div class="info-card">
-          <div class="title"><i class="fas fa-map-marker-alt" style="color: var(--orange);"></i> Adresse</div>
+          <div class="title"><i class="fas fa-map-marker-alt" style="color: var(--livraison);"></i> Adresse</div>
           <div class="value">Derrière mosquée Esseem, Jardins De Carthage, Tunis</div>
         </div>
         <div class="info-card">
-          <div class="title"><i class="fas fa-shipping-fast" style="color: var(--blue);"></i> Livraison</div>
+          <div class="title"><i class="fas fa-shipping-fast" style="color: var(--preparation);"></i> Livraison</div>
           <div class="value">15 dt min - 3 dt frais</div>
         </div>
       </div>
     </div>
 
     <div class="qr-section">
-      <h3 style="color: var(--green); margin-bottom: 10px;">
+      <h3 style="color: var(--new); margin-bottom: 10px;">
         <i class="fas fa-qrcode"></i> Scannez pour suivre
       </h3>
       <p style="color: var(--muted); font-size: 14px; margin-bottom: 15px;">
@@ -681,6 +782,58 @@
     // URL de l'API Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbzOIsVxlatsaMDIyhL2onPbcxXt-pVt94ImtvYVmIXLPtc-RBDUfclVXAPg8k5Ask6A/exec";
 
+    // Définition des nouveaux statuts
+    const ORDER_STATUSES = {
+      "🟡 NOUVELLE": {
+        id: "new",
+        emoji: "🟡",
+        color: "var(--new)",
+        icon: "fas fa-star",
+        progress: 0.25,
+        steps: [true, false, false, false]
+      },
+      "🔵 EN PRÉPARATION": {
+        id: "preparation",
+        emoji: "🔵",
+        color: "var(--preparation)",
+        icon: "fas fa-cogs",
+        progress: 0.50,
+        steps: [true, true, false, false]
+      },
+      "🟠 EN LIVRAISON": {
+        id: "livraison",
+        emoji: "🟠",
+        color: "var(--livraison)",
+        icon: "fas fa-truck",
+        progress: 0.75,
+        steps: [true, true, true, false]
+      },
+      "✅ LIVRÉE": {
+        id: "livree",
+        emoji: "✅",
+        color: "var(--livree)",
+        icon: "fas fa-check-circle",
+        progress: 1.00,
+        steps: [true, true, true, true]
+      },
+      "❌ ANNULÉE": {
+        id: "annulee",
+        emoji: "❌",
+        color: "var(--annulee)",
+        icon: "fas fa-times-circle",
+        progress: 0,
+        steps: [false, false, false, false]
+      },
+      "⏳ EN ATTENTE": {
+        id: "attente",
+        emoji: "⏳",
+        color: "var(--attente)",
+        icon: "fas fa-clock",
+        progress: 0.15,
+        steps: [false, false, false, false]
+      }
+    };
+
     // Éléments DOM
     const elements = {
       orderIdInput: document.getElementById('orderIdInput'),
@@ -693,6 +846,8 @@
       orderIdDisplay: document.getElementById('orderIdDisplay'),
       orderDateDisplay: document.getElementById('orderDateDisplay'),
       orderStatusBadge: document.getElementById('orderStatusBadge'),
+      statusIcon: document.getElementById('statusIcon'),
+      statusText: document.getElementById('statusText'),
       clientName: document.getElementById('clientName'),
       clientPhone: document.getElementById('clientPhone'),
       clientAddress: document.getElementById('clientAddress'),
@@ -702,31 +857,15 @@
       whatsappBtn: document.getElementById('whatsappBtn'),
       callBtn: document.getElementById('callBtn'),
       reloadBtn: document.getElementById('reloadBtn'),
-      step1: document.getElementById('step1'),
-      step2: document.getElementById('step2'),
-      step3: document.getElementById('step3'),
-      step4: document.getElementById('step4'),
+      shareBtn: document.getElementById('shareBtn'),
+      stepNew: document.getElementById('stepNew'),
+      stepPreparation: document.getElementById('stepPreparation'),
+      stepLivraison: document.getElementById('stepLivraison'),
+      stepLivree: document.getElementById('stepLivree'),
       progressBar: document.getElementById('progressBar'),
+      statusTimeline: document.getElementById('statusTimeline'),
       qrCodeContainer: document.getElementById('qrCodeContainer'),
       toast: document.getElementById('toast')
-    };
-
-    // États de progression
-    const progressStates = {
-      "En attente": { width: "25%", steps: [true, false, false, false] },
-      "En cours": { width: "50%", steps: [true, true, false, false] },
-      "En livraison": { width: "75%", steps: [true, true, true, false] },
-      "Livrée": { width: "100%", steps: [true, true, true, true] },
-      "Annulée": { width: "100%", steps: [true, false, false, false] }
-    };
-
-    // Classes de statut
-    const statusClasses = {
-      "En attente": "status-pending",
-      "En cours": "status-processing",
-      "En livraison": "status-processing",
-      "Livrée": "status-delivered",
-      "Annulée": "status-cancelled"
     };
 
     // Fonctions utilitaires
@@ -754,30 +893,102 @@
       }
     }
 
+    function formatTime(dateString) {
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '--:--';
+        
+        return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      } catch {
+        return '--:--';
+      }
+    }
+
     function formatPrice(amount) {
       const num = parseFloat(amount) || 0;
       return num.toFixed(2).replace('.', ',') + ' dt';
     }
 
-    function updateProgress(status) {
-      const progress = progressStates[status] || progressStates["En attente"];
-      elements.progressBar.style.width = progress.width;
-
-      const steps = [elements.step1, elements.step2, elements.step3, elements.step4];
+    function updateStatusDisplay(statusText) {
+      const status = ORDER_STATUSES[statusText] || ORDER_STATUSES["⏳ EN ATTENTE"];
+      
+      // Mettre à jour le badge
+      elements.statusIcon.textContent = status.emoji;
+      elements.statusText.textContent = statusText;
+      elements.orderStatusBadge.className = `status-badge status-${status.id}`;
+      
+      // Mettre à jour la progression
+      const progressPercent = (status.progress * 100) + '%';
+      elements.progressBar.style.width = progressPercent;
+      
+      // Mettre à jour les étapes
+      const steps = [elements.stepNew, elements.stepPreparation, elements.stepLivraison, elements.stepLivree];
       steps.forEach((step, index) => {
-        if (progress.steps[index]) {
+        step.className = 'step';
+        if (status.steps[index]) {
           step.classList.add('completed');
-          step.classList.add('active');
-        } else {
-          step.classList.remove('completed');
-          step.classList.remove('active');
+          if (index === status.steps.findIndex(s => !s) - 1) {
+            step.classList.add('active');
+          }
         }
       });
     }
 
-    function updateStatusBadge(status) {
-      elements.orderStatusBadge.textContent = status;
-      elements.orderStatusBadge.className = `status-badge ${statusClasses[status] || 'status-pending'}`;
+    function updateStatusTimeline(orderData) {
+      elements.statusTimeline.innerHTML = '';
+      
+      // Créer une timeline des statuts
+      const events = [];
+      
+      // Date de création
+      events.push({
+        time: formatTime(orderData.date),
+        status: "🟡 NOUVELLE",
+        description: "Commande créée"
+      });
+      
+      // Statut actuel
+      if (orderData.statut && orderData.statut !== "🟡 NOUVELLE") {
+        events.push({
+          time: formatTime(orderData.date_validation || new Date().toISOString()),
+          status: orderData.statut,
+          description: "Statut mis à jour"
+        });
+      }
+      
+      // Événements historiques si disponibles
+      try {
+        if (orderData.statut_historique) {
+          const historique = JSON.parse(orderData.statut_historique);
+          historique.forEach(event => {
+            events.push({
+              time: formatTime(event.timestamp),
+              status: event.status,
+              description: event.note || "Changement de statut"
+            });
+          });
+        }
+      } catch (e) {
+        console.warn("Erreur parsing historique:", e);
+      }
+      
+      // Trier par date (plus récent en premier)
+      events.sort((a, b) => new Date(b.time) - new Date(a.time));
+      
+      // Afficher les événements
+      events.forEach(event => {
+        const status = ORDER_STATUSES[event.status] || ORDER_STATUSES["⏳ EN ATTENTE"];
+        const eventDiv = document.createElement('div');
+        eventDiv.className = `status-event ${status.id}`;
+        eventDiv.innerHTML = `
+          <div class="event-time">${event.time}</div>
+          <div class="event-description">
+            <span class="status-emoji">${status.emoji}</span>
+            ${event.description}
+          </div>
+        `;
+        elements.statusTimeline.appendChild(eventDiv);
+      });
     }
 
     function displayArticles(articlesText) {
@@ -788,15 +999,39 @@
         return;
       }
 
-      const lines = articlesText.split('\n');
-      lines.forEach(line => {
-        if (line.trim()) {
-          const div = document.createElement('div');
-          div.className = 'article-item';
-          div.innerHTML = `<div class="article-name">${line}</div>`;
-          elements.articlesList.appendChild(div);
+      try {
+        // Essayer de parser comme JSON
+        if (articlesText.trim().startsWith('[')) {
+          const articles = JSON.parse(articlesText);
+          articles.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'article-item';
+            div.innerHTML = `
+              <div class="article-name">${item.produit || item.nom || 'Article'}</div>
+              <div class="article-qty">${item.quantite || item.qty || 1}x</div>
+              <div class="article-price">${formatPrice(item.prix_total || item.prix || 0)}</div>
+            `;
+            elements.articlesList.appendChild(div);
+          });
+        } else {
+          // Afficher comme texte brut
+          const lines = articlesText.split('\n');
+          lines.forEach(line => {
+            if (line.trim()) {
+              const div = document.createElement('div');
+              div.className = 'article-item';
+              div.innerHTML = `<div class="article-name">${line}</div>`;
+              elements.articlesList.appendChild(div);
+            }
+          });
         }
-      });
+      } catch (error) {
+        console.error('Erreur affichage articles:', error);
+        const div = document.createElement('div');
+        div.className = 'article-item';
+        div.innerHTML = `<div class="article-name">${articlesText}</div>`;
+        elements.articlesList.appendChild(div);
+      }
     }
 
     // Fonction principale de recherche
@@ -839,15 +1074,18 @@
         elements.clientAddress.textContent = data.adresse || '—';
         elements.orderTotal.textContent = formatPrice(data.total);
         
-        updateStatusBadge(data.statut || 'En attente');
-        updateProgress(data.statut || 'En attente');
+        // Mettre à jour le statut
+        const status = data.statut || "⏳ EN ATTENTE";
+        updateStatusDisplay(status);
+        updateStatusTimeline(data);
         displayArticles(data.articles);
 
         // Mettre à jour les boutons d'action
         elements.whatsappBtn.onclick = () => {
           const message = encodeURIComponent(
             `Bonjour MAXI JDC MARKET,\n\nJe suis le client avec le numéro ${data.telephone || ''}.\n` +
-            `Je souhaite des informations sur ma commande ${data.commande_id || orderId}.\n\nCordialement.`
+            `Je souhaite des informations sur ma commande ${data.commande_id || orderId}.\n` +
+            `Statut actuel: ${status}\n\nCordialement.`
           );
           window.open(`https://wa.me/21625600978?text=${message}`, '_blank');
         };
@@ -860,6 +1098,20 @@
           searchOrder();
         };
 
+        elements.shareBtn.onclick = () => {
+          const shareText = `Suivez ma commande MAXI JDC MARKET: ${window.location.origin}${window.location.pathname}?order=${orderId}`;
+          if (navigator.share) {
+            navigator.share({
+              title: 'Suivi commande MAXI JDC MARKET',
+              text: shareText,
+              url: `${window.location.origin}${window.location.pathname}?order=${orderId}`
+            });
+          } else {
+            navigator.clipboard.writeText(shareText);
+            showToast('Lien copié dans le presse-papier !', 'success');
+          }
+        };
+
         // Afficher les résultats
         hide(elements.loadingState);
         show(elements.orderCard);
@@ -869,7 +1121,7 @@
         // Générer QR code
         generateQRCode(orderId);
 
-        showToast('Commande trouvée avec succès !', 'success');
+        showToast(`Commande trouvée ! Statut: ${status}`, 'success');
 
       } catch (error) {
         console.error('Erreur recherche commande:', error);
@@ -914,6 +1166,7 @@
     // Exposer pour la console
     window.searchOrder = searchOrder;
     window.showToast = showToast;
+    window.ORDER_STATUSES = ORDER_STATUSES;
   </script>
 </body>
 </html>
