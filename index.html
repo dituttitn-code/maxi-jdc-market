@@ -4310,7 +4310,10 @@
     function $(id) { return document.getElementById(id); }
 
     function formatPrice(amount) {
-      return Number(amount).toFixed(2).replace('.', ',') + ' dt';
+      // Toujours afficher 2 décimales
+      const num = Number(amount);
+      if (isNaN(num)) return '0,00 dt';
+      return num.toFixed(2).replace('.', ',') + ' dt';
     }
 
     function generateProductId(product) {
@@ -5192,6 +5195,11 @@
       const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
       $('cartTopCount').textContent = cartCount;
       $('cartItemsCount').textContent = `${cartCount} ${TRANSLATIONS[state.currentLanguage].items}`;
+      
+      // CORRECTION : Les frais de livraison doivent être de 3.00 dt SAUF si gratuit
+      let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.00;
+      let shippingText = formatPrice(shippingFee);
+      
       const cartItemsList = $('cartItemsList');
       const cartEmptyMessage = $('cartEmptyMessage');
       if (cartCount === 0) {
@@ -5256,8 +5264,7 @@
         updateSavingsDisplay();
       }
       $('cartSubtotal').textContent = formatPrice(subtotal);
-      let shippingFee = CONFIG.shippingFee;
-      let shippingText = formatPrice(shippingFee);
+      
       if (subtotal >= CONFIG.freeShipping) {
         shippingFee = 0;
         shippingText = '<span class="total-value free">GRATUIT</span>';
@@ -5265,6 +5272,7 @@
         shippingFee = null;
         shippingText = '---';
       }
+      
       $('cartShipping').innerHTML = shippingText;
       const total = shippingFee !== null ? subtotal + shippingFee : null;
       if (total !== null) {
@@ -5896,7 +5904,7 @@
           adresseComplete += ` | GPS: ${state.user.lat}, ${state.user.lng}`;
         }
 
-        // CORRECTION : Formater les articles pour la colonne "Articles"
+        // CORRECTION : Formater les articles correctement
         let articlesText = '';
         let totalPanier = 0;
         
@@ -5904,17 +5912,24 @@
           const itemTotal = item.price * item.quantity;
           totalPanier += itemTotal;
           
-          articlesText += `${item.quantity}x ${item.name} (${item.code})`;
+          // Format correct pour la colonne Articles
+          articlesText += `${item.quantity}x ${item.name} (${item.code})\n`;
+          articlesText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
+          
           if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
             const saving = (item.oldPrice - item.price) * item.quantity;
-            articlesText += ` [PROMO: -${formatPrice(saving)}]`;
+            articlesText += `\n 💰 ÉCONOMIE: ${formatPrice(saving)}`;
+            if (item.discountPercent) {
+              articlesText += ` (-${item.discountPercent}%)`;
+            }
           }
-          articlesText += `\n`;
+          articlesText += '\n';
         });
         
         // Calculs
         const sousTotal = totalPanier;
-        const livraison = orderData.shipping || 0;
+        // CORRECTION IMPORTANTE : Les frais de livraison doivent être de 3.00 dt SAUF si livraison gratuite
+        const livraison = sousTotal >= CONFIG.freeShipping ? 0 : 3.00;
         const total = sousTotal + livraison;
         
         // Date formatée
@@ -5927,42 +5942,57 @@
           minute: '2-digit'
         });
 
-        // CORRECTION : Données pour les 8 colonnes - CORRECTION IMPORTANTE
+        // CORRECTION FINALE : Structure des données pour Google Sheets
         const sheetData = {
-          Date: dateStr,
-          Nom_Client: state.user.name,
-          Telephone: state.user.phone?.replace(/\D/g, '') || '',
-          // CORRECTION : L'adresse est maintenant dans sa colonne dédiée
-          Adresse: adresseComplete,
-          // CORRECTION : Le bon numéro de commande est dans la colonne "Articles"
-          Articles: `COMMANDE: ${orderData.commandeId}\n${articlesText}`,
-          // CORRECTION : Le numéro incorrect dans "N_Commande" sera supprimé/réécrit
-          N_Commande: orderData.commandeId,
-          Total: total.toFixed(2).replace('.', ','), // Format européen
-          Statut: 'NOUVELLE'
+          // Colonnes de Google Sheets dans l'ordre correct
+          'Date': dateStr,
+          'N_Commande': orderData.commandeId, // CORRECTION : Le bon numéro ici
+          'Nom_Client': state.user.name, // 👤 NOM CLIENT depuis "Détails de votre commande"
+          'Telephone': '+216 ' + state.user.phone, // 📞 TÉLÉPHONE
+          'Adresse': adresseComplete, // 📍 ADRESSE (colonne maintenant remplie)
+          'Articles': `COMMANDE: ${orderData.commandeId}\n` + articlesText, // 🛒 ARTICLES + numéro de commande
+          'Total': total.toFixed(2).replace('.', ','), // Format européen avec virgule
+          'Statut': 'NOUVELLE'
         };
 
-        console.log('📊 Données pour Google Sheets:', sheetData);
+        console.log('📊 Données envoyées à Google Sheets:', sheetData);
 
-        // Envoyer en x-www-form-urlencoded
+        // CORRECTION : Préparer les données dans l'ordre exact attendu
+        const postData = {
+          'Date': sheetData.Date,
+          'N_Commande': sheetData.N_Commande,
+          'Nom_Client': sheetData.Nom_Client,
+          'Telephone': sheetData.Telephone,
+          'Adresse': sheetData.Adresse,
+          'Articles': sheetData.Articles,
+          'Total': sheetData.Total,
+          'Statut': sheetData.Statut
+        };
+
+        // Créer les paramètres URL encodés
         const params = new URLSearchParams();
-        Object.keys(sheetData).forEach(key => {
-          params.append(key, sheetData[key]);
+        Object.keys(postData).forEach(key => {
+          params.append(key, postData[key]);
         });
 
-        // CORRECTION : Appel POST avec content-type correct et mode no-cors
+        // CORRECTION : Utiliser POST avec mode 'cors'
         const response = await fetch(CONFIG.commandeApiUrl, {
           method: 'POST',
-          mode: 'no-cors', // Mode no-cors pour éviter les problèmes CORS
+          mode: 'cors',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
           body: params.toString()
         });
 
-        console.log('✅ Commande envoyée vers Google Sheets');
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
 
-        // Incrémenter le compteur de commandes APRÈS envoi réussi
+        const result = await response.text();
+        console.log('✅ Réponse Google Sheets:', result);
+
+        // Incrémenter le compteur de commandes
         const datePart = now.getFullYear() + 
                         String(now.getMonth() + 1).padStart(2, '0') + 
                         String(now.getDate()).padStart(2, '0');
@@ -5981,6 +6011,10 @@
       } catch (error) {
         console.error('Erreur enregistrement Google Sheets:', error);
         showToast('⚠️ Commande créée mais erreur d\'enregistrement système', 'warning');
+        
+        // Fallback : sauvegarder localement
+        saveOrderToHistory(orderData);
+        
         return orderData.commandeId;
       }
     }
@@ -6091,7 +6125,7 @@
 
       const savings = calculateTotalSavings();
       // CORRECTION : Les frais de livraison de 3.00 dt doivent être ajoutés au total
-      let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
+      let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.00;
       const total = subtotal + shippingFee;
 
       // Générer le numéro de commande
@@ -6496,21 +6530,15 @@
 
       $('saveAllStockBtn').onclick = () => {
         const inputs = document.querySelectorAll('.stock-input');
-        let updatedCount = 0;
         inputs.forEach(input => {
           const productKey = input.dataset.key;
           const newStock = parseInt(input.value) || 0;
           const currentStock = state.productStocks.get(productKey) || 0;
           if (newStock !== currentStock) {
             updateStock(productKey, newStock);
-            updatedCount++;
           }
         });
-        if (updatedCount > 0) {
-          showToast(`✅ ${updatedCount} stocks mis à jour`);
-        } else {
-          showToast('ℹ️ Aucun changement détecté');
-        }
+        showToast('✅ Tous les stocks sauvegardés');
       };
 
       loadAllProducts();
