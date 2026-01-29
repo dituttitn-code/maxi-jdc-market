@@ -2,11 +2,12 @@
  * CONFIGURATION API - MAXI JDC MARKET
  *********************************/
 
-// ⚠️ URL WebApp Apps Script (la même que chez toi)
+// ✅ URL WebApp Apps Script (⚠️ sans espace au début)
 const API_URL =
-  " https://script.google.com/macros/s/AKfycbzORdOs8AD8-dNmGqfLe-pjjHgyReun2kT3eJOXOESoMUzr5gJPauxe5v9yDVPyG6Vs/exec";
+  "https://script.google.com/macros/s/AKfycbxCDAUmkJxbIEGisQYUX-wdSp64z8y5lCfd6__TFKpSm8GtANp2mR-_MvTeTf4PoRsa/exec";
 
 // ✅ Token (doit être EXACTEMENT le même que dans Code.gs)
+// (Si côté serveur TOKEN_OPTIONNEL=true, il ne bloque pas même si token faux/vide)
 const API_TOKEN = "CHANGE-ME-SECRET-123456";
 
 /*********************************
@@ -67,7 +68,7 @@ export async function envoyerCommande(dataCommande) {
     // IMPORTANT: method=saveOrder + token
     const payload = {
       method: "saveOrder",
-      token: API_TOKEN, // ✅ obligatoire (sinon "Accès refusé")
+      token: API_TOKEN, // (optionnel si TOKEN_OPTIONNEL=true côté serveur)
       nom_client: dataCommande.nom_client || dataCommande.nom || dataCommande.Nom_Client || "",
       telephone: dataCommande.telephone || dataCommande.Telephone || "",
       adresse: dataCommande.adresse || dataCommande.Adresse || "",
@@ -87,12 +88,19 @@ export async function envoyerCommande(dataCommande) {
 
     const result = await response.json();
 
-    // ✅ Si serveur bloque panier vide / total 0 -> on remonte message clair
-    if (result && result.ignored) {
+    // ✅ Si serveur bloque panier vide / total 0 -> message clair
+    if (result && result.ignored) return result;
+
+    // ✅ Si serveur détecte doublon (commande_id / signature 90s)
+    if (result && (result.duplicate || result.duplicated)) {
+      if (!result.message) {
+        result.message = "⛔ Doublon détecté — commande ignorée.";
+      }
       return result;
     }
 
     return result;
+
   } finally {
     sendingOrder = false;
   }
@@ -135,6 +143,7 @@ export async function suivreCommande(commandeId) {
 
 /*********************************
  * HISTORIQUE PAR TELEPHONE
+ * (inchangé : si ton code.gs supporte telephone)
  *********************************/
 export async function recupererHistorique(telephone) {
   const response = await fetch(
@@ -150,7 +159,6 @@ export async function recupererHistorique(telephone) {
  * METTRE A JOUR LE STATUT (ADMIN)
  *********************************/
 export async function mettreAJourStatut(commandeId, nouveauStatut) {
-  // ✅ token obligatoire
   const response = await fetch(
     `${API_URL}?method=updateOrderStatus&token=${encodeURIComponent(API_TOKEN)}&commande_id=${encodeURIComponent(
       commandeId
@@ -164,14 +172,14 @@ export async function mettreAJourStatut(commandeId, nouveauStatut) {
 }
 
 /*********************************
- * TOP PRODUITS
+ * TOP PRODUITS (compat: topProducts OU top)
  *********************************/
 export async function recupererTopProduits() {
   const response = await fetch(`${API_URL}?method=getTopProducts&t=${Date.now()}`);
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur top produits");
-  return data.topProducts || [];
+  return data.topProducts || data.top || [];
 }
 
 /*********************************
@@ -182,4 +190,73 @@ export async function testerConnexionAPI() {
   if (!response.ok) return { connecte: false, erreur: `Erreur HTTP: ${response.status}`, url: API_URL };
   const data = await response.json();
   return { connecte: !!data.success, message: data.message, version: data.version, url: API_URL };
+}
+
+/* =========================================================
+ * =====================  STOCK API  =======================
+ * Ajouté sans toucher COMMANDES
+ * - Alerte PRO via low_stock renvoyé par Code.gs
+ * ========================================================= */
+
+/*********************************
+ * LIRE STOCK (ADMIN)
+ *********************************/
+export async function getStock() {
+  const response = await fetch(`${API_URL}?method=getStock&t=${Date.now()}`);
+  if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+  const data = await response.json();
+  if (!data.success) throw new Error(data.error || "Erreur getStock");
+  return data.items || [];
+}
+
+/*********************************
+ * METTRE A JOUR UN STOCK
+ * → renvoie low_stock=true si stock <= seuil (ex: 3)
+ *********************************/
+export async function updateStock(code, stock) {
+  const payload = {
+    method: "updateStock",
+    token: API_TOKEN,
+    code: String(code || "").trim(),
+    stock: String(stock ?? "").trim()
+  };
+
+  const response = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(payload).toString()
+  });
+
+  if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+  const data = await response.json();
+  if (!data.success) throw new Error(data.error || data.message || "Erreur updateStock");
+  return data; // contient low_stock, threshold, message
+}
+
+/*********************************
+ * BATCH UPDATE STOCK
+ * items = [{code:"1017", stock:5}, ...]
+ *********************************/
+export async function batchUpdateStock(items = []) {
+  const response = await fetch(`${API_URL}?method=batchUpdateStock&token=${encodeURIComponent(API_TOKEN)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(items)
+  });
+
+  if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+  const data = await response.json();
+  if (!data.success) throw new Error(data.error || "Erreur batchUpdateStock");
+  return data; // contient low_stock_count + low_stock_items
+}
+
+/*********************************
+ * LISTER TOUS LES PRODUITS STOCK FAIBLE
+ *********************************/
+export async function getLowStock() {
+  const response = await fetch(`${API_URL}?method=getLowStock&t=${Date.now()}`);
+  if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+  const data = await response.json();
+  if (!data.success) throw new Error(data.error || "Erreur getLowStock");
+  return data; // {threshold,count,items[]}
 }
