@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -50,6 +50,7 @@
       color:var(--txt); padding:10px 14px; border-radius:10px; font-weight:800;
       cursor:pointer; transition:.2s;
       display:flex; gap:8px; align-items:center;
+      text-decoration:none;
     }
     .btn:hover{transform:translateY(-2px); border-color:var(--blue); background:rgba(255,255,255,.15)}
     .badge{
@@ -98,7 +99,7 @@
     }
     .value{font-size:30px; font-weight:1000; margin-top:2px}
     .label{font-size:13px; color:var(--muted); font-weight:700}
-    
+
     /* TOP PRODUCT */
     .top-product-card {
       background: linear-gradient(135deg, rgba(26, 36, 93, 0.9), rgba(22, 36, 71, 0.9));
@@ -112,6 +113,7 @@
       align-items: center;
       gap: 10px;
       margin-bottom: 15px;
+      flex-wrap: wrap;
     }
     .top-product-header h3 {
       color: var(--yellow);
@@ -129,22 +131,26 @@
     }
     .product-details {
       flex: 1;
+      min-width: 0;
     }
     .product-name {
       font-size: 18px;
       font-weight: 900;
       color: var(--txt);
       margin-bottom: 5px;
+      word-break: break-word;
     }
     .product-stats {
       display: flex;
       gap: 15px;
       font-size: 13px;
+      flex-wrap: wrap;
     }
     .product-stat {
       display: flex;
       flex-direction: column;
       gap: 3px;
+      min-width: 120px;
     }
     .stat-value {
       font-weight: 900;
@@ -162,29 +168,32 @@
       gap: 20px;
       margin-top: 20px;
     }
-    
     .chart-card {
       flex: 1 1 calc(50% - 20px);
       min-width: 300px;
     }
-    
+
     .sectionTitle{
-      display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px
+      display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;
+      flex-wrap: wrap;
     }
     .sectionTitle h3{font-size:16px; font-weight:1000; color:var(--green)}
     .chartBox{height:300px; position:relative}
-    
+
     /* TABLES */
     .tableWrap{
       border:1px solid var(--line);
       border-radius:12px;
-      overflow:auto;                 /* ✅ vertical + horizontal scroll */
+      overflow:auto; /* <-- vertical + horizontal */
       max-height:420px;
-      -webkit-overflow-scrolling: touch; /* ✅ mobile smooth */
-      scrollbar-gutter: stable both-edges;
-      touch-action: pan-x pan-y;     /* ✅ mobile scroll x/y */
+      -webkit-overflow-scrolling: touch;
+      background: rgba(0,0,0,.08);
     }
-    table{width:100%; border-collapse:collapse; min-width:1100px;} /* ✅ force horizontal scroll mobile */
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width: 980px; /* <-- force scroll horizontal sur mobile */
+    }
     th{
       position:sticky; top:0;
       background:rgba(0,212,255,.10);
@@ -193,11 +202,16 @@
       padding:12px;
       border-bottom:2px solid var(--blue);
       font-size:13px; font-weight:1000;
-      white-space:nowrap;
+      white-space: nowrap;
     }
-    td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px; vertical-align:top;}
+    td{
+      padding:10px 12px;
+      border-bottom:1px solid var(--line);
+      font-size:13px;
+      vertical-align: top;
+    }
     tr:hover{background:rgba(255,255,255,.05)}
-    
+
     /* STATUT SELECT */
     .statut-select {
       padding: 6px 10px;
@@ -206,35 +220,41 @@
       background: rgba(255,255,255,.08);
       color: var(--txt);
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 800;
       cursor: pointer;
       width: 100%;
       box-sizing: border-box;
       transition: all 0.2s;
-      white-space:nowrap;
     }
-    
     .statut-select:focus {
       outline: none;
       border-color: var(--green);
       box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
     }
-    
     .statut-select option {
       background: var(--card);
       color: var(--txt);
       padding: 8px;
     }
-    
-    /* ✅ ARTICLES (plus large) */
+
+    /* ARTICLES : PLUS GRAND */
     .articles-cell {
-      min-width: 360px;
+      min-width: 360px;   /* <-- plus large */
       max-width: 520px;
       white-space: pre-line;
       font-size: 12px;
       line-height: 1.35;
+      word-break: break-word;
     }
-    
+
+    /* BADGES STATUT (compat classes) */
+    .statut-attente { }
+    .statut-nouvelle { }
+    .statut-preparation { }
+    .statut-livraison { }
+    .statut-livree { }
+    .statut-annulee { }
+
     /* FOOTER */
     .footer{
       margin-top:18px; padding:14px; text-align:center; color:var(--muted);
@@ -248,17 +268,36 @@
       padding:12px 16px; border-radius:12px; font-weight:900; color:#0a1929;
       box-shadow:0 10px 30px rgba(0,0,0,.35);
       display:none;
+      max-width: min(92vw, 520px);
     }
     .toast.show{display:block; animation:pop .2s ease}
     @keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
-    
+
     /* RESPONSIVE */
-    @media (max-width: 768px) {
-      .chart-card { flex: 1 1 100%; }
-      .header { flex-direction: column; align-items: stretch; text-align: center; }
-      .left { justify-content: center; margin-bottom: 15px; }
-      .product-stats { flex-direction: column; gap: 8px; }
-      .tableWrap { max-height: 520px; } /* plus haut sur mobile */
+    @media (max-width: 900px) {
+      body{ padding: 10px; }
+      .container{ max-width: 100%; }
+      .header{ padding: 14px; }
+      .logo{ width: 46px; height: 46px; font-size: 18px; }
+      h1{ font-size: 18px; }
+      .sub{ font-size: 12px; }
+      .grid{ grid-template-columns: 1fr; }
+      .chart-card{ flex: 1 1 100%; min-width: 0; }
+      .chartBox{ height: 260px; }
+      .card{ padding: 14px; }
+      .value{ font-size: 26px; }
+      .btn{ width: 100%; justify-content:center; }
+      .badge{ width: 100%; justify-content:center; }
+      .api-status{ width: 100%; justify-content:center; }
+      .top-product-content{ align-items:flex-start; }
+      .product-trophy{ font-size: 34px; }
+      .tableWrap{ max-height: 460px; }
+    }
+
+    @media (max-width: 420px) {
+      .chartBox{ height: 230px; }
+      .value{ font-size: 24px; }
+      .product-stat{ min-width: 46%; }
     }
   </style>
 </head>
@@ -401,13 +440,13 @@
         </div>
       </div>
 
-      <!-- ✅ Commandes par heure/jour -->
+      <!-- Commandes par heure / jour -->
       <div class="card chart-card">
         <div class="sectionTitle">
-          <h3><i class="fas fa-clock"></i> Activité commandes</h3>
-          <select class="statut-select" id="activityMode" style="width:auto;">
-            <option value="hour" selected>Commandes par heure</option>
-            <option value="day">Commandes par jour</option>
+          <h3><i class="fas fa-clock"></i> Commandes</h3>
+          <select class="statut-select" id="timeChartMode" style="width:auto;">
+            <option value="hour" selected>Par heure</option>
+            <option value="day">Par jour</option>
           </select>
         </div>
         <div class="chartBox">
@@ -424,7 +463,7 @@
           <h3><i class="fas fa-list"></i> Toutes les commandes</h3>
           <span class="sub">Gestion complète</span>
         </div>
-        <div class="tableWrap">
+        <div class="tableWrap" id="ordersWrap">
           <table id="allOrdersTable">
             <thead>
               <tr>
@@ -433,7 +472,7 @@
                 <th>Téléphone</th>
                 <th>Adresse</th>
                 <th>Commande</th>
-                <th style="min-width:360px;">Articles</th>
+                <th>Articles</th>
                 <th>Total</th>
                 <th>Statut</th>
               </tr>
@@ -447,6 +486,9 @@
             </tbody>
           </table>
         </div>
+        <div class="sub" style="margin-top:8px;">
+          Astuce mobile : faites glisser à droite/gauche dans le tableau pour voir toutes les colonnes.
+        </div>
       </div>
 
       <!-- Top 10 produits table -->
@@ -456,7 +498,7 @@
           <span class="sub">Quantité vendue</span>
         </div>
         <div class="tableWrap">
-          <table id="topProductsTable">
+          <table id="topProductsTable" style="min-width: 520px;">
             <thead>
               <tr>
                 <th>#</th>
@@ -513,30 +555,31 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    // CONFIGURATION
     const API_URL = "https://script.google.com/macros/s/AKfycbyvppJUxeCw2RU2RMu9GkBQktyZhVUkaUz_skV_naARek23JJhx8xdoB3DQb9-qJSS6/exec";
-    const STATUTS = ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
 
+    // ÉTAT GLOBAL
     const state = {
       orders: [],
       topProducts: [],
-      analytics: {
-        totalRevenue: 0, totalOrders: 0, avgOrderValue: 0, pendingOrders: 0,
-        topProduct: null, statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
-        ordersByHour: {}, ordersByDay: {},
-        conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
-      },
+      analytics: {},
       charts: { sales: null, status: null, products: null, hourly: null },
       apiStatus: 'checking',
-      statusUpdateInProgress: false,
-      statusUpdateForId: null
+
+      // ✅ garde les statuts modifiés localement pour éviter le retour arrière après refresh
+      statusOverrides: new Map(), // commandeId -> { statut, ts }
+
+      // ✅ évite que l'auto-refresh écrase un changement juste après modification
+      refreshPausedUntil: 0
     };
 
+    // UTILITAIRES
     const $ = (id) => document.getElementById(id);
 
     function showToast(msg, type = "info") {
       const el = $("toast");
-      const bg = type === "success" ? "#00ff88" : 
-                  type === "error" ? "#ff6b6b" : 
+      const bg = type === "success" ? "#00ff88" :
+                  type === "error" ? "#ff6b6b" :
                   type === "warning" ? "#ffa726" : "#00d4ff";
       el.style.background = bg;
       el.textContent = msg;
@@ -555,178 +598,299 @@
       return String(x);
     }
 
-    function num(x) {
-      const n = Number(String(x ?? "0").replace(",", "."));
-      return Number.isFinite(n) ? n : 0;
+    function parseNumberLoose(x) {
+      if (x === null || x === undefined) return 0;
+      const s = String(x).replace(/\s/g,'').replace(',', '.');
+      const m = s.match(/-?\d+(\.\d+)?/);
+      return m ? parseFloat(m[0]) : 0;
     }
 
-    function parseOrderDate(dateStr) {
-      if (!dateStr) return null;
-      const d1 = new Date(dateStr);
-      if (!isNaN(d1.getTime())) return d1;
-
-      const m = String(dateStr).match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
-      if (m) {
-        const dd = parseInt(m[1],10), mm = parseInt(m[2],10), yy = parseInt(m[3],10);
-        const hh = parseInt(m[4],10), mi = parseInt(m[5],10), ss = parseInt(m[6]||"0",10);
-        const d = new Date(yy, mm-1, dd, hh, mi, ss);
-        return isNaN(d.getTime()) ? null : d;
-      }
-      return null;
-    }
-
-    // parse articles (qty x produit)
+    // ===================== ANALYSE DES ARTICLES (améliorée) =====================
     function parseArticles(articlesText) {
-      const t = String(articlesText || "")
-        .replace(/\\n/g, "\n")
-        .replace(/<br\s*\/?>/gi, "\n")
-        .replace(/\r/g, "");
+      if (!articlesText) return [];
 
-      const lines = t.split("\n").map(s => s.trim()).filter(Boolean);
-      const out = [];
+      try {
+        const t = String(articlesText).trim();
 
-      for (const line of lines) {
-        if (/^COMMANDE\s*[:=]/i.test(line)) continue;
-        if (/^CMD[-_ ]?MAXI/i.test(line)) continue;
-        if (/^TOTAL/i.test(line)) continue;
-        if (/^GPS/i.test(line)) continue;
-
-        const m = line.match(/^(\d+)\s*(?:x|×)\s*(.+)$/i);
-        if (m) {
-          const q = parseInt(m[1], 10) || 0;
-          let rest = (m[2] || "").trim();
-          // prix éventuel (rare)
-          let unit = 0;
-          const p = rest.match(/-\s*([0-9]+(?:[.,][0-9]{1,2})?)\s*dt\b/i);
-          if (p && p[1]) unit = num(p[1]);
-          rest = rest.replace(/\s*-\s*[0-9]+(?:[.,][0-9]{1,2})?\s*dt\b/i, "").trim();
-
-          out.push({ produit: rest || "Produit", quantite: q, prix_unitaire: unit, prix_total: unit * q });
-          continue;
+        // 1) JSON
+        if (t.startsWith("[")) {
+          const arr = JSON.parse(t);
+          if (Array.isArray(arr)) {
+            return arr.map(item => {
+              const q = parseInt(item.quantite || item.qty || 1) || 1;
+              const pu = parseNumberLoose(item.prix_unitaire || item.prix || item.price || 0);
+              const pt = parseNumberLoose(item.prix_total || (pu * q));
+              return {
+                produit: (item.produit || item.nom || "Produit").trim(),
+                quantite: q,
+                prix_unitaire: pu,
+                prix_total: pt
+              };
+            });
+          }
         }
 
-        if (line.length >= 3) out.push({ produit: line, quantite: 1, prix_unitaire: 0, prix_total: 0 });
-      }
-      return out;
-    }
+        // 2) Texte multi-lignes (supporte "4x Produit" + ligne suivante "4,30 dt × 4 = 17,20 dt")
+        const clean = t.replace(/\r/g,'').replace(/<br\s*\/?>/gi, '\n');
+        const lines = clean.split('\n').map(l => l.trim()).filter(Boolean);
 
-    // ✅ Top produits + revenu non nul :
-    // si les lignes n'ont pas de prix, on répartit le total de la commande selon la quantité.
-    function computeTopProductsFromOrders(orders) {
-      const map = new Map();
+        const items = [];
+        for (let i=0; i<lines.length; i++) {
+          const line = lines[i];
 
-      for (const order of orders) {
-        const orderTotal = num(order.total);
-        const articles = parseArticles(order.articles);
-        if (articles.length === 0) continue;
+          // A) "3x Produit - 15.50 dt"
+          let m = line.match(/^(\d+)\s*x\s+(.+?)\s*-\s*([\d.,]+)\s*dt$/i);
+          if (m) {
+            const q = parseInt(m[1]) || 1;
+            const name = m[2].trim();
+            const pu = parseNumberLoose(m[3]);
+            items.push({ produit: name, quantite: q, prix_unitaire: pu, prix_total: pu*q });
+            continue;
+          }
 
-        const totalQty = articles.reduce((s,a)=>s + num(a.quantite), 0) || 1;
+          // B) "3x Produit"
+          m = line.match(/^(\d+)\s*x\s+(.+)$/i);
+          if (m) {
+            const q = parseInt(m[1]) || 1;
+            const name = m[2].trim();
 
-        for (const a of articles) {
-          const name = (a.produit || "Produit").trim();
-          const q = num(a.quantite);
-
-          // revenu:
-          // 1) si prix_total présent -> on l'utilise
-          // 2) sinon -> on répartit total commande
-          const lineRevenue = a.prix_total > 0 ? num(a.prix_total) : (orderTotal * (q / totalQty));
-
-          if (!map.has(name)) map.set(name, { name, quantity: 0, revenue: 0 });
-          const it = map.get(name);
-          it.quantity += q;
-          it.revenue += lineRevenue;
+            // regarder la ligne suivante si elle contient "dt × q = total"
+            let pu = 0, pt = 0;
+            const next = lines[i+1] || "";
+            const m2 = next.match(/([\d.,]+)\s*dt\s*[x×]\s*(\d+)\s*=\s*([\d.,]+)\s*dt/i);
+            if (m2) {
+              pu = parseNumberLoose(m2[1]);
+              pt = parseNumberLoose(m2[3]);
+              // on saute la ligne suivante (déjà consommée)
+              i++;
+            }
+            items.push({ produit: name, quantite: q, prix_unitaire: pu, prix_total: pt || (pu*q) });
+            continue;
+          }
         }
-      }
 
-      return Array.from(map.values())
-        .sort((a,b)=> b.quantity - a.quantity)
-        .slice(0,10)
-        .map(p => ({ name: p.name, quantity: Math.round(p.quantity), revenue: Number(p.revenue.toFixed(2)) }));
+        return items;
+      } catch (error) {
+        console.error("Erreur parseArticles:", error);
+        return [];
+      }
     }
 
+    // ===================== CHARGEMENT DES DONNÉES =====================
     async function loadData() {
       try {
-        const ordersResponse = await fetch(`${API_URL}?method=getorders&t=${Date.now()}`, { cache: "no-store" });
+        showToast("🔗 Connexion à l'API...", "info");
+
+        const ordersResponse = await fetch(`${API_URL}?method=getorders&t=${Date.now()}`);
         if (!ordersResponse.ok) throw new Error("API commandes non disponible");
+
         const ordersData = await ordersResponse.json();
-        if (!ordersData.success || !ordersData.orders) throw new Error("Aucune donnée valide");
 
-        state.orders = ordersData.orders.map(order => ({
-          date: order.date,
-          nom: order.nom || order.name || "",
-          telephone: order.telephone || order.phone || "",
-          adresse: order.adresse || order.address || "",
-          commande_id: order.commande_id || order.numero || order.order_id || "",
-          articles: order.articles || order.items || "",
-          total: order.total || order.amount || "0",
-          statut: order.statut || "🟡 NOUVELLE"
-        }));
+        if (ordersData.success && ordersData.orders) {
+          state.orders = ordersData.orders.map(order => {
+            const commandeId = order.numero || order.commande_id || order.numero_commande || order.id_commande || order.commandeId;
+            const mapped = {
+              id: order.id || 0,
+              date: order.date,
+              nom: order.nom || order.name || "Client",
+              telephone: order.telephone || order.phone || "",
+              adresse: order.adresse || order.address || "",
+              commande_id: commandeId,
+              articles: order.articles || order.items || "",
+              total: order.total || order.amount || 0,
+              statut: order.statut || "⏳ EN ATTENTE"
+            };
 
-        state.apiStatus = 'online';
-        $("apiStatus").className = "api-status api-online";
-        $("apiStatus").innerHTML = '<span><i class="fas fa-circle"></i></span><span>API Connectée</span>';
-        $("dataSourceInfo").textContent = "Source des données : API Google Sheets";
+            // ✅ applique override si plus récent
+            const ov = state.statusOverrides.get(mapped.commande_id);
+            if (ov && ov.statut) mapped.statut = ov.statut;
 
-        state.topProducts = computeTopProductsFromOrders(state.orders);
+            return mapped;
+          });
+
+          state.apiStatus = 'online';
+          $("apiStatus").className = "api-status api-online";
+          $("apiStatus").innerHTML = '<span><i class="fas fa-circle"></i></span><span>API Connectée</span>';
+          $("dataSourceInfo").textContent = "Source des données : API Google Sheets";
+        } else {
+          throw new Error("Aucune donnée valide");
+        }
+
+        // Essayer de charger les top produits depuis l'API (si dispo)
+        try {
+          const productsResponse = await fetch(`${API_URL}?method=gettopproducts&t=${Date.now()}`);
+          if (productsResponse.ok) {
+            const productsData = await productsResponse.json();
+            if (productsData.success && productsData.topProducts) {
+              state.topProducts = productsData.topProducts;
+            }
+          }
+        } catch (error) {
+          // calcul local
+        }
+
+        showToast("✅ Données chargées avec succès", "success");
         return true;
 
       } catch (error) {
         console.error("Erreur chargement:", error);
+
+        // Démo
+        state.orders = generateDemoData();
+        state.topProducts = generateDemoTopProducts();
         state.apiStatus = 'demo';
         $("apiStatus").className = "api-status api-offline";
         $("apiStatus").innerHTML = '<span><i class="fas fa-circle"></i></span><span>Mode Démo</span>';
         $("dataSourceInfo").textContent = "Source des données : Démonstration";
+
         showToast("📊 Mode démonstration activé", "warning");
         return false;
       }
     }
 
+    // ===================== CALCUL ANALYTIQUES =====================
     function calculateAnalytics() {
       const orders = state.orders || [];
-      state.analytics = {
-        totalRevenue: 0, totalOrders: 0, avgOrderValue: 0, pendingOrders: 0,
-        topProduct: null, statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
-        ordersByHour: {}, ordersByDay: {},
-        conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
+
+      const analytics = {
+        totalRevenue: 0,
+        totalOrders: 0,
+        avgOrderValue: 0,
+        pendingOrders: 0,
+        topProduct: null,
+        statusDistribution: {},
+        salesByDay: {},
+        salesByHourRevenue: {},
+        ordersByHourCount: {},
+        ordersByDayCount: {},
+        conversionRate: 0,
+        avgCustomerValue: 0,
+        ordersToday: 0,
+        revenueToday: 0
       };
 
-      state.analytics.totalRevenue = orders.reduce((sum, order) => sum + num(order.total), 0);
-      state.analytics.totalOrders = orders.length;
-      state.analytics.avgOrderValue = state.analytics.totalOrders > 0 ? state.analytics.totalRevenue / state.analytics.totalOrders : 0;
+      analytics.totalRevenue = orders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
+      analytics.totalOrders = orders.length;
+      analytics.avgOrderValue = analytics.totalOrders > 0 ? analytics.totalRevenue / analytics.totalOrders : 0;
 
-      const now = new Date();
-      const todayKey = now.toISOString().slice(0,10);
+      // Aujourd'hui
+      const todayKey = new Date().toISOString().split('T')[0];
+      const todayOrders = orders.filter(order => {
+        const d = new Date(order.date);
+        return !isNaN(d.getTime()) && d.toISOString().startsWith(todayKey);
+      });
+      analytics.ordersToday = todayOrders.length;
+      analytics.revenueToday = todayOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
 
-      for (const order of orders) {
-        const statut = order.statut || "🟡 NOUVELLE";
-        state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
-        if (statut === "⏳ EN ATTENTE") state.analytics.pendingOrders++;
+      // Distribution statuts + pending
+      orders.forEach(order => {
+        const statut = order.statut || "⏳ EN ATTENTE";
+        analytics.statusDistribution[statut] = (analytics.statusDistribution[statut] || 0) + 1;
+        if (statut === "⏳ EN ATTENTE") analytics.pendingOrders++;
+      });
 
-        const d = parseOrderDate(order.date);
-        if (!d) continue;
+      // Ventes par jour / heure
+      orders.forEach(order => {
+        const d = new Date(order.date);
+        if (isNaN(d.getTime())) return;
 
-        const dayKey = d.toISOString().slice(0,10);
-        const hour = d.getHours();
+        const day = d.toISOString().split('T')[0];
+        analytics.salesByDay[day] = (analytics.salesByDay[day] || 0) + (parseFloat(order.total) || 0);
 
-        // ventes par jour
-        state.analytics.salesByDay[dayKey] = (state.analytics.salesByDay[dayKey] || 0) + num(order.total);
+        const h = d.getHours();
+        analytics.salesByHourRevenue[h] = (analytics.salesByHourRevenue[h] || 0) + (parseFloat(order.total) || 0);
+        analytics.ordersByHourCount[h] = (analytics.ordersByHourCount[h] || 0) + 1;
 
-        // CA par heure (optionnel)
-        state.analytics.salesByHourRevenue[hour] = (state.analytics.salesByHourRevenue[hour] || 0) + num(order.total);
+        analytics.ordersByDayCount[day] = (analytics.ordersByDayCount[day] || 0) + 1;
+      });
 
-        // commandes count
-        state.analytics.ordersByHour[hour] = (state.analytics.ordersByHour[hour] || 0) + 1;
-        state.analytics.ordersByDay[dayKey] = (state.analytics.ordersByDay[dayKey] || 0) + 1;
+      // ✅ TOP PRODUITS (revenu corrigé)
+      // Si API non dispo OU revenus = 0 => recalcul local robuste
+      const needRecalc =
+        !Array.isArray(state.topProducts) ||
+        state.topProducts.length === 0 ||
+        state.topProducts.every(p => (parseFloat(p.revenue) || 0) === 0);
 
-        if (dayKey === todayKey) {
-          state.analytics.ordersToday += 1;
-          state.analytics.revenueToday += num(order.total);
+      if (needRecalc) {
+        const productSales = new Map(); // name -> {name, quantity, revenue}
+
+        for (const order of orders) {
+          const orderTotal = parseFloat(order.total) || 0;
+          const articles = parseArticles(order.articles);
+
+          if (articles.length === 0) continue;
+
+          // somme quantités et somme valeurs connues
+          const sumQty = articles.reduce((s,a)=>s+(a.quantite||0),0) || 0;
+          const sumKnown = articles.reduce((s,a)=>s+(parseFloat(a.prix_total)||0),0) || 0;
+
+          // si pas de prix détaillés, répartir le total par quantité
+          for (const a of articles) {
+            const name = (a.produit || "Produit inconnu").trim();
+            const q = parseInt(a.quantite || 0) || 0;
+
+            let rev = parseFloat(a.prix_total) || 0;
+
+            if (rev <= 0) {
+              if (sumKnown > 0 && a.prix_unitaire > 0) {
+                // fallback: prix_unitaire * q
+                rev = (parseFloat(a.prix_unitaire) || 0) * q;
+              } else if (sumQty > 0 && orderTotal > 0) {
+                // fallback: part du total
+                rev = (orderTotal * q) / sumQty;
+              }
+            }
+
+            if (!productSales.has(name)) productSales.set(name, { name, quantity: 0, revenue: 0 });
+            const p = productSales.get(name);
+            p.quantity += q;
+            p.revenue += rev;
+          }
         }
+
+        state.topProducts = Array.from(productSales.values())
+          .sort((a,b)=> b.quantity - a.quantity)
+          .slice(0,10);
+      } else {
+        // normaliser
+        state.topProducts = state.topProducts.map(p => ({
+          name: p.name || p.produit || "Produit",
+          quantity: parseInt(p.quantity || p.quantite || 0) || 0,
+          revenue: parseFloat(p.revenue || p.revenu || 0) || 0
+        })).slice(0,10);
       }
 
-      if (state.topProducts.length > 0) state.analytics.topProduct = state.topProducts[0];
-      state.analytics.conversionRate = Math.min(100, Math.round((orders.length / 100) * 100));
-      state.analytics.avgCustomerValue = state.analytics.totalOrders > 0 ? state.analytics.totalRevenue / (state.analytics.totalOrders * 0.7) : 0;
+      if (state.topProducts.length > 0) analytics.topProduct = state.topProducts[0];
+
+      analytics.conversionRate = Math.min(100, Math.round((orders.length / 100) * 100));
+      analytics.avgCustomerValue = analytics.totalOrders > 0 ? analytics.totalRevenue / (analytics.totalOrders * 0.7) : 0;
+
+      state.analytics = analytics;
+    }
+
+    // ===================== UI =====================
+    function getRankColor(rank) {
+      switch(rank) {
+        case 1: return '#FFD700';
+        case 2: return '#C0C0C0';
+        case 3: return '#CD7F32';
+        default: return 'var(--txt)';
+      }
+    }
+
+    function normalizeStatusKey(statut) {
+      return String(statut || "")
+        .toLowerCase()
+        .replace(/[⏳🟡🔵🟠✅❌]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/é/g,'e')
+        .replace(/è/g,'e')
+        .replace(/ê/g,'e')
+        .replace(/à/g,'a')
+        .replace(/ù/g,'u')
+        .replace(/ç/g,'c')
+        .replace(/ /g, '-');
     }
 
     function updateUI() {
@@ -736,16 +900,14 @@
       $("pendingOrders").textContent = state.analytics.pendingOrders;
 
       if (state.analytics.topProduct) {
-        const totalQuantity = state.topProducts.reduce((sum, p) => sum + num(p.quantity), 0);
-        const percentage = totalQuantity > 0 ? Math.round((num(state.analytics.topProduct.quantity) / totalQuantity) * 100) : 0;
+        const totalQuantity = state.topProducts.reduce((sum, p) => sum + (p.quantity || 0), 0);
+        const percentage = totalQuantity > 0 ? Math.round((state.analytics.topProduct.quantity / totalQuantity) * 100) : 0;
 
         $("topProductName").textContent = state.analytics.topProduct.name;
-        $("topProductQty").textContent = num(state.analytics.topProduct.quantity);
+        $("topProductQty").textContent = state.analytics.topProduct.quantity;
         $("topProductRevenue").textContent = formatPrice(state.analytics.topProduct.revenue);
         $("topProductPercentage").textContent = percentage + "%";
         $("topProductCard").style.display = "block";
-      } else {
-        $("topProductCard").style.display = "none";
       }
 
       $("conversionRate").textContent = state.analytics.conversionRate + "%";
@@ -757,33 +919,43 @@
       const allOrdersBody = $("allOrdersBody");
       allOrdersBody.innerHTML = "";
 
-      const sortedOrders = [...state.orders].sort((a, b) => {
-        const da = parseOrderDate(a.date) || new Date(0);
-        const db = parseOrderDate(b.date) || new Date(0);
-        return db - da;
-      });
-
-      if (sortedOrders.length === 0) {
-        allOrdersBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--muted)">Aucune commande</td></tr>`;
+      if (state.orders.length === 0) {
+        allOrdersBody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align:center; padding:30px; color:var(--muted)">Aucune commande trouvée</td>
+          </tr>`;
       } else {
+        const sortedOrders = [...state.orders].sort((a,b) => new Date(b.date) - new Date(a.date));
+
         sortedOrders.forEach(order => {
-          const statut = order.statut || "🟡 NOUVELLE";
+          const statut = order.statut || "⏳ EN ATTENTE";
+          const statutClass = `statut-${normalizeStatusKey(statut)}`;
+
           const articlesText = order.articles ? safeText(order.articles).replace(/\n/g, '<br>') : '';
-          const d = parseOrderDate(order.date);
-          const dateStr = d ? d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : safeText(order.date);
+          const dateObj = new Date(order.date);
+          const dateStr = !isNaN(dateObj.getTime())
+            ? dateObj.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+            : safeText(order.date);
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td>${dateStr}</td>
+            <td>${safeText(dateStr)}</td>
             <td><strong>${safeText(order.nom)}</strong></td>
             <td>${safeText(order.telephone)}</td>
             <td>${safeText(order.adresse)}</td>
             <td><strong>${safeText(order.commande_id)}</strong></td>
             <td class="articles-cell">${articlesText}</td>
             <td><strong>${formatPrice(order.total)}</strong></td>
-            <td>
-              <select class="statut-select" onchange="updateOrderStatus('${order.commande_id}', this.value)">
-                ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${s}</option>`).join("")}
+            <td style="min-width:180px">
+              <select class="statut-select ${statutClass}"
+                      data-commande="${safeText(order.commande_id)}"
+                      onchange="updateOrderStatus('${safeText(order.commande_id)}', this.value)">
+                <option value="⏳ EN ATTENTE" ${statut === '⏳ EN ATTENTE' ? 'selected' : ''}>⏳ EN ATTENTE</option>
+                <option value="🟡 NOUVELLE" ${statut === '🟡 NOUVELLE' ? 'selected' : ''}>🟡 NOUVELLE</option>
+                <option value="🔵 EN PRÉPARATION" ${statut === '🔵 EN PRÉPARATION' ? 'selected' : ''}>🔵 EN PRÉPARATION</option>
+                <option value="🟠 EN LIVRAISON" ${statut === '🟠 EN LIVRAISON' ? 'selected' : ''}>🟠 EN LIVRAISON</option>
+                <option value="✅ LIVRÉE" ${statut === '✅ LIVRÉE' ? 'selected' : ''}>✅ LIVRÉE</option>
+                <option value="❌ ANNULÉE" ${statut === '❌ ANNULÉE' ? 'selected' : ''}>❌ ANNULÉE</option>
               </select>
             </td>
           `;
@@ -791,20 +963,26 @@
         });
       }
 
-      // Table Top 10 produits
+      // Table top produits
       const topProductsBody = $("topProductsBody");
       topProductsBody.innerHTML = "";
+
       if (state.topProducts.length === 0) {
-        topProductsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--muted)">Aucune donnée</td></tr>`;
+        topProductsBody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align:center; padding:20px; color:var(--muted)">Aucune donnée de produit</td>
+          </tr>`;
       } else {
         state.topProducts.forEach((product, index) => {
-          const tr = document.createElement("tr");
           const name = safeText(product.name);
+          const short = name.length > 32 ? name.substring(0, 32) + '...' : name;
+
+          const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td style="text-align:center; font-weight:900; color:var(--txt)">${index + 1}</td>
-            <td><div style="font-weight:900">${name.substring(0, 30)}${name.length > 30 ? '...' : ''}</div></td>
-            <td style="font-weight:900; color:var(--blue)">${num(product.quantity)}</td>
-            <td style="font-weight:900; color:var(--green)">${formatPrice(product.revenue)}</td>
+            <td style="text-align:center; font-weight:900; color:${getRankColor(index + 1)}">${index + 1}</td>
+            <td><div style="font-weight:900">${short}</div></td>
+            <td style="font-weight:900; color:var(--blue)">${product.quantity || 0}</td>
+            <td style="font-weight:900; color:var(--green)">${formatPrice(product.revenue || 0)}</td>
           `;
           topProductsBody.appendChild(tr);
         });
@@ -813,45 +991,118 @@
       $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
     }
 
+    // ===================== GRAPHIQUES =====================
     function initCharts() {
+      // Ventes par jour (CA)
       const salesCtx = $("salesChart").getContext("2d");
       state.charts.sales = new Chart(salesCtx, {
         type: "line",
-        data: { labels: [], datasets: [{ label: "Chiffre d'affaires (dt)", data: [], borderWidth: 3, fill: true, tension: 0.4 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#f0f6fc" }}}}
+        data: {
+          labels: [],
+          datasets: [{
+            label: "Chiffre d'affaires (dt)",
+            data: [],
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            borderColor: "#00ff88",
+            backgroundColor: "rgba(0, 255, 136, 0.15)"
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: "#f0f6fc" } }
+          },
+          scales: {
+            x: { ticks: { color: "#f0f6fc" }, grid: { color: "rgba(255,255,255,.07)" } },
+            y: { ticks: { color: "#f0f6fc" }, grid: { color: "rgba(255,255,255,.07)" } }
+          }
+        }
       });
 
+      // Statuts
       const statusCtx = $("statusChart").getContext("2d");
       state.charts.status = new Chart(statusCtx, {
         type: "doughnut",
-        data: { labels: [], datasets: [{ data: [], borderWidth: 2, backgroundColor: [
-          "rgba(255, 204, 0, 0.8)","rgba(255, 153, 0, 0.8)","rgba(0, 102, 204, 0.8)",
-          "rgba(255, 102, 0, 0.8)","rgba(0, 170, 0, 0.8)","rgba(204, 0, 0, 0.8)"
-        ]}]},
-        options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: "right", labels: { color: "#f0f6fc" }}}}
+        data: {
+          labels: [],
+          datasets: [{
+            data: [],
+            borderWidth: 2,
+            backgroundColor: [
+              "rgba(255, 153, 0, 0.8)",
+              "rgba(255, 204, 0, 0.8)",
+              "rgba(0, 102, 204, 0.8)",
+              "rgba(255, 102, 0, 0.8)",
+              "rgba(0, 170, 0, 0.8)",
+              "rgba(204, 0, 0, 0.8)"
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '60%',
+          plugins: {
+            legend: { position: "right", labels: { color: "#f0f6fc" } }
+          }
+        }
       });
 
+      // Top produits
       const productsCtx = $("productsChart").getContext("2d");
       state.charts.products = new Chart(productsCtx, {
         type: "bar",
-        data: { labels: [], datasets: [{ label: "Quantité vendue", data: [] }] },
-        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+        data: {
+          labels: [],
+          datasets: [{
+            label: "Quantité vendue",
+            data: [],
+            backgroundColor: "rgba(255, 167, 38, 0.6)"
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: "#f0f6fc" }, grid: { color: "rgba(255,255,255,.07)" } },
+            y: { ticks: { color: "#f0f6fc" }, grid: { color: "rgba(255,255,255,.07)" } }
+          }
+        }
       });
 
+      // Commandes (par heure / par jour)
       const hourlyCtx = $("hourlyChart").getContext("2d");
       state.charts.hourly = new Chart(hourlyCtx, {
         type: "bar",
-        data: { labels: [], datasets: [{ label: "Commandes", data: [] }] },
-        options: { responsive: true, maintainAspectRatio: false }
+        data: {
+          labels: [],
+          datasets: [{
+            label: "Commandes",
+            data: [],
+            backgroundColor: "rgba(0, 212, 255, 0.6)"
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: "#f0f6fc" }, grid: { color: "rgba(255,255,255,.07)" } },
+            y: { ticks: { color: "#f0f6fc" }, grid: { color: "rgba(255,255,255,.07)" }, beginAtZero: true }
+          }
+        }
       });
     }
 
     function updateCharts() {
-      const period = parseInt($("salesPeriod").value || 30, 10);
+      const period = parseInt($("salesPeriod").value || 30);
       updateSalesChart(period);
       updateStatusChart();
       updateProductsChart();
-      updateActivityChart();
+      updateTimeChart();
     }
 
     function updateSalesChart(period = 30) {
@@ -860,11 +1111,11 @@
       const today = new Date();
 
       for (let i = period - 1; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const dateKey = date.toISOString().substring(0, 10);
-        labels.push(date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }));
-        data.push(num(state.analytics.salesByDay[dateKey] || 0));
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().substring(0,10);
+        labels.push(d.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit" }));
+        data.push(state.analytics.salesByDay[key] || 0);
       }
 
       state.charts.sales.data.labels = labels;
@@ -873,14 +1124,14 @@
     }
 
     function updateStatusChart() {
-      const order = ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
+      const order = ["⏳ EN ATTENTE","🟡 NOUVELLE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
       const labels = [];
       const data = [];
 
-      for (const s of order) {
+      order.forEach(s => {
         const c = state.analytics.statusDistribution[s] || 0;
         if (c > 0) { labels.push(s); data.push(c); }
-      }
+      });
 
       state.charts.status.data.labels = labels;
       state.charts.status.data.datasets[0].data = data;
@@ -889,120 +1140,197 @@
 
     function updateProductsChart() {
       const top10 = state.topProducts.slice(0, 10);
-      const labels = top10.map(p => p.name.length > 18 ? p.name.substring(0, 18) + '...' : p.name);
-      const data = top10.map(p => num(p.quantity));
+      const labels = top10.map(p => (p.name || "").length > 16 ? (p.name || "").substring(0, 16) + '...' : (p.name || ""));
+      const data = top10.map(p => p.quantity || 0);
 
       state.charts.products.data.labels = labels;
       state.charts.products.data.datasets[0].data = data;
       state.charts.products.update();
     }
 
-    // ✅ menu déroulant: commandes par heure / par jour
-    function updateActivityChart() {
-      const mode = $("activityMode").value;
+    function updateTimeChart() {
+      const mode = $("timeChartMode").value || "hour";
 
       if (mode === "hour") {
+        // Commandes par heure (COUNT)
         const labels = [];
         const data = [];
-        for (let h = 0; h < 24; h++) {
+        for (let h=0; h<24; h++){
           labels.push(`${h}h`);
-          data.push(num(state.analytics.ordersByHour[h] || 0));
+          data.push(state.analytics.ordersByHourCount[h] || 0);
         }
         state.charts.hourly.data.labels = labels;
-        state.charts.hourly.data.datasets[0].label = "Commandes";
+        state.charts.hourly.data.datasets[0].label = "Commandes (par heure)";
         state.charts.hourly.data.datasets[0].data = data;
         state.charts.hourly.update();
         return;
       }
 
-      // mode day : 30 derniers jours
+      // Commandes par jour (7 derniers jours)
       const labels = [];
       const data = [];
       const today = new Date();
-      const period = 30;
 
-      for (let i = period - 1; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const key = date.toISOString().slice(0,10);
-        labels.push(date.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit" }));
-        data.push(num(state.analytics.ordersByDay[key] || 0));
+      for (let i=6; i>=0; i--){
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().substring(0,10);
+        labels.push(d.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit" }));
+        data.push(state.analytics.ordersByDayCount[key] || 0);
       }
 
       state.charts.hourly.data.labels = labels;
-      state.charts.hourly.data.datasets[0].label = "Commandes";
+      state.charts.hourly.data.datasets[0].label = "Commandes (par jour)";
       state.charts.hourly.data.datasets[0].data = data;
       state.charts.hourly.update();
     }
 
+    // ===================== UPDATE STATUT (anti-retour) =====================
     async function updateOrderStatus(commandeId, nouveauStatut) {
       try {
-        showToast(`⏳ Mise à jour ${commandeId}...`, "info");
-        state.statusUpdateInProgress = true;
-        state.statusUpdateForId = commandeId;
+        if (!commandeId) return;
 
-        if (state.apiStatus === 'demo') return;
+        // ✅ pause refresh 12s pour éviter overwrite
+        state.refreshPausedUntil = Date.now() + 12000;
 
-        const url = `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`;
-        const response = await fetch(url, { cache:"no-store" });
-        const result = await response.json();
+        // ✅ override instant (UI immédiate)
+        state.statusOverrides.set(commandeId, { statut: nouveauStatut, ts: Date.now() });
 
-        if (!result.success) throw new Error(result.error || "Erreur API");
-
-        const i = state.orders.findIndex(o => o.commande_id === commandeId);
-        if (i !== -1) state.orders[i].statut = nouveauStatut;
-
+        // update local state pour que l'UI reflète directement
+        const idx = state.orders.findIndex(o => o.commande_id === commandeId);
+        if (idx !== -1) state.orders[idx].statut = nouveauStatut;
         calculateAnalytics();
         updateUI();
         updateCharts();
-        showToast(`✅ Statut mis à jour`, "success");
 
-      } catch (e) {
-        console.error(e);
-        showToast(`❌ ${e.message}`, "error");
-      } finally {
-        setTimeout(() => {
-          state.statusUpdateInProgress = false;
-          state.statusUpdateForId = null;
-        }, 1200);
+        showToast(`⏳ Mise à jour de ${commandeId}...`, "info");
+
+        if (state.apiStatus === 'demo') {
+          showToast(`✅ Statut mis à jour en local: ${nouveauStatut}`, "success");
+          return;
+        }
+
+        const response = await fetch(
+          `${API_URL}?method=updatestatus&numero=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
+        );
+
+        if (!response.ok) throw new Error("Erreur réseau");
+        const result = await response.json();
+
+        if (result.success) {
+          // ✅ renforce override (au cas où)
+          state.statusOverrides.set(commandeId, { statut: nouveauStatut, ts: Date.now() });
+
+          showToast(`✅ Statut mis à jour: ${nouveauStatut}`, "success");
+
+          // ✅ refresh léger après 2s (laisse le temps au sheet)
+          setTimeout(() => refreshAll(true), 2000);
+        } else {
+          throw new Error(result.error || "Erreur API");
+        }
+      } catch (error) {
+        console.error("Erreur updateOrderStatus:", error);
+        showToast(`❌ Erreur: ${error.message}`, "error");
+
+        // si erreur, on retire l'override pour revenir aux données du serveur au prochain refresh
+        state.statusOverrides.delete(commandeId);
+        setTimeout(() => refreshAll(true), 800);
       }
     }
 
+    // ===================== TEST ORDER =====================
     async function createTestOrder() {
       try {
-        showToast("⏳ Création commande test...", "info");
+        showToast("⏳ Création d'une commande test...", "info");
 
-        const payload = new URLSearchParams({
-          method: "saveOrder",
-          nom_client: "TEST ADMIN",
-          telephone: "+216 20000000",
-          adresse: "Adresse test (admin)",
-          articles: "2x PRODUIT TEST A (1001)\n1x PRODUIT TEST B (1002)",
-          total: "30.00"
-        });
+        const response = await fetch(`${API_URL}?method=testorder&t=${Date.now()}`);
+        if (!response.ok) throw new Error("Erreur réseau");
 
-        const resp = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type":"application/x-www-form-urlencoded" },
-          body: payload.toString()
-        });
+        const result = await response.json();
 
-        const data = await resp.json();
-        if (!data.success) throw new Error(data.error || "Erreur API");
-
-        showToast(`✅ Test créé: ${data.commande_id}`, "success");
-        setTimeout(() => refreshAll(true), 900);
-
-      } catch (e) {
-        console.error(e);
-        showToast(`❌ ${e.message}`, "error");
+        if (result.success) {
+          showToast(`✅ Commande test créée: ${result.commande_id}`, "success");
+          setTimeout(() => refreshAll(true), 1500);
+        } else {
+          throw new Error(result.error || "Erreur API");
+        }
+      } catch (error) {
+        console.error("Erreur createTestOrder:", error);
+        showToast(`❌ Erreur: ${error.message}`, "error");
       }
     }
 
-    async function refreshAll(force = false) {
-      if (!force && state.statusUpdateInProgress) return;
+    // ===================== DEMO =====================
+    function generateDemoData() {
+      const demoProducts = [
+        "Pizza Margherita", "Pizza Pepperoni", "Pizza 4 Fromages", "Pizza Végétarienne",
+        "Burger Classique", "Burger Double", "Frites", "Salade César", "Soda", "Eau minérale",
+        "Tiramisu", "Glace vanille", "Café", "Thé", "Jus d'orange", "Limonade"
+      ];
 
+      const orders = [];
+      const now = new Date();
+
+      for (let i = 0; i < 20; i++) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+        date.setHours(Math.floor(Math.random() * 24));
+        date.setMinutes(Math.floor(Math.random() * 60));
+
+        const numItems = Math.floor(Math.random() * 4) + 1;
+        let articles = [];
+        let total = 0;
+
+        for (let j = 0; j < numItems; j++) {
+          const product = demoProducts[Math.floor(Math.random() * demoProducts.length)];
+          const quantity = Math.floor(Math.random() * 3) + 1;
+          const price = 5 + Math.random() * 20;
+          const lineTotal = price * quantity;
+
+          articles.push(`${quantity}x ${product} - ${price.toFixed(2)} dt`);
+          total += lineTotal;
+        }
+
+        const statuses = ["⏳ EN ATTENTE", "🟡 NOUVELLE", "🔵 EN PRÉPARATION", "🟠 EN LIVRAISON", "✅ LIVRÉE", "❌ ANNULÉE"];
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+
+        orders.push({
+          id: i + 1,
+          date: date.toISOString(),
+          nom: `Client ${i + 1}`,
+          telephone: `25${Math.floor(100000 + Math.random() * 900000)}`,
+          adresse: `Adresse ${i + 1}, Tunis`,
+          commande_id: `CMD-MAXI-${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2,'0')}${date.getDate().toString().padStart(2,'0')}-${(i+1).toString().padStart(3,'0')}`,
+          articles: articles.join('\n'),
+          total: total.toFixed(2),
+          statut: status
+        });
+      }
+
+      return orders;
+    }
+
+    function generateDemoTopProducts() {
+      return [
+        { name: "Pizza Margherita", quantity: 45, revenue: 832.50 },
+        { name: "Burger Classique", quantity: 38, revenue: 570.00 },
+        { name: "Frites", quantity: 32, revenue: 240.00 },
+        { name: "Soda", quantity: 28, revenue: 140.00 },
+        { name: "Pizza Pepperoni", quantity: 25, revenue: 562.50 },
+        { name: "Salade César", quantity: 22, revenue: 264.00 },
+        { name: "Eau minérale", quantity: 20, revenue: 60.00 },
+        { name: "Pizza 4 Fromages", quantity: 18, revenue: 333.00 },
+        { name: "Tiramisu", quantity: 15, revenue: 127.50 },
+        { name: "Jus d'orange", quantity: 12, revenue: 72.00 }
+      ];
+    }
+
+    // ===================== REFRESH =====================
+    async function refreshAll(force=false) {
       try {
+        // ✅ skip auto refresh si pause active
+        if (!force && Date.now() < state.refreshPausedUntil) return;
+
         $("btnRefresh").disabled = true;
         $("btnRefresh").innerHTML = '<span><i class="fas fa-spinner fa-spin"></i></span><span>Chargement...</span>';
 
@@ -1011,28 +1339,34 @@
         updateUI();
         updateCharts();
 
-        showToast("✅ Données actualisées", "success");
-
-      } catch (e) {
-        console.error(e);
-        showToast("❌ Erreur chargement", "error");
+      } catch (error) {
+        console.error("Erreur refreshAll:", error);
+        showToast("❌ Erreur lors du chargement", "error");
       } finally {
         $("btnRefresh").disabled = false;
         $("btnRefresh").innerHTML = '<span><i class="fas fa-sync-alt"></i></span><span>Actualiser</span>';
       }
     }
 
+    // INITIALISATION
     document.addEventListener("DOMContentLoaded", () => {
       initCharts();
+
       $("salesPeriod").addEventListener("change", () => updateCharts());
-      $("activityMode").addEventListener("change", () => updateCharts());
+      $("timeChartMode").addEventListener("change", () => updateTimeChart());
       $("btnRefresh").addEventListener("click", () => refreshAll(true));
       $("btnCreateTest").addEventListener("click", () => createTestOrder());
+
       window.updateOrderStatus = updateOrderStatus;
 
       refreshAll(true);
+
+      // ✅ auto-refresh: moins agressif + respecte pause
       setInterval(() => refreshAll(false), 30000);
-      document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshAll(true); });
+
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) refreshAll(true);
+      });
     });
   </script>
 </body>
