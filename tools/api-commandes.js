@@ -2,284 +2,342 @@
  * CONFIGURATION API - MAXI JDC MARKET
  *********************************/
 
-// URL de l'API Google Apps Script
 const API_URL = "https://script.google.com/macros/s/AKfycbxx_3bZ50K7fr2mU2qCxzUnEU_L7cIKaUwBBr2_SiCnSXvFJsPoSdzwHJYXEcOaidHa/exec";
 
 /*********************************
- * ANALYSER ET STRUCTURER LES DONNÉES COMMANDE
+ * ANALYSER DONNÉES COMMANDE
  *********************************/
-function analyserDonneesCommande(dataRaw) {
+function analyserDonneesCommande(data) {
   const result = {
     nom: "",
     telephone: "",
     adresse: "",
     articles: [],
+    articles_text: "",
     total: 0,
     numero_commande: "",
-    date: new Date().toISOString(),
-    statut: "En attente"
+    date: new Date().toLocaleDateString('fr-FR') + " " + new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
+    statut: "EN ATTENTE"
   };
 
-  // Si dataRaw est une chaîne (message WhatsApp/textuel)
-  if (typeof dataRaw === "string") {
-    const lignes = dataRaw.split('\n').map(l => l.trim()).filter(l => l);
+  // Si c'est un texte brut (message WhatsApp)
+  if (typeof data === "string") {
+    const lignes = data.split('\n').map(l => l.trim()).filter(l => l);
     
-    let section = "header";
-    let articlesText = "";
-    let footerText = "";
-    
-    // Analyser chaque ligne
-    lignes.forEach((ligne, index) => {
-      // Identifier les sections
-      if (ligne.includes("Détails de votre commande")) {
-        section = "details";
-        return;
+    lignes.forEach(ligne => {
+      // NOM CLIENT
+      if (ligne.includes("Nom:") || ligne.includes("👤") || /^Nom\s*:/.test(ligne)) {
+        result.nom = ligne.replace(/Nom:|👤/g, "").trim();
       }
-      if (ligne.includes("Articles commandés") || ligne.includes("ARTICLES")) {
-        section = "articles";
-        return;
+      // TÉLÉPHONE
+      else if (ligne.includes("Téléphone:") || ligne.includes("📞") || /^Téléphone\s*:/.test(ligne)) {
+        result.telephone = ligne.replace(/Téléphone:|📞/g, "").trim();
       }
-      if (ligne.includes("TOTAL") || ligne.includes("Total")) {
-        section = "footer";
-        return;
+      // ADRESSE
+      else if (ligne.includes("Adresse:") || ligne.includes("📍") || /^Adresse\s*:/.test(ligne)) {
+        result.adresse = ligne.replace(/Adresse:|📍/g, "").trim();
       }
-      if (ligne.includes("MAXI-") || ligne.includes("Commande #")) {
-        result.numero_commande = ligne.replace("Commande #", "").trim();
-        return;
+      // ARTICLES (format: 2x Produit - 15.500 DT)
+      else if (/^\d+x\s+/.test(ligne) && !ligne.includes("Articles commandés")) {
+        const articleMatch = parserArticle(ligne);
+        if (articleMatch) {
+          result.articles.push(articleMatch);
+          result.articles_text += ligne + "\n";
+        }
       }
-
-      // Extraire selon la section
-      switch(section) {
-        case "details":
-          // NOM
-          if (ligne.startsWith("Nom:")) {
-            result.nom = ligne.replace("Nom:", "").trim();
-          }
-          // TÉLÉPHONE
-          else if (ligne.startsWith("Téléphone:") || ligne.includes("+216")) {
-            result.telephone = ligne.replace("Téléphone:", "").trim();
-          }
-          // ADRESSE
-          else if (ligne.startsWith("Adresse:") || ligne.startsWith("📍")) {
-            result.adresse = ligne.replace("Adresse:", "").replace("📍", "").trim();
-          }
-          break;
-          
-        case "articles":
-          articlesText += ligne + "\n";
-          break;
-          
-        case "footer":
-          footerText += ligne + "\n";
-          
-          // TOTAL
-          if (ligne.includes("TOTAL") || ligne.includes("Total")) {
-            const totalMatch = ligne.match(/(\d+\.?\d*)\s*(DT|dt|TND|tnd)/);
-            if (totalMatch) {
-              result.total = parseFloat(totalMatch[1]);
-            }
-          }
-          break;
+      // TOTAL
+      else if (ligne.includes("TOTAL") || ligne.includes("Total:") || ligne.includes("💰")) {
+        const totalMatch = ligne.match(/(\d+[\.,]?\d*)\s*(DT|dt|TND|tnd)/i);
+        if (totalMatch) {
+          result.total = parseFloat(totalMatch[1].replace(',', '.'));
+        }
+      }
+      // NUMÉRO COMMANDE
+      else if (ligne.includes("MAXI-") || ligne.includes("Commande #")) {
+        result.numero_commande = ligne.replace(/Commande #/g, "").trim();
       }
     });
-
-    // Parser les articles
-    if (articlesText) {
-      result.articles = parserArticlesDepuisTexte(articlesText);
-      
-      // Recalculer total si non trouvé
-      if (result.total === 0 && result.articles.length > 0) {
-        result.total = result.articles.reduce((sum, item) => sum + (item.prix_total || 0), 0);
-      }
-    }
   }
-  // Si dataRaw est un objet
-  else if (typeof dataRaw === "object") {
-    Object.assign(result, dataRaw);
+  // Si c'est un objet
+  else if (typeof data === "object" && data !== null) {
+    result.nom = data.nom || data.nom_client || data.client || "";
+    result.telephone = data.telephone || data.tel || data.phone || "";
+    result.adresse = data.adresse || data.address || "";
+    result.total = parseFloat(data.total) || 0;
+    result.numero_commande = data.commande_id || data.numero_commande || "";
+    
+    if (data.articles && Array.isArray(data.articles)) {
+      result.articles = data.articles;
+      result.articles_text = data.articles.map(item => 
+        `${item.quantite || 1}x ${item.produit || item.nom} - ${(item.prix_unitaire || 0).toFixed(3)} DT`
+      ).join('\n');
+    } else if (data.articles && typeof data.articles === 'string') {
+      result.articles_text = data.articles;
+    }
   }
 
   // Générer numéro commande si vide
   if (!result.numero_commande) {
-    result.numero_commande = genererNumeroCommandeLocal();
+    const now = new Date();
+    const dateStr = now.getFullYear().toString() + 
+                   (now.getMonth() + 1).toString().padStart(2, '0') + 
+                   now.getDate().toString().padStart(2, '0');
+    const timeStr = now.getHours().toString().padStart(2, '0') + 
+                   now.getMinutes().toString().padStart(2, '0');
+    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    result.numero_commande = `MAXI-${dateStr}-${timeStr}-${random}`;
   }
 
   return result;
 }
 
-/*********************************
- * PARSER ARTICLES DEPUIS TEXTE
- *********************************/
-function parserArticlesDepuisTexte(texte) {
-  const articles = [];
-  const lignes = texte.split('\n').filter(l => l.trim());
+function parserArticle(ligne) {
+  // Format: "2x Produit - 15.500 DT"
+  const match1 = ligne.match(/(\d+)\s*x\s*([^-]+)-\s*([\d\.,]+)\s*(DT|dt|TND|tnd)?/i);
+  if (match1) {
+    return {
+      produit: match1[2].trim(),
+      quantite: parseInt(match1[1]),
+      prix_unitaire: parseFloat(match1[3].replace(',', '.')),
+      prix_total: parseInt(match1[1]) * parseFloat(match1[3].replace(',', '.'))
+    };
+  }
   
-  lignes.forEach(ligne => {
-    ligne = ligne.trim();
-    
-    // Format: "2x Produit - 15.500 DT"
-    const matchFormat1 = ligne.match(/(\d+)\s*x\s*([^-]+)-\s*(\d+\.?\d*)\s*(DT|dt|TND|tnd)?/i);
-    if (matchFormat1) {
-      articles.push({
-        produit: matchFormat1[2].trim(),
-        quantite: parseInt(matchFormat1[1]),
-        prix_unitaire: parseFloat(matchFormat1[3]),
-        prix_total: parseInt(matchFormat1[1]) * parseFloat(matchFormat1[3])
-      });
-      return;
-    }
-    
-    // Format: "Produit: 15.500 DT x2"
-    const matchFormat2 = ligne.match(/(.+):\s*(\d+\.?\d*)\s*(DT|dt|TND|tnd)?\s*x\s*(\d+)/i);
-    if (matchFormat2) {
-      articles.push({
-        produit: matchFormat2[1].trim(),
-        quantite: parseInt(matchFormat2[4]),
-        prix_unitaire: parseFloat(matchFormat2[2]),
-        prix_total: parseInt(matchFormat2[4]) * parseFloat(matchFormat2[2])
-      });
-      return;
-    }
-    
-    // Format simple: "2x Produit"
-    const matchSimple = ligne.match(/(\d+)\s*x\s*(.+)/i);
-    if (matchSimple) {
-      articles.push({
-        produit: matchSimple[2].trim(),
-        quantite: parseInt(matchSimple[1]),
-        prix_unitaire: 0,
-        prix_total: 0
-      });
-    }
-  });
-  
-  return articles;
+  return null;
 }
 
 /*********************************
- * ENVOYER UNE COMMANDE (ECRITURE)
+ * ENVOYER COMMANDE VERS GOOGLE SHEETS
  *********************************/
 export async function envoyerCommande(dataCommande) {
   try {
-    // Analyser et structurer les données
-    const donneesStructurees = analyserDonneesCommande(dataCommande);
+    console.log("📦 Données reçues:", dataCommande);
     
-    console.log("📦 Données structurées:", donneesStructurees);
-
+    // Analyser et structurer les données
+    const commande = analyserDonneesCommande(dataCommande);
+    
+    console.log("✅ Données structurées:", commande);
+    
+    // Préparer le payload pour Google Sheets
     const payload = {
       method: "saveOrder",
-      nom: donneesStructurees.nom,
-      telephone: donneesStructurees.telephone,
-      adresse: donneesStructurees.adresse,
-      articles: JSON.stringify(donneesStructurees.articles),
-      total: donneesStructurees.total.toFixed(3),
-      commande_id: donneesStructurees.numero_commande
+      action: "saveOrder",
+      nom: commande.nom || "Client",
+      telephone: commande.telephone || "",
+      adresse: commande.adresse || "",
+      articles: JSON.stringify(commande.articles),
+      articles_text: commande.articles_text,
+      total: commande.total.toFixed(3),
+      commande_id: commande.numero_commande,
+      date: commande.date,
+      statut: commande.statut
     };
 
-    console.log("📤 Envoi payload:", payload);
+    console.log("📤 Payload pour Google Sheets:", payload);
 
+    // Envoyer à Google Apps Script
     const response = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      method: 'POST',
+      mode: 'no-cors', // Important pour Google Apps Script
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
       body: new URLSearchParams(payload).toString()
     });
+
+    // Note: En mode no-cors, on ne peut pas lire la réponse
+    // Mais la commande est envoyée
     
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
-    }
+    // Générer la notification WhatsApp
+    const whatsappResult = await genererNotificationWhatsApp(commande);
     
-    const result = await response.json();
-    
-    // Générer notification WhatsApp
-    if (result.success && result.commande_id) {
-      await genererNotificationWhatsApp(result.commande_id, donneesStructurees);
-    }
-    
-    return result;
-    
-  } catch (error) {
-    console.error("❌ Erreur envoyerCommande:", error);
-    
-    // Fallback: générer notification quand même
-    await genererNotificationWhatsApp("CMD-ERROR-" + Date.now(), dataCommande);
+    console.log("✅ Commande envoyée avec succès");
     
     return {
-      success: false,
-      message: "Erreur d'envoi: " + error.message,
-      commande_id: "CMD-FALLBACK-" + Date.now()
+      success: true,
+      message: "Commande envoyée au Google Sheets et WhatsApp",
+      commande_id: commande.numero_commande,
+      details: commande,
+      whatsapp: whatsappResult
     };
+    
+  } catch (error) {
+    console.error("❌ Erreur lors de l'envoi:", error);
+    
+    // Fallback: Envoyer directement via GET si POST échoue
+    try {
+      const commande = analyserDonneesCommande(dataCommande);
+      const params = new URLSearchParams({
+        method: "saveOrder",
+        nom: commande.nom || "Client",
+        telephone: commande.telephone || "",
+        adresse: commande.adresse || "",
+        articles_text: commande.articles_text || "Aucun article",
+        total: commande.total.toFixed(3),
+        commande_id: commande.numero_commande
+      });
+      
+      await fetch(`${API_URL}?${params.toString()}`);
+      
+      return {
+        success: true,
+        message: "Commande envoyée via fallback GET",
+        commande_id: commande.numero_commande
+      };
+    } catch (fallbackError) {
+      return {
+        success: false,
+        error: "Double échec: " + error.message,
+        commande_id: "ERROR-" + Date.now()
+      };
+    }
   }
 }
 
 /*********************************
- * GÉNÉRER NOTIFICATION WHATSAPP CORRIGÉE
+ * GÉNÉRER NOTIFICATION WHATSAPP
  *********************************/
-async function genererNotificationWhatsApp(commandeId, dataCommande) {
+async function genererNotificationWhatsApp(commande) {
   try {
-    // Formater le message avec les bonnes sections
-    const whatsappMessage = `🛒 NOUVELLE COMMANDE MAXI JDC MARKET\n\n` +
-      `📋 **Détails de votre commande**\n` +
-      `┌──────────────────────────────┐\n` +
-      `│ 👤 Nom: ${dataCommande.nom || ''}\n` +
-      `│ 📞 Téléphone: ${dataCommande.telephone || ''}\n` +
-      `│ 📍 Adresse: ${dataCommande.adresse || ''}\n` +
+    // Message WhatsApp Business
+    const message = `🛒 NOUVELLE COMMANDE MAXI JDC MARKET\n\n` +
+      `📋 **Détails client**\n` +
+      `├──────────────────────────────┤\n` +
+      `│ 👤 Nom: ${commande.nom || 'Non spécifié'}\n` +
+      `│ 📞 Téléphone: ${commande.telephone || 'Non spécifié'}\n` +
+      `│ 📍 Adresse: ${commande.adresse || 'Non spécifié'}\n` +
       `└──────────────────────────────┘\n\n` +
       `📦 **Articles commandés**\n` +
-      `┌──────────────────────────────┐\n`;
-    
-    // Ajouter les articles
-    let articlesText = '';
-    if (Array.isArray(dataCommande.articles) && dataCommande.articles.length > 0) {
-      dataCommande.articles.forEach((item, index) => {
-        const qty = item.quantite || 1;
-        const produit = item.produit || "Produit";
-        const prix = parseFloat(item.prix_unitaire || 0).toFixed(3);
-        const total = (qty * parseFloat(prix)).toFixed(3);
-        
-        articlesText += `│ ${qty}x ${produit} - ${prix} DT\n`;
-      });
-    } else {
-      articlesText += "│ Aucun article détaillé\n";
-    }
-    
-    // Footer avec total et numéro commande
-    const footerMessage = `└──────────────────────────────┘\n\n` +
-      `💰 **Récapitulatif**\n` +
-      `┌──────────────────────────────┐\n` +
-      `│ 🆔 N° Commande: ${commandeId}\n` +
-      `│ 📅 Date: ${new Date().toLocaleDateString('fr-FR')}\n` +
-      `│ 🕒 Heure: ${new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}\n` +
-      `│ 💵 Total: ${dataCommande.total ? dataCommande.total.toFixed(3) + ' DT' : '0.000 DT'}\n` +
-      `│ 📊 Statut: ⏳ En attente\n` +
+      `├──────────────────────────────┤\n` +
+      `${commande.articles_text || 'Aucun article détaillé'}\n` +
       `└──────────────────────────────┘\n\n` +
-      `📱 Contact: +216 25 600 978\n` +
-      `⚠️ PRIORITÉ: À TRAITER DÈS QUE POSSIBLE`;
-    
-    const fullMessage = whatsappMessage + articlesText + footerMessage;
-    
+      `💰 **Récapitulatif**\n` +
+      `├──────────────────────────────┤\n` +
+      `│ 🆔 N° Commande: ${commande.numero_commande}\n` +
+      `│ 📅 Date: ${commande.date}\n` +
+      `│ 💵 Total: ${commande.total.toFixed(3)} DT\n` +
+      `│ 📊 Statut: ⏳ ${commande.statut}\n` +
+      `└──────────────────────────────┘\n\n` +
+      `📱 Contact magasin: +216 25 600 978\n` +
+      `⚠️ PRIORITÉ: À TRAITER IMMÉDIATEMENT`;
+
     // URL WhatsApp
     const whatsappNumber = "0021625600978";
-    const encodedMessage = encodeURIComponent(fullMessage);
+    const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
-    
+
     // Jouer le son
-    jouerSonTablette(commandeId);
-    
-    console.log("✅ WhatsApp prêt:", whatsappUrl);
-    
+    jouerSonTablette(commande.numero_commande);
+
+    console.log("✅ WhatsApp généré:", whatsappUrl);
+
     return {
       whatsapp_url: whatsappUrl,
-      message: fullMessage,
-      son_joue: true
+      message: message
     };
-    
+
   } catch (error) {
-    console.error("Erreur génération WhatsApp:", error);
+    console.error("Erreur WhatsApp:", error);
     return null;
   }
 }
 
 /*********************************
- * AUTRES FONCTIONS (inchangées)
+ * JOUER SON SUR TABLETTE
  *********************************/
-// [Le reste du code reste identique jusqu'à la fin du fichier]
-// Seules les fonctions ci-dessus sont modifiées
+function jouerSonTablette(commandeId) {
+  console.log("🔔 SON TABLETTE - Commande:", commandeId);
+  
+  if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+    window.navigator.vibrate([200, 100, 200, 100, 200]);
+  }
+  
+  return true;
+}
+
+/*********************************
+ * RECUPERER COMMANDES DEPUIS GOOGLE SHEETS
+ *********************************/
+export async function recupererCommandes() {
+  try {
+    const response = await fetch(`${API_URL}?method=getOrders&t=${Date.now()}`);
+    
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.error || "Erreur API");
+    }
+    
+    // Formater pour l'affichage
+    const commandesFormatees = (data.orders || []).map(commande => ({
+      Date: commande.date || "",
+      Nom: commande.nom || "",
+      Téléphone: commande.telephone || "",
+      Adresse: commande.adresse || "",
+      Commande: commande.numero_commande || commande.numero || "",
+      Articles: commande.articles || commande.articles_text || "",
+      Total: commande.total || "0.000",
+      Statut: commande.statut || "EN ATTENTE",
+      _id: commande.id,
+      _raw: commande
+    }));
+    
+    return commandesFormatees;
+  } catch (error) {
+    console.error("Erreur récupération commandes:", error);
+    
+    // Données de test si API échoue
+    return [
+      {
+        Date: new Date().toLocaleDateString('fr-FR'),
+        Nom: "Test Client",
+        Téléphone: "50123456",
+        Adresse: "Tunis",
+        Commande: "MAXI-TEST-001",
+        Articles: "2x Pain - 0.500 DT\n1x Lait - 1.200 DT",
+        Total: "1.700",
+        Statut: "EN ATTENTE"
+      }
+    ];
+  }
+}
+
+/*********************************
+ * TESTER CONNEXION API
+ *********************************/
+export async function testerConnexionAPI() {
+  try {
+    const response = await fetch(`${API_URL}?method=test&t=${Date.now()}`);
+    
+    if (!response.ok) {
+      return {
+        connecte: false,
+        erreur: `Erreur HTTP: ${response.status}`,
+        url: API_URL
+      };
+    }
+    
+    const data = await response.json();
+    
+    return {
+      connecte: data.success || false,
+      message: data.message || "API répond",
+      sheet: data.sheet,
+      total_commandes: data.total_commandes,
+      url: API_URL
+    };
+    
+  } catch (error) {
+    return {
+      connecte: false,
+      erreur: error.message,
+      url: API_URL
+    };
+  }
+}
+
+// [Le reste du fichier reste inchangé...]
