@@ -2,7 +2,7 @@
  * CONFIGURATION API - MAXI JDC MARKET
  *********************************/
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxx_3bZ50K7fr2mU2qCxzUnEU_L7cIKaUwBBr2_SiCnSXvFJsPoSdzwHJYXEcOaidHa/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxvNHFeB-Rhmi5HkMjUmKSn_wIqxpR9ayq2Rh-wWqnBGarI17WamzCzbWBG9nkic0-k/exec";
 
 /*********************************
  * ANALYSER DONNÉES COMMANDE
