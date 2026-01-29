@@ -3,7 +3,7 @@
  *********************************/
 
 // URL de l'API Google Apps Script
-const API_URL = "https://script.google.com/macros/s/AKfycbwfTa_rv1nOi0kMT_RtjfD_Q0syweIhWxSRCRREZFz-yQYmgXKHNupfzpe3W3-ap7Pe/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxx_3bZ50K7fr2mU2qCxzUnEU_L7cIKaUwBBr2_SiCnSXvFJsPoSdzwHJYXEcOaidHa/exec";
 
 /*********************************
  * ANALYSER ET STRUCTURER LES DONNÉES COMMANDE
