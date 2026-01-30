@@ -1,7 +1,7 @@
 // validation-protection.js - PROTECTION ANTI-DOUBLON POUR MAXI JDC MARKET
 // À placer dans le même dossier que vos fichiers HTML
 
-const SCRIPT_URL = window.APP_CONFIG ? window.APP_CONFIG.googleScriptUrl : 'https://script.google.com/macros/s/AKfycbw-gHqEjb1RmcL14F165QAzu96pkZxpdTS3Ms1jaVWpehJnU0nkp1iH_izqj4xMHo_a/exec';
+
 
 let sessionId = null;
 let isSubmitting = false;
