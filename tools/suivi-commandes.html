@@ -1324,6 +1324,235 @@ async function applySuiviFix(){
 window.addEventListener("load", () => setTimeout(applySuiviFix, 700));
 </script>
 
+<script>
+/* =========================================================
+   PATCH SUIVI COMMANDE - FIX CLIENT + TELEPHONE + ADRESSE + TOTAL + ARTICLES
+   - Ne touche pas l’interface
+   - Ne casse pas les fonctions existantes
+   - Lit l’API getOrders (Code.gs 6.6) : nom_client, telephone, adresse, maps_url, articles, total, statut
+========================================================= */
+
+const API_SUIVI_FIX = {
+  url: "https://script.google.com/macros/s/AKfycbxIuF0Xx6zRg3qX9MLFl57BTcvIP3XLNLWr5uD44m3CXKt4saBHaTKEXjKUSDr_F98N/exec"
+};
+
+function escapeHtml(str){
+  return String(str ?? "").replace(/[&<>"']/g, (m) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+function digitsOnly(v){ return String(v ?? "").replace(/[^\d]/g, ""); }
+
+function normalizeOrder(o){
+  o = o || {};
+  const nom = o.nom_client ?? o.nom ?? o.client ?? o.customer ?? "Client";
+  const tel = o.telephone ?? o.tel ?? o.phone ?? "";
+  const adr = o.adresse ?? o.address ?? "";
+  const items = o.articles ?? o.items ?? o.cart ?? o.panier ?? "";
+  const total = (o.total ?? o.montant ?? o.amount ?? 0);
+
+  const maps = o.maps_url || (adr
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(adr)}`
+    : ""
+  );
+
+  return {
+    ...o,
+    commande_id: String(o.commande_id ?? o.commande ?? o.numero ?? o.id ?? "").trim(),
+    nom_client: String(nom || "Client"),
+    telephone: String(tel || ""),
+    telephone_digits: digitsOnly(tel),
+    adresse: String(adr || ""),
+    maps_url: maps,
+    articles: String(items || ""),
+    total: Number(total || 0),
+    statut: String(o.statut ?? o.status ?? "")
+  };
+}
+
+async function apiGet(method){
+  const u = new URL(API_SUIVI_FIX.url);
+  u.searchParams.set("method", method);
+  u.searchParams.set("t", Date.now());
+  const res = await fetch(u.toString());
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return await res.json();
+}
+
+/* ----------- Détection & remplissage DOM (sans dépendre d’IDs) ----------- */
+function findTextNodes(selector="*"){
+  return Array.from(document.querySelectorAll(selector))
+    .filter(el => el && el.children && el.children.length === 0)
+    .filter(el => (el.textContent ?? "").trim().length > 0);
+}
+
+function setValueNearLabelExact(label, valueHtml){
+  // Cherche un libellé exact "Client" / "Téléphone" / "Adresse"
+  const nodes = findTextNodes();
+  const lab = nodes.find(n => (n.textContent||"").trim().toLowerCase() === label.toLowerCase());
+  if (!lab) return false;
+
+  const box = lab.closest("div") || lab.parentElement;
+  if (!box) return false;
+
+  // Dans le même bloc, trouve un élément qui contient "—" ou vide
+  const candidates = Array.from(box.querySelectorAll("div,span,p")).filter(x => x.children.length === 0);
+  for (const c of candidates){
+    const t = (c.textContent||"").trim();
+    if (t === "—" || t === "-" || t === "") {
+      c.innerHTML = valueHtml;
+      return true;
+    }
+  }
+  return false;
+}
+
+function setTotalBottom(valueText){
+  // Cherche la valeur affichée "0.00 dt" ou "0,00 dt"
+  const nodes = findTextNodes();
+  const n = nodes.find(x => {
+    const t = (x.textContent||"").trim().toLowerCase();
+    return t === "0.00 dt" || t === "0,00 dt" || t === "0 dt";
+  });
+  if (!n) return false;
+  n.textContent = valueText;
+  return true;
+}
+
+function setArticlesBlock(order){
+  // Remplace "Aucun détail d'articles" par la liste
+  const nodes = findTextNodes();
+  const target = nodes.find(n => (n.textContent||"").trim().toLowerCase().includes("aucun détail d'articles"));
+  if (!target) return false;
+
+  const lines = String(order.articles || "").split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+
+  if (!lines.length) {
+    target.innerHTML = `<div style="opacity:.7">Aucun détail d'articles</div>`;
+    return true;
+  }
+
+  target.innerHTML = `
+    <ul style="margin:0;padding-left:18px;text-align:left;display:inline-block;">
+      ${lines.map(l => `<li>${escapeHtml(l)}</li>`).join("")}
+    </ul>
+  `;
+  return true;
+}
+
+function getCommandeIdFromPage(){
+  const txt = document.body.innerText || "";
+  const m = txt.match(/\bCMD[-A-Z0-9._/]{6,}\b/);
+  return m ? m[0].trim() : "";
+}
+
+function getSearchInputValue(){
+  // Ton champ de recherche contient un CMD-... (capture)
+  const inputs = Array.from(document.querySelectorAll("input[type='text'], input[type='search']"));
+  for (const inp of inputs){
+    const v = (inp.value || "").trim();
+    if (/^CMD[-A-Z0-9._/]{6,}$/i.test(v)) return v;
+  }
+  return "";
+}
+
+function hookSearchButton(run){
+  // Ton bouton "Rechercher" (capture) : on s’accroche dessus sans casser onclick existant
+  const btns = Array.from(document.querySelectorAll("button"));
+  const searchBtn = btns.find(b => (b.textContent||"").trim().toLowerCase().includes("rechercher"));
+  if (!searchBtn) return;
+
+  const old = searchBtn.onclick;
+  searchBtn.onclick = function(ev){
+    try { if (typeof old === "function") old.call(this, ev); } catch(_){}
+    // après que ton code affiche la commande, on patch
+    setTimeout(run, 300);
+    setTimeout(run, 900);
+  };
+}
+
+/* ----------- MAIN FIX ----------- */
+async function applySuiviFix(){
+  try{
+    // param URL: ?phone=... ou commande_id/commande
+    const url = new URL(location.href);
+    const phoneParam = digitsOnly(url.searchParams.get("phone") || "");
+    const cmdParam = (url.searchParams.get("commande_id") || url.searchParams.get("commande") || "").trim();
+
+    const cmdFromInput = getSearchInputValue();
+    const cmdFromDom = getCommandeIdFromPage();
+    const cmd = cmdParam || cmdFromInput || cmdFromDom;
+
+    const res = await apiGet("getOrders");
+    if (!res || !res.success) return;
+
+    const orders = (res.orders || []).map(normalizeOrder);
+
+    let order = null;
+
+    // priorité: commande_id
+    if (cmd){
+      order = orders.find(o => String(o.commande_id||"").trim() === cmd) || null;
+    }
+
+    // fallback: phone
+    if (!order && phoneParam){
+      const list = orders.filter(o => {
+        const d = o.telephone_digits || "";
+        return d && (d.endsWith(phoneParam) || phoneParam.endsWith(d));
+      });
+      order = list.length ? list[0] : null;
+    }
+
+    if (!order) return;
+
+    // CLIENT / TEL / ADRESSE
+    setValueNearLabelExact("Client", escapeHtml(order.nom_client || "Client"));
+    setValueNearLabelExact("Téléphone", escapeHtml(order.telephone || "—"));
+
+    if (order.maps_url) {
+      setValueNearLabelExact("Adresse",
+        `<a href="${order.maps_url}" target="_blank" rel="noopener noreferrer"
+            style="color:#7dd3fc;text-decoration:underline;">
+          ${escapeHtml(order.adresse || "Ouvrir localisation")}
+        </a>`
+      );
+    } else {
+      setValueNearLabelExact("Adresse", escapeHtml(order.adresse || "—"));
+    }
+
+    // TOTAL
+    const totalTxt = (Number(order.total)||0).toFixed(2).replace(".", ",") + " dt";
+    setTotalBottom(totalTxt);
+
+    // ARTICLES
+    setArticlesBlock(order);
+
+  } catch(e){
+    console.warn("Suivi FIX error:", e);
+  }
+}
+
+/* ----------- AUTO RUN + HOOK EVENTS ----------- */
+window.addEventListener("load", () => {
+  // patch au chargement
+  setTimeout(applySuiviFix, 500);
+  setTimeout(applySuiviFix, 1200);
+
+  // patch après clic sur Rechercher
+  hookSearchButton(applySuiviFix);
+
+  // patch quand l’utilisateur tape un CMD...
+  document.addEventListener("input", (e) => {
+    const t = e.target;
+    if (!t || !(t.tagName === "INPUT")) return;
+    const v = (t.value || "").trim();
+    if (/^CMD[-A-Z0-9._/]{6,}$/i.test(v)) {
+      setTimeout(applySuiviFix, 500);
+    }
+  });
+});
+</script>
 
   
 </body>
