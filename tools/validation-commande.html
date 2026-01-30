@@ -1,483 +1,259 @@
-<script>
-/**
- * ==========================
- *  CONFIGURATION
- * ==========================
- */
-const API_URL = "https://script.google.com/macros/s/AKfycbxsk881kYIgHciL3kwI4vP9EjOofTNhNKvnqu5GkmdLuKSIg_DiRmFN_SOnXUPCYdX3/exec";
-const WHATSAPP_NUMBER = "0021625600978";
-
-// ✅ IMPORTANT: même token que dans Code.gs
-const API_TOKEN = "CHANGE-ME-SECRET-123456";
-
-// ✅ verrou anti double-envoi
-let SENDING_LOCK = false;
-
-/**
- * ==========================
- *  OUTILS
- * ==========================
- */
-function showToast(text, type = "ok") {
-  const el = document.getElementById("toast");
-  el.textContent = text;
-  el.className = "toast show " + type;
-  setTimeout(() => el.className = "toast", 3200);
-}
-
-function playTabletSound() {
-  try {
-    document.getElementById("soundAlert").classList.add("show");
-    setTimeout(() => document.getElementById("soundAlert").classList.remove("show"), 5000);
-  } catch (_) {}
-}
-
-function downloadText(filename, text) {
-  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    URL.revokeObjectURL(a.href);
-    a.remove();
-  }, 0);
-}
-
-// ✅ Normalise MAXI-XXXX -> CMD-MAXI-XXXX (pour matcher Sheet)
-function normalizeCommandeId(id) {
-  const s = String(id || "").trim();
-  if (!s) return "";
-  if (/^CMD[-_ ]?MAXI/i.test(s)) {
-    return s.replace(/\s+/g, "-").replace(/_+/g, "-").replace(/-+/g, "-").toUpperCase();
-  }
-  if (/^MAXI/i.test(s)) {
-    return ("CMD-" + s).replace(/\s+/g, "-").replace(/_+/g, "-").replace(/-+/g, "-").toUpperCase();
-  }
-  // fallback si autre format
-  return s.toUpperCase();
-}
-
-/**
- * ==========================
- *  PARSING COMMANDE
- * ==========================
- */
-function analyserDonneesCommande(rawData) {
-  const result = {
-    nom: "",
-    telephone: "",
-    adresse: "",
-    articles: [],
-    total: 0,
-    numero_commande: "",
-    date: new Date().toISOString(),
-    statut: "En attente"
-  };
-
-  if (typeof rawData === "string") {
-    const lignes = rawData.split('\n').map(l => l.trim()).filter(Boolean);
-
-    let section = "none";
-
-    lignes.forEach(ligne => {
-      if (
-        ligne.includes("Détails de votre commande") ||
-        ligne.includes("Informations client") ||
-        ligne.includes("👤") || ligne.includes("📞") || ligne.includes("📍")
-      ) {
-        section = "details";
-        return;
-      }
-
-      if (
-        ligne.includes("Articles commandés") ||
-        ligne.includes("🛒") ||
-        ligne.includes("ARTICLES") ||
-        /^\d+x\s/.test(ligne)
-      ) {
-        section = "articles";
-        if (!ligne.includes("Articles commandés") && !ligne.includes("🛒")) {
-          parserArticle(ligne, result.articles);
-        }
-        return;
-      }
-
-      if (
-        ligne.includes("TOTAL") ||
-        ligne.includes("💰") ||
-        ligne.includes("Total") ||
-        ligne.includes("MAXI-") ||
-        ligne.includes("CMD-MAXI") ||
-        /^\d+\.\d{3}\s*(DT|dt|TND)/.test(ligne)
-      ) {
-        section = "total";
-      }
-
-      switch (section) {
-        case "details":
-          if (ligne.includes("Nom:") || ligne.includes("👤")) {
-            result.nom = ligne.replace(/Nom:|👤/g, "").trim();
-          } else if (ligne.includes("Téléphone:") || ligne.includes("📞") || /\+216/.test(ligne)) {
-            result.telephone = ligne.replace(/Téléphone:|📞/g, "").trim();
-          } else if (ligne.includes("Adresse:") || ligne.includes("📍")) {
-            result.adresse = ligne.replace(/Adresse:|📍/g, "").trim();
-          }
-          break;
-
-        case "articles":
-          if (ligne && !ligne.includes("Articles commandés") && !ligne.includes("🛒")) {
-            parserArticle(ligne, result.articles);
-          }
-          break;
-
-        case "total":
-          // Numéro commande
-          if (ligne.includes("CMD-MAXI") || ligne.includes("MAXI-") || ligne.includes("Commande #")) {
-            result.numero_commande = ligne.replace(/Commande #/g, "").trim();
-          }
-          // Total
-          else if (ligne.includes("TOTAL") || ligne.includes("💰") || ligne.includes("Total:") || ligne.includes("Total")) {
-            const m = ligne.match(/(\d+(?:[.,]\d+)?)\s*(DT|dt|TND|tnd)/i);
-            if (m) result.total = parseFloat(String(m[1]).replace(",", "."));
-          }
-          break;
-      }
-    });
-  } else if (rawData && typeof rawData === "object") {
-    Object.assign(result, rawData);
-  }
-
-  // Générer numéro commande si vide
-  if (!result.numero_commande) {
-    const now = new Date();
-    const dateStr = now.getFullYear().toString()
-      + (now.getMonth() + 1).toString().padStart(2, '0')
-      + now.getDate().toString().padStart(2, '0');
-    const timeStr = now.getHours().toString().padStart(2, '0')
-      + now.getMinutes().toString().padStart(2, '0');
-    result.numero_commande = `CMD-MAXI-${dateStr}-${timeStr}`;
-  }
-
-  // ✅ normalisation finale
-  result.numero_commande = normalizeCommandeId(result.numero_commande);
-
-  // recalcul total si 0
-  if ((!result.total || result.total <= 0) && Array.isArray(result.articles) && result.articles.length) {
-    const t = result.articles.reduce((s, a) => s + (Number(a.prix_total) || 0), 0);
-    if (t > 0) result.total = t;
-  }
-
-  return result;
-}
-
-function parserArticle(ligne, articlesArray) {
-  ligne = ligne.trim();
-
-  // "2x Produit - 15.500 DT"
-  const match1 = ligne.match(/(\d+)\s*x\s*([^-]+)-\s*(\d+\.?\d*)\s*(DT|dt|TND|tnd)?/i);
-  if (match1) {
-    const q = parseInt(match1[1], 10);
-    const pu = parseFloat(match1[3]);
-    articlesArray.push({
-      produit: match1[2].trim(),
-      quantite: q,
-      prix_unitaire: pu,
-      prix_total: q * pu
-    });
-    return;
-  }
-
-  // "Produit: 15.500 DT x2"
-  const match2 = ligne.match(/(.+):\s*(\d+\.?\d*)\s*(DT|dt|TND|tnd)?\s*x\s*(\d+)/i);
-  if (match2) {
-    const q = parseInt(match2[4], 10);
-    const pu = parseFloat(match2[2]);
-    articlesArray.push({
-      produit: match2[1].trim(),
-      quantite: q,
-      prix_unitaire: pu,
-      prix_total: q * pu
-    });
-    return;
-  }
-
-  // "2x Produit"
-  const match3 = ligne.match(/(\d+)\s*x\s*(.+)/i);
-  if (match3) {
-    articlesArray.push({
-      produit: match3[2].trim(),
-      quantite: parseInt(match3[1], 10),
-      prix_unitaire: 0,
-      prix_total: 0
-    });
-  }
-}
-
-/**
- * ==========================
- *  UI (affichage sections)
- * ==========================
- */
-function afficherSectionsStructurees(commande) {
-  const container = document.getElementById("sectionsContainer");
-
-  let html = `
-    <div class="section details">
-      <div class="section-header"><i class="fas fa-user"></i><span>Détails client</span></div>
-      <div class="section-content">
-        <div class="info-row"><div class="info-label">👤 Nom:</div><div class="info-value">${commande.nom || "Non spécifié"}</div></div>
-        <div class="info-row"><div class="info-label">📞 Téléphone:</div><div class="info-value">${commande.telephone || "Non spécifié"}</div></div>
-        <div class="info-row"><div class="info-label">📍 Adresse:</div><div class="info-value">${commande.adresse || "Non spécifié"}</div></div>
-      </div>
-    </div>
-  `;
-
-  html += `
-    <div class="section articles">
-      <div class="section-header"><i class="fas fa-shopping-cart"></i><span>Articles commandés</span></div>
-      <div class="section-content">
-  `;
-
-  if (commande.articles && commande.articles.length > 0) {
-    commande.articles.forEach(article => {
-      html += `
-        <div class="article-item">
-          <div class="article-name">${article.produit}</div>
-          <div class="article-qty">${article.quantite}x</div>
-          <div class="article-price">${article.prix_unitaire ? Number(article.prix_unitaire).toFixed(3) + ' DT' : '—'}</div>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAXI JDC MARKET - Commande</title>
+    <style>
+        /* Gardez votre style existant */
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .section { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 10px; }
+        button { background: #4CAF50; color: white; border: none; padding: 15px; border-radius: 5px; cursor: pointer; }
+        button:disabled { background: #cccccc; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MAXI JDC MARKET - Commande</h1>
+        
+        <div class="section">
+            <h3>Détails du client</h3>
+            <p><strong>Nom:</strong> <span id="client-nom">Lotfi</span></p>
+            <p><strong>Téléphone:</strong> <span id="client-telephone">+216 55532482</span></p>
+            <p><strong>Adresse:</strong> <span id="client-adresse">Jardins De Carthage</span></p>
+            <p><strong>GPS:</strong> <span id="client-gps">36.858550, 10.301463</span></p>
         </div>
-      `;
-    });
-  } else {
-    html += `<div style="color: var(--muted); font-style: italic;">Aucun article détaillé</div>`;
-  }
-  html += `</div></div>`;
-
-  html += `
-    <div class="section total">
-      <div class="section-header"><i class="fas fa-file-invoice-dollar"></i><span>Récapitulatif</span></div>
-      <div class="section-content">
-        <div class="info-row"><div class="info-label">🆔 N° Commande:</div><div class="info-value" style="font-family: monospace;">${commande.numero_commande}</div></div>
-        <div class="info-row"><div class="info-label">💰 Total:</div><div class="info-value" style="font-weight:bold;color:#a8ffe8;">${commande.total ? Number(commande.total).toFixed(3) + ' DT' : '0.000 DT'}</div></div>
-        <div class="info-row"><div class="info-label">📅 Date:</div><div class="info-value">${new Date(commande.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div></div>
-      </div>
+        
+        <div class="section">
+            <h3>Articles commandés</h3>
+            <div id="articles-list">
+                <p>2x BEBE LILAS CONFORT 15-25KG-N5 (2310) - 37,00 dt</p>
+                <p>3x 30 OEUFS JAUNE ORANGE EL FIRMA (3949) - 45,00 dt</p>
+                <p>2x ABE CLOUDY (3581) - 18,90 dt</p>
+            </div>
+            <p><strong>Sous-total:</strong> <span id="sous-total">100,90 dt</span></p>
+            <p><strong>Livraison:</strong> <span id="livraison">3,00 dt</span></p>
+            <p><strong>TOTAL:</strong> <span id="total-commande" style="font-size: 1.5em; color: #2E7D32;">103,90 dt</span></p>
+        </div>
+        
+        <div class="section">
+            <h3>Validation</h3>
+            <p id="validation-status">Prêt à valider la commande</p>
+            <button id="btn-valider" onclick="validateAndSendOrder()">🔒 Valider et envoyer la commande</button>
+            <button id="btn-reset" onclick="resetSession()" style="background: #ff9800; margin-left: 10px;">🔄 Réinitialiser</button>
+        </div>
+        
+        <div id="debug-info" style="font-size: 0.8em; color: #666; margin-top: 20px;"></div>
     </div>
-  `;
 
-  container.innerHTML = html;
+    <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2qQOgP-51p1QpQoz13HfrW7OQziVEBN_8DM1nJiA4Gf0PJvZp7nRzDuo4izzx-U5p/exec';
+    let sessionId = null;
+    let isSubmitting = false;
 
-  document.getElementById("orderIdText").textContent = commande.numero_commande || "—";
-  document.getElementById("statusText").textContent = commande.statut || "En attente";
-}
-
-/**
- * ==========================
- *  API : ENVOI
- * ==========================
- */
-async function envoyerCommandeAPI(commande) {
-  const payload = {
-    method: "saveOrder",
-    token: API_TOKEN, // ✅ obligatoire
-    nom_client: commande.nom,
-    telephone: commande.telephone,
-    adresse: commande.adresse,
-    articles: JSON.stringify(commande.articles || []),
-    total: Number(commande.total || 0).toFixed(2),
-    commande_id: commande.numero_commande // ✅ déjà normalisé CMD-MAXI-...
-  };
-
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams(payload).toString()
-  });
-
-  if (!response.ok) {
-    throw new Error(`Erreur HTTP: ${response.status}`);
-  }
-
-  return await response.json();
-}
-
-/**
- * ==========================
- *  VALIDATION (ANTI DOUBLE-CLICK)
- * ==========================
- */
-async function validerEtEnvoyerCommande(commande) {
-  const btn = document.getElementById("validateSendBtn");
-
-  // ✅ anti double clic
-  if (SENDING_LOCK) return;
-  SENDING_LOCK = true;
-
-  // UI lock
-  const oldHtml = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Envoi en cours...`;
-
-  try {
-    // ✅ blocage panier vide
-    const hasArticles = Array.isArray(commande.articles) && commande.articles.length > 0;
-    const total = Number(commande.total || 0);
-
-    if (!hasArticles || total <= 0) {
-      showToast("❌ Panier vide ou total = 0 (commande non envoyée)", "err");
-      return;
+    // 1. Initialiser la session
+    async function initSession() {
+        sessionId = localStorage.getItem('maxi_session_id');
+        
+        if (!sessionId) {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=generatesession`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    sessionId = data.session_id;
+                    localStorage.setItem('maxi_session_id', sessionId);
+                    updateDebugInfo(`Session créée: ${sessionId.substring(0, 10)}...`);
+                }
+            } catch (error) {
+                console.error('Erreur création session:', error);
+            }
+        } else {
+            updateDebugInfo(`Session existante: ${sessionId.substring(0, 10)}...`);
+            checkSessionStatus();
+        }
     }
 
-    showToast("⏳ Envoi de la commande...", "ok");
-
-    const result = await envoyerCommandeAPI(commande);
-
-    // ✅ serveur: ignored / duplicated
-    if (result && result.ignored) {
-      showToast(result.message || "⚠️ Commande ignorée", "err");
-      return;
+    // 2. Vérifier statut session
+    async function checkSessionStatus() {
+        if (!sessionId) return;
+        
+        try {
+            const response = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${sessionId}`);
+            const data = await response.json();
+            
+            if (data.success && data.already_validated) {
+                disableValidationButton('✅ Commande déjà validée');
+                updateStatus('Cette commande a déjà été validée.');
+            }
+        } catch (error) {
+            console.error('Erreur vérification session:', error);
+        }
     }
-    if (result && result.duplicated) {
-      showToast("ℹ️ Commande déjà enregistrée (doublon bloqué).", "ok");
-      // on peut quand même ouvrir WhatsApp si tu veux, mais mieux NON.
-      return;
+
+    // 3. Fonction principale de validation
+    async function validateAndSendOrder() {
+        if (isSubmitting) return;
+        
+        if (!sessionId) {
+            alert('Session non initialisée. Rechargez la page.');
+            return;
+        }
+        
+        // Désactiver le bouton immédiatement
+        isSubmitting = true;
+        const btn = document.getElementById('btn-valider');
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Envoi en cours...';
+        
+        try {
+            // Vérifier si la session peut valider
+            const checkResponse = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${sessionId}`);
+            const checkData = await checkResponse.json();
+            
+            if (!checkData.can_validate) {
+                disableValidationButton('✅ Déjà validé');
+                updateStatus('Cette commande a déjà été validée.', 'error');
+                return;
+            }
+            
+            // Préparer les données CORRECTEMENT
+            const orderData = prepareOrderData();
+            orderData.session_id = sessionId;
+            
+            console.log('📤 Données envoyées:', orderData);
+            
+            // ENVOYER EN JSON FORMAT CORRECT
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderData)
+            });
+            
+            const result = await response.json();
+            console.log('📥 Réponse reçue:', result);
+            
+            if (result.success) {
+                // SUCCÈS
+                disableValidationButton('✅ Commande envoyée');
+                btn.style.background = '#2E7D32';
+                updateStatus(`Commande #${result.commande_id} validée ! Total: ${result.total} dt`, 'success');
+                
+                // Afficher notification
+                showNotification(`✅ Commande ${result.commande_id} validée !`, 'success');
+                
+            } else {
+                // ÉCHEC
+                if (result.already_validated) {
+                    disableValidationButton('✅ Déjà validé');
+                    updateStatus('Cette commande a déjà été validée.', 'info');
+                } else {
+                    // Réactiver le bouton
+                    btn.disabled = false;
+                    btn.innerHTML = '🔒 Valider et envoyer';
+                    isSubmitting = false;
+                    
+                    updateStatus(`Erreur: ${result.message || 'Inconnue'}`, 'error');
+                    showNotification('❌ Erreur de validation', 'error');
+                }
+            }
+            
+        } catch (error) {
+            // ERREUR RÉSEAU
+            console.error('❌ Erreur:', error);
+            
+            btn.disabled = false;
+            btn.innerHTML = '🔒 Valider et envoyer';
+            isSubmitting = false;
+            
+            updateStatus('Erreur réseau. Réessayez.', 'error');
+            showNotification('🌐 Erreur de connexion', 'error');
+        }
     }
 
-    if (result.success) {
-      showToast("✅ Commande validée et envoyée au magasin", "ok");
-      playTabletSound();
-
-      const message =
-        `🛒 NOUVELLE COMMANDE VALIDÉE\n\n` +
-        `Client: ${commande.nom}\n` +
-        `Téléphone: ${commande.telephone}\n` +
-        `Adresse: ${commande.adresse}\n` +
-        `N° Commande: ${commande.numero_commande}\n` +
-        `Total: ${Number(commande.total).toFixed(3)} DT\n\n` +
-        `Statut: ✅ VALIDÉE - À PRÉPARER`;
-
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, "_blank");
-
-      commande.statut = "Validée";
-      afficherSectionsStructurees(commande);
-    } else {
-      showToast("❌ Erreur: " + (result.error || result.message || "Inconnue"), "err");
+    // 4. Préparer les données (FORMAT CORRECT)
+    function prepareOrderData() {
+        // Format JSON structuré
+        return {
+            nom_client: document.getElementById('client-nom').textContent,
+            telephone: document.getElementById('client-telephone').textContent,
+            adresse: document.getElementById('client-adresse').textContent,
+            gps: document.getElementById('client-gps').textContent,
+            
+            // Articles dans un format propre
+            articles: `
+2x BEBE LILAS CONFORT 15-25KG-N5 (2310)
+3x 30 OEUFS JAUNE ORANGE EL FIRMA (3949)
+2x ABE CLOUDY (3581)
+            `.trim(),
+            
+            // Total bien formaté
+            total: document.getElementById('total-commande').textContent
+                    .replace(' dt', '')
+                    .replace(',', '.')
+                    .trim(),
+            
+            // Numéro de commande (optionnel, sera généré si absent)
+            commande_id: `CMD-MAXI-${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${Math.floor(Math.random()*1000).toString().padStart(3, '0')}`
+        };
     }
-  } catch (error) {
-    console.error("Erreur validation:", error);
-    showToast("❌ Erreur: " + error.message, "err");
-  } finally {
-    // déverrouille après un petit délai (évite spam)
-    setTimeout(() => {
-      SENDING_LOCK = false;
-      btn.disabled = false;
-      btn.innerHTML = oldHtml;
-    }, 2500);
-  }
-}
 
-/**
- * ==========================
- *  WHATSAPP CLIENT
- * ==========================
- */
-function ouvrirWhatsAppClient(commande) {
-  if (!commande.telephone) {
-    showToast("❌ Numéro client manquant", "err");
-    return;
-  }
+    // 5. Fonctions utilitaires
+    function disableValidationButton(text) {
+        const btn = document.getElementById('btn-valider');
+        btn.disabled = true;
+        btn.innerHTML = text;
+        btn.style.cursor = 'not-allowed';
+    }
 
-  const phone = commande.telephone.replace(/\D/g, "");
-  const tnPhone = phone.length === 8 ? "216" + phone : phone.startsWith("216") ? phone : "216" + phone;
+    function updateStatus(message, type = 'info') {
+        const statusEl = document.getElementById('validation-status');
+        statusEl.textContent = message;
+        statusEl.style.color = type === 'success' ? '#2E7D32' : 
+                              type === 'error' ? '#F44336' : '#2196F3';
+    }
 
-  const message =
-    `Bonjour ${commande.nom || ""},\n\n` +
-    `Votre commande ${commande.numero_commande} a été reçue.\n` +
-    `Statut: ${commande.statut}\n` +
-    `Total: ${Number(commande.total).toFixed(3)} DT\n\n` +
-    `Merci pour votre confiance !`;
+    function updateDebugInfo(message) {
+        document.getElementById('debug-info').textContent = message;
+    }
 
-  window.open(`https://wa.me/${tnPhone}?text=${encodeURIComponent(message)}`, "_blank");
-}
+    function showNotification(message, type) {
+        // Créer une notification temporaire
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: ${type === 'success' ? '#4CAF50' : '#F44336'};
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 10000;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
 
-/**
- * ==========================
- *  INIT
- * ==========================
- */
-function getDonneesCommande() {
-  const params = new URLSearchParams(location.search);
-  const rawData = params.get("data") || params.get("commande") || "";
+    function resetSession() {
+        localStorage.removeItem('maxi_session_id');
+        sessionId = null;
+        location.reload();
+    }
 
-  if (rawData) return analyserDonneesCommande(rawData);
-
-  try {
-    const saved = localStorage.getItem("maxi_commande_en_cours");
-    if (saved) return analyserDonneesCommande(JSON.parse(saved));
-  } catch (_) {}
-
-  return analyserDonneesCommande("");
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const commande = getDonneesCommande();
-  afficherSectionsStructurees(commande);
-
-  const isNew = new URLSearchParams(location.search).get("new") === "true";
-  if (isNew) {
-    setTimeout(() => {
-      playTabletSound();
-      showToast("🎉 Nouvelle commande reçue !", "ok");
-    }, 1000);
-  }
-});
-
-// boutons
-document.getElementById("validateSendBtn").addEventListener("click", () => {
-  const commande = getDonneesCommande();
-  validerEtEnvoyerCommande(commande);
-});
-
-document.getElementById("downloadBtn").addEventListener("click", () => {
-  const commande = getDonneesCommande();
-  const text =
-    `COMMANDE MAXI JDC MARKET\n\n` +
-    `N°: ${commande.numero_commande}\n` +
-    `Date: ${new Date(commande.date).toLocaleString('fr-FR')}\n` +
-    `Client: ${commande.nom}\n` +
-    `Téléphone: ${commande.telephone}\n` +
-    `Adresse: ${commande.adresse}\n` +
-    `Total: ${Number(commande.total).toFixed(3)} DT\n` +
-    `Statut: ${commande.statut}\n\n` +
-    `Articles:\n${(commande.articles || []).map(a => `${a.quantite}x ${a.produit} - ${(a.prix_unitaire||0).toFixed(3)} DT`).join('\n')}`;
-
-  downloadText(`commande-maxi-${commande.numero_commande}.txt`, text);
-  showToast("📥 Commande téléchargée", "ok");
-});
-
-document.getElementById("whatsappBtn").addEventListener("click", () => {
-  const commande = getDonneesCommande();
-  ouvrirWhatsAppClient(commande);
-});
-
-document.getElementById("cancelBtn").addEventListener("click", () => {
-  if (confirm("Êtes-vous sûr de vouloir annuler cette commande ?")) {
-    showToast("❌ Commande annulée", "err");
-    setTimeout(() => window.close(), 1500);
-  }
-});
-
-document.getElementById("closeBtn").addEventListener("click", () => {
-  window.close();
-});
-
-// raccourcis
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") document.getElementById("closeBtn").click();
-  if (e.ctrlKey && e.key === "s") {
-    e.preventDefault();
-    document.getElementById("validateSendBtn").click();
-  }
-});
-</script>
+    // 6. Initialisation
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 MAXI JDC MARKET - Initialisation');
+        initSession();
+    });
+    </script>
+</body>
+</html>
