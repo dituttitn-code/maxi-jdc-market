@@ -3,8 +3,7 @@
  *********************************/
 
 // ✅ URL WebApp Apps Script (⚠️ sans espace au début)
-const API_URL =
-  "https://script.google.com/macros/s/AKfycbw2qQOgP-51p1QpQoz13HfrW7OQziVEBN_8DM1nJiA4Gf0PJvZp7nRzDuo4izzx-U5p/exec";
+const API_URL = window.APP_CONFIG ? window.APP_CONFIG.googleScriptUrl : "https://script.google.com/macros/s/AKfycbw2qQOgP-51p1QpQoz13HfrW7OQziVEBN_8DM1nJiA4Gf0PJvZp7nRzDuo4izzx-U5p/exec";
 
 // ✅ Token (doit être EXACTEMENT le même que dans Code.gs)
 // (Si côté serveur TOKEN_OPTIONNEL=true, il ne bloque pas même si token faux/vide)
@@ -259,4 +258,13 @@ export async function getLowStock() {
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur getLowStock");
   return data; // {threshold,count,items[]}
+}
+
+/*********************************
+ * VÉRIFICATION CONFIG.JS
+ *********************************/
+if (!window.APP_CONFIG) {
+  console.warn('⚠️ config.js non chargé. Assurez-vous que <script src="config.js"></script> est présent dans vos fichiers HTML.');
+} else {
+  console.log('✅ config.js chargé:', window.APP_CONFIG.googleScriptUrl ? 'URL configurée' : 'URL manquante');
 }
