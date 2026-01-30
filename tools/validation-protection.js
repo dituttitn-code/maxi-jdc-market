@@ -1,470 +1,635 @@
-// validation-protection.js - À placer dans le même dossier que vos autres fichiers
+// validation-protection.js - PROTECTION ANTI-DOUBLON POUR MAXI JDC MARKET
+// À placer dans le même dossier que vos fichiers HTML
 
-// URL de votre script Apps Script (REMPLACEZ par votre URL)
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2qQOgP-51p1QpQoz13HfrW7OQziVEBN_8DM1nJiA4Gf0PJvZp7nRzDuo4izzx-U5p/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-gHqEjb1RmcL14F165QAzu96pkZxpdTS3Ms1jaVWpehJnU0nkp1iH_izqj4xMHo_a/exec';
 
-// Variables globales
 let sessionId = null;
 let isSubmitting = false;
 let submitTimeout = null;
 
-// 1. PROTECTION CONTRE LES CLICS MULTIPLES
-function protectSubmitButton() {
-  // Chercher TOUS les boutons de validation possibles
-  const buttonSelectors = [
-    'button[onclick*="valider"]',
-    'button[onclick*="envoyer"]',
-    'button:contains("Valider")',
-    'button:contains("Envoyer")',
-    'button:contains("VALIDER")',
-    'button:contains("ENVOYER")',
-    '[class*="valider"]',
-    '[class*="envoyer"]',
-    '#btn-valider',
-    '#btn-envoyer',
-    '#valider-commande',
-    '#envoyer-commande',
-    '.btn-valider',
-    '.btn-envoyer'
-  ];
-
-  let submitBtn = null;
-  
-  // Essayer chaque sélecteur
-  for (const selector of buttonSelectors) {
-    try {
-      const btn = document.querySelector(selector);
-      if (btn && btn.tagName === 'BUTTON') {
-        submitBtn = btn;
-        console.log(`✅ Bouton trouvé avec: ${selector}`);
-        break;
-      }
-    } catch (e) {
-      // Ignorer les sélecteurs invalides
-    }
-  }
-
-  if (!submitBtn) {
-    console.warn('⚠️ Bouton de validation non trouvé');
-    // Chercher par texte contenu
-    const allButtons = document.querySelectorAll('button');
-    for (const btn of allButtons) {
-      const text = btn.textContent.toLowerCase();
-      if (text.includes('valider') || text.includes('envoyer')) {
-        submitBtn = btn;
-        console.log('✅ Bouton trouvé par texte:', text);
-        break;
-      }
-    }
-  }
-
-  if (!submitBtn) {
-    console.error('❌ Aucun bouton de validation trouvé sur cette page');
-    return;
-  }
-
-  const originalText = submitBtn.innerHTML;
-  const originalOnClick = submitBtn.onclick;
-  const originalBgColor = submitBtn.style.backgroundColor || '';
-
-  // 2. GÉNÉRER UNE SESSION UNIQUE
-  async function initializeSession() {
-    try {
-      const response = await fetch(`${SCRIPT_URL}?action=generatesession`);
-      const data = await response.json();
-      
-      if (data.success) {
-        sessionId = data.session_id;
-        localStorage.setItem('maxi_jdc_session', sessionId);
-        console.log('🔒 Session créée:', sessionId.substring(0, 8) + '...');
-        
-        // Vérifier si déjà validé
-        checkSessionStatus();
-      }
-    } catch (error) {
-      console.error('❌ Erreur session:', error);
-    }
-  }
-
-  // 3. VÉRIFIER STATUT SESSION
-  async function checkSessionStatus() {
-    if (!sessionId) return;
+// 1. INITIALISATION - AU CHARGEMENT DE LA PAGE
+function initValidationSystem() {
+    console.log('🚀 Initialisation système de validation...');
     
-    try {
-      const response = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${sessionId}`);
-      const data = await response.json();
-      
-      if (data.success && data.already_validated) {
-        // Désactiver le bouton si déjà validé
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '✅ Déjà validé';
-        submitBtn.style.backgroundColor = '#e0e0e0';
-        submitBtn.style.cursor = 'not-allowed';
-        
-        showMessage('Cette commande a déjà été validée. Le bouton est désactivé.', 'info');
-      }
-    } catch (error) {
-      console.error('❌ Erreur vérification:', error);
-    }
-  }
-
-  // 4. FONCTION DE VALIDATION SÉCURISÉE
-  async function secureValidateOrder() {
-    if (isSubmitting) {
-      console.log('⏳ Validation déjà en cours...');
-      return;
-    }
-    
-    // Vérifier session
-    if (!sessionId) {
-      showMessage('❌ Session non initialisée. Rechargez la page.', 'error');
-      return;
-    }
-    
-    // DÉSACTIVER IMMÉDIATEMENT LE BOUTON
-    isSubmitting = true;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '⏳ Validation en cours...';
-    submitBtn.style.backgroundColor = '#ff9800';
-    
-    // Désactiver après 30 secondes max
-    submitTimeout = setTimeout(() => {
-      if (isSubmitting) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-        submitBtn.style.backgroundColor = originalBgColor;
-        isSubmitting = false;
-        showMessage('⚠️ Délai dépassé. Réessayez.', 'warning');
-      }
-    }, 30000);
-    
-    try {
-      // VÉRIFIER SESSION AVANT ENVOI
-      const checkResponse = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${sessionId}`);
-      const checkData = await checkResponse.json();
-      
-      if (!checkData.can_validate) {
-        clearTimeout(submitTimeout);
-        
-        if (checkData.already_validated) {
-          submitBtn.innerHTML = '✅ Déjà validé';
-          submitBtn.style.backgroundColor = '#e0e0e0';
-          showMessage('Cette commande a déjà été validée.', 'info');
-        } else if (checkData.too_many_attempts) {
-          submitBtn.innerHTML = '🚫 Trop de tentatives';
-          showMessage('Trop de tentatives. Attendez 5 minutes.', 'error');
-        }
-        
-        isSubmitting = false;
+    // Vérifier si on est sur une page de commande
+    if (!isOrderPage()) {
+        console.log('📄 Page non concernée, protection inactive');
         return;
-      }
-      
-      // RÉCUPÉRER LES DONNÉES DE COMMANDE
-      const orderData = collectOrderData();
-      orderData.session_id = sessionId;
-      
-      console.log('📤 Envoi sécurisé:', orderData);
-      
-      // ENVOYER LA COMMANDE
-      const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(orderData)
-      });
-      
-      const result = await response.json();
-      console.log('📥 Réponse:', result);
-      clearTimeout(submitTimeout);
-      
-      if (result.success) {
-        // SUCCÈS
-        submitBtn.innerHTML = '✅ Commande envoyée';
-        submitBtn.style.backgroundColor = '#4CAF50';
-        isSubmitting = false;
-        
-        showMessage(
-          `Commande #${result.commande_id} validée !<br>Total: ${result.total} dt`,
-          'success'
-        );
-        
-        // Mettre à jour le numéro de commande affiché
-        updateOrderDisplay(result.commande_id);
-        
-        // Exécuter l'action originale si elle existe
-        if (typeof originalOnClick === 'function') {
-          setTimeout(originalOnClick, 1000);
-        }
-        
-      } else {
-        // ÉCHEC
-        if (result.already_validated) {
-          submitBtn.innerHTML = '✅ Déjà validé';
-          submitBtn.style.backgroundColor = '#e0e0e0';
-          showMessage('Cette commande a déjà été validée.', 'info');
-        } else if (result.is_duplicate) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = originalText;
-          submitBtn.style.backgroundColor = originalBgColor;
-          showMessage(
-            '⚠️ Commande similaire déjà enregistrée récemment.<br>Attendez quelques secondes.',
-            'warning'
-          );
-        } else {
-          // Réactiver le bouton pour réessayer
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '🔄 Réessayer';
-          submitBtn.style.backgroundColor = '#F44336';
-          showMessage(`Erreur: ${result.message || 'Inconnue'}`, 'error');
-        }
-        isSubmitting = false;
-      }
-      
-    } catch (error) {
-      // ERREUR RÉSEAU
-      console.error('❌ Erreur réseau:', error);
-      clearTimeout(submitTimeout);
-      
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '🌐 Réessayer (erreur réseau)';
-      submitBtn.style.backgroundColor = '#FF9800';
-      isSubmitting = false;
-      
-      showMessage('Erreur réseau. Vérifiez votre connexion.', 'error');
-    }
-  }
-
-  // 5. COLLECTER LES DONNÉES (FONCTION GÉNÉRIQUE)
-  function collectOrderData() {
-    // Cette fonction DOIT être adaptée à chaque page
-    // Version générique - à adapter selon votre structure
-    
-    const data = {
-      nom_client: getValue('nom', 'nom-client', 'client-nom', 'Client'),
-      telephone: getValue('telephone', 'tel', 'client-telephone', '+216'),
-      adresse: getValue('adresse', 'address', 'client-adresse', ''),
-      gps: getValue('gps', 'GPS', 'client-gps', ''),
-      articles: getArticlesText(),
-      total: getTotalAmount()
-    };
-    
-    console.log('📋 Données collectées:', data);
-    return data;
-  }
-
-  // Fonctions utilitaires génériques
-  function getValue(...ids) {
-    for (const id of ids) {
-      // Chercher par ID
-      let el = document.getElementById(id);
-      if (el) return el.value || el.textContent || el.innerText;
-      
-      // Chercher par name
-      el = document.querySelector(`[name="${id}"]`);
-      if (el) return el.value || el.textContent || el.innerText;
-      
-      // Chercher par classe
-      el = document.querySelector(`.${id}`);
-      if (el) return el.value || el.textContent || el.innerText;
-    }
-    return '';
-  }
-
-  function getArticlesText() {
-    // Chercher un conteneur d'articles
-    const containers = [
-      document.getElementById('articles-container'),
-      document.getElementById('articles-list'),
-      document.getElementById('panier'),
-      document.querySelector('.articles-list'),
-      document.querySelector('.panier'),
-      document.querySelector('.items-list')
-    ].filter(c => c !== null);
-    
-    if (containers.length > 0) {
-      return containers[0].textContent.trim();
     }
     
-    // Collecter les articles individuels
-    const articleItems = document.querySelectorAll('.article-item, .product-item, .item');
-    if (articleItems.length > 0) {
-      return Array.from(articleItems)
-        .map(item => item.textContent.trim())
-        .filter(text => text && !text.toLowerCase().includes('total'))
-        .join('\n');
-    }
+    // Générer ou récupérer une session
+    loadOrCreateSession();
     
-    return 'Articles non détectés';
-  }
+    // Protéger le bouton de validation
+    setTimeout(protectSubmitButton, 500);
+}
 
-  function getTotalAmount() {
-    const totalElements = [
-      document.getElementById('total-commande'),
-      document.getElementById('total'),
-      document.getElementById('montant-total'),
-      document.querySelector('[class*="total"]'),
-      document.querySelector('[class*="montant"]')
-    ].filter(el => el !== null);
+// 2. VÉRIFIER SI C'EST UNE PAGE DE COMMANDE
+function isOrderPage() {
+    const path = window.location.pathname.toLowerCase();
+    const page = path.substring(path.lastIndexOf('/') + 1);
     
-    if (totalElements.length > 0) {
-      const text = totalElements[0].textContent.trim();
-      const match = text.match(/[\d,\.]+/);
-      return match ? match[0].replace(',', '.') : '0';
-    }
+    // Pages qui ont besoin de la protection
+    const orderPages = [
+        'validation-commande.html',
+        'commander.html',
+        'index.html',
+        'commande.html',
+        'panier.html'
+    ];
     
-    return '0';
-  }
+    return orderPages.includes(page) || 
+           document.querySelector('button:contains("Valider"), button:contains("Envoyer")') !== null;
+}
 
-  // 6. AFFICHER DES MESSAGES
-  function showMessage(message, type = 'info') {
-    let messageEl = document.getElementById('validation-message');
-    
-    if (!messageEl) {
-      messageEl = document.createElement('div');
-      messageEl.id = 'validation-message';
-      document.body.appendChild(messageEl);
-    }
-    
-    messageEl.innerHTML = message;
-    messageEl.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 15px 20px;
-      background: ${type === 'success' ? '#4CAF50' : 
-                   type === 'error' ? '#F44336' : 
-                   type === 'warning' ? '#FF9800' : '#2196F3'};
-      color: white;
-      border-radius: 5px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      z-index: 10000;
-      max-width: 400px;
-      animation: slideIn 0.3s ease;
-    `;
-    
-    setTimeout(() => {
-      messageEl.style.animation = 'slideOut 0.3s ease';
-      setTimeout(() => {
-        if (messageEl.parentNode) {
-          messageEl.remove();
-        }
-      }, 300);
-    }, 5000);
-  }
-
-  // 7. METTRE À JOUR L'AFFICHAGE
-  function updateOrderDisplay(commandeId) {
-    const elements = [
-      document.getElementById('commande-numero'),
-      document.getElementById('order-id'),
-      document.querySelector('[class*="commande"]'),
-      document.querySelector('[class*="order"]')
-    ].filter(el => el !== null);
-    
-    if (elements.length > 0) {
-      elements[0].textContent = commandeId;
-    }
-  }
-
-  // 8. REMPLACER L'ACTION DU BOUTON
-  const originalClickHandler = submitBtn.onclick;
-  
-  submitBtn.onclick = function(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    secureValidateOrder();
-    return false;
-  };
-
-  // 9. AJOUTER UN INDICATEUR VISUEL
-  if (!submitBtn.innerHTML.includes('🔒')) {
-    submitBtn.innerHTML = '🔒 ' + originalText;
-  }
-  
-  // 10. INITIALISER LA SESSION AU CHARGEMENT
-  function initValidationSystem() {
+// 3. CHARGER OU CRÉER UNE SESSION
+async function loadOrCreateSession() {
     // Récupérer session existante
     sessionId = localStorage.getItem('maxi_jdc_session');
     
     if (sessionId) {
-      console.log('🔍 Session existante trouvée');
-      checkSessionStatus();
+        console.log('🔍 Session existante:', sessionId.substring(0, 10) + '...');
+        await checkSessionStatus();
     } else {
-      initializeSession();
+        await createNewSession();
     }
-  }
-
-  // Exposer la fonction d'initialisation
-  window.initValidationSystem = initValidationSystem;
-  
-  // Initialiser
-  setTimeout(initValidationSystem, 500);
+    
+    // Afficher l'info de session (debug)
+    showSessionInfo();
 }
 
-// 11. INITIALISER LA PROTECTION AU CHARGEMENT DE LA PAGE
+// 4. CRÉER UNE NOUVELLE SESSION
+async function createNewSession() {
+    try {
+        console.log('🆕 Création nouvelle session...');
+        
+        const response = await fetch(`${SCRIPT_URL}?action=generatesession`);
+        const data = await response.json();
+        
+        if (data.success) {
+            sessionId = data.session_id;
+            localStorage.setItem('maxi_jdc_session', sessionId);
+            console.log('✅ Session créée:', sessionId.substring(0, 10) + '...');
+            
+            // Marquer comme non validée
+            localStorage.setItem('maxi_jdc_validated', 'false');
+        } else {
+            console.error('❌ Erreur création session:', data);
+        }
+    } catch (error) {
+        console.error('❌ Erreur réseau création session:', error);
+        // Fallback: générer un ID local
+        sessionId = 'local-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('maxi_jdc_session', sessionId);
+        localStorage.setItem('maxi_jdc_validated', 'false');
+    }
+}
+
+// 5. VÉRIFIER LE STATUT DE LA SESSION
+async function checkSessionStatus() {
+    if (!sessionId) return;
+    
+    try {
+        const response = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${sessionId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            if (data.already_validated) {
+                console.log('ℹ️ Session déjà validée');
+                localStorage.setItem('maxi_jdc_validated', 'true');
+            } else {
+                localStorage.setItem('maxi_jdc_validated', 'false');
+            }
+        }
+    } catch (error) {
+        console.error('❌ Erreur vérification session:', error);
+    }
+}
+
+// 6. PROTÉGER LE BOUTON DE SOUMISSION
+function protectSubmitButton() {
+    console.log('🛡️ Recherche du bouton de validation...');
+    
+    // Chercher le bouton "Valider et envoyer" dans votre interface
+    const button = findSubmitButton();
+    
+    if (!button) {
+        console.error('❌ Bouton de validation non trouvé');
+        showError('Bouton de validation non trouvé');
+        return;
+    }
+    
+    console.log('✅ Bouton trouvé:', button.textContent);
+    
+    // Sauvegarder l'état original
+    const originalState = {
+        onclick: button.onclick,
+        text: button.innerHTML,
+        disabled: button.disabled,
+        bgColor: button.style.backgroundColor || ''
+    };
+    
+    // Vérifier si la session est déjà validée
+    const alreadyValidated = localStorage.getItem('maxi_jdc_validated') === 'true';
+    
+    if (alreadyValidated) {
+        disableButton(button, '✅ Déjà validé', '#e0e0e0');
+        showInfo('Cette commande a déjà été validée.');
+        return;
+    }
+    
+    // Ajouter l'indicateur visuel
+    if (!button.innerHTML.includes('🔒')) {
+        button.innerHTML = '🔒 ' + button.innerHTML.replace('🔒 ', '');
+    }
+    
+    // Remplacer l'action du bouton
+    button.onclick = async function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        console.log('🖱️ Clic sur bouton protégé');
+        
+        // Prévenir les clics multiples
+        if (isSubmitting) {
+            console.log('⏳ Déjà en cours de soumission');
+            return false;
+        }
+        
+        // Désactiver immédiatement
+        isSubmitting = true;
+        disableButton(button, '⏳ Validation en cours...', '#ff9800');
+        
+        // Timeout de sécurité
+        submitTimeout = setTimeout(() => {
+            if (isSubmitting) {
+                resetButton(button, originalState);
+                isSubmitting = false;
+                showError('Délai dépassé. Réessayez.');
+            }
+        }, 30000);
+        
+        try {
+            // Vérifier la session
+            if (!sessionId) {
+                await loadOrCreateSession();
+            }
+            
+            const canValidate = await validateSession();
+            
+            if (!canValidate) {
+                clearTimeout(submitTimeout);
+                disableButton(button, '✅ Déjà validé', '#e0e0e0');
+                localStorage.setItem('maxi_jdc_validated', 'true');
+                showInfo('Cette commande a déjà été validée.');
+                isSubmitting = false;
+                return false;
+            }
+            
+            // Préparer les données
+            const orderData = collectOrderData();
+            orderData.session_id = sessionId; // ← ESSENTIEL: ajouter le session_id
+            
+            console.log('📤 Données à envoyer:', orderData);
+            
+            // Envoyer la commande
+            const result = await sendOrder(orderData);
+            
+            clearTimeout(submitTimeout);
+            
+            if (result.success) {
+                // SUCCÈS
+                disableButton(button, '✅ Commande envoyée', '#4CAF50');
+                localStorage.setItem('maxi_jdc_validated', 'true');
+                
+                showSuccess(
+                    `Commande #${result.commande_id} validée !<br>
+                    Total: ${result.total} dt`
+                );
+                
+                // Mettre à jour l'affichage si possible
+                updateOrderDisplay(result.commande_id);
+                
+                // Exécuter l'action originale si nécessaire
+                if (typeof originalState.onclick === 'function') {
+                    setTimeout(originalState.onclick, 1000);
+                }
+                
+            } else {
+                // ÉCHEC
+                handleSubmissionError(result, button, originalState);
+            }
+            
+            isSubmitting = false;
+            
+        } catch (error) {
+            // ERREUR RÉSEAU
+            clearTimeout(submitTimeout);
+            console.error('❌ Erreur:', error);
+            
+            resetButton(button, originalState);
+            isSubmitting = false;
+            
+            showError('Erreur réseau. Vérifiez votre connexion.');
+        }
+        
+        return false;
+    };
+    
+    console.log('✅ Bouton protégé avec succès');
+}
+
+// 7. TROUVER LE BOUTON DE VALIDATION
+function findSubmitButton() {
+    // Priorité 1: Bouton avec texte spécifique
+    const buttons = document.querySelectorAll('button');
+    
+    for (const button of buttons) {
+        const text = button.textContent.toLowerCase();
+        if (text.includes('valider et envoyer') || 
+            text.includes('valider la commande') ||
+            text.includes('confirmer la commande')) {
+            return button;
+        }
+    }
+    
+    // Priorité 2: Bouton avec ID spécifique
+    const buttonIds = ['btn-valider', 'btn-envoyer', 'valider-commande', 'submit-order'];
+    
+    for (const id of buttonIds) {
+        const button = document.getElementById(id);
+        if (button) return button;
+    }
+    
+    // Priorité 3: Premier bouton avec "Valider" ou "Envoyer"
+    for (const button of buttons) {
+        const text = button.textContent.toLowerCase();
+        if (text.includes('valider') || text.includes('envoyer')) {
+            return button;
+        }
+    }
+    
+    // Priorité 4: Bouton dans un formulaire
+    const forms = document.querySelectorAll('form');
+    for (const form of forms) {
+        const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+        if (submitBtn) return submitBtn;
+    }
+    
+    return null;
+}
+
+// 8. VALIDER LA SESSION AVANT ENVOI
+async function validateSession() {
+    if (!sessionId) return false;
+    
+    try {
+        const response = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${sessionId}`);
+        const data = await response.json();
+        
+        return data.success && data.can_validate;
+    } catch (error) {
+        console.error('❌ Erreur validation session:', error);
+        return true; // Permettre en cas d'erreur
+    }
+}
+
+// 9. COLLECTER LES DONNÉES DE COMMANDE (ADAPTÉ À VOTRE INTERFACE)
+function collectOrderData() {
+    // ADAPTEZ CES FONCTIONS À VOTRE HTML
+    
+    const data = {
+        nom_client: getClientName(),
+        telephone: getClientPhone(),
+        adresse: getClientAddress(),
+        articles: getArticles(),
+        total: getTotal()
+    };
+    
+    // Nettoyer le total
+    if (data.total) {
+        data.total = data.total.replace(/[^\d.,]/g, '').replace(',', '.');
+    }
+    
+    return data;
+}
+
+// Fonctions d'extraction (à adapter)
+function getClientName() {
+    // Chercher le nom du client
+    const elements = [
+        document.getElementById('client-nom'),
+        document.getElementById('nom-client'),
+        document.querySelector('[name="nom"]'),
+        document.querySelector('.client-nom'),
+        document.querySelector('.nom-client')
+    ];
+    
+    for (const el of elements) {
+        if (el) return el.textContent || el.value || 'Client';
+    }
+    
+    return 'Client';
+}
+
+function getClientPhone() {
+    const elements = [
+        document.getElementById('client-telephone'),
+        document.getElementById('telephone'),
+        document.querySelector('[name="telephone"]'),
+        document.querySelector('[name="tel"]'),
+        document.querySelector('.telephone')
+    ];
+    
+    for (const el of elements) {
+        if (el) return el.textContent || el.value || '';
+    }
+    
+    return '';
+}
+
+function getClientAddress() {
+    const elements = [
+        document.getElementById('client-adresse'),
+        document.getElementById('adresse'),
+        document.querySelector('[name="adresse"]'),
+        document.querySelector('.adresse')
+    ];
+    
+    for (const el of elements) {
+        if (el) return el.textContent || el.value || '';
+    }
+    
+    return '';
+}
+
+function getArticles() {
+    // Chercher le conteneur d'articles
+    const containers = [
+        document.getElementById('articles-list'),
+        document.getElementById('panier'),
+        document.querySelector('.articles-list'),
+        document.querySelector('.panier'),
+        document.querySelector('.items-list')
+    ];
+    
+    for (const container of containers) {
+        if (container) {
+            // Nettoyer le texte
+            let text = container.textContent || container.innerText;
+            
+            // Enlever les totaux et calculs
+            text = text.replace(/TOTAL.*/gi, '')
+                      .replace(/Sous-total.*/gi, '')
+                      .replace(/Livraison.*/gi, '')
+                      .trim();
+            
+            return text;
+        }
+    }
+    
+    // Fallback: collecter les articles individuels
+    const items = document.querySelectorAll('.article-item, .product-item, .item');
+    if (items.length > 0) {
+        return Array.from(items)
+            .map(item => item.textContent.trim())
+            .filter(text => text && !text.toLowerCase().includes('total'))
+            .join('\n');
+    }
+    
+    return 'Articles non spécifiés';
+}
+
+function getTotal() {
+    const elements = [
+        document.getElementById('total-commande'),
+        document.getElementById('total'),
+        document.getElementById('montant-total'),
+        document.querySelector('.total-amount'),
+        document.querySelector('[class*="total"]')
+    ];
+    
+    for (const el of elements) {
+        if (el) {
+            const text = el.textContent || el.innerText;
+            const match = text.match(/[\d,\.]+/);
+            return match ? match[0] : '0';
+        }
+    }
+    
+    return '0';
+}
+
+// 10. ENVOYER LA COMMANDE
+async function sendOrder(orderData) {
+    console.log('📨 Envoi vers:', SCRIPT_URL);
+    
+    const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(orderData)
+    });
+    
+    return await response.json();
+}
+
+// 11. GÉRER LES ERREURS DE SOUMISSION
+function handleSubmissionError(result, button, originalState) {
+    if (result.already_validated) {
+        disableButton(button, '✅ Déjà validé', '#e0e0e0');
+        localStorage.setItem('maxi_jdc_validated', 'true');
+        showInfo('Cette commande a déjà été validée.');
+    } else if (result.requires_session) {
+        // Problème de session
+        resetButton(button, originalState);
+        showError('Problème de session. Rechargez la page.');
+        // Forcer une nouvelle session
+        localStorage.removeItem('maxi_jdc_session');
+        localStorage.removeItem('maxi_jdc_validated');
+        setTimeout(() => location.reload(), 2000);
+    } else {
+        // Autre erreur
+        resetButton(button, originalState);
+        showError(result.message || 'Erreur inconnue. Réessayez.');
+    }
+}
+
+// 12. METTRE À JOUR L'AFFICHAGE
+function updateOrderDisplay(commandeId) {
+    const elements = [
+        document.getElementById('commande-numero'),
+        document.getElementById('order-id'),
+        document.querySelector('.commande-numero'),
+        document.querySelector('.order-id')
+    ];
+    
+    for (const el of elements) {
+        if (el) {
+            el.textContent = commandeId;
+            break;
+        }
+    }
+}
+
+// 13. FONCTIONS UTILITAIRES
+function disableButton(button, text, color) {
+    button.disabled = true;
+    button.innerHTML = text;
+    button.style.backgroundColor = color;
+    button.style.cursor = 'not-allowed';
+}
+
+function resetButton(button, originalState) {
+    button.disabled = originalState.disabled;
+    button.innerHTML = originalState.text;
+    button.style.backgroundColor = originalState.bgColor;
+    button.style.cursor = '';
+}
+
+function showSessionInfo() {
+    // Pour debug: afficher l'info de session
+    if (window.location.hash === '#debug') {
+        const info = document.createElement('div');
+        info.style.cssText = `
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 10px;
+            z-index: 9999;
+        `;
+        info.innerHTML = `Session: ${sessionId ? sessionId.substring(0, 10) + '...' : 'none'}`;
+        document.body.appendChild(info);
+    }
+}
+
+// 14. FONCTIONS DE NOTIFICATION
+function showSuccess(message) {
+    showNotification(message, '#4CAF50');
+}
+
+function showError(message) {
+    showNotification(message, '#F44336');
+}
+
+function showInfo(message) {
+    showNotification(message, '#2196F3');
+}
+
+function showNotification(message, color) {
+    // Supprimer les notifications existantes
+    const oldNotifications = document.querySelectorAll('.validation-notification');
+    oldNotifications.forEach(n => n.remove());
+    
+    // Créer la nouvelle notification
+    const notification = document.createElement('div');
+    notification.className = 'validation-notification';
+    notification.innerHTML = message;
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${color};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        max-width: 400px;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Masquer après 5 secondes
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+
+// 15. AJOUTER LES STYLES CSS
+function addStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        button:disabled {
+            cursor: not-allowed !important;
+            opacity: 0.7 !important;
+        }
+        
+        .protected-button {
+            position: relative;
+        }
+        
+        .protected-button::before {
+            content: "🔒";
+            margin-right: 5px;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// 16. FONCTION DE RÉINITIALISATION (pour tests)
+function resetValidation() {
+    localStorage.removeItem('maxi_jdc_session');
+    localStorage.removeItem('maxi_jdc_validated');
+    sessionId = null;
+    location.reload();
+}
+
+// 17. INITIALISATION AU CHARGEMENT
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🛡️ Initialisation protection anti-doublon...');
-  
-  // Attendre que la page soit complètement chargée
-  setTimeout(protectSubmitButton, 1000);
-  
-  // Ajouter les styles CSS
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-      from { transform: translateX(0); opacity: 1; }
-      to { transform: translateX(100%); opacity: 0; }
-    }
+    console.log('📄 Page chargée, démarrage protection...');
     
-    button:disabled {
-      cursor: not-allowed !important;
-      opacity: 0.7 !important;
-    }
+    // Ajouter les styles
+    addStyles();
     
-    .protected-button::after {
-      content: "🔒";
-      margin-left: 5px;
+    // Initialiser le système
+    initValidationSystem();
+    
+    // Ajouter un bouton de debug si besoin
+    if (window.location.hash === '#debug') {
+        const debugBtn = document.createElement('button');
+        debugBtn.textContent = '🔄 Debug: Réinitialiser';
+        debugBtn.onclick = resetValidation;
+        debugBtn.style.cssText = `
+            position: fixed;
+            bottom: 50px;
+            right: 20px;
+            background: #FF9800;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 9999;
+            font-size: 11px;
+        `;
+        document.body.appendChild(debugBtn);
     }
-  `;
-  document.head.appendChild(style);
 });
 
-// 12. FONCTION DE RÉINITIALISATION
-function resetValidation() {
-  localStorage.removeItem('maxi_jdc_session');
-  sessionId = null;
-  location.reload();
-}
-
-// Exposer la fonction de réinitialisation
-window.resetValidation = resetValidation;
-
-// Mode debug
-if (window.location.hash === '#debug') {
-  const debugBtn = document.createElement('button');
-  debugBtn.textContent = '🔄 Debug: Réinitialiser session';
-  debugBtn.onclick = resetValidation;
-  debugBtn.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #FF9800;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    z-index: 9999;
-    font-size: 11px;
-    opacity: 0.8;
-  `;
-  document.body.appendChild(debugBtn);
-  
-  console.log('🔧 Mode debug activé');
-}
+// Exposer les fonctions pour debug
+window.maxiValidation = {
+    reset: resetValidation,
+    getSessionId: () => sessionId,
+    testAPI: async () => {
+        const response = await fetch(`${SCRIPT_URL}?action=test`);
+        return await response.json();
+    }
+};
