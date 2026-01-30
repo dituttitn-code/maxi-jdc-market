@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enregistrement Caisse - MAXI JDC MARKET</title>
+    
+    <!-- CONFIGURATION CENTRALE -->
+    <script src="config.js"></script>
+    
     <style>
         :root { --primary: #0a1929; --secondary: #00ff88; --accent: #00d4ff; --light: #f0f6fc; --dark: #1a365d; }
         body { background: linear-gradient(135deg, var(--primary) 0%, #112240 100%); color: var(--light); min-height: 100vh; margin: 0; padding: 20px; }
@@ -166,8 +170,8 @@
 -->
 
 <script>
-// URL de votre script Apps Script
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKreRtF1uwtJyMsn5pNUFAzZVU7iH8tmLFgg10cwvUV5qoJqI6sZRlNEHkbQiuB-Kki/exec';
+// MODIFICATION : Utilisation de config.js
+const SCRIPT_URL = window.APP_CONFIG ? window.APP_CONFIG.googleScriptUrl : 'https://script.google.com/macros/s/AKfycbzKreRtF1uwtJyMsn5pNUFAzZVU7iH8tmLFgg10cwvUV5qoJqI6sZRlNEHkbQiuB-Kki/exec';
 
 // Variables globales
 let sessionId = null;
@@ -590,6 +594,9 @@ if (window.location.hash === '#debug') {
   document.body.appendChild(resetBtn);
 }
 </script>
-   <script src="validation-protection.js"></script> 
+
+<!-- PROTECTION ANTI-DOUBLON -->
+<script src="validation-protection.js"></script>
+
 </body>
 </html>
