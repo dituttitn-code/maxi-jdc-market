@@ -1168,5 +1168,163 @@
     window.showToast = showToast;
     window.ORDER_STATUSES = ORDER_STATUSES;
   </script>
+
+<script>
+/* =========================================================
+   PATCH SUIVI COMMANDE - FIX CLIENT + TELEPHONE + ADRESSE + TOTAL + ARTICLES
+   Ne casse pas l’interface : il remplit seulement les champs vides
+========================================================= */
+
+const API_SUIVI_FIX = {
+  url: "https://script.google.com/macros/s/AKfycbxIuF0Xx6zRg3qX9MLFl57BTcvIP3XLNLWr5uD44m3CXKt4saBHaTKEXjKUSDr_F98N/exec"
+};
+
+function escapeHtml(str){
+  return String(str ?? "").replace(/[&<>"']/g, (m) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+function digitsOnly(v){ return String(v ?? "").replace(/[^\d]/g, ""); }
+
+function normalizeOrder(o){
+  o = o || {};
+  const nom = o.nom_client ?? o.nom ?? o.client ?? o.customer ?? "Client";
+  const tel = o.telephone ?? o.tel ?? o.phone ?? "";
+  const adr = o.adresse ?? o.address ?? "";
+  const items = o.articles ?? o.items ?? o.cart ?? o.panier ?? "";
+  const total = (o.total ?? o.montant ?? o.amount ?? 0);
+  const maps = o.maps_url || (adr ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(adr)}` : "");
+  return {
+    ...o,
+    nom_client: String(nom || "Client"),
+    telephone: String(tel || ""),
+    telephone_digits: digitsOnly(tel),
+    adresse: String(adr || ""),
+    maps_url: maps,
+    articles: String(items || ""),
+    total: Number(total || 0)
+  };
+}
+
+async function apiGet(method){
+  const u = new URL(API_SUIVI_FIX.url);
+  u.searchParams.set("method", method);
+  u.searchParams.set("t", Date.now());
+  const res = await fetch(u.toString());
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return await res.json();
+}
+
+/* --- Helpers : on remplit sans connaître tes IDs exacts (on détecte par le texte) --- */
+function setValueNearLabel(labelText, htmlValue){
+  const labels = Array.from(document.querySelectorAll("*"))
+    .filter(el => el.children.length === 0 && el.textContent && el.textContent.trim().toLowerCase() === labelText.toLowerCase());
+  for (const lab of labels){
+    // prend le bloc parent proche et cherche un champ vide dedans
+    const box = lab.closest("div") || lab.parentElement;
+    if (!box) continue;
+
+    // cherche un élément qui affiche une valeur ("—" ou vide)
+    const candidates = Array.from(box.querySelectorAll("div,span,p")).filter(x => x.children.length === 0);
+    for (const c of candidates){
+      const t = (c.textContent || "").trim();
+      if (t === "—" || t === "" || t === "-" ){
+        c.innerHTML = htmlValue;
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function setTotalBottomRight(value){
+  // Sur ta capture le total est en bas à droite (0,00 dt)
+  const nodes = Array.from(document.querySelectorAll("*")).filter(el => el.children.length === 0);
+  for (const n of nodes){
+    const t = (n.textContent||"").trim().toLowerCase();
+    if (t === "0,00 dt" || t === "0.00 dt" || t === "0 dt"){
+      n.textContent = value;
+      return true;
+    }
+  }
+  return false;
+}
+
+function setArticlesList(html){
+  // Sur ta capture: titre "Articles commandés" puis zone "Aucun détail d'articles"
+  const nodes = Array.from(document.querySelectorAll("*")).filter(el => el.children.length === 0);
+  const target = nodes.find(n => (n.textContent||"").trim().toLowerCase().includes("aucun détail d'articles"));
+  if (target){
+    target.innerHTML = html;
+    return true;
+  }
+  return false;
+}
+
+function getCommandeIdFromPage(){
+  // Sur ta capture, l'id CMD-... est affiché en haut
+  const txt = document.body.innerText || "";
+  const m = txt.match(/\bCMD[-A-Z0-9._/]{6,}\b/);
+  return m ? m[0].trim() : "";
+}
+
+async function applySuiviFix(){
+  try{
+    const url = new URL(location.href);
+    const phoneParam = digitsOnly(url.searchParams.get("phone") || "");
+    const cmdParam = (url.searchParams.get("commande") || url.searchParams.get("commande_id") || "").trim();
+    const cmdFromDom = getCommandeIdFromPage();
+    const cmd = cmdParam || cmdFromDom;
+
+    const data = await apiGet("getOrders");
+    if (!data || !data.success) return;
+
+    const orders = (data.orders || []).map(normalizeOrder);
+    let order = null;
+
+    if (cmd){
+      order = orders.find(o => String(o.commande_id||"").trim() === cmd) || null;
+    }
+
+    if (!order && phoneParam){
+      const list = orders.filter(o =>
+        o.telephone_digits.endsWith(phoneParam) || phoneParam.endsWith(o.telephone_digits)
+      );
+      order = list.length ? list[0] : null;
+    }
+
+    if (!order) return;
+
+    // CLIENT / TELEPHONE / ADRESSE
+    setValueNearLabel("Client", escapeHtml(order.nom_client || "Client"));
+    setValueNearLabel("Téléphone", escapeHtml(order.telephone || "—"));
+    setValueNearLabel("Adresse", order.maps_url
+      ? `<a href="${order.maps_url}" target="_blank" rel="noopener noreferrer" style="color:#7dd3fc;text-decoration:underline;">
+           ${escapeHtml(order.adresse || "Ouvrir localisation")}
+         </a>`
+      : escapeHtml(order.adresse || "—")
+    );
+
+    // TOTAL
+    const totalTxt = (Number(order.total)||0).toFixed(2).replace(".", ",") + " dt";
+    setTotalBottomRight(totalTxt);
+
+    // ARTICLES
+    const lines = String(order.articles || "").split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+    if (!lines.length){
+      setArticlesList(`<div style="opacity:.7">Aucun détail d'articles</div>`);
+    } else {
+      setArticlesList(`<ul style="margin:0;padding-left:18px;">${lines.map(l=>`<li>${escapeHtml(l)}</li>`).join("")}</ul>`);
+    }
+  } catch(e){
+    console.warn("Suivi FIX error:", e);
+  }
+}
+
+window.addEventListener("load", () => setTimeout(applySuiviFix, 700));
+</script>
+
+
+  
 </body>
 </html>
