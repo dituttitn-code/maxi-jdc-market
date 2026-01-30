@@ -4,7 +4,7 @@
 
 // ✅ URL WebApp Apps Script (⚠️ sans espace au début)
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbyUoevmN5ClCHJ9guEoykiLwmrpCxqKNH4bNQzwlVx4n13YFCsLHXDF3o6EwF-u9ikF/exec";
+  "https://script.google.com/macros/s/AKfycbxsk881kYIgHciL3kwI4vP9EjOofTNhNKvnqu5GkmdLuKSIg_DiRmFN_SOnXUPCYdX3/exec";
 
 // ✅ Token (doit être EXACTEMENT le même que dans Code.gs)
 // (Si côté serveur TOKEN_OPTIONNEL=true, il ne bloque pas même si token faux/vide)
