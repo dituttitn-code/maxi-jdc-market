@@ -1,4 +1,4 @@
-// config.js
+// config.js - VERSION CORRIGÉE
 const APP_CONFIG = {
   // URL de votre Google Apps Script
   googleScriptUrl: "https://script.google.com/macros/s/AKfycbw-gHqEjb1RmcL14F165QAzu96pkZxpdTS3Ms1jaVWpehJnU0nkp1iH_izqj4xMHo_a/exec",
