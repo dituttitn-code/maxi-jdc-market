@@ -2,332 +2,230 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MAXI JDC MARKET - Suivi de Commande</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suivi de Commande - MAXI JDC MARKET</title>
+
+  <!-- Garde ton thème global -->
+  <link rel="stylesheet" href="../styles.css" />
 
   <style>
+    /* ✅ CSS “safe” : n’écrase pas ton design si styles.css existe déjà */
     :root{
-      --bg0:#071427;
-      --bg1:#0b1d35;
-      --card:#0f2342;
-      --card2:#102a4c;
-      --line:rgba(255,255,255,.10);
-      --text:#eaf2ff;
-      --muted:rgba(234,242,255,.65);
-      --yellow:#ffd24a;
-      --green:#27d17f;
-      --blue:#3aa0ff;
-      --orange:#ff9f43;
-      --danger:#ff6b6b;
-      --radius:14px;
-      --shadow:0 18px 60px rgba(0,0,0,.45);
+      --bg0:#071526; --bg1:#0b1f3a;
+      --card: rgba(255,255,255,.06);
+      --line: rgba(255,255,255,.12);
+      --text: #e9f3ff; --muted:#9fb3c8;
+      --accent:#00ff88; --accent2:#00d4ff;
+      --warn:#ffa726; --danger:#ff6b6b;
+      --radius:16px;
     }
-
-    *{box-sizing:border-box;margin:0;padding:0;}
     body{
+      margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: radial-gradient(1200px 700px at 30% 20%, #0d2b55 0%, var(--bg0) 50%, #050d18 100%);
       color:var(--text);
+      background: radial-gradient(1200px 700px at 20% 0%, #123b6a 0%, var(--bg0) 40%, #040b14 100%);
       min-height:100vh;
-      padding:20px 12px;
+      padding: 22px;
     }
-    a{color:#7dd3fc;}
-    .wrap{max-width:960px;margin:0 auto;}
+    .wrap{ max-width: 980px; margin:0 auto; }
     .topbar{
-      background:rgba(16,42,76,.65);
-      border:1px solid rgba(255,210,74,.55);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:14px 16px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:16px;
+      display:flex; align-items:center; justify-content:space-between;
+      background: rgba(0,0,0,.25);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+      margin-bottom: 16px;
     }
-    .top-left{
-      display:flex;align-items:center;gap:10px;
-      font-weight:900;
+    .topbar h1{
+      font-size: 18px;
+      margin:0;
+      display:flex; gap:10px; align-items:center;
     }
-    .pin{
-      width:34px;height:34px;border-radius:10px;
-      display:grid;place-items:center;
-      background:rgba(255,210,74,.12);
-      border:1px solid rgba(255,210,74,.45);
-    }
-    .subtitle{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px;}
     .btn{
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
       color:var(--text);
-      padding:10px 14px;
-      font-weight:800;
+      padding: 10px 14px;
+      border-radius: 12px;
       cursor:pointer;
-      transition:.2s;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      user-select:none;
+      font-weight: 800;
+      transition:.15s;
+      text-decoration:none;
+      display:inline-flex; align-items:center; gap:8px;
     }
-    .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.09);}
-    .btn.yellow{border-color:rgba(255,210,74,.65);background:rgba(255,210,74,.10);}
-    .btn.green{border-color:rgba(39,209,127,.55);background:rgba(39,209,127,.10);}
-    .btn.blue{border-color:rgba(58,160,255,.55);background:rgba(58,160,255,.10);}
-    .btn.dark{background:rgba(255,255,255,.04);}
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.22); }
+    .btn.primary{ border-color: rgba(0,255,136,.45); background: rgba(0,255,136,.12); color: var(--accent); }
+    .btn.blue{ border-color: rgba(0,212,255,.45); background: rgba(0,212,255,.10); color: var(--accent2); }
+    .btn.green{ border-color: rgba(0,255,136,.45); background: rgba(0,255,136,.10); color: var(--accent); }
+    .btn.red{ border-color: rgba(255,107,107,.55); background: rgba(255,107,107,.12); color: #ffdede; }
 
     .card{
-      background:linear-gradient(180deg, rgba(16,42,76,.78), rgba(10,25,45,.78));
+      background: rgba(255,255,255,.06);
       border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:16px;
-      margin-bottom:16px;
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.30);
+      margin-bottom: 16px;
     }
-    .card h2{
-      font-size:18px;
-      color:var(--yellow);
-      margin-bottom:10px;
-      display:flex;align-items:center;gap:8px;
+    .searchRow{
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center;
     }
-
-    .search{
-      display:flex;gap:12px;flex-wrap:wrap;align-items:center;
-      margin-top:6px;
-    }
-    .search input{
-      flex:1;
-      min-width:260px;
-      padding:12px 14px;
-      border-radius:12px;
-      border:1px solid rgba(255,210,74,.55);
-      background:rgba(0,0,0,.25);
+    .input{
+      flex: 1;
+      min-width: 260px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.18);
       color:var(--text);
+      padding: 12px 14px;
+      border-radius: 12px;
       outline:none;
-      font-weight:700;
+      font-weight: 800;
     }
+    .hint{ color:var(--muted); font-size: 12px; margin-top:10px; }
 
-    .order-head{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
-      padding:4px 2px 10px 2px;
+    .orderHeader{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      flex-wrap:wrap;
+      margin-bottom: 10px;
     }
-    .order-id{
-      font-weight:1000;
-      color:var(--yellow);
-      letter-spacing:.3px;
+    .orderId{
+      font-size: 18px;
+      font-weight: 1000;
+      letter-spacing: .2px;
+      color: #ffd56a;
     }
     .badge{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:7px 12px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(0,0,0,.22);
-      font-weight:1000;
-      font-size:12px;
-      white-space:nowrap;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-weight: 1000;
+      background: rgba(0,0,0,.22);
+      display:inline-flex; align-items:center; gap:8px;
+      white-space: nowrap;
     }
-    .dot{width:10px;height:10px;border-radius:50%;}
-    .dot.yellow{background:var(--yellow);}
-    .dot.blue{background:var(--blue);}
-    .dot.orange{background:var(--orange);}
-    .dot.green{background:var(--green);}
-    .dot.red{background:var(--danger);}
+    .dot{ width:10px; height:10px; border-radius:50%; display:inline-block; background: #ccc; }
+    .dot.y{ background: #ffd400; }
+    .dot.b{ background: #33b5ff; }
+    .dot.o{ background: #ff8a00; }
+    .dot.g{ background: #00ff88; }
+    .dot.r{ background: #ff6b6b; }
 
-    /* timeline */
-    .timeline{
-      background:rgba(0,0,0,.18);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:14px;
-      padding:14px;
-      margin-top:6px;
-    }
-    .timeline-title{
-      display:flex;align-items:center;gap:10px;
-      font-weight:900;color:var(--text);opacity:.95;
-      margin-bottom:10px;
+    .progress{
+      margin-top: 10px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 12px;
     }
     .steps{
-      position:relative;
       display:grid;
-      grid-template-columns:repeat(4, 1fr);
-      gap:10px;
-      align-items:start;
-      margin-top:4px;
-    }
-    .bar{
-      position:absolute;
-      left:8%;
-      right:8%;
-      top:18px;
-      height:4px;
-      background:rgba(255,255,255,.10);
-      border-radius:999px;
-    }
-    .bar-fill{
-      height:100%;
-      width:0%;
-      background:linear-gradient(90deg, var(--yellow), var(--blue), var(--orange), var(--green));
-      border-radius:999px;
-      transition:.4s;
+      grid-template-columns: repeat(4,1fr);
+      gap: 10px;
+      align-items:center;
     }
     .step{
       text-align:center;
-      z-index:1;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
     }
-    .bubble{
-      width:34px;height:34px;border-radius:50%;
-      margin:0 auto 6px auto;
-      display:grid;place-items:center;
-      border:2px solid rgba(255,255,255,.18);
-      background:rgba(0,0,0,.18);
-      font-weight:1000;
-      color:#fff;
+    .step .circle{
+      width: 28px; height: 28px; border-radius: 50%;
+      margin: 0 auto 6px;
+      border: 2px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.18);
+      display:flex; align-items:center; justify-content:center;
+      font-size: 14px;
     }
-    .step label{
-      display:block;
-      font-size:10px;
-      color:rgba(234,242,255,.75);
-      font-weight:900;
-      letter-spacing:.5px;
-      text-transform:uppercase;
-    }
-    .step.active .bubble{border-color:rgba(255,210,74,.8); box-shadow:0 0 0 6px rgba(255,210,74,.08);}
-    .step.done .bubble{border-color:rgba(39,209,127,.7); background:rgba(39,209,127,.12);}
+    .step.active{ color: #dff; }
+    .step.active .circle{ border-color: rgba(0,255,136,.55); background: rgba(0,255,136,.12); }
 
-    /* event list */
-    .event-list{
-      margin-top:12px;
-      display:flex;flex-direction:column;gap:10px;
-    }
-    .event{
-      display:flex;gap:10px;align-items:center;
-      padding:10px 12px;
-      background:rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:12px;
-      color:rgba(234,242,255,.9);
-      font-weight:800;
-    }
-    .event .time{
-      width:60px;
-      font-size:12px;
-      color:rgba(234,242,255,.65);
-      font-weight:900;
-    }
-
-    .info-grid{
-      margin-top:12px;
-      display:grid;
-      grid-template-columns:repeat(3, 1fr);
-      gap:12px;
-    }
-    .info{
-      padding:12px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(0,0,0,.15);
-      min-height:62px;
-    }
-    .info .k{
-      display:flex;align-items:center;gap:8px;
-      font-size:12px;
-      color:rgba(234,242,255,.65);
-      font-weight:900;
-      margin-bottom:6px;
-    }
-    .info .v{
-      font-weight:900;
-      color:var(--text);
-      word-break:break-word;
-    }
-    .info .v.muted{opacity:.7;font-weight:800;}
-    .info.small{grid-column:span 1;}
-    .info.pay{grid-column:span 1;}
-
-    .items-title{
-      margin-top:12px;
-      display:flex;align-items:center;gap:10px;
-      font-weight:1000;
-      color:var(--text);
-    }
-    .items-box{
-      margin-top:10px;
-      background:rgba(0,0,0,.15);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:12px;
-      padding:12px;
-      min-height:72px;
-      color:rgba(234,242,255,.85);
-      font-weight:800;
-    }
-    .items-box ul{padding-left:18px;margin:0;}
-    .items-box li{margin:6px 0;}
-
-    .footer-row{
-      margin-top:12px;
+    .timeline{
+      margin-top: 12px;
       display:flex;
+      flex-direction:column;
+      gap: 8px;
+    }
+    .timeItem{
+      display:flex; gap: 10px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.16);
+      border-radius: 12px;
+      padding: 10px 12px;
       align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
     }
-    .total{
-      font-weight:1000;
-      color:var(--yellow);
-      font-size:18px;
-    }
-    .actions{
-      display:flex;gap:10px;flex-wrap:wrap;
-    }
+    .timeL{ width: 70px; color: var(--muted); font-weight: 900; font-size: 12px; }
+    .timeR{ flex:1; font-weight: 900; font-size: 12px; }
 
-    .help{
-      margin-top:14px;
-      padding:16px;
-      border-radius:var(--radius);
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(16,42,76,.55);
-    }
-    .help h3{
-      color:var(--yellow);
-      margin-bottom:10px;
-      display:flex;align-items:center;gap:10px;
-      font-weight:1000;
-    }
-    .help-grid{
+    .grid{
+      margin-top: 14px;
       display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:12px;
-      margin-top:10px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
     }
-    .help-box{
-      padding:12px;border-radius:12px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(0,0,0,.15);
-      color:rgba(234,242,255,.85);
-      font-weight:800;
+    .box{
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.14);
+      border-radius: 14px;
+      padding: 12px;
+      min-height: 70px;
+    }
+    .box .t{ color:var(--muted); font-size: 12px; font-weight: 900; display:flex; gap:8px; align-items:center; }
+    .box .v{ margin-top: 8px; font-weight: 1000; font-size: 13px; overflow-wrap:anywhere; }
+    .box a{ color: var(--accent2); text-decoration: none; font-weight: 1000; }
+    .box a:hover{ text-decoration: underline; }
+
+    .articles{
+      margin-top: 14px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.14);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .articles h3{
+      margin:0 0 10px;
+      font-size: 13px;
+      color: #eaf6ff;
+      display:flex; gap:8px; align-items:center;
+    }
+    .articles ul{ margin:0; padding-left: 18px; }
+    .articles li{ margin: 6px 0; font-weight: 900; font-size: 12px; color: #eaf6ff; }
+
+    .totalRow{
+      margin-top: 12px;
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      font-weight: 1000;
+    }
+    .totalVal{
+      color:#ffd400;
+      font-size: 18px;
     }
 
-    .toast{
-      position:fixed;top:18px;right:18px;
-      background:rgba(39,209,127,.95);
-      color:#031017;
-      padding:12px 14px;
-      border-radius:12px;
-      font-weight:1000;
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-      max-width:420px;
-      z-index:9999;
-      display:flex;gap:10px;align-items:flex-start;
-      animation:in .25s ease;
+    .actions{
+      margin-top: 12px;
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      justify-content: space-between;
     }
-    .toast.warn{background:rgba(255,210,74,.95);}
-    .toast.err{background:rgba(255,107,107,.95);color:#fff;}
-    @keyframes in{from{transform:translateY(-8px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-    @media(max-width:860px){
-      .info-grid{grid-template-columns:1fr; }
-      .help-grid{grid-template-columns:1fr;}
-      .steps{grid-template-columns:repeat(2,1fr);}
-      .bar{display:none;}
+    .actions .left, .actions .right{ display:flex; gap:10px; flex-wrap:wrap; }
+
+    .notice{
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    @media(max-width: 860px){
+      .grid{ grid-template-columns: 1fr; }
+      .actions{ justify-content:flex-start; }
     }
   </style>
 </head>
@@ -336,431 +234,331 @@
 <div class="wrap">
 
   <div class="topbar">
-    <div>
-      <div class="top-left">
-        <div class="pin">📍</div>
-        <div>
-          <div style="font-size:18px;">Suivi de Commande</div>
-          <div class="subtitle">MAXI JDC MARKET — Suivez votre commande en temps réel</div>
-        </div>
-      </div>
-    </div>
-    <button class="btn dark" onclick="goHome()">← Retour Accueil</button>
+    <h1>📍 <span style="color:#ffd56a;font-weight:1000">Suivi de Commande</span></h1>
+    <a class="btn" href="../index.html">← Retour Accueil</a>
   </div>
 
   <div class="card">
-    <h2>🔎 Suivre une commande</h2>
-    <div class="search">
-      <input id="orderInput" type="text" placeholder="CMD-MAXI-20260129-073" />
-      <button class="btn yellow" id="btnSearch">🔍 Rechercher</button>
+    <div style="font-weight:1000; color:#ffd56a; margin-bottom:10px;">🔎 Suivre une commande</div>
+    <div class="searchRow">
+      <input id="searchInput" class="input" placeholder="CMD-MAXI-XXXX..." />
+      <button id="btnSearch" class="btn blue">🔍 Rechercher</button>
     </div>
-    <div class="subtitle" style="margin-top:10px;">💡 Le numéro de commande vous a été fourni lors de la confirmation.</div>
+    <div class="hint">💡 Astuce : tu peux aussi ouvrir avec <b>?commande=CMD-MAXI-...</b> ou <b>?phone=55532482</b></div>
   </div>
 
-  <div class="card" id="orderCard">
-    <div class="order-head">
-      <div class="order-id" id="orderIdLabel">—</div>
-      <div class="badge" id="statusBadge">
-        <span class="dot yellow"></span>
-        <span id="statusText">—</span>
-      </div>
+  <div id="orderCard" class="card" style="display:none;">
+
+    <div class="orderHeader">
+      <div class="orderId" id="orderId">CMD-...</div>
+      <div class="badge" id="orderBadge"><span class="dot y"></span><span id="orderStatus">—</span></div>
     </div>
 
-    <div class="timeline">
-      <div class="timeline-title">🗂️ Progression de votre commande</div>
-
+    <div class="progress">
+      <div style="font-weight:900; color:#eaf6ff; margin-bottom:10px;">🗂️ Progression de votre commande</div>
       <div class="steps">
-        <div class="bar"><div class="bar-fill" id="barFill"></div></div>
-
-        <div class="step" id="s1">
-          <div class="bubble">●</div>
-          <label>NOUVELLE</label>
-        </div>
-        <div class="step" id="s2">
-          <div class="bubble">●</div>
-          <label>EN PRÉPARATION</label>
-        </div>
-        <div class="step" id="s3">
-          <div class="bubble">●</div>
-          <label>EN LIVRAISON</label>
-        </div>
-        <div class="step" id="s4">
-          <div class="bubble">✓</div>
-          <label>LIVRÉE</label>
-        </div>
+        <div class="step" id="st_new"><div class="circle">🟡</div>NOUVELLE</div>
+        <div class="step" id="st_prep"><div class="circle">🔵</div>EN PRÉPARATION</div>
+        <div class="step" id="st_del"><div class="circle">🟠</div>EN LIVRAISON</div>
+        <div class="step" id="st_done"><div class="circle">✅</div>LIVRÉE</div>
       </div>
 
-      <div class="event-list" id="eventList">
-        <div class="event">
-          <div class="time">—</div>
-          <div>Commande créée</div>
+      <div class="timeline" id="timeline">
+        <div class="timeItem">
+          <div class="timeL">—</div>
+          <div class="timeR">Commande créée</div>
         </div>
       </div>
     </div>
 
-    <div class="info-grid">
-      <div class="info">
-        <div class="k">👤 Client</div>
-        <div class="v muted" id="clientName">—</div>
+    <div class="grid">
+      <div class="box">
+        <div class="t">👤 Client</div>
+        <div class="v" id="clientName">—</div>
       </div>
-      <div class="info">
-        <div class="k">📞 Téléphone</div>
-        <div class="v muted" id="clientPhone">—</div>
+      <div class="box">
+        <div class="t">📞 Téléphone</div>
+        <div class="v" id="clientPhone">—</div>
       </div>
-      <div class="info">
-        <div class="k">📍 Adresse</div>
-        <div class="v muted" id="clientAddress">—</div>
-      </div>
-    </div>
-
-    <div class="info-grid" style="grid-template-columns:repeat(3,1fr); margin-top:12px;">
-      <div class="info pay" style="grid-column:span 1;">
-        <div class="k">💳 Paiement</div>
-        <div class="v">À la livraison</div>
-      </div>
-      <div class="info" style="grid-column:span 2;">
-        <div class="k">🧾 Note</div>
-        <div class="v muted" id="noteBox">—</div>
+      <div class="box">
+        <div class="t">📍 Adresse</div>
+        <div class="v" id="clientAddress">—</div>
       </div>
     </div>
 
-    <div class="items-title">🛒 Articles commandés</div>
-    <div class="items-box" id="itemsBox">Aucun détail d'articles</div>
-
-    <div class="footer-row">
-      <div style="color:rgba(234,242,255,.75);font-weight:900;">Total à payer</div>
-      <div class="total" id="totalPay">0,00 dt</div>
+    <div class="articles">
+      <h3>🛒 Articles commandés</h3>
+      <div id="articlesList" style="color:var(--muted);font-weight:900;">Aucun détail d'articles</div>
     </div>
 
-    <div class="footer-row" style="margin-top:14px;">
-      <div class="actions">
-        <button class="btn green" id="btnWhats">🟢 WhatsApp</button>
-        <button class="btn blue" id="btnCall">📞 Appeler</button>
+    <div class="totalRow">
+      <div>Total à payer</div>
+      <div class="totalVal" id="totalToPay">0,00 dt</div>
+    </div>
+
+    <div class="actions">
+      <div class="left">
+        <a class="btn green" id="btnWhatsapp" href="#" target="_blank" rel="noopener">🟢 WhatsApp</a>
+        <a class="btn blue" id="btnCall" href="#">📞 Appeler</a>
       </div>
-      <div class="actions">
-        <button class="btn dark" id="btnRefresh">🔄 Actualiser</button>
-        <button class="btn dark" id="btnShare">🔗 Partager</button>
+      <div class="right">
+        <button class="btn" id="btnRefresh">🔄 Actualiser</button>
+        <button class="btn" id="btnShare">🔗 Partager</button>
       </div>
     </div>
+
+    <div class="notice" id="noticeMsg"></div>
   </div>
 
-  <div class="help">
-    <h3>❓ Besoin d'aide ?</h3>
-    <div class="help-grid">
-      <div class="help-box">
-        <div style="display:flex;gap:10px;align-items:center;">
-          <div>🟢 WhatsApp</div>
-          <div style="margin-left:auto;font-weight:1000;" id="helpWhats">+216 25 600 978</div>
-        </div>
-      </div>
-      <div class="help-box">
-        <div style="display:flex;gap:10px;align-items:center;">
-          <div>⏰ Horaires</div>
-          <div style="margin-left:auto;font-weight:1000;">7h - 1h tous les jours</div>
-        </div>
-      </div>
-    </div>
+  <div id="notFound" class="card" style="display:none;">
+    <div style="font-weight:1000;color:#ffb3b3;">❌ Commande introuvable</div>
+    <div class="notice">Vérifie le numéro CMD-MAXI-... ou ouvre la page avec <b>?phone=...</b></div>
   </div>
 
 </div>
 
 <script>
 /* ===================== CONFIG API ===================== */
-const API = {
-  url: "https://script.google.com/macros/s/AKfycbyIots-IDfco1B2WgO_4SQKajcD4hDHkTPB61upBrcpiri92KZMvBYYOyeHMqDSTB-y/exec"
-};
+const API_URL = "https://script.google.com/macros/s/AKfycbyIots-IDfco1B2WgO_4SQKajcD4hDHkTPB61upBrcpiri92KZMvBYYOyeHMqDSTB-y/exec";
 
-/* ===================== UTIL ===================== */
-function toast(msg, type="ok"){
-  const t = document.createElement("div");
-  t.className = "toast " + (type==="warn"?"warn":type==="err"?"err":"");
-  t.innerHTML = `<div>${type==="ok"?"✅":type==="warn"?"⚠️":"❌"}</div><div>${msg}</div>`;
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(), 3000);
-}
+/* ===================== HELPERS ===================== */
+function $(id){ return document.getElementById(id); }
+
 function escapeHtml(str){
-  return String(str ?? "").replace(/[&<>"']/g,(m)=>({
+  return String(str ?? "").replace(/[&<>"']/g, m => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
   }[m]));
 }
-function digitsOnly(v){ return String(v ?? "").replace(/[^\d]/g,""); }
+function digitsOnly(v){ return String(v ?? "").replace(/[^\d]/g, ""); }
 
-function normalizeOrder(o){
-  o = o || {};
-  const nom = o.nom_client ?? o.nom ?? o.client ?? "Client";
-  const tel = o.telephone ?? o.tel ?? o.phone ?? "";
-  const adr = o.adresse ?? o.address ?? "";
-  const items = o.articles ?? o.items ?? o.cart ?? o.panier ?? "";
-  const total = Number(o.total ?? o.montant ?? o.amount ?? 0) || 0;
-  const maps = o.maps_url || (adr ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(adr)}` : "");
-  return {
-    ...o,
-    commande_id: String(o.commande_id || o.numero || o.commande || "").trim(),
-    nom_client: String(nom || "Client"),
-    telephone: String(tel || ""),
-    telephone_digits: digitsOnly(tel),
-    adresse: String(adr || ""),
-    maps_url: maps,
-    articles: String(items || ""),
-    total
-  };
+function fmtMoney(n){
+  const x = Number(n);
+  if (!Number.isFinite(x)) return "0,00 dt";
+  return x.toFixed(2).replace(".", ",") + " dt";
 }
 
-async function apiGet(method){
-  const u = new URL(API.url);
-  u.searchParams.set("method", method);
-  u.searchParams.set("t", Date.now());
-  const res = await fetch(u.toString());
-  if(!res.ok) throw new Error("HTTP " + res.status);
+function statusDot(st){
+  const s = String(st || "").toUpperCase();
+  if (s.includes("NOUV")) return "y";
+  if (s.includes("ATTENTE")) return "y";
+  if (s.includes("PRÉPA") || s.includes("PREPA")) return "b";
+  if (s.includes("LIVRA")) return "o";
+  if (s.includes("LIVRÉ") || s.includes("LIVRE")) return "g";
+  if (s.includes("ANNUL")) return "r";
+  return "y";
+}
+
+function normalizeOrder(o){
+  const id = String(o.commande_id ?? o.id ?? o.numero ?? "").trim();
+  const statut = String(o.statut ?? o.status ?? "").trim() || "🟡 NOUVELLE";
+  const nom = String(o.nom_client ?? o.nom ?? o.client_name ?? "").trim() || "Client";
+  const tel = String(o.telephone ?? o.phone ?? "").trim();
+  const adr = String(o.adresse ?? o.address ?? "").trim();
+  const maps = String(o.maps_url ?? "").trim() ||
+    (adr ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(adr) : "");
+
+  let articles = "";
+  if (Array.isArray(o.articles)) articles = o.articles.join("\n");
+  else articles = String(o.articles ?? "").trim();
+
+  const totalNum = Number(String(o.total ?? 0).replace(",", "."));
+  const total = Number.isFinite(totalNum) ? totalNum : 0;
+
+  return { id, statut, nom, tel, telDigits:digitsOnly(tel), adr, maps, articles, total };
+}
+
+async function apiGet(method, params={}){
+  const url = new URL(API_URL);
+  url.searchParams.set("method", method);
+  url.searchParams.set("t", Date.now());
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error("HTTP " + res.status);
   return await res.json();
 }
 
-function goHome(){
-  // adapte si ton accueil est ailleurs
-  window.location.href = "../index.html";
+/* ===================== DATA FETCH ===================== */
+async function findOrder(){
+  const u = new URL(location.href);
+  const cmd = String(u.searchParams.get("commande") || u.searchParams.get("cmd") || "").trim();
+  const phone = digitsOnly(u.searchParams.get("phone") || "");
+
+  // lecture directe du champ input si utilisateur tape
+  const typed = String($("searchInput").value || "").trim();
+  const cmdWanted = typed || cmd;
+
+  const data = await apiGet("getOrders");
+  if (!data || !data.success) throw new Error(data?.message || "getOrders failed");
+
+  const orders = (data.orders || []).map(normalizeOrder);
+
+  let order = null;
+  if (cmdWanted) order = orders.find(o => o.id === cmdWanted) || null;
+
+  if (!order && phone){
+    // match tolérant : fin de numéro
+    order = orders.find(o => o.telDigits.endsWith(phone) || phone.endsWith(o.telDigits)) || null;
+  }
+  return order;
 }
 
-/* ===================== STATUS UI ===================== */
-const STATUS_ORDER = [
-  "🟡 NOUVELLE",
-  "⏳ EN ATTENTE",
-  "🔵 EN PRÉPARATION",
-  "🟠 EN LIVRAISON",
-  "✅ LIVRÉE",
-  "❌ ANNULÉE"
-];
-
-function statusToStepIndex(st){
-  const s = String(st||"").trim();
-  if (s.includes("ANNUL")) return -1;
-  if (s.includes("LIVRÉ")) return 4;
-  if (s.includes("LIVRAI")) return 3;
-  if (s.includes("PRÉPA") || s.includes("PREPA")) return 2;
-  // "EN ATTENTE" on le met comme 1 aussi (nouvelle -> attente)
-  if (s.includes("ATTENTE")) return 1;
-  if (s.includes("NOUV")) return 1;
-  return 1;
+async function loadHistory(commandeId){
+  // history est optionnel, on n’échoue pas si pas dispo
+  try{
+    const h = await apiGet("getOrderHistory", { commande_id: commandeId });
+    if (!h || !h.success) return [];
+    return (h.history || []).map(x => ({
+      ts: x.timestamp,
+      old: x.old_status,
+      neu: x.new_status
+    }));
+  } catch(e){
+    return [];
+  }
 }
 
-function statusBadgeColor(st){
-  const s = String(st||"").toUpperCase();
-  if (s.includes("ANNUL")) return "red";
-  if (s.includes("LIVR")) return "green";
-  if (s.includes("LIVRAI")) return "orange";
-  if (s.includes("PRÉPA") || s.includes("PREPA")) return "blue";
-  return "yellow";
+/* ===================== RENDER ===================== */
+function setProgress(st){
+  ["st_new","st_prep","st_del","st_done"].forEach(id => $(id).classList.remove("active"));
+  const s = String(st || "").toUpperCase();
+
+  if (s.includes("NOUV") || s.includes("ATTENTE")) $("st_new").classList.add("active");
+  if (s.includes("PRÉPA") || s.includes("PREPA")) $("st_prep").classList.add("active");
+  if (s.includes("LIVRA")) $("st_del").classList.add("active");
+  if (s.includes("LIVRÉ") || s.includes("LIVRE")) $("st_done").classList.add("active");
 }
 
-function applySteps(step){
-  // step: 1..4 ; -1 annulée
-  const s1 = document.getElementById("s1");
-  const s2 = document.getElementById("s2");
-  const s3 = document.getElementById("s3");
-  const s4 = document.getElementById("s4");
-  [s1,s2,s3,s4].forEach(x=>{ x.classList.remove("active","done"); });
+function renderTimeline(history, statutActuel){
+  const box = $("timeline");
+  const items = [];
 
-  const barFill = document.getElementById("barFill");
-  if (step < 0){
-    barFill.style.width = "0%";
-    s1.classList.add("active");
-    return;
+  // item "créée"
+  items.push({ time:"—", text:"Commande créée" });
+
+  // transitions
+  history.slice().reverse().forEach(h => {
+    const d = new Date(h.ts);
+    const hh = String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+    items.push({ time: hh, text: "Statut mis à jour" });
+  });
+
+  // statut actuel
+  items.push({ time:"", text:"Statut actuel : " + String(statutActuel || "") });
+
+  box.innerHTML = items.map(it => `
+    <div class="timeItem">
+      <div class="timeL">${escapeHtml(it.time || "")}</div>
+      <div class="timeR">${escapeHtml(it.text || "")}</div>
+    </div>
+  `).join("");
+}
+
+function renderOrder(order, history){
+  $("notFound").style.display = "none";
+  $("orderCard").style.display = "block";
+
+  $("orderId").textContent = order.id || "CMD-...";
+  $("orderStatus").textContent = order.statut || "—";
+
+  // badge dot
+  const d = statusDot(order.statut);
+  $("orderBadge").innerHTML = `<span class="dot ${d}"></span><span id="orderStatus">${escapeHtml(order.statut)}</span>`;
+
+  // client infos
+  $("clientName").textContent = order.nom || "Client";
+  $("clientPhone").textContent = order.tel || "—";
+
+  // adresse cliquable maps
+  if (order.maps){
+    $("clientAddress").innerHTML = `<a href="${order.maps}" target="_blank" rel="noopener">${escapeHtml(order.adr || "Ouvrir localisation")}</a>`;
+  } else {
+    $("clientAddress").textContent = order.adr || "—";
   }
 
-  // done = avant l'étape active
-  if (step >= 1) s1.classList.add(step>1 ? "done" : "active");
-  if (step >= 2) s2.classList.add(step>2 ? "done" : "active");
-  if (step >= 3) s3.classList.add(step>3 ? "done" : "active");
-  if (step >= 4) s4.classList.add("active");
-
-  const pct = step===1?0 : step===2?33 : step===3?66 : 100;
-  barFill.style.width = pct + "%";
-}
-
-/* ===================== RENDER ORDER ===================== */
-function renderOrder(order){
-  // head
-  document.getElementById("orderIdLabel").textContent = order.commande_id || "—";
-
-  const badge = document.getElementById("statusBadge");
-  const dot = badge.querySelector(".dot");
-  const txt = document.getElementById("statusText");
-  const st = order.statut || order.status || "—";
-  txt.textContent = st;
-
-  const c = statusBadgeColor(st);
-  dot.className = "dot " + c;
-
-  const step = statusToStepIndex(st);
-  applySteps(step);
-
-  // info
-  document.getElementById("clientName").textContent = order.nom_client || "Client";
-  document.getElementById("clientPhone").textContent = order.telephone || "—";
-
-  if (order.maps_url){
-    document.getElementById("clientAddress").innerHTML =
-      `<a href="${order.maps_url}" target="_blank" rel="noopener noreferrer" style="text-decoration:underline;">
-        ${escapeHtml(order.adresse || "Ouvrir localisation")}
-      </a>`;
-    document.getElementById("clientAddress").classList.remove("muted");
+  // articles
+  if (order.articles){
+    const lines = String(order.articles).split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+    $("articlesList").innerHTML = `<ul>${lines.map(l=>`<li>${escapeHtml(l)}</li>`).join("")}</ul>`;
   } else {
-    document.getElementById("clientAddress").textContent = order.adresse || "—";
-  }
-
-  // note (optionnel)
-  document.getElementById("noteBox").textContent = order.note || "—";
-
-  // items
-  const itemsBox = document.getElementById("itemsBox");
-  const lines = String(order.articles || "").split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-  if (!lines.length){
-    itemsBox.textContent = "Aucun détail d'articles";
-  } else {
-    itemsBox.innerHTML = `<ul>${lines.map(l=>`<li>${escapeHtml(l)}</li>`).join("")}</ul>`;
+    $("articlesList").textContent = "Aucun détail d'articles";
+    $("articlesList").style.color = "var(--muted)";
+    $("articlesList").style.fontWeight = "900";
   }
 
   // total
-  const total = Number(order.total || 0);
-  document.getElementById("totalPay").textContent = total.toFixed(2).replace(".", ",") + " dt";
+  $("totalToPay").textContent = fmtMoney(order.total);
 
-  // actions
-  const helpWhats = document.getElementById("helpWhats").textContent.trim();
-  const telDigits = digitsOnly(order.telephone || helpWhats);
-  const msg = encodeURIComponent(`Bonjour, je veux un suivi pour ${order.commande_id}`);
-  document.getElementById("btnWhats").onclick = () => {
-    // wa.me nécessite numéro format international sans +
-    const waNum = telDigits || digitsOnly(helpWhats);
-    window.open(`https://wa.me/${waNum}?text=${msg}`, "_blank");
-  };
-  document.getElementById("btnCall").onclick = () => {
-    const callNum = order.telephone || helpWhats;
-    window.location.href = `tel:${callNum}`;
-  };
+  // boutons
+  if (order.telDigits){
+    $("btnWhatsapp").href = "https://wa.me/" + order.telDigits;
+    $("btnCall").href = "tel:" + order.telDigits;
+  } else {
+    $("btnWhatsapp").href = "#";
+    $("btnCall").href = "#";
+  }
 
-  // events (simple)
-  const eventList = document.getElementById("eventList");
-  const now = new Date();
-  const hh = String(now.getHours()).padStart(2,"0") + ":" + String(now.getMinutes()).padStart(2,"0");
-  eventList.innerHTML = `
-    <div class="event"><div class="time">${hh}</div><div>Statut: <b>${escapeHtml(st)}</b></div></div>
-  `;
+  // progression
+  setProgress(order.statut);
+
+  // timeline
+  renderTimeline(history || [], order.statut);
+
+  // notice
+  $("noticeMsg").textContent = "";
 }
 
-/* ===================== FIND ORDER ===================== */
-let cachedOrders = [];
-
-async function loadOrders(){
-  const data = await apiGet("getOrders");
-  if (!data || !data.success) throw new Error(data?.message || "Erreur API getOrders");
-  cachedOrders = (data.orders || []).map(normalizeOrder);
-  return cachedOrders;
+function renderNotFound(){
+  $("orderCard").style.display = "none";
+  $("notFound").style.display = "block";
 }
 
-function findOrderByCommandeId(id){
-  const x = String(id||"").trim();
-  if (!x) return null;
-  return cachedOrders.find(o => String(o.commande_id||"").trim() === x) || null;
+/* ===================== ACTIONS ===================== */
+async function refresh(){
+  try{
+    $("noticeMsg").textContent = "⏳ Chargement...";
+    const order = await findOrder();
+    if (!order) { renderNotFound(); return; }
+
+    const hist = await loadHistory(order.id);
+    renderOrder(order, hist);
+
+    $("noticeMsg").textContent = "✅ Données à jour";
+    setTimeout(()=>{ if($("noticeMsg")) $("noticeMsg").textContent=""; }, 2500);
+  } catch(e){
+    console.error(e);
+    $("noticeMsg").textContent = "❌ Erreur chargement";
+  }
 }
 
-function findOrderByPhone(phoneDigits){
-  const p = digitsOnly(phoneDigits || "");
-  if (!p) return null;
-  // match fin de numéro
-  const candidates = cachedOrders.filter(o => o.telephone_digits.endsWith(p) || p.endsWith(o.telephone_digits));
-  // retourne le plus récent (cachedOrders est déjà reverse côté API chez toi)
-  return candidates.length ? candidates[0] : null;
+function share(){
+  const url = new URL(location.href);
+  const cmd = $("orderId").textContent.trim();
+  if (cmd) {
+    url.searchParams.set("commande", cmd);
+    url.searchParams.delete("phone");
+    navigator.clipboard?.writeText(url.toString());
+    $("noticeMsg").textContent = "✅ Lien copié";
+    setTimeout(()=>{ $("noticeMsg").textContent=""; }, 2500);
+  }
 }
 
 /* ===================== INIT ===================== */
-async function runSearch(prefill){
-  try{
-    if (!cachedOrders.length) await loadOrders();
-
-    const input = document.getElementById("orderInput");
-    const value = String(prefill ?? input.value ?? "").trim();
-    if (!value){
-      toast("Entrez un numéro de commande", "warn");
-      return;
-    }
-
-    const order = findOrderByCommandeId(value);
-    if (!order){
-      toast("Commande introuvable", "err");
-      return;
-    }
-
-    renderOrder(order);
-    toast("Commande chargée");
-  } catch(e){
-    console.error(e);
-    toast(e.message || "Erreur", "err");
-  }
-}
-
-async function init(){
-  // paramètres URL: ?phone=... ou ?commande_id=...
+document.addEventListener("DOMContentLoaded", () => {
+  // préremplir input depuis URL si موجود
   const u = new URL(location.href);
-  const cmd = u.searchParams.get("commande") || u.searchParams.get("commande_id") || "";
-  const phone = u.searchParams.get("phone") || "";
+  const cmd = String(u.searchParams.get("commande") || u.searchParams.get("cmd") || "").trim();
+  if (cmd) $("searchInput").value = cmd;
 
-  document.getElementById("btnSearch").addEventListener("click", () => runSearch());
-  document.getElementById("orderInput").addEventListener("keydown", (e)=> {
-    if (e.key === "Enter") runSearch();
+  $("btnSearch").addEventListener("click", refresh);
+  $("btnRefresh").addEventListener("click", refresh);
+  $("btnShare").addEventListener("click", share);
+
+  $("searchInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") refresh();
   });
 
-  document.getElementById("btnRefresh").onclick = async () => {
-    try{
-      await loadOrders();
-      const currentId = document.getElementById("orderIdLabel").textContent.trim();
-      if (currentId && currentId !== "—"){
-        const o = findOrderByCommandeId(currentId);
-        if (o) renderOrder(o);
-      }
-      toast("Actualisé");
-    }catch(e){
-      toast("Erreur refresh", "err");
-    }
-  };
-
-  document.getElementById("btnShare").onclick = () => {
-    const id = document.getElementById("orderIdLabel").textContent.trim();
-    if (!id || id==="—"){
-      toast("Aucune commande à partager", "warn");
-      return;
-    }
-    const shareUrl = `${location.origin}${location.pathname}?commande_id=${encodeURIComponent(id)}`;
-    navigator.clipboard?.writeText(shareUrl);
-    toast("Lien copié");
-  };
-
-  // charge une commande automatiquement
-  try{
-    await loadOrders();
-
-    if (cmd){
-      document.getElementById("orderInput").value = cmd;
-      const o = findOrderByCommandeId(cmd);
-      if (o){ renderOrder(o); toast("Commande chargée"); return; }
-    }
-
-    if (phone){
-      const o = findOrderByPhone(phone);
-      if (o){
-        document.getElementById("orderInput").value = o.commande_id;
-        renderOrder(o);
-        toast("Commande trouvée par téléphone");
-        return;
-      }
-    }
-
-    // sinon, ne rien afficher (reste sur —)
-  } catch(e){
-    console.error(e);
-    toast("Erreur API", "err");
-  }
-}
-
-window.addEventListener("DOMContentLoaded", init);
+  refresh();
+});
 </script>
 
 </body>
