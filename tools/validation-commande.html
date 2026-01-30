@@ -1,691 +1,894 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAXI JDC MARKET - Commande</title>
-    <style>
-        /* Gardez votre style existant */
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .container { max-width: 800px; margin: auto; }
-        .section { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 10px; }
-        button { background: #4CAF50; color: white; border: none; padding: 15px; border-radius: 5px; cursor: pointer; }
-        button:disabled { background: #cccccc; cursor: not-allowed; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Validation commande - MAXI JDC MARKET</title>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* [Le CSS reste identique - pas de changement nécessaire] */
+    :root{
+      --bg:#05070a;
+      --panel:#0e1622;
+      --panel2:#0b1220;
+      --border:#12e6a5;
+      --border2:#0ecf95;
+      --text:#e8f1ff;
+      --muted:#93a4be;
+      --btn:#122235;
+      --btn2:#0f1b2b;
+      --danger:#ff5c5c;
+      --ok:#20e3b2;
+      --warning:#ffa726;
+      --info:#2196f3;
+      --processing:#7e57c2;
+      --delivered:#4caf50;
+      --cancelled:#ff5252;
+      --shadow: 0 18px 55px rgba(0,0,0,.6);
+      --radius:16px;
+      --radius2:12px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 800px at 50% 20%, rgba(18,230,165,.16), transparent 60%),
+                  radial-gradient(900px 700px at 15% 70%, rgba(30,144,255,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .modal{
+      width:min(680px, 96vw);
+      background: linear-gradient(180deg, rgba(18,230,165,.08), rgba(18,230,165,.02) 35%, rgba(0,0,0,0)),
+                  var(--panel);
+      border:2px solid rgba(18,230,165,.55);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 16px;
+      border-bottom:1px solid rgba(18,230,165,.28);
+      background: rgba(8, 18, 28, .65);
+    }
+    .title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:700;
+      color:#a8ffe8;
+      letter-spacing:.2px;
+    }
+    .title .dot{
+      width:16px;height:16px;border-radius:4px;
+      border:2px solid rgba(18,230,165,.9);
+      background:rgba(18,230,165,.18);
+      display:grid;place-items:center;
+      font-size:12px;
+      line-height:1;
+    }
+    .close{
+      width:34px;height:34px;border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor:pointer;
+      font-size:18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .close:hover{border-color:rgba(18,230,165,.55); transform:rotate(90deg);}
+    .content{
+      padding:16px;
+    }
+    .receipt{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius2);
+      padding:14px;
+      max-height: 58vh;
+      overflow:auto;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.45;
+      color:#d7e6ff;
+      white-space: pre-wrap;
+    }
+    .sections{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-top:15px;
+    }
+    .section{
+      background: rgba(0,0,0,.2);
+      border-radius: 10px;
+      padding:12px;
+      border-left:3px solid var(--border);
+    }
+    .section-header{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:10px;
+      color:#a8ffe8;
+      font-weight:600;
+    }
+    .section-content{
+      font-size:13px;
+      line-height:1.5;
+    }
+    .section.details{
+      border-left-color:#2196f3;
+    }
+    .section.articles{
+      border-left-color:#4caf50;
+    }
+    .section.total{
+      border-left-color:#ff9800;
+    }
+    .info-row{
+      display:flex;
+      margin:6px 0;
+    }
+    .info-label{
+      flex:0 0 100px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .info-value{
+      flex:1;
+      font-weight:500;
+    }
+    .article-item{
+      display:flex;
+      justify-content:space-between;
+      margin:4px 0;
+      padding:4px 0;
+      border-bottom:1px solid rgba(255,255,255,.05);
+    }
+    .article-name{
+      flex:2;
+    }
+    .article-qty{
+      flex:0 0 50px;
+      text-align:center;
+      color:var(--muted);
+    }
+    .article-price{
+      flex:0 0 80px;
+      text-align:right;
+    }
+    .footer{
+      display:flex;
+      gap:12px;
+      padding:14px 16px 16px;
+      border-top:1px solid rgba(18,230,165,.20);
+      background: rgba(8, 18, 28, .55);
+      flex-wrap: wrap;
+    }
+    .btn{
+      flex:1;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: var(--btn);
+      color: var(--text);
+      padding:12px 12px;
+      cursor:pointer;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.30);
+      transition:.15s ease;
+      min-width: 140px;
+    }
+    .btn:hover{transform: translateY(-1px); border-color:rgba(18,230,165,.45)}
+    .btn:active{transform: translateY(0px); opacity:.95}
+    .btn.secondary{background: var(--btn2)}
+    .btn.whatsapp{
+      border-color: rgba(18,230,165,.55);
+      background: linear-gradient(180deg, rgba(18,230,165,.18), rgba(18,230,165,.08));
+      box-shadow: 0 10px 30px rgba(18,230,165,.10);
+    }
+    .btn.validate{
+      background: linear-gradient(180deg, rgba(18,230,165,.18), rgba(18,230,165,.08)),
+                  var(--btn);
+      border-color: rgba(18,230,165,.70);
+      color:#c9fff0;
+    }
+    .btn.cancel{
+      border-color: rgba(255,92,92,.55);
+      background: linear-gradient(180deg, rgba(255,92,92,.18), rgba(255,92,92,.08));
+      color:#ffb3b3;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-family: var(--sans);
+      font-weight:700;
+      font-size:12px;
+      margin: 10px 0 0;
+    }
+    .pill strong{color:#cfe3ff}
+    .pill.pending{
+      border-color: rgba(255,167,38,.35);
+      background: rgba(255,167,38,.12);
+      color:#ffcc80;
+    }
+    .pill.validated{
+      border-color: rgba(18,230,165,.35);
+      background: rgba(18,230,165,.12);
+      color:#b2ebf2;
+    }
+    .pill.processing{
+      border-color: rgba(126,87,194,.35);
+      background: rgba(126,87,194,.12);
+      color:#d1c4e9;
+    }
+    .pill.delivered{
+      border-color: rgba(76,175,80,.35);
+      background: rgba(76,175,80,.12);
+      color:#c8e6c9;
+    }
+    .pill.cancelled{
+      border-color: rgba(255,92,92,.35);
+      background: rgba(255,92,92,.12);
+      color:#ffcdd2;
+    }
+    .toast{
+      position:fixed;
+      bottom:22px;
+      left:50%;
+      transform:translateX(-50%);
+      background: rgba(10,18,28,.92);
+      border:1px solid rgba(255,255,255,.12);
+      color: var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      box-shadow: var(--shadow);
+      font-size:13px;
+      display:none;
+      max-width:min(680px, 92vw);
+      z-index: 10000;
+    }
+    .toast.show{display:block; animation: slideUp 0.3s ease;}
+    .toast.ok{border-color: rgba(18,230,165,.55)}
+    .toast.err{border-color: rgba(255,92,92,.55)}
+    .small{
+      font-size:12px;
+      color: var(--muted);
+      margin-top:10px;
+      line-height: 1.4;
+    }
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top:10px;
+      flex-wrap: wrap;
+    }
+    .sound-alert {
+      display: none;
+      padding: 10px;
+      background: rgba(255,167,38,.15);
+      border: 1px solid rgba(255,167,38,.3);
+      border-radius: 8px;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .sound-alert.show {
+      display: block;
+      animation: pulse 1s infinite;
+    }
+    
+    .status-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .status-btn {
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid;
+      font-size: 11px;
+      cursor: pointer;
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    
+    .status-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,.3);
+    }
+    
+    .status-btn.validate {
+      border-color: var(--ok);
+      color: var(--ok);
+    }
+    
+    .status-btn.processing {
+      border-color: var(--processing);
+      color: #d1c4e9;
+    }
+    
+    .status-btn.delivered {
+      border-color: var(--delivered);
+      color: #c8e6c9;
+    }
+    
+    .status-btn.cancel {
+      border-color: var(--cancelled);
+      color: #ffcdd2;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+    
+    @media (max-width: 768px) {
+      .footer {
+        flex-direction: column;
+      }
+      .btn {
+        min-width: 100%;
+      }
+      .status-actions {
+        justify-content: center;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>MAXI JDC MARKET - Commande</h1>
-        
-        <div class="section">
-            <h3>Détails du client</h3>
-            <p><strong>Nom:</strong> <span id="client-nom">Lotfi</span></p>
-            <p><strong>Téléphone:</strong> <span id="client-telephone">+216 55532482</span></p>
-            <p><strong>Adresse:</strong> <span id="client-adresse">Jardins De Carthage</span></p>
-            <p><strong>GPS:</strong> <span id="client-gps">36.858550, 10.301463</span></p>
-        </div>
-        
-        <div class="section">
-            <h3>Articles commandés</h3>
-            <div id="articles-list">
-                <p>2x BEBE LILAS CONFORT 15-25KG-N5 (2310) - 37,00 dt</p>
-                <p>3x 30 OEUFS JAUNE ORANGE EL FIRMA (3949) - 45,00 dt</p>
-                <p>2x ABE CLOUDY (3581) - 18,90 dt</p>
-            </div>
-            <p><strong>Sous-total:</strong> <span id="sous-total">100,90 dt</span></p>
-            <p><strong>Livraison:</strong> <span id="livraison">3,00 dt</span></p>
-            <p><strong>TOTAL:</strong> <span id="total-commande" style="font-size: 1.5em; color: #2E7D32;">103,90 dt</span></p>
-        </div>
-        
-        <div class="section">
-            <h3>Validation</h3>
-            <p id="validation-status">Prêt à valider la commande</p>
-            <button id="btn-valider" onclick="validateAndSendOrder()">🔒 Valider et envoyer la commande</button>
-            <button id="btn-reset" onclick="resetSession()" style="background: #ff9800; margin-left: 10px;">🔄 Réinitialiser</button>
-        </div>
-        
-        <div id="debug-info" style="font-size: 0.8em; color: #666; margin-top: 20px;"></div>
+
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Validation commande">
+    <div class="header">
+      <div class="title">
+        <span class="dot"><i class="fas fa-check"></i></span>
+        <span id="headerTitle">Validation commande</span>
+      </div>
+      <button class="close" id="closeBtn" title="Fermer">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
 
-    <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw2qQOgP-51p1QpQoz13HfrW7OQziVEBN_8DM1nJiA4Gf0PJvZp7nRzDuo4izzx-U5p/exec";
-    let sessionId = null;
-    let isSubmitting = false;
+    <div class="content">
+      <!-- Affichage structuré en sections -->
+      <div class="sections" id="sectionsContainer">
+        <!-- Les sections seront générées dynamiquement -->
+      </div>
 
-    // 1. Initialiser la session
-    async function initSession() {
-        sessionId = localStorage.getItem('maxi_session_id');
-        
-        if (!sessionId) {
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=generatesession`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    sessionId = data.session_id;
-                    localStorage.setItem('maxi_session_id', sessionId);
-                    updateDebugInfo(`Session créée: ${sessionId.substring(0, 10)}...`);
-                }
-            } catch (error) {
-                console.error('Erreur création session:', error);
-            }
-        } else {
-            updateDebugInfo(`Session existante: ${sessionId.substring(0, 10)}...`);
-            checkSessionStatus();
-        }
-    }
+      <div class="row">
+        <div class="pill" id="statusPill">
+          <i class="fas fa-info-circle"></i> Statut : <strong id="statusText">En attente</strong>
+        </div>
 
-    // 2. Vérifier statut session
-    async function checkSessionStatus() {
-        if (!sessionId) return;
-        
-        try {
-            const response = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${sessionId}`);
-            const data = await response.json();
-            
-            if (data.success && data.already_validated) {
-                disableValidationButton('✅ Commande déjà validée');
-                updateStatus('Cette commande a déjà été validée.');
-            }
-        } catch (error) {
-            console.error('Erreur vérification session:', error);
-        }
-    }
+        <div class="pill">
+          <i class="fas fa-hashtag"></i> Commande : <strong id="orderIdText">—</strong>
+        </div>
+      </div>
 
-    // 3. Fonction principale de validation
-    async function validateAndSendOrder() {
-        if (isSubmitting) return;
-        
-        if (!sessionId) {
-            alert('Session non initialisée. Rechargez la page.');
-            return;
-        }
-        
-        // Désactiver le bouton immédiatement
-        isSubmitting = true;
-        const btn = document.getElementById('btn-valider');
-        btn.disabled = true;
-        btn.innerHTML = '⏳ Envoi en cours...';
-        
-        try {
-            // Vérifier si la session peut valider
-            const checkResponse = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${sessionId}`);
-            const checkData = await checkResponse.json();
-            
-            if (!checkData.can_validate) {
-                disableValidationButton('✅ Déjà validé');
-                updateStatus('Cette commande a déjà été validée.', 'error');
-                return;
-            }
-            
-            // Préparer les données CORRECTEMENT
-            const orderData = prepareOrderData();
-            orderData.session_id = sessionId;
-            
-            console.log('📤 Données envoyées:', orderData);
-            
-            // ENVOYER EN JSON FORMAT CORRECT
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(orderData)
-            });
-            
-            const result = await response.json();
-            console.log('📥 Réponse reçue:', result);
-            
-            if (result.success) {
-                // SUCCÈS
-                disableValidationButton('✅ Commande envoyée');
-                btn.style.background = '#2E7D32';
-                updateStatus(`Commande #${result.commande_id} validée ! Total: ${result.total} dt`, 'success');
-                
-                // Afficher notification
-                showNotification(`✅ Commande ${result.commande_id} validée !`, 'success');
-                
-            } else {
-                // ÉCHEC
-                if (result.already_validated) {
-                    disableValidationButton('✅ Déjà validé');
-                    updateStatus('Cette commande a déjà été validée.', 'info');
-                } else {
-                    // Réactiver le bouton
-                    btn.disabled = false;
-                    btn.innerHTML = '🔒 Valider et envoyer';
-                    isSubmitting = false;
-                    
-                    updateStatus(`Erreur: ${result.message || 'Inconnue'}`, 'error');
-                    showNotification('❌ Erreur de validation', 'error');
-                }
-            }
-            
-        } catch (error) {
-            // ERREUR RÉSEAU
-            console.error('❌ Erreur:', error);
-            
-            btn.disabled = false;
-            btn.innerHTML = '🔒 Valider et envoyer';
-            isSubmitting = false;
-            
-            updateStatus('Erreur réseau. Réessayez.', 'error');
-            showNotification('🌐 Erreur de connexion', 'error');
-        }
-    }
+      <div class="sound-alert" id="soundAlert">
+        <i class="fas fa-bell"></i> 🔊 Son de notification joué sur la tablette du magasin
+      </div>
+      
+      <div class="whatsapp-info">
+        <i class="fab fa-whatsapp"></i> <strong>WhatsApp Business:</strong> +216 25 600 978<br>
+        <small>Votre commande a été envoyée au WhatsApp du magasin</small>
+      </div>
+    </div>
 
-    // 4. Préparer les données (FORMAT CORRECT)
-    function prepareOrderData() {
-        // Format JSON structuré
-        return {
-            nom_client: document.getElementById('client-nom').textContent,
-            telephone: document.getElementById('client-telephone').textContent,
-            adresse: document.getElementById('client-adresse').textContent,
-            gps: document.getElementById('client-gps').textContent,
-            
-            // Articles dans un format propre
-            articles: `
-2x BEBE LILAS CONFORT 15-25KG-N5 (2310)
-3x 30 OEUFS JAUNE ORANGE EL FIRMA (3949)
-2x ABE CLOUDY (3581)
-            `.trim(),
-            
-            // Total bien formaté
-            total: document.getElementById('total-commande').textContent
-                    .replace(' dt', '')
-                    .replace(',', '.')
-                    .trim(),
-            
-            // Numéro de commande (optionnel, sera généré si absent)
-            commande_id: `CMD-MAXI-${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${Math.floor(Math.random()*1000).toString().padStart(3, '0')}`
-        };
-    }
+    <div class="footer">
+      <button class="btn validate" id="validateSendBtn">
+        <i class="fas fa-check-double"></i> ✅ Valider et envoyer
+      </button>
+      <button class="btn secondary" id="downloadBtn">
+        <i class="fas fa-download"></i> 📥 Télécharger
+      </button>
+      <button class="btn whatsapp" id="whatsappBtn">
+        <i class="fab fa-whatsapp"></i> 📱 WhatsApp
+      </button>
+      <button class="btn cancel" id="cancelBtn">
+        <i class="fas fa-times"></i> ❌ Annuler
+      </button>
+    </div>
+  </div>
 
-    // 5. Fonctions utilitaires
-    function disableValidationButton(text) {
-        const btn = document.getElementById('btn-valider');
-        btn.disabled = true;
-        btn.innerHTML = text;
-        btn.style.cursor = 'not-allowed';
-    }
-
-    function updateStatus(message, type = 'info') {
-        const statusEl = document.getElementById('validation-status');
-        statusEl.textContent = message;
-        statusEl.style.color = type === 'success' ? '#2E7D32' : 
-                              type === 'error' ? '#F44336' : '#2196F3';
-    }
-
-    function updateDebugInfo(message) {
-        document.getElementById('debug-info').textContent = message;
-    }
-
-    function showNotification(message, type) {
-        // Créer une notification temporaire
-        const notification = document.createElement('div');
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            background: ${type === 'success' ? '#4CAF50' : '#F44336'};
-            color: white;
-            border-radius: 5px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            z-index: 10000;
-        `;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
-    }
-
-    function resetSession() {
-        localStorage.removeItem('maxi_session_id');
-        sessionId = null;
-        location.reload();
-    }
-
-    // 6. Initialisation
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('🚀 MAXI JDC MARKET - Initialisation');
-        initSession();
-    });
-    </script>
-
-<!-- 
-   AJOUTEZ CE SCRIPT À VOTRE PAGE HTML EXISTANTE
-   (Juste avant la balise </body>)
--->
+  <div class="toast" id="toast"></div>
 
 <script>
-// URL de votre script Apps Script
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKreRtF1uwtJyMsn5pNUFAzZVU7iH8tmLFgg10cwvUV5qoJqI6sZRlNEHkbQiuB-Kki/exec';
+/**
+ * ==========================
+ *  CONFIGURATION
+ * ==========================
+ */
+const API_URL = "https://script.google.com/macros/s/AKfycbyvppJUxeCw2RU2RMu9GkBQktyZhVUkaUz_skV_naARek23JJhx8xdoB3DQb9-qJSS6/exec";
+const WHATSAPP_NUMBER = "0021625600978";
 
-// Variables globales
-let sessionId = null;
-let isSubmitting = false;
-let submitTimeout = null;
+/**
+ * ==========================
+ *  ANALYSER LES DONNÉES COMMANDE
+ * ==========================
+ */
+function analyserDonneesCommande(rawData) {
+  const result = {
+    nom: "",
+    telephone: "",
+    adresse: "",
+    articles: [],
+    total: 0,
+    numero_commande: "",
+    date: new Date().toISOString(),
+    statut: "En attente"
+  };
 
-// 1. PROTECTION CONTRE LES CLICS MULTIPLES
-function protectSubmitButton() {
-  // Trouver le bouton "Valider et envoyer"
-  const submitButtons = [
-    document.querySelector('button[onclick*="valider"]'),
-    document.querySelector('button[onclick*="envoyer"]'),
-    document.querySelector('button:contains("Valider")'),
-    document.querySelector('button:contains("Envoyer")'),
-    document.querySelector('[class*="valider"]'),
-    document.querySelector('[class*="envoyer"]'),
-    document.getElementById('btn-valider'),
-    document.getElementById('btn-envoyer')
-  ].filter(btn => btn !== null);
-
-  if (submitButtons.length === 0) {
-    console.warn('⚠️ Bouton de validation non trouvé');
-    return;
-  }
-
-  const submitBtn = submitButtons[0];
-  const originalText = submitBtn.innerHTML;
-  const originalOnClick = submitBtn.onclick;
-  const originalBgColor = submitBtn.style.backgroundColor;
-
-  // 2. GÉNÉRER UNE SESSION UNIQUE
-  async function initializeSession() {
-    try {
-      const response = await fetch(`${SCRIPT_URL}?action=generatesession`);
-      const data = await response.json();
-      
-      if (data.success) {
-        sessionId = data.session_id;
-        localStorage.setItem('maxi_jdc_session', sessionId);
-        console.log('🔒 Session créée:', sessionId.substring(0, 8) + '...');
-        
-        // Vérifier si déjà validé
-        checkSessionStatus();
-      }
-    } catch (error) {
-      console.error('❌ Erreur session:', error);
-    }
-  }
-
-  // 3. VÉRIFIER STATUT SESSION
-  async function checkSessionStatus() {
-    if (!sessionId) return;
+  if (typeof rawData === "string") {
+    const lignes = rawData.split('\n').map(l => l.trim()).filter(l => l);
     
-    try {
-      const response = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${sessionId}`);
-      const data = await response.json();
-      
-      if (data.success && data.already_validated) {
-        // Désactiver le bouton si déjà validé
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '✅ Déjà validé';
-        submitBtn.style.backgroundColor = '#e0e0e0';
-        submitBtn.style.cursor = 'not-allowed';
-        
-        // Afficher message
-        showMessage('Cette commande a déjà été validée. Le bouton est désactivé.', 'info');
-      }
-    } catch (error) {
-      console.error('❌ Erreur vérification:', error);
-    }
-  }
-
-  // 4. FONCTION DE VALIDATION SÉCURISÉE
-  async function secureValidateOrder() {
-    if (isSubmitting) {
-      console.log('⏳ Validation déjà en cours...');
-      return;
-    }
+    let section = "none";
     
-    // Vérifier session
-    if (!sessionId) {
-      showMessage('❌ Session non initialisée. Rechargez la page.', 'error');
-      return;
-    }
-    
-    // DÉSACTIVER IMMÉDIATEMENT LE BOUTON
-    isSubmitting = true;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '⏳ Validation en cours...';
-    submitBtn.style.backgroundColor = '#ff9800';
-    
-    // Désactiver après 30 secondes max
-    submitTimeout = setTimeout(() => {
-      if (isSubmitting) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-        submitBtn.style.backgroundColor = originalBgColor;
-        isSubmitting = false;
-        showMessage('⚠️ Délai dépassé. Réessayez.', 'warning');
-      }
-    }, 30000);
-    
-    try {
-      // VÉRIFIER SESSION AVANT ENVOI
-      const checkResponse = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${sessionId}`);
-      const checkData = await checkResponse.json();
-      
-      if (!checkData.can_validate) {
-        clearTimeout(submitTimeout);
-        
-        if (checkData.already_validated) {
-          submitBtn.innerHTML = '✅ Déjà validé';
-          submitBtn.style.backgroundColor = '#e0e0e0';
-          showMessage('Cette commande a déjà été validée.', 'info');
-        } else if (checkData.too_many_attempts) {
-          submitBtn.innerHTML = '🚫 Trop de tentatives';
-          showMessage('Trop de tentatives. Attendez 5 minutes.', 'error');
-        }
-        
-        isSubmitting = false;
+    lignes.forEach(ligne => {
+      // Détection des sections
+      if (ligne.includes("Détails de votre commande") || 
+          ligne.includes("Informations client") ||
+          ligne.includes("👤") || ligne.includes("📞") || ligne.includes("📍")) {
+        section = "details";
         return;
       }
       
-      // RÉCUPÉRER LES DONNÉES DE COMMANDE
-      const orderData = collectOrderData();
-      orderData.session_id = sessionId;
-      
-      console.log('📤 Envoi sécurisé:', orderData);
-      
-      // ENVOYER LA COMMANDE
-      const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(orderData)
-      });
-      
-      const result = await response.json();
-      console.log('📥 Réponse:', result);
-      clearTimeout(submitTimeout);
-      
-      if (result.success) {
-        // SUCCÈS
-        submitBtn.innerHTML = '✅ Commande envoyée';
-        submitBtn.style.backgroundColor = '#4CAF50';
-        isSubmitting = false;
-        
-        showMessage(
-          `Commande #${result.commande_id} validée !<br>Total: ${result.total} dt`,
-          'success'
-        );
-        
-        // Mettre à jour le numéro de commande affiché
-        updateOrderDisplay(result.commande_id);
-        
-        // Exécuter l'action originale si elle existe
-        if (typeof originalOnClick === 'function') {
-          setTimeout(originalOnClick, 1000);
+      if (ligne.includes("Articles commandés") || 
+          ligne.includes("🛒") || 
+          ligne.includes("ARTICLES") ||
+          /^\d+x\s/.test(ligne)) {
+        section = "articles";
+        if (!ligne.includes("Articles commandés") && !ligne.includes("🛒")) {
+          // C'est déjà un article, l'ajouter
+          parserArticle(ligne, result.articles);
         }
-        
-      } else {
-        // ÉCHEC
-        if (result.already_validated) {
-          submitBtn.innerHTML = '✅ Déjà validé';
-          submitBtn.style.backgroundColor = '#e0e0e0';
-          showMessage('Cette commande a déjà été validée.', 'info');
-        } else if (result.is_duplicate) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = originalText;
-          submitBtn.style.backgroundColor = originalBgColor;
-          showMessage(
-            '⚠️ Commande similaire déjà enregistrée récemment.<br>Attendez quelques secondes.',
-            'warning'
-          );
-        } else {
-          // Réactiver le bouton pour réessayer
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '🔄 Réessayer';
-          submitBtn.style.backgroundColor = '#F44336';
-          showMessage(`Erreur: ${result.message || 'Inconnue'}`, 'error');
-        }
-        isSubmitting = false;
+        return;
       }
       
-    } catch (error) {
-      // ERREUR RÉSEAU
-      console.error('❌ Erreur réseau:', error);
-      clearTimeout(submitTimeout);
-      
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '🌐 Réessayer (erreur réseau)';
-      submitBtn.style.backgroundColor = '#FF9800';
-      isSubmitting = false;
-      
-      showMessage('Erreur réseau. Vérifiez votre connexion.', 'error');
-    }
-  }
-
-  // 5. COLLECTER LES DONNÉES (ADAPTEZ À VOTRE INTERFACE)
-  function collectOrderData() {
-    // EXEMPLE - ADAPTEZ À VOS CHAMPS
-    return {
-      nom_client: getElementText('client-nom', 'Lotfi'),
-      telephone: getElementText('client-telephone', '+216 55532482'),
-      adresse: getElementText('client-adresse', 'Jardins De Carthage'),
-      gps: getElementText('client-gps', '36.858550, 10.301463'),
-      articles: getArticlesText(),
-      total: getTotalAmount()
-    };
-  }
-
-  // Fonctions utilitaires
-  function getElementText(id, defaultValue = '') {
-    const el = document.getElementById(id);
-    return el ? el.textContent.trim() : defaultValue;
-  }
-
-  function getArticlesText() {
-    // Adaptez cette fonction à votre structure d'articles
-    const articles = [];
-    
-    // Exemple: chercher tous les éléments d'article
-    const articleElements = document.querySelectorAll('.article-item, [class*="article"], [class*="produit"]');
-    
-    if (articleElements.length > 0) {
-      articleElements.forEach(el => {
-        const text = el.textContent.trim();
-        if (text && !text.includes('TOTAL') && !text.includes('Sous-total')) {
-          articles.push(text);
-        }
-      });
-    } else {
-      // Fallback: utiliser un conteneur d'articles
-      const container = document.getElementById('articles-container') || 
-                       document.querySelector('.articles-list');
-      if (container) {
-        return container.textContent.trim();
+      if (ligne.includes("TOTAL") || 
+          ligne.includes("💰") || 
+          ligne.includes("Total") ||
+          ligne.includes("MAXI-") ||
+          /^\d+\.\d{3}\s*(DT|dt|TND)/.test(ligne)) {
+        section = "total";
       }
-    }
-    
-    return articles.join('\n');
-  }
 
-  function getTotalAmount() {
-    const totalEl = document.getElementById('total-commande') || 
-                   document.querySelector('[class*="total"]');
-    
-    if (totalEl) {
-      const text = totalEl.textContent.trim();
-      // Extraire les nombres
-      const match = text.match(/[\d,]+/);
-      if (match) {
-        return match[0].replace(',', '.');
+      // Extraction selon la section
+      switch(section) {
+        case "details":
+          if (ligne.includes("Nom:") || ligne.includes("👤")) {
+            result.nom = ligne.replace(/Nom:|👤/g, "").trim();
+          } else if (ligne.includes("Téléphone:") || ligne.includes("📞") || /\+216/.test(ligne)) {
+            result.telephone = ligne.replace(/Téléphone:|📞/g, "").trim();
+          } else if (ligne.includes("Adresse:") || ligne.includes("📍")) {
+            result.adresse = ligne.replace(/Adresse:|📍/g, "").trim();
+          }
+          break;
+          
+        case "articles":
+          if (ligne.trim() && !ligne.includes("Articles commandés") && !ligne.includes("🛒")) {
+            parserArticle(ligne, result.articles);
+          }
+          break;
+          
+        case "total":
+          // Numéro commande
+          if (ligne.includes("MAXI-") || ligne.includes("Commande #")) {
+            result.numero_commande = ligne.replace(/Commande #/g, "").trim();
+          }
+          // Total
+          else if (ligne.includes("TOTAL") || ligne.includes("💰") || ligne.includes("Total:")) {
+            const totalMatch = ligne.match(/(\d+\.?\d*)\s*(DT|dt|TND|tnd)/i);
+            if (totalMatch) {
+              result.total = parseFloat(totalMatch[1]);
+            }
+          }
+          break;
       }
-    }
-    
-    return '0';
+    });
+  } else if (typeof rawData === "object") {
+    Object.assign(result, rawData);
   }
 
-  // 6. AFFICHER DES MESSAGES
-  function showMessage(message, type = 'info') {
-    // Créer ou réutiliser un élément de message
-    let messageEl = document.getElementById('validation-message');
-    
-    if (!messageEl) {
-      messageEl = document.createElement('div');
-      messageEl.id = 'validation-message';
-      messageEl.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        background: ${type === 'success' ? '#4CAF50' : 
-                     type === 'error' ? '#F44336' : 
-                     type === 'warning' ? '#FF9800' : '#2196F3'};
-        color: white;
-        border-radius: 5px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 10000;
-        max-width: 400px;
-        animation: slideIn 0.3s ease;
-      `;
-      document.body.appendChild(messageEl);
-    }
-    
-    messageEl.innerHTML = message;
-    messageEl.style.background = type === 'success' ? '#4CAF50' : 
-                                 type === 'error' ? '#F44336' : 
-                                 type === 'warning' ? '#FF9800' : '#2196F3';
-    
-    // Masquer après 5 secondes
-    setTimeout(() => {
-      messageEl.style.animation = 'slideOut 0.3s ease';
-      setTimeout(() => {
-        if (messageEl.parentNode) {
-          messageEl.parentNode.removeChild(messageEl);
-        }
-      }, 300);
-    }, 5000);
+  // Générer numéro commande si vide
+  if (!result.numero_commande) {
+    const now = new Date();
+    const dateStr = now.getFullYear().toString() + 
+                   (now.getMonth() + 1).toString().padStart(2, '0') + 
+                   now.getDate().toString().padStart(2, '0');
+    const timeStr = now.getHours().toString().padStart(2, '0') + 
+                   now.getMinutes().toString().padStart(2, '0');
+    result.numero_commande = `MAXI-${dateStr}-${timeStr}`;
   }
 
-  // 7. METTRE À JOUR L'AFFICHAGE
-  function updateOrderDisplay(commandeId) {
-    // Mettre à jour le numéro de commande affiché
-    const orderNumEl = document.getElementById('commande-numero') || 
-                      document.querySelector('[class*="commande"]');
-    if (orderNumEl) {
-      orderNumEl.textContent = commandeId;
-    }
-  }
-
-  // 8. REMPLACER L'ACTION DU BOUTON
-  submitBtn.onclick = function(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-    
-    secureValidateOrder();
-    return false;
-  };
-
-  // 9. AJOUTER UN INDICATEUR VISUEL
-  submitBtn.style.position = 'relative';
-  submitBtn.innerHTML = '🔒 ' + originalText;
-  
-  // 10. INITIALISER LA SESSION AU CHARGEMENT
-  window.addEventListener('load', function() {
-    // Récupérer session existante
-    sessionId = localStorage.getItem('maxi_jdc_session');
-    
-    if (sessionId) {
-      console.log('🔍 Session existante trouvée');
-      checkSessionStatus();
-    } else {
-      initializeSession();
-    }
-  });
-
-  // 11. AJOUTER LES ANIMATIONS CSS
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-      from { transform: translateX(0); opacity: 1; }
-      to { transform: translateX(100%); opacity: 0; }
-    }
-    
-    button:disabled {
-      cursor: not-allowed !important;
-      opacity: 0.7 !important;
-    }
-    
-    .protected-button {
-      position: relative;
-    }
-    
-    .protected-button::after {
-      content: "🔒";
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-  `;
-  document.head.appendChild(style);
-  
-  // Ajouter la classe
-  submitBtn.classList.add('protected-button');
+  return result;
 }
 
-// 12. INITIALISER LA PROTECTION
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('🛡️ Initialisation protection anti-doublon...');
+function parserArticle(ligne, articlesArray) {
+  ligne = ligne.trim();
   
-  // Attendre que la page soit complètement chargée
-  setTimeout(protectSubmitButton, 1000);
+  // Format: "2x Produit - 15.500 DT"
+  const match1 = ligne.match(/(\d+)\s*x\s*([^-]+)-\s*(\d+\.?\d*)\s*(DT|dt|TND|tnd)?/i);
+  if (match1) {
+    articlesArray.push({
+      produit: match1[2].trim(),
+      quantite: parseInt(match1[1]),
+      prix_unitaire: parseFloat(match1[3]),
+      prix_total: parseInt(match1[1]) * parseFloat(match1[3])
+    });
+    return;
+  }
   
-  // Protection supplémentaire: empêcher les clics multiples rapides
-  document.addEventListener('click', function(e) {
-    const target = e.target;
-    if (target.tagName === 'BUTTON' && 
-        (target.textContent.includes('Valider') || target.textContent.includes('Envoyer'))) {
-      if (target.disabled) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
+  // Format: "Produit: 15.500 DT x2"
+  const match2 = ligne.match(/(.+):\s*(\d+\.?\d*)\s*(DT|dt|TND|tnd)?\s*x\s*(\d+)/i);
+  if (match2) {
+    articlesArray.push({
+      produit: match2[1].trim(),
+      quantite: parseInt(match2[4]),
+      prix_unitaire: parseFloat(match2[2]),
+      prix_total: parseInt(match2[4]) * parseFloat(match2[2])
+    });
+    return;
+  }
+  
+  // Format simple: "2x Produit"
+  const match3 = ligne.match(/(\d+)\s*x\s*(.+)/i);
+  if (match3) {
+    articlesArray.push({
+      produit: match3[2].trim(),
+      quantite: parseInt(match3[1]),
+      prix_unitaire: 0,
+      prix_total: 0
+    });
+  }
+}
+
+/**
+ * ==========================
+ *  AFFICHAGE STRUCTURÉ
+ * ==========================
+ */
+function afficherSectionsStructurees(commande) {
+  const container = document.getElementById("sectionsContainer");
+  
+  // Section 1: Détails client
+  let html = `
+    <div class="section details">
+      <div class="section-header">
+        <i class="fas fa-user"></i>
+        <span>Détails client</span>
+      </div>
+      <div class="section-content">
+        <div class="info-row">
+          <div class="info-label">👤 Nom:</div>
+          <div class="info-value">${commande.nom || "Non spécifié"}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">📞 Téléphone:</div>
+          <div class="info-value">${commande.telephone || "Non spécifié"}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">📍 Adresse:</div>
+          <div class="info-value">${commande.adresse || "Non spécifié"}</div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Section 2: Articles
+  html += `
+    <div class="section articles">
+      <div class="section-header">
+        <i class="fas fa-shopping-cart"></i>
+        <span>Articles commandés</span>
+      </div>
+      <div class="section-content">
+  `;
+  
+  if (commande.articles && commande.articles.length > 0) {
+    commande.articles.forEach((article, index) => {
+      html += `
+        <div class="article-item">
+          <div class="article-name">${article.produit}</div>
+          <div class="article-qty">${article.quantite}x</div>
+          <div class="article-price">${article.prix_unitaire ? article.prix_unitaire.toFixed(3) + ' DT' : '—'}</div>
+        </div>
+      `;
+    });
+  } else {
+    html += `<div style="color: var(--muted); font-style: italic;">Aucun article détaillé</div>`;
+  }
+  
+  html += `</div></div>`;
+  
+  // Section 3: Total et récapitulatif
+  html += `
+    <div class="section total">
+      <div class="section-header">
+        <i class="fas fa-file-invoice-dollar"></i>
+        <span>Récapitulatif</span>
+      </div>
+      <div class="section-content">
+        <div class="info-row">
+          <div class="info-label">🆔 N° Commande:</div>
+          <div class="info-value" style="font-family: monospace;">${commande.numero_commande}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">💰 Total:</div>
+          <div class="info-value" style="font-weight: bold; color: #a8ffe8;">
+            ${commande.total ? commande.total.toFixed(3) + ' DT' : '0.000 DT'}
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">📅 Date:</div>
+          <div class="info-value">${new Date(commande.date).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}</div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  container.innerHTML = html;
+  
+  // Mettre à jour les éléments d'info
+  document.getElementById("orderIdText").textContent = commande.numero_commande || "—";
+  document.getElementById("statusText").textContent = commande.statut || "En attente";
+  
+  // Mettre à jour la classe du statut
+  const statusPill = document.getElementById("statusPill");
+  statusPill.className = "pill " + (commande.statut ? commande.statut.toLowerCase().replace(/ /g, '-') : 'pending');
+}
+
+/**
+ * ==========================
+ *  FONCTIONS UTILITAIRES
+ * ==========================
+ */
+function showToast(text, type = "ok") {
+  const el = document.getElementById("toast");
+  el.textContent = text;
+  el.className = "toast show " + type;
+  setTimeout(() => el.className = "toast", 3200);
+}
+
+function downloadText(filename, text) {
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  }, 0);
+}
+
+function playTabletSound() {
+  try {
+    document.getElementById("soundAlert").classList.add("show");
+    setTimeout(() => {
+      document.getElementById("soundAlert").classList.remove("show");
+    }, 5000);
+  } catch (error) {
+    console.warn("Son non supporté:", error);
+  }
+}
+
+/**
+ * ==========================
+ *  GESTION DES COMMANDES
+ * ==========================
+ */
+async function envoyerCommandeAPI(commande) {
+  try {
+    const payload = {
+      method: "saveOrder",
+      nom: commande.nom,
+      telephone: commande.telephone,
+      adresse: commande.adresse,
+      articles: JSON.stringify(commande.articles),
+      total: commande.total.toFixed(3),
+      commande_id: commande.numero_commande
+    };
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(payload).toString()
+    });
+    
+    const result = await response.json();
+    return result;
+    
+  } catch (error) {
+    console.error("Erreur envoi API:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function validerEtEnvoyerCommande(commande) {
+  const result = await envoyerCommandeAPI(commande);
+  
+  if (result.success) {
+    showToast("✅ Commande validée et envoyée au magasin", "ok");
+    playTabletSound();
+    
+    // Ouvrir WhatsApp du magasin
+    const message = `🛒 NOUVELLE COMMANDE VALIDÉE\n\n` +
+                   `Client: ${commande.nom}\n` +
+                   `Téléphone: ${commande.telephone}\n` +
+                   `Adresse: ${commande.adresse}\n` +
+                   `N° Commande: ${commande.numero_commande}\n` +
+                   `Total: ${commande.total.toFixed(3)} DT\n\n` +
+                   `Statut: ✅ VALIDÉE - À PRÉPARER`;
+    
+    const encoded = encodeURIComponent(message);
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
+    
+    // Mettre à jour le statut
+    commande.statut = "Validée";
+    afficherSectionsStructurees(commande);
+    
+  } else {
+    showToast("❌ Erreur: " + (result.error || "Inconnue"), "err");
+  }
+}
+
+function ouvrirWhatsAppClient(commande) {
+  if (!commande.telephone) {
+    showToast("❌ Numéro client manquant", "err");
+    return;
+  }
+  
+  const phone = commande.telephone.replace(/\D/g, '');
+  const tnPhone = phone.length === 8 ? "216" + phone : phone.startsWith("216") ? phone : "216" + phone;
+  
+  const message = `Bonjour ${commande.nom || ''},\n\n` +
+                 `Votre commande MAXI-${commande.numero_commande} a été reçue.\n` +
+                 `Statut: ${commande.statut}\n` +
+                 `Total: ${commande.total.toFixed(3)} DT\n\n` +
+                 `Merci pour votre confiance !`;
+  
+  window.open(`https://wa.me/${tnPhone}?text=${encodeURIComponent(message)}`, "_blank");
+}
+
+/**
+ * ==========================
+ *  INITIALISATION
+ * ==========================
+ */
+function getDonneesCommande() {
+  // Essayer depuis l'URL
+  const params = new URLSearchParams(location.search);
+  const rawData = params.get("data") || params.get("commande") || "";
+  
+  if (rawData) {
+    return analyserDonneesCommande(rawData);
+  }
+  
+  // Essayer localStorage
+  try {
+    const saved = localStorage.getItem("maxi_commande_en_cours");
+    if (saved) {
+      return analyserDonneesCommande(JSON.parse(saved));
     }
-  }, true);
+  } catch (e) {
+    console.warn("Erreur lecture localStorage:", e);
+  }
+  
+  // Données par défaut
+  return analyserDonneesCommande("");
+}
+
+// Initialiser la page
+document.addEventListener("DOMContentLoaded", () => {
+  const commande = getDonneesCommande();
+  
+  // Afficher les données structurées
+  afficherSectionsStructurees(commande);
+  
+  // Vérifier si nouvelle commande
+  const isNew = new URLSearchParams(location.search).get("new") === "true";
+  if (isNew) {
+    setTimeout(() => {
+      playTabletSound();
+      showToast("🎉 Nouvelle commande reçue !", "ok");
+    }, 1000);
+  }
 });
 
-// 13. FONCTION DE RÉINITIALISATION (pour tests)
-function resetValidation() {
-  localStorage.removeItem('maxi_jdc_session');
-  sessionId = null;
-  location.reload();
-}
+// Événements des boutons
+document.getElementById("validateSendBtn").addEventListener("click", () => {
+  const commande = getDonneesCommande();
+  validerEtEnvoyerCommande(commande);
+});
 
-// Optionnel: ajouter un bouton de réinitialisation en mode debug
-if (window.location.hash === '#debug') {
-  const resetBtn = document.createElement('button');
-  resetBtn.textContent = '🔄 Réinitialiser session';
-  resetBtn.onclick = resetValidation;
-  resetBtn.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #FF9800;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    z-index: 9999;
-    font-size: 12px;
-  `;
-  document.body.appendChild(resetBtn);
-}
+document.getElementById("downloadBtn").addEventListener("click", () => {
+  const commande = getDonneesCommande();
+  const text = `COMMANDE MAXI JDC MARKET\n\n` +
+              `N°: ${commande.numero_commande}\n` +
+              `Date: ${new Date(commande.date).toLocaleString('fr-FR')}\n` +
+              `Client: ${commande.nom}\n` +
+              `Téléphone: ${commande.telephone}\n` +
+              `Adresse: ${commande.adresse}\n` +
+              `Total: ${commande.total.toFixed(3)} DT\n` +
+              `Statut: ${commande.statut}\n\n` +
+              `Articles:\n${commande.articles.map(a => `${a.quantite}x ${a.produit} - ${a.prix_unitaire.toFixed(3)} DT`).join('\n')}`;
+  
+  downloadText(`commande-maxi-${commande.numero_commande}.txt`, text);
+  showToast("📥 Commande téléchargée", "ok");
+});
+
+document.getElementById("whatsappBtn").addEventListener("click", () => {
+  const commande = getDonneesCommande();
+  ouvrirWhatsAppClient(commande);
+});
+
+document.getElementById("cancelBtn").addEventListener("click", () => {
+  if (confirm("Êtes-vous sûr de vouloir annuler cette commande ?")) {
+    showToast("❌ Commande annulée", "err");
+    setTimeout(() => {
+      window.close();
+    }, 1500);
+  }
+});
+
+document.getElementById("closeBtn").addEventListener("click", () => {
+  window.close();
+});
+
+// Raccourcis clavier
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") document.getElementById("closeBtn").click();
+  if (e.ctrlKey && e.key === "s") {
+    e.preventDefault();
+    document.getElementById("validateSendBtn").click();
+  }
+});
 </script>
-    
+    <script src="validation-protection.js"></script>
 </body>
 </html>
