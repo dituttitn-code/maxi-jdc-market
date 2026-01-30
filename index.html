@@ -8,9 +8,6 @@
   <meta name="apple-mobile-web-app-title" content="MAXI JDC MARKET" />
   <meta name="theme-color" content="#0a1929" />
   <title>MAXI JDC MARKET --- Application Mobile</title>
-
-
-<script src="config.js"></script>
   
   <!-- Manifest PWA -->
   <link rel="manifest" href="manifest.json" />
@@ -3973,8 +3970,56 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <script>
+    // ===================== CONFIGURATION =====================
 
-    
+// URL Google Apps Script (centralisée dans tools/config.js)
+const API_URL = window.APP_CONFIG.googleScriptUrl;
+
+// URL Google Sheets (CSV) – corrigée pour les problèmes de colonnes
+const GOOGLE_SHEETS_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv";
+
+const CONFIG = {
+  // Boutique
+  minOrder: 15,
+  freeShipping: 100,
+  shippingFee: 3,
+  itemsPerPage: 24,
+
+  // Contact
+  whatsappNumber: "21625600978",
+
+  // Stockage / cache
+  localStorageKey: "maxi_jdc_market_app_v39",
+  syncStorageKey: "maxi_jdc_sync_data",
+  historyRetentionYears: 2,
+
+  // Sécurité admin
+  adminPasswordKey: "maxi_jdc_admin_password",
+  adminPassword: "admin123",
+
+  // Images
+  imagesBasePath: "images/products/",
+
+  // QR / URLs
+  qrCodeUrl: window.location.href,
+  dashboardUrl: "tools/tableau-de-bord.html",
+  trackingUrl: "tools/suivi-commandes.html",
+
+  // Localisation magasin
+  storeLocation: {
+    lat: 36.851234,
+    lng: 10.301234
+  },
+
+  // Synchronisation
+  syncInterval: 30000,
+
+  // Sources de données
+  googleSheetsUrl: GOOGLE_SHEETS_URL,
+  apiUrl: API_URL
+};
+
     // ===================== TRADUCTIONS =====================
     const TRANSLATIONS = {
       fr: {
@@ -6543,25 +6588,8 @@
       }
     });
   </script>
-  <script src="validation-protection.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
