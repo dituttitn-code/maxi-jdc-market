@@ -1,7 +1,7 @@
 // validation-protection.js - PROTECTION ANTI-DOUBLON POUR MAXI JDC MARKET
 // À placer dans le même dossier que vos fichiers HTML
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-gHqEjb1RmcL14F165QAzu96pkZxpdTS3Ms1jaVWpehJnU0nkp1iH_izqj4xMHo_a/exec';
+const SCRIPT_URL = window.APP_CONFIG ? window.APP_CONFIG.googleScriptUrl : 'https://script.google.com/macros/s/AKfycbw-gHqEjb1RmcL14F165QAzu96pkZxpdTS3Ms1jaVWpehJnU0nkp1iH_izqj4xMHo_a/exec';
 
 let sessionId = null;
 let isSubmitting = false;
@@ -10,6 +10,11 @@ let submitTimeout = null;
 // 1. INITIALISATION - AU CHARGEMENT DE LA PAGE
 function initValidationSystem() {
     console.log('🚀 Initialisation système de validation...');
+    
+    // Vérifier si l'URL est configurée
+    if (!SCRIPT_URL || SCRIPT_URL.includes('AKfycbw-gHqEjb1RmcL14F165QAzu96pkZxpdTS3Ms1jaVWpehJnU0nkp1iH_izqj4xMHo_a')) {
+        console.warn('⚠️ URL Google Apps Script non configurée dans config.js');
+    }
     
     // Vérifier si on est sur une page de commande
     if (!isOrderPage()) {
@@ -595,6 +600,11 @@ function resetValidation() {
 // 17. INITIALISATION AU CHARGEMENT
 document.addEventListener('DOMContentLoaded', function() {
     console.log('📄 Page chargée, démarrage protection...');
+    
+    // Vérifier si config.js a été chargé
+    if (!window.APP_CONFIG) {
+        console.warn('⚠️ config.js non chargé. Assurez-vous que <script src="config.js"></script> est présent avant ce script.');
+    }
     
     // Ajouter les styles
     addStyles();
