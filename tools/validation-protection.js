@@ -1,7 +1,7 @@
 // validation-protection.js - À placer dans le même dossier que vos autres fichiers
 
 // URL de votre script Apps Script (REMPLACEZ par votre URL)
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKreRtF1uwtJyMsn5pNUFAzZVU7iH8tmLFgg10cwvUV5qoJqI6sZRlNEHkbQiuB-Kki/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2qQOgP-51p1QpQoz13HfrW7OQziVEBN_8DM1nJiA4Gf0PJvZp7nRzDuo4izzx-U5p/exec';
 
 // Variables globales
 let sessionId = null;
