@@ -4,371 +4,293 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Validation commande - MAXI JDC MARKET</title>
-
-  <!-- CONFIGURATION CENTRALE -->
-  <script src="config.js"></script>
   
-  <!-- PROTECTION ANTI-DOUBLON -->
-  <script src="validation-protection.js"></script>
-
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
-    :root {
-      --bg: #05070a;
-      --panel: #0e1622;
-      --panel2: #0b1220;
-      --border: #12e6a5;
-      --border2: #0ecf95;
-      --text: #e8f1ff;
-      --muted: #93a4be;
-      --btn: #122235;
-      --btn2: #0f1b2b;
-      --danger: #ff5c5c;
-      --ok: #20e3b2;
-      --warning: #ffa726;
-      --info: #2196f3;
-      --processing: #7e57c2;
-      --delivered: #4caf50;
-      --cancelled: #ff5252;
+    /* [Le CSS reste identique - pas de changement nécessaire] */
+    :root{
+      --bg:#05070a;
+      --panel:#0e1622;
+      --panel2:#0b1220;
+      --border:#12e6a5;
+      --border2:#0ecf95;
+      --text:#e8f1ff;
+      --muted:#93a4be;
+      --btn:#122235;
+      --btn2:#0f1b2b;
+      --danger:#ff5c5c;
+      --ok:#20e3b2;
+      --warning:#ffa726;
+      --info:#2196f3;
+      --processing:#7e57c2;
+      --delivered:#4caf50;
+      --cancelled:#ff5252;
       --shadow: 0 18px 55px rgba(0,0,0,.6);
-      --radius: 16px;
-      --radius2: 12px;
+      --radius:16px;
+      --radius2:12px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
-    
-    * {
-      box-sizing: border-box;
-    }
-    
-    body {
-      margin: 0;
-      font-family: var(--sans);
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
       background: radial-gradient(1200px 800px at 50% 20%, rgba(18,230,165,.16), transparent 60%),
                   radial-gradient(900px 700px at 15% 70%, rgba(30,144,255,.10), transparent 55%),
                   var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
     }
-    
-    .modal {
-      width: min(680px, 96vw);
+    .modal{
+      width:min(680px, 96vw);
       background: linear-gradient(180deg, rgba(18,230,165,.08), rgba(18,230,165,.02) 35%, rgba(0,0,0,0)),
                   var(--panel);
-      border: 2px solid rgba(18,230,165,.55);
+      border:2px solid rgba(18,230,165,.55);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      overflow: hidden;
-      position: relative;
+      overflow:hidden;
+      position:relative;
     }
-    
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(18,230,165,.28);
+    .header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 16px;
+      border-bottom:1px solid rgba(18,230,165,.28);
       background: rgba(8, 18, 28, .65);
     }
-    
-    .title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      color: #a8ffe8;
-      letter-spacing: .2px;
+    .title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:700;
+      color:#a8ffe8;
+      letter-spacing:.2px;
     }
-    
-    .title .dot {
-      width: 16px;
-      height: 16px;
-      border-radius: 4px;
-      border: 2px solid rgba(18,230,165,.9);
-      background: rgba(18,230,165,.18);
-      display: grid;
-      place-items: center;
-      font-size: 12px;
-      line-height: 1;
+    .title .dot{
+      width:16px;height:16px;border-radius:4px;
+      border:2px solid rgba(18,230,165,.9);
+      background:rgba(18,230,165,.18);
+      display:grid;place-items:center;
+      font-size:12px;
+      line-height:1;
     }
-    
-    .close {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,.12);
+    .close{
+      width:34px;height:34px;border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.06);
       color: var(--text);
-      cursor: pointer;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
+      cursor:pointer;
+      font-size:18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
-    
-    .close:hover {
-      border-color: rgba(18,230,165,.55);
-      transform: rotate(90deg);
+    .close:hover{border-color:rgba(18,230,165,.55); transform:rotate(90deg);}
+    .content{
+      padding:16px;
     }
-    
-    .content {
-      padding: 16px;
+    .receipt{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius2);
+      padding:14px;
+      max-height: 58vh;
+      overflow:auto;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.45;
+      color:#d7e6ff;
+      white-space: pre-wrap;
     }
-    
-    .sections {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 15px;
+    .sections{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-top:15px;
     }
-    
-    .section {
+    .section{
       background: rgba(0,0,0,.2);
       border-radius: 10px;
-      padding: 12px;
-      border-left: 3px solid var(--border);
+      padding:12px;
+      border-left:3px solid var(--border);
     }
-    
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      color: #a8ffe8;
-      font-weight: 600;
+    .section-header{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:10px;
+      color:#a8ffe8;
+      font-weight:600;
     }
-    
-    .section-content {
-      font-size: 13px;
-      line-height: 1.5;
+    .section-content{
+      font-size:13px;
+      line-height:1.5;
     }
-    
-    .section.details {
-      border-left-color: #2196f3;
+    .section.details{
+      border-left-color:#2196f3;
     }
-    
-    .section.articles {
-      border-left-color: #4caf50;
+    .section.articles{
+      border-left-color:#4caf50;
     }
-    
-    .section.total {
-      border-left-color: #ff9800;
+    .section.total{
+      border-left-color:#ff9800;
     }
-    
-    .info-row {
-      display: flex;
-      margin: 6px 0;
+    .info-row{
+      display:flex;
+      margin:6px 0;
     }
-    
-    .info-label {
-      flex: 0 0 100px;
-      color: var(--muted);
-      font-size: 12px;
+    .info-label{
+      flex:0 0 100px;
+      color:var(--muted);
+      font-size:12px;
     }
-    
-    .info-value {
-      flex: 1;
-      font-weight: 500;
+    .info-value{
+      flex:1;
+      font-weight:500;
     }
-    
-    .article-item {
-      display: flex;
-      justify-content: space-between;
-      margin: 4px 0;
-      padding: 4px 0;
-      border-bottom: 1px solid rgba(255,255,255,.05);
+    .article-item{
+      display:flex;
+      justify-content:space-between;
+      margin:4px 0;
+      padding:4px 0;
+      border-bottom:1px solid rgba(255,255,255,.05);
     }
-    
-    .article-name {
-      flex: 2;
+    .article-name{
+      flex:2;
     }
-    
-    .article-qty {
-      flex: 0 0 50px;
-      text-align: center;
-      color: var(--muted);
+    .article-qty{
+      flex:0 0 50px;
+      text-align:center;
+      color:var(--muted);
     }
-    
-    .article-price {
-      flex: 0 0 80px;
-      text-align: right;
+    .article-price{
+      flex:0 0 80px;
+      text-align:right;
     }
-    
-    .footer {
-      display: flex;
-      gap: 12px;
-      padding: 14px 16px 16px;
-      border-top: 1px solid rgba(18,230,165,.20);
+    .footer{
+      display:flex;
+      gap:12px;
+      padding:14px 16px 16px;
+      border-top:1px solid rgba(18,230,165,.20);
       background: rgba(8, 18, 28, .55);
       flex-wrap: wrap;
     }
-    
-    .btn {
-      flex: 1;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.12);
+    .btn{
+      flex:1;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
       background: var(--btn);
       color: var(--text);
-      padding: 12px 12px;
-      cursor: pointer;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
+      padding:12px 12px;
+      cursor:pointer;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
       box-shadow: 0 8px 24px rgba(0,0,0,.30);
-      transition: all 0.15s ease;
+      transition:.15s ease;
       min-width: 140px;
     }
-    
-    .btn:hover {
-      transform: translateY(-1px);
-      border-color: rgba(18,230,165,.45);
-    }
-    
-    .btn:active {
-      transform: translateY(0px);
-      opacity: .95;
-    }
-    
-    .btn.secondary {
-      background: var(--btn2);
-    }
-    
-    .btn.whatsapp {
+    .btn:hover{transform: translateY(-1px); border-color:rgba(18,230,165,.45)}
+    .btn:active{transform: translateY(0px); opacity:.95}
+    .btn.secondary{background: var(--btn2)}
+    .btn.whatsapp{
       border-color: rgba(18,230,165,.55);
       background: linear-gradient(180deg, rgba(18,230,165,.18), rgba(18,230,165,.08));
       box-shadow: 0 10px 30px rgba(18,230,165,.10);
     }
-    
-    .btn.validate {
+    .btn.validate{
       background: linear-gradient(180deg, rgba(18,230,165,.18), rgba(18,230,165,.08)),
                   var(--btn);
       border-color: rgba(18,230,165,.70);
-      color: #c9fff0;
+      color:#c9fff0;
     }
-    
-    .btn.cancel {
+    .btn.cancel{
       border-color: rgba(255,92,92,.55);
       background: linear-gradient(180deg, rgba(255,92,92,.18), rgba(255,92,92,.08));
-      color: #ffb3b3;
+      color:#ffb3b3;
     }
-    
-    .row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
-    
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
       background: rgba(255,255,255,.06);
       color: var(--muted);
       font-family: var(--sans);
-      font-weight: 700;
-      font-size: 12px;
+      font-weight:700;
+      font-size:12px;
       margin: 10px 0 0;
     }
-    
-    .pill strong {
-      color: #cfe3ff;
-    }
-    
-    .pill.pending {
+    .pill strong{color:#cfe3ff}
+    .pill.pending{
       border-color: rgba(255,167,38,.35);
       background: rgba(255,167,38,.12);
-      color: #ffcc80;
+      color:#ffcc80;
     }
-    
-    .pill.validated {
+    .pill.validated{
       border-color: rgba(18,230,165,.35);
       background: rgba(18,230,165,.12);
-      color: #b2ebf2;
+      color:#b2ebf2;
     }
-    
-    .pill.processing {
+    .pill.processing{
       border-color: rgba(126,87,194,.35);
       background: rgba(126,87,194,.12);
-      color: #d1c4e9;
+      color:#d1c4e9;
     }
-    
-    .pill.delivered {
+    .pill.delivered{
       border-color: rgba(76,175,80,.35);
       background: rgba(76,175,80,.12);
-      color: #c8e6c9;
+      color:#c8e6c9;
     }
-    
-    .pill.cancelled {
+    .pill.cancelled{
       border-color: rgba(255,92,92,.35);
       background: rgba(255,92,92,.12);
-      color: #ffcdd2;
+      color:#ffcdd2;
     }
-    
-    .toast {
-      position: fixed;
-      bottom: 22px;
-      left: 50%;
-      transform: translateX(-50%);
+    .toast{
+      position:fixed;
+      bottom:22px;
+      left:50%;
+      transform:translateX(-50%);
       background: rgba(10,18,28,.92);
-      border: 1px solid rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.12);
       color: var(--text);
-      padding: 10px 12px;
-      border-radius: 12px;
+      padding:10px 12px;
+      border-radius:12px;
       box-shadow: var(--shadow);
-      font-size: 13px;
-      display: none;
-      max-width: min(680px, 92vw);
+      font-size:13px;
+      display:none;
+      max-width:min(680px, 92vw);
       z-index: 10000;
     }
-    
-    .toast.show {
-      display: block;
-      animation: slideUp 0.3s ease;
-    }
-    
-    .toast.ok {
-      border-color: rgba(18,230,165,.55);
-    }
-    
-    .toast.err {
-      border-color: rgba(255,92,92,.55);
-    }
-    
-    .whatsapp-info {
-      margin-top: 15px;
-      padding: 10px;
-      background: rgba(18,230,165,.08);
-      border: 1px solid rgba(18,230,165,.2);
-      border-radius: 8px;
-      font-size: 13px;
-    }
-    
-    .whatsapp-info i {
-      color: #25D366;
-    }
-    
-    .whatsapp-info small {
-      display: block;
-      margin-top: 4px;
-      font-size: 11px;
+    .toast.show{display:block; animation: slideUp 0.3s ease;}
+    .toast.ok{border-color: rgba(18,230,165,.55)}
+    .toast.err{border-color: rgba(255,92,92,.55)}
+    .small{
+      font-size:12px;
       color: var(--muted);
+      margin-top:10px;
+      line-height: 1.4;
     }
-    
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top:10px;
+      flex-wrap: wrap;
+    }
     .sound-alert {
       display: none;
       padding: 10px;
@@ -378,7 +300,6 @@
       margin-top: 10px;
       text-align: center;
     }
-    
     .sound-alert.show {
       display: block;
       animation: pulse 1s infinite;
@@ -435,60 +356,19 @@
     }
     
     @keyframes slideUp {
-      from {
-        transform: translateX(-50%) translateY(20px);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(-50%) translateY(0);
-        opacity: 1;
-      }
+      from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
     }
     
     @media (max-width: 768px) {
       .footer {
         flex-direction: column;
       }
-      
       .btn {
         min-width: 100%;
       }
-      
       .status-actions {
         justify-content: center;
-      }
-      
-      .row {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      .info-label {
-        flex: 0 0 80px;
-      }
-    }
-    
-    @media (max-width: 480px) {
-      .content {
-        padding: 12px;
-      }
-      
-      .footer {
-        padding: 12px;
-      }
-      
-      .btn {
-        padding: 10px 12px;
-        font-size: 14px;
-      }
-      
-      .info-label {
-        flex: 0 0 70px;
-        font-size: 11px;
-      }
-      
-      .info-value {
-        font-size: 14px;
       }
     }
   </style>
@@ -510,63 +390,10 @@
       <!-- Affichage structuré en sections -->
       <div class="sections" id="sectionsContainer">
         <!-- Les sections seront générées dynamiquement -->
-        <div class="section details">
-          <div class="section-header">
-            <i class="fas fa-user"></i>
-            <span>Détails client</span>
-          </div>
-          <div class="section-content">
-            <div class="info-row">
-              <div class="info-label">👤 Nom:</div>
-              <div class="info-value" id="clientNom">Chargement...</div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">📞 Téléphone:</div>
-              <div class="info-value" id="clientTelephone">Chargement...</div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">📍 Adresse:</div>
-              <div class="info-value" id="clientAdresse">Chargement...</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="section articles">
-          <div class="section-header">
-            <i class="fas fa-shopping-cart"></i>
-            <span>Articles commandés</span>
-          </div>
-          <div class="section-content" id="articlesList">
-            <div style="color: var(--muted); font-style: italic;">Chargement des articles...</div>
-          </div>
-        </div>
-
-        <div class="section total">
-          <div class="section-header">
-            <i class="fas fa-file-invoice-dollar"></i>
-            <span>Récapitulatif</span>
-          </div>
-          <div class="section-content">
-            <div class="info-row">
-              <div class="info-label">🆔 N° Commande:</div>
-              <div class="info-value" id="orderNumber" style="font-family: monospace;">—</div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">💰 Total:</div>
-              <div class="info-value" id="orderTotal" style="font-weight: bold; color: #a8ffe8;">
-                0.000 DT
-              </div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">📅 Date:</div>
-              <div class="info-value" id="orderDate">—</div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div class="row">
-        <div class="pill pending" id="statusPill">
+        <div class="pill" id="statusPill">
           <i class="fas fa-info-circle"></i> Statut : <strong id="statusText">En attente</strong>
         </div>
 
@@ -577,21 +404,6 @@
 
       <div class="sound-alert" id="soundAlert">
         <i class="fas fa-bell"></i> 🔊 Son de notification joué sur la tablette du magasin
-      </div>
-      
-      <div class="status-actions" id="statusActions">
-        <button class="status-btn validate" onclick="changerStatut('Validée')">
-          <i class="fas fa-check"></i> Valider
-        </button>
-        <button class="status-btn processing" onclick="changerStatut('En traitement')">
-          <i class="fas fa-cogs"></i> En traitement
-        </button>
-        <button class="status-btn delivered" onclick="changerStatut('Livrée')">
-          <i class="fas fa-truck"></i> Livrée
-        </button>
-        <button class="status-btn cancel" onclick="changerStatut('Annulée')">
-          <i class="fas fa-times"></i> Annuler
-        </button>
       </div>
       
       <div class="whatsapp-info">
@@ -618,487 +430,464 @@
 
   <div class="toast" id="toast"></div>
 
-  <script>
-    /**
-     * ==========================
-     *  CONFIGURATION
-     * ==========================
-     */
+<script>
+/**
+ * ==========================
+ *  CONFIGURATION
+ * ==========================
+ */
+const API_URL = "https://script.google.com/macros/s/AKfycbyvppJUxeCw2RU2RMu9GkBQktyZhVUkaUz_skV_naARek23JJhx8xdoB3DQb9-qJSS6/exec";
+const WHATSAPP_NUMBER = "0021625600978";
 
-    // REMPLACER tout usage de WHATSAPP_NUMBER par :
-    const WHATSAPP_NUMBER = window.APP_CONFIG ? APP_CONFIG.whatsappNumber : "21625600978";
-    const API_URL = window.APP_CONFIG ? APP_CONFIG.apiUrl : "/api/commandes.php";
+/**
+ * ==========================
+ *  ANALYSER LES DONNÉES COMMANDE
+ * ==========================
+ */
+function analyserDonneesCommande(rawData) {
+  const result = {
+    nom: "",
+    telephone: "",
+    adresse: "",
+    articles: [],
+    total: 0,
+    numero_commande: "",
+    date: new Date().toISOString(),
+    statut: "En attente"
+  };
 
-    /**
-     * ==========================
-     *  ANALYSER LES DONNÉES COMMANDE
-     * ==========================
-     */
-    function analyserDonneesCommande(rawData) {
-      const result = {
-        nom: "",
-        telephone: "",
-        adresse: "",
-        articles: [],
-        total: 0,
-        numero_commande: "",
-        date: new Date().toISOString(),
-        statut: "En attente"
-      };
+  if (typeof rawData === "string") {
+    const lignes = rawData.split('\n').map(l => l.trim()).filter(l => l);
+    
+    let section = "none";
+    
+    lignes.forEach(ligne => {
+      // Détection des sections
+      if (ligne.includes("Détails de votre commande") || 
+          ligne.includes("Informations client") ||
+          ligne.includes("👤") || ligne.includes("📞") || ligne.includes("📍")) {
+        section = "details";
+        return;
+      }
+      
+      if (ligne.includes("Articles commandés") || 
+          ligne.includes("🛒") || 
+          ligne.includes("ARTICLES") ||
+          /^\d+x\s/.test(ligne)) {
+        section = "articles";
+        if (!ligne.includes("Articles commandés") && !ligne.includes("🛒")) {
+          // C'est déjà un article, l'ajouter
+          parserArticle(ligne, result.articles);
+        }
+        return;
+      }
+      
+      if (ligne.includes("TOTAL") || 
+          ligne.includes("💰") || 
+          ligne.includes("Total") ||
+          ligne.includes("MAXI-") ||
+          /^\d+\.\d{3}\s*(DT|dt|TND)/.test(ligne)) {
+        section = "total";
+      }
 
-      if (typeof rawData === "string") {
-        const lignes = rawData.split('\n').map(l => l.trim()).filter(l => l);
-        
-        let section = "none";
-        
-        lignes.forEach(ligne => {
-          // Détection des sections
-          if (ligne.includes("Détails de votre commande") || 
-              ligne.includes("Informations client") ||
-              ligne.includes("👤") || ligne.includes("📞") || ligne.includes("📍")) {
-            section = "details";
-            return;
+      // Extraction selon la section
+      switch(section) {
+        case "details":
+          if (ligne.includes("Nom:") || ligne.includes("👤")) {
+            result.nom = ligne.replace(/Nom:|👤/g, "").trim();
+          } else if (ligne.includes("Téléphone:") || ligne.includes("📞") || /\+216/.test(ligne)) {
+            result.telephone = ligne.replace(/Téléphone:|📞/g, "").trim();
+          } else if (ligne.includes("Adresse:") || ligne.includes("📍")) {
+            result.adresse = ligne.replace(/Adresse:|📍/g, "").trim();
           }
+          break;
           
-          if (ligne.includes("Articles commandés") || 
-              ligne.includes("🛒") || 
-              ligne.includes("ARTICLES") ||
-              /^\d+x\s/.test(ligne)) {
-            section = "articles";
-            if (!ligne.includes("Articles commandés") && !ligne.includes("🛒")) {
-              parserArticle(ligne, result.articles);
+        case "articles":
+          if (ligne.trim() && !ligne.includes("Articles commandés") && !ligne.includes("🛒")) {
+            parserArticle(ligne, result.articles);
+          }
+          break;
+          
+        case "total":
+          // Numéro commande
+          if (ligne.includes("MAXI-") || ligne.includes("Commande #")) {
+            result.numero_commande = ligne.replace(/Commande #/g, "").trim();
+          }
+          // Total
+          else if (ligne.includes("TOTAL") || ligne.includes("💰") || ligne.includes("Total:")) {
+            const totalMatch = ligne.match(/(\d+\.?\d*)\s*(DT|dt|TND|tnd)/i);
+            if (totalMatch) {
+              result.total = parseFloat(totalMatch[1]);
             }
-            return;
           }
-          
-          if (ligne.includes("TOTAL") || 
-              ligne.includes("💰") || 
-              ligne.includes("Total") ||
-              ligne.includes("MAXI-") ||
-              /^\d+\.\d{3}\s*(DT|dt|TND)/.test(ligne)) {
-            section = "total";
-          }
-
-          // Extraction selon la section
-          switch(section) {
-            case "details":
-              if (ligne.includes("Nom:") || ligne.includes("👤")) {
-                result.nom = ligne.replace(/Nom:|👤/g, "").trim();
-              } else if (ligne.includes("Téléphone:") || ligne.includes("📞") || /\+216/.test(ligne)) {
-                result.telephone = ligne.replace(/Téléphone:|📞/g, "").trim();
-              } else if (ligne.includes("Adresse:") || ligne.includes("📍")) {
-                result.adresse = ligne.replace(/Adresse:|📍/g, "").trim();
-              }
-              break;
-              
-            case "articles":
-              if (ligne.trim() && !ligne.includes("Articles commandés") && !ligne.includes("🛒")) {
-                parserArticle(ligne, result.articles);
-              }
-              break;
-              
-            case "total":
-              // Numéro commande
-              if (ligne.includes("MAXI-") || ligne.includes("Commande #")) {
-                result.numero_commande = ligne.replace(/Commande #/g, "").trim();
-              }
-              // Total
-              else if (ligne.includes("TOTAL") || ligne.includes("💰") || ligne.includes("Total:")) {
-                const totalMatch = ligne.match(/(\d+\.?\d*)\s*(DT|dt|TND|tnd)/i);
-                if (totalMatch) {
-                  result.total = parseFloat(totalMatch[1]);
-                }
-              }
-              break;
-          }
-        });
-      } else if (typeof rawData === "object") {
-        Object.assign(result, rawData);
-      }
-
-      // Calculer le total si non défini
-      if (result.total === 0 && result.articles.length > 0) {
-        result.total = result.articles.reduce((sum, article) => {
-          return sum + (article.prix_total || article.prix_unitaire * article.quantite);
-        }, 0);
-      }
-
-      // Générer numéro commande si vide
-      if (!result.numero_commande) {
-        const now = new Date();
-        const dateStr = now.getFullYear().toString() + 
-                       (now.getMonth() + 1).toString().padStart(2, '0') + 
-                       now.getDate().toString().padStart(2, '0');
-        const timeStr = now.getHours().toString().padStart(2, '0') + 
-                       now.getMinutes().toString().padStart(2, '0');
-        result.numero_commande = `MAXI-${dateStr}-${timeStr}`;
-      }
-
-      return result;
-    }
-
-    function parserArticle(ligne, articlesArray) {
-      ligne = ligne.trim();
-      
-      // Format: "2x Produit - 15.500 DT"
-      const match1 = ligne.match(/(\d+)\s*x\s*([^-]+)-\s*(\d+\.?\d*)\s*(DT|dt|TND|tnd)?/i);
-      if (match1) {
-        const prix = parseFloat(match1[3]);
-        const quantite = parseInt(match1[1]);
-        articlesArray.push({
-          produit: match1[2].trim(),
-          quantite: quantite,
-          prix_unitaire: prix,
-          prix_total: quantite * prix
-        });
-        return;
-      }
-      
-      // Format: "Produit: 15.500 DT x2"
-      const match2 = ligne.match(/(.+):\s*(\d+\.?\d*)\s*(DT|dt|TND|tnd)?\s*x\s*(\d+)/i);
-      if (match2) {
-        const prix = parseFloat(match2[2]);
-        const quantite = parseInt(match2[4]);
-        articlesArray.push({
-          produit: match2[1].trim(),
-          quantite: quantite,
-          prix_unitaire: prix,
-          prix_total: quantite * prix
-        });
-        return;
-      }
-      
-      // Format simple: "2x Produit"
-      const match3 = ligne.match(/(\d+)\s*x\s*(.+)/i);
-      if (match3) {
-        articlesArray.push({
-          produit: match3[2].trim(),
-          quantite: parseInt(match3[1]),
-          prix_unitaire: 0,
-          prix_total: 0
-        });
-      }
-    }
-
-    /**
-     * ==========================
-     *  AFFICHAGE STRUCTURÉ
-     * ==========================
-     */
-    function afficherSectionsStructurees(commande) {
-      // Mettre à jour les détails client
-      document.getElementById("clientNom").textContent = commande.nom || "Non spécifié";
-      document.getElementById("clientTelephone").textContent = commande.telephone || "Non spécifié";
-      document.getElementById("clientAdresse").textContent = commande.adresse || "Non spécifié";
-      
-      // Mettre à jour les articles
-      const articlesList = document.getElementById("articlesList");
-      if (commande.articles && commande.articles.length > 0) {
-        let html = '';
-        commande.articles.forEach((article, index) => {
-          html += `
-            <div class="article-item">
-              <div class="article-name">${article.produit}</div>
-              <div class="article-qty">${article.quantite}x</div>
-              <div class="article-price">${article.prix_unitaire ? article.prix_unitaire.toFixed(3) + ' DT' : '—'}</div>
-            </div>
-          `;
-        });
-        articlesList.innerHTML = html;
-      } else {
-        articlesList.innerHTML = '<div style="color: var(--muted); font-style: italic;">Aucun article détaillé</div>';
-      }
-      
-      // Mettre à jour le récapitulatif
-      document.getElementById("orderNumber").textContent = commande.numero_commande;
-      document.getElementById("orderTotal").textContent = commande.total ? commande.total.toFixed(3) + ' DT' : '0.000 DT';
-      document.getElementById("orderDate").textContent = new Date(commande.date).toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      
-      // Mettre à jour les éléments d'info
-      document.getElementById("orderIdText").textContent = commande.numero_commande || "—";
-      document.getElementById("statusText").textContent = commande.statut || "En attente";
-      
-      // Mettre à jour la classe du statut
-      const statusPill = document.getElementById("statusPill");
-      const statusClass = commande.statut ? commande.statut.toLowerCase().replace(/ /g, '-').replace(/[^a-z-]/g, '') : 'pending';
-      statusPill.className = "pill " + statusClass;
-    }
-
-    /**
-     * ==========================
-     *  FONCTIONS UTILITAIRES
-     * ==========================
-     */
-    function showToast(text, type = "ok") {
-      const el = document.getElementById("toast");
-      el.textContent = text;
-      el.className = "toast show " + type;
-      setTimeout(() => el.className = "toast", 3200);
-    }
-
-    function downloadText(filename, text) {
-      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        URL.revokeObjectURL(a.href);
-        a.remove();
-      }, 0);
-    }
-
-    function playTabletSound() {
-      try {
-        document.getElementById("soundAlert").classList.add("show");
-        setTimeout(() => {
-          document.getElementById("soundAlert").classList.remove("show");
-        }, 5000);
-        
-        // Jouer un son si possible
-        if (typeof Audio !== 'undefined') {
-          const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
-          audio.volume = 0.3;
-          audio.play().catch(() => {});
-        }
-      } catch (error) {
-        console.warn("Son non supporté:", error);
-      }
-    }
-
-    /**
-     * ==========================
-     *  GESTION DES COMMANDES
-     * ==========================
-     */
-    async function envoyerCommandeAPI(commande) {
-      try {
-        const payload = {
-          method: "saveOrder",
-          nom: commande.nom,
-          telephone: commande.telephone,
-          adresse: commande.adresse,
-          articles: JSON.stringify(commande.articles),
-          total: commande.total.toFixed(3),
-          commande_id: commande.numero_commande,
-          statut: commande.statut || "En attente"
-        };
-
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams(payload).toString()
-        });
-        
-        const result = await response.json();
-        return result;
-        
-      } catch (error) {
-        console.error("Erreur envoi API:", error);
-        return { success: false, error: error.message };
-      }
-    }
-
-    async function validerEtEnvoyerCommande(commande) {
-      // Mettre à jour le statut
-      commande.statut = "Validée";
-      
-      const result = await envoyerCommandeAPI(commande);
-      
-      if (result.success) {
-        showToast("✅ Commande validée et envoyée au magasin", "ok");
-        playTabletSound();
-        
-        // Mettre à jour l'affichage
-        afficherSectionsStructurees(commande);
-        
-        // Sauvegarder dans localStorage
-        try {
-          localStorage.setItem("maxi_commande_en_cours", JSON.stringify(commande));
-          localStorage.setItem("maxi_last_order_id", commande.numero_commande);
-        } catch (e) {
-          console.warn("Erreur localStorage:", e);
-        }
-        
-        // Ouvrir WhatsApp du magasin
-        setTimeout(() => {
-          const message = `🛒 NOUVELLE COMMANDE VALIDÉE\n\n` +
-                         `Client: ${commande.nom}\n` +
-                         `Téléphone: ${commande.telephone}\n` +
-                         `Adresse: ${commande.adresse}\n` +
-                         `N° Commande: ${commande.numero_commande}\n` +
-                         `Total: ${commande.total.toFixed(3)} DT\n\n` +
-                         `Statut: ✅ VALIDÉE - À PRÉPARER`;
-          
-          const encoded = encodeURIComponent(message);
-          window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
-        }, 1000);
-        
-      } else {
-        showToast("❌ Erreur: " + (result.error || "Inconnue"), "err");
-      }
-    }
-
-    function changerStatut(nouveauStatut) {
-      const commande = getDonneesCommande();
-      commande.statut = nouveauStatut;
-      
-      // Mettre à jour l'affichage
-      afficherSectionsStructurees(commande);
-      
-      // Envoyer à l'API
-      envoyerCommandeAPI(commande).then(result => {
-        if (result.success) {
-          showToast(`✅ Statut changé en "${nouveauStatut}"`, "ok");
-        } else {
-          showToast("❌ Erreur de mise à jour", "err");
-        }
-      });
-    }
-
-    function ouvrirWhatsAppClient(commande) {
-      if (!commande.telephone) {
-        showToast("❌ Numéro client manquant", "err");
-        return;
-      }
-      
-      const phone = commande.telephone.replace(/\D/g, '');
-      const tnPhone = phone.length === 8 ? "216" + phone : phone.startsWith("216") ? phone : "216" + phone;
-      
-      const message = `Bonjour ${commande.nom || ''},\n\n` +
-                     `Votre commande ${commande.numero_commande} a été reçue.\n` +
-                     `Statut: ${commande.statut}\n` +
-                     `Total: ${commande.total.toFixed(3)} DT\n\n` +
-                     `Merci pour votre confiance !\nMAXI JDC MARKET`;
-      
-      window.open(`https://wa.me/${tnPhone}?text=${encodeURIComponent(message)}`, "_blank");
-    }
-
-    /**
-     * ==========================
-     *  INITIALISATION
-     * ==========================
-     */
-    function getDonneesCommande() {
-      // Essayer depuis l'URL
-      const params = new URLSearchParams(location.search);
-      const rawData = params.get("data") || params.get("commande") || "";
-      
-      if (rawData) {
-        return analyserDonneesCommande(rawData);
-      }
-      
-      // Essayer localStorage
-      try {
-        const saved = localStorage.getItem("maxi_commande_en_cours");
-        if (saved) {
-          return analyserDonneesCommande(JSON.parse(saved));
-        }
-      } catch (e) {
-        console.warn("Erreur lecture localStorage:", e);
-      }
-      
-      // Données par défaut pour démo
-      const demoData = `Détails de votre commande
-      👤 Nom: Client Démo
-      📞 Téléphone: +216 55 123 456
-      📍 Adresse: Tunis, Tunisie
-      
-      Articles commandés
-      2x Produit A - 15.500 DT
-      1x Produit B - 25.000 DT
-      3x Produit C - 8.500 DT
-      
-      TOTAL: 87.500 DT
-      MAXI-20260131-1234`;
-      
-      return analyserDonneesCommande(demoData);
-    }
-
-    // Initialiser la page
-    document.addEventListener("DOMContentLoaded", () => {
-      const commande = getDonneesCommande();
-      
-      // Afficher les données structurées
-      afficherSectionsStructurees(commande);
-      
-      // Vérifier si nouvelle commande
-      const isNew = new URLSearchParams(location.search).get("new") === "true";
-      if (isNew) {
-        setTimeout(() => {
-          playTabletSound();
-          showToast("🎉 Nouvelle commande reçue !", "ok");
-        }, 1000);
+          break;
       }
     });
+  } else if (typeof rawData === "object") {
+    Object.assign(result, rawData);
+  }
 
-    // Événements des boutons
-    document.getElementById("validateSendBtn").addEventListener("click", () => {
-      const commande = getDonneesCommande();
-      validerEtEnvoyerCommande(commande);
+  // Générer numéro commande si vide
+  if (!result.numero_commande) {
+    const now = new Date();
+    const dateStr = now.getFullYear().toString() + 
+                   (now.getMonth() + 1).toString().padStart(2, '0') + 
+                   now.getDate().toString().padStart(2, '0');
+    const timeStr = now.getHours().toString().padStart(2, '0') + 
+                   now.getMinutes().toString().padStart(2, '0');
+    result.numero_commande = `MAXI-${dateStr}-${timeStr}`;
+  }
+
+  return result;
+}
+
+function parserArticle(ligne, articlesArray) {
+  ligne = ligne.trim();
+  
+  // Format: "2x Produit - 15.500 DT"
+  const match1 = ligne.match(/(\d+)\s*x\s*([^-]+)-\s*(\d+\.?\d*)\s*(DT|dt|TND|tnd)?/i);
+  if (match1) {
+    articlesArray.push({
+      produit: match1[2].trim(),
+      quantite: parseInt(match1[1]),
+      prix_unitaire: parseFloat(match1[3]),
+      prix_total: parseInt(match1[1]) * parseFloat(match1[3])
     });
-
-    document.getElementById("downloadBtn").addEventListener("click", () => {
-      const commande = getDonneesCommande();
-      const text = `COMMANDE MAXI JDC MARKET\n\n` +
-                  `N°: ${commande.numero_commande}\n` +
-                  `Date: ${new Date(commande.date).toLocaleString('fr-FR')}\n` +
-                  `Client: ${commande.nom}\n` +
-                  `Téléphone: ${commande.telephone}\n` +
-                  `Adresse: ${commande.adresse}\n` +
-                  `Total: ${commande.total.toFixed(3)} DT\n` +
-                  `Statut: ${commande.statut}\n\n` +
-                  `Articles:\n${commande.articles.map(a => `${a.quantite}x ${a.produit} - ${a.prix_unitaire ? a.prix_unitaire.toFixed(3) + ' DT' : '—'}`).join('\n')}`;
-      
-      downloadText(`commande-maxi-${commande.numero_commande}.txt`, text);
-      showToast("📥 Commande téléchargée", "ok");
+    return;
+  }
+  
+  // Format: "Produit: 15.500 DT x2"
+  const match2 = ligne.match(/(.+):\s*(\d+\.?\d*)\s*(DT|dt|TND|tnd)?\s*x\s*(\d+)/i);
+  if (match2) {
+    articlesArray.push({
+      produit: match2[1].trim(),
+      quantite: parseInt(match2[4]),
+      prix_unitaire: parseFloat(match2[2]),
+      prix_total: parseInt(match2[4]) * parseFloat(match2[2])
     });
-
-    document.getElementById("whatsappBtn").addEventListener("click", () => {
-      const commande = getDonneesCommande();
-      ouvrirWhatsAppClient(commande);
+    return;
+  }
+  
+  // Format simple: "2x Produit"
+  const match3 = ligne.match(/(\d+)\s*x\s*(.+)/i);
+  if (match3) {
+    articlesArray.push({
+      produit: match3[2].trim(),
+      quantite: parseInt(match3[1]),
+      prix_unitaire: 0,
+      prix_total: 0
     });
+  }
+}
 
-    document.getElementById("cancelBtn").addEventListener("click", () => {
-      if (confirm("Êtes-vous sûr de vouloir annuler cette commande ?")) {
-        const commande = getDonneesCommande();
-        commande.statut = "Annulée";
-        envoyerCommandeAPI(commande).then(() => {
-          showToast("❌ Commande annulée", "err");
-          setTimeout(() => {
-            window.close();
-          }, 1500);
-        });
-      }
+/**
+ * ==========================
+ *  AFFICHAGE STRUCTURÉ
+ * ==========================
+ */
+function afficherSectionsStructurees(commande) {
+  const container = document.getElementById("sectionsContainer");
+  
+  // Section 1: Détails client
+  let html = `
+    <div class="section details">
+      <div class="section-header">
+        <i class="fas fa-user"></i>
+        <span>Détails client</span>
+      </div>
+      <div class="section-content">
+        <div class="info-row">
+          <div class="info-label">👤 Nom:</div>
+          <div class="info-value">${commande.nom || "Non spécifié"}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">📞 Téléphone:</div>
+          <div class="info-value">${commande.telephone || "Non spécifié"}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">📍 Adresse:</div>
+          <div class="info-value">${commande.adresse || "Non spécifié"}</div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Section 2: Articles
+  html += `
+    <div class="section articles">
+      <div class="section-header">
+        <i class="fas fa-shopping-cart"></i>
+        <span>Articles commandés</span>
+      </div>
+      <div class="section-content">
+  `;
+  
+  if (commande.articles && commande.articles.length > 0) {
+    commande.articles.forEach((article, index) => {
+      html += `
+        <div class="article-item">
+          <div class="article-name">${article.produit}</div>
+          <div class="article-qty">${article.quantite}x</div>
+          <div class="article-price">${article.prix_unitaire ? article.prix_unitaire.toFixed(3) + ' DT' : '—'}</div>
+        </div>
+      `;
     });
+  } else {
+    html += `<div style="color: var(--muted); font-style: italic;">Aucun article détaillé</div>`;
+  }
+  
+  html += `</div></div>`;
+  
+  // Section 3: Total et récapitulatif
+  html += `
+    <div class="section total">
+      <div class="section-header">
+        <i class="fas fa-file-invoice-dollar"></i>
+        <span>Récapitulatif</span>
+      </div>
+      <div class="section-content">
+        <div class="info-row">
+          <div class="info-label">🆔 N° Commande:</div>
+          <div class="info-value" style="font-family: monospace;">${commande.numero_commande}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">💰 Total:</div>
+          <div class="info-value" style="font-weight: bold; color: #a8ffe8;">
+            ${commande.total ? commande.total.toFixed(3) + ' DT' : '0.000 DT'}
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">📅 Date:</div>
+          <div class="info-value">${new Date(commande.date).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}</div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  container.innerHTML = html;
+  
+  // Mettre à jour les éléments d'info
+  document.getElementById("orderIdText").textContent = commande.numero_commande || "—";
+  document.getElementById("statusText").textContent = commande.statut || "En attente";
+  
+  // Mettre à jour la classe du statut
+  const statusPill = document.getElementById("statusPill");
+  statusPill.className = "pill " + (commande.statut ? commande.statut.toLowerCase().replace(/ /g, '-') : 'pending');
+}
 
-    document.getElementById("closeBtn").addEventListener("click", () => {
+/**
+ * ==========================
+ *  FONCTIONS UTILITAIRES
+ * ==========================
+ */
+function showToast(text, type = "ok") {
+  const el = document.getElementById("toast");
+  el.textContent = text;
+  el.className = "toast show " + type;
+  setTimeout(() => el.className = "toast", 3200);
+}
+
+function downloadText(filename, text) {
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  }, 0);
+}
+
+function playTabletSound() {
+  try {
+    document.getElementById("soundAlert").classList.add("show");
+    setTimeout(() => {
+      document.getElementById("soundAlert").classList.remove("show");
+    }, 5000);
+  } catch (error) {
+    console.warn("Son non supporté:", error);
+  }
+}
+
+/**
+ * ==========================
+ *  GESTION DES COMMANDES
+ * ==========================
+ */
+async function envoyerCommandeAPI(commande) {
+  try {
+    const payload = {
+      method: "saveOrder",
+      nom: commande.nom,
+      telephone: commande.telephone,
+      adresse: commande.adresse,
+      articles: JSON.stringify(commande.articles),
+      total: commande.total.toFixed(3),
+      commande_id: commande.numero_commande
+    };
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(payload).toString()
+    });
+    
+    const result = await response.json();
+    return result;
+    
+  } catch (error) {
+    console.error("Erreur envoi API:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function validerEtEnvoyerCommande(commande) {
+  const result = await envoyerCommandeAPI(commande);
+  
+  if (result.success) {
+    showToast("✅ Commande validée et envoyée au magasin", "ok");
+    playTabletSound();
+    
+    // Ouvrir WhatsApp du magasin
+    const message = `🛒 NOUVELLE COMMANDE VALIDÉE\n\n` +
+                   `Client: ${commande.nom}\n` +
+                   `Téléphone: ${commande.telephone}\n` +
+                   `Adresse: ${commande.adresse}\n` +
+                   `N° Commande: ${commande.numero_commande}\n` +
+                   `Total: ${commande.total.toFixed(3)} DT\n\n` +
+                   `Statut: ✅ VALIDÉE - À PRÉPARER`;
+    
+    const encoded = encodeURIComponent(message);
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
+    
+    // Mettre à jour le statut
+    commande.statut = "Validée";
+    afficherSectionsStructurees(commande);
+    
+  } else {
+    showToast("❌ Erreur: " + (result.error || "Inconnue"), "err");
+  }
+}
+
+function ouvrirWhatsAppClient(commande) {
+  if (!commande.telephone) {
+    showToast("❌ Numéro client manquant", "err");
+    return;
+  }
+  
+  const phone = commande.telephone.replace(/\D/g, '');
+  const tnPhone = phone.length === 8 ? "216" + phone : phone.startsWith("216") ? phone : "216" + phone;
+  
+  const message = `Bonjour ${commande.nom || ''},\n\n` +
+                 `Votre commande MAXI-${commande.numero_commande} a été reçue.\n` +
+                 `Statut: ${commande.statut}\n` +
+                 `Total: ${commande.total.toFixed(3)} DT\n\n` +
+                 `Merci pour votre confiance !`;
+  
+  window.open(`https://wa.me/${tnPhone}?text=${encodeURIComponent(message)}`, "_blank");
+}
+
+/**
+ * ==========================
+ *  INITIALISATION
+ * ==========================
+ */
+function getDonneesCommande() {
+  // Essayer depuis l'URL
+  const params = new URLSearchParams(location.search);
+  const rawData = params.get("data") || params.get("commande") || "";
+  
+  if (rawData) {
+    return analyserDonneesCommande(rawData);
+  }
+  
+  // Essayer localStorage
+  try {
+    const saved = localStorage.getItem("maxi_commande_en_cours");
+    if (saved) {
+      return analyserDonneesCommande(JSON.parse(saved));
+    }
+  } catch (e) {
+    console.warn("Erreur lecture localStorage:", e);
+  }
+  
+  // Données par défaut
+  return analyserDonneesCommande("");
+}
+
+// Initialiser la page
+document.addEventListener("DOMContentLoaded", () => {
+  const commande = getDonneesCommande();
+  
+  // Afficher les données structurées
+  afficherSectionsStructurees(commande);
+  
+  // Vérifier si nouvelle commande
+  const isNew = new URLSearchParams(location.search).get("new") === "true";
+  if (isNew) {
+    setTimeout(() => {
+      playTabletSound();
+      showToast("🎉 Nouvelle commande reçue !", "ok");
+    }, 1000);
+  }
+});
+
+// Événements des boutons
+document.getElementById("validateSendBtn").addEventListener("click", () => {
+  const commande = getDonneesCommande();
+  validerEtEnvoyerCommande(commande);
+});
+
+document.getElementById("downloadBtn").addEventListener("click", () => {
+  const commande = getDonneesCommande();
+  const text = `COMMANDE MAXI JDC MARKET\n\n` +
+              `N°: ${commande.numero_commande}\n` +
+              `Date: ${new Date(commande.date).toLocaleString('fr-FR')}\n` +
+              `Client: ${commande.nom}\n` +
+              `Téléphone: ${commande.telephone}\n` +
+              `Adresse: ${commande.adresse}\n` +
+              `Total: ${commande.total.toFixed(3)} DT\n` +
+              `Statut: ${commande.statut}\n\n` +
+              `Articles:\n${commande.articles.map(a => `${a.quantite}x ${a.produit} - ${a.prix_unitaire.toFixed(3)} DT`).join('\n')}`;
+  
+  downloadText(`commande-maxi-${commande.numero_commande}.txt`, text);
+  showToast("📥 Commande téléchargée", "ok");
+});
+
+document.getElementById("whatsappBtn").addEventListener("click", () => {
+  const commande = getDonneesCommande();
+  ouvrirWhatsAppClient(commande);
+});
+
+document.getElementById("cancelBtn").addEventListener("click", () => {
+  if (confirm("Êtes-vous sûr de vouloir annuler cette commande ?")) {
+    showToast("❌ Commande annulée", "err");
+    setTimeout(() => {
       window.close();
-    });
+    }, 1500);
+  }
+});
 
-    // Raccourcis clavier
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") document.getElementById("closeBtn").click();
-      if (e.ctrlKey && e.key === "s") {
-        e.preventDefault();
-        document.getElementById("validateSendBtn").click();
-      }
-      if (e.ctrlKey && e.key === "d") {
-        e.preventDefault();
-        document.getElementById("downloadBtn").click();
-      }
-      if (e.ctrlKey && e.key === "w") {
-        e.preventDefault();
-        document.getElementById("whatsappBtn").click();
-      }
-    });
-  </script>
+document.getElementById("closeBtn").addEventListener("click", () => {
+  window.close();
+});
+
+// Raccourcis clavier
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") document.getElementById("closeBtn").click();
+  if (e.ctrlKey && e.key === "s") {
+    e.preventDefault();
+    document.getElementById("validateSendBtn").click();
+  }
+});
+</script>
 </body>
 </html>
