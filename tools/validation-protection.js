@@ -1,510 +1,568 @@
 // validation-protection.js - PROTECTION ANTI-DOUBLON POUR MAXI JDC MARKET
+// Version stable: session + anti double clic + envoi Apps Script en x-www-form-urlencoded
 
-// ✅ URL depuis config.js (CORRIGÉ)
-const SCRIPT_URL = (window.APP_CONFIG && window.APP_CONFIG.getScriptUrl)
-  ? window.APP_CONFIG.getScriptUrl()
-  : (window.APP_CONFIG?.googleScriptUrl || "");
+(function () {
+  "use strict";
 
-let sessionId = null;
-let isSubmitting = false;
-let submitTimeout = null;
+  // ✅ URL depuis config.js (robuste)
+  const SCRIPT_URL =
+    (window.APP_CONFIG && typeof window.APP_CONFIG.getScriptUrl === "function"
+      ? window.APP_CONFIG.getScriptUrl()
+      : (window.APP_CONFIG && window.APP_CONFIG.googleScriptUrl) || "") || "";
 
-// 1. INITIALISATION - AU CHARGEMENT DE LA PAGE
-function initValidationSystem() {
-  console.log('🚀 Initialisation système de validation...');
+  let sessionId = null;
+  let isSubmitting = false;
+  let submitTimeout = null;
 
-  if (!SCRIPT_URL) {
-    console.warn('⚠️ URL Google Apps Script manquante (config.js)');
+  // -------------------------
+  // 1) INIT
+  // -------------------------
+  function initValidationSystem() {
+    console.log("🚀 Validation system init");
+
+    if (!SCRIPT_URL || !SCRIPT_URL.includes("script.google.com/macros/s/")) {
+      console.warn("⚠️ SCRIPT_URL manquante ou invalide. Vérifie config.js");
+      return; // on n'empêche pas le site de fonctionner
+    }
+
+    if (!isOrderPage()) {
+      return;
+    }
+
+    // Session + protection bouton
+    loadOrCreateSession()
+      .finally(() => {
+        setTimeout(protectSubmitButton, 500);
+      });
   }
 
-  if (!isOrderPage()) {
-    console.log('📄 Page non concernée, protection inactive');
-    return;
+  // -------------------------
+  // 2) Pages concernées
+  // -------------------------
+  function isOrderPage() {
+    const path = (window.location.pathname || "").toLowerCase();
+    const page = path.substring(path.lastIndexOf("/") + 1);
+
+    const orderPages = [
+      "validation-commande.html",
+      "commander.html",
+      "index.html",
+      "commande.html",
+      "panier.html"
+    ];
+
+    return orderPages.includes(page);
   }
 
-  loadOrCreateSession();
-  setTimeout(protectSubmitButton, 500);
-}
+  // -------------------------
+  // 3) SESSION
+  // -------------------------
+  async function loadOrCreateSession() {
+    sessionId = localStorage.getItem("maxi_jdc_session");
 
-// 2. VÉRIFIER SI C'EST UNE PAGE DE COMMANDE
-function isOrderPage() {
-  const path = window.location.pathname.toLowerCase();
-  const page = path.substring(path.lastIndexOf('/') + 1);
-
-  const orderPages = [
-    'validation-commande.html',
-    'commander.html',
-    'index.html',
-    'commande.html',
-    'panier.html'
-  ];
-
-  return orderPages.includes(page);
-}
-
-// 3. CHARGER OU CRÉER UNE SESSION
-async function loadOrCreateSession() {
-  sessionId = localStorage.getItem('maxi_jdc_session');
-
-  if (sessionId) {
-    console.log('🔍 Session existante:', sessionId.substring(0, 10) + '...');
-    await checkSessionStatus();
-  } else {
-    await createNewSession();
-  }
-
-  showSessionInfo();
-}
-
-// 4. CRÉER UNE NOUVELLE SESSION
-async function createNewSession() {
-  try {
-    console.log('🆕 Création nouvelle session...');
-
-    const response = await fetch(`${SCRIPT_URL}?action=generatesession`, { method: "GET" });
-    const data = await response.json();
-
-    if (data.success) {
-      sessionId = data.session_id;
-      localStorage.setItem('maxi_jdc_session', sessionId);
-      console.log('✅ Session créée:', sessionId.substring(0, 10) + '...');
-
-      localStorage.setItem('maxi_jdc_validated', 'false');
+    if (sessionId) {
+      console.log("🔍 Session existante:", sessionId.slice(0, 10) + "…");
+      await checkSessionStatus();
     } else {
-      console.error('❌ Erreur création session:', data);
+      await createNewSession();
     }
-  } catch (error) {
-    console.error('❌ Erreur réseau création session:', error);
-    sessionId = 'local-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('maxi_jdc_session', sessionId);
-    localStorage.setItem('maxi_jdc_validated', 'false');
-  }
-}
 
-// 5. VÉRIFIER LE STATUT DE LA SESSION
-async function checkSessionStatus() {
-  if (!sessionId) return;
-
-  try {
-    const response = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${encodeURIComponent(sessionId)}`);
-    const data = await response.json();
-
-    if (data.success) {
-      localStorage.setItem('maxi_jdc_validated', data.already_validated ? 'true' : 'false');
-    }
-  } catch (error) {
-    console.error('❌ Erreur vérification session:', error);
-  }
-}
-
-// 6. PROTÉGER LE BOUTON DE SOUMISSION
-function protectSubmitButton() {
-  console.log('🛡️ Recherche du bouton de validation...');
-
-  const button = findSubmitButton();
-
-  if (!button) {
-    console.error('❌ Bouton de validation non trouvé');
-    return;
+    showSessionInfo();
   }
 
-  console.log('✅ Bouton trouvé:', button.textContent);
-
-  const originalState = {
-    onclick: button.onclick,
-    text: button.innerHTML,
-    disabled: button.disabled,
-    bgColor: button.style.backgroundColor || ''
-  };
-
-  const alreadyValidated = localStorage.getItem('maxi_jdc_validated') === 'true';
-
-  if (alreadyValidated) {
-    disableButton(button, '✅ Déjà validé', '#e0e0e0');
-    showInfo('Cette commande a déjà été validée.');
-    return;
-  }
-
-  if (!button.innerHTML.includes('🔒')) {
-    button.innerHTML = '🔒 ' + button.innerHTML.replace('🔒 ', '');
-  }
-
-  button.onclick = async function(event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (isSubmitting) return false;
-
-    isSubmitting = true;
-    disableButton(button, '⏳ Validation en cours...', '#ff9800');
-
-    submitTimeout = setTimeout(() => {
-      if (isSubmitting) {
-        resetButton(button, originalState);
-        isSubmitting = false;
-        showError('Délai dépassé. Réessayez.');
-      }
-    }, 30000);
-
+  async function createNewSession() {
     try {
-      if (!sessionId) {
-        await loadOrCreateSession();
-      }
+      console.log("🆕 Création session…");
+      const url = `${SCRIPT_URL}?action=generatesession&t=${Date.now()}`;
+      const data = await safeFetchJson(url, { method: "GET" });
 
-      const canValidate = await validateSession();
-      if (!canValidate) {
-        clearTimeout(submitTimeout);
-        disableButton(button, '✅ Déjà validé', '#e0e0e0');
-        localStorage.setItem('maxi_jdc_validated', 'true');
-        showInfo('Cette commande a déjà été validée.');
-        isSubmitting = false;
-        return false;
-      }
-
-      const orderData = collectOrderData();
-      orderData.session_id = sessionId;      // ✅ obligatoire
-      orderData.action = "saveOrder";        // ✅ explicite
-
-      console.log('📤 Données à envoyer:', orderData);
-
-      const result = await sendOrder(orderData);
-
-      clearTimeout(submitTimeout);
-
-      if (result.success) {
-        disableButton(button, '✅ Commande envoyée', '#4CAF50');
-        localStorage.setItem('maxi_jdc_validated', 'true');
-
-        showSuccess(`Commande #${result.commande_id} validée !<br>Total: ${result.total} dt`);
-        updateOrderDisplay(result.commande_id);
-
-        if (typeof originalState.onclick === 'function') {
-          setTimeout(originalState.onclick, 1000);
-        }
+      if (data && data.success && data.session_id) {
+        sessionId = data.session_id;
+        localStorage.setItem("maxi_jdc_session", sessionId);
+        localStorage.setItem("maxi_jdc_validated", "false");
+        console.log("✅ Session créée:", sessionId.slice(0, 10) + "…");
       } else {
-        handleSubmissionError(result, button, originalState);
+        console.error("❌ Erreur création session:", data);
+        fallbackLocalSession();
       }
-
-      isSubmitting = false;
-    } catch (error) {
-      clearTimeout(submitTimeout);
-      console.error('❌ Erreur:', error);
-
-      resetButton(button, originalState);
-      isSubmitting = false;
-
-      showError('Erreur réseau. Vérifiez votre connexion.');
-    }
-
-    return false;
-  };
-
-  console.log('✅ Bouton protégé avec succès');
-}
-
-// 7. TROUVER LE BOUTON DE VALIDATION
-function findSubmitButton() {
-  const buttons = document.querySelectorAll('button');
-
-  for (const button of buttons) {
-    const text = button.textContent.toLowerCase();
-    if (text.includes('valider et envoyer') ||
-        text.includes('valider la commande') ||
-        text.includes('confirmer la commande')) {
-      return button;
+    } catch (e) {
+      console.error("❌ Erreur réseau session:", e);
+      fallbackLocalSession();
     }
   }
 
-  const buttonIds = ['btn-valider', 'btn-envoyer', 'valider-commande', 'submit-order'];
-
-  for (const id of buttonIds) {
-    const button = document.getElementById(id);
-    if (button) return button;
+  function fallbackLocalSession() {
+    // On évite de bloquer le site si session API indispo.
+    sessionId = "local-" + Date.now() + "-" + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem("maxi_jdc_session", sessionId);
+    localStorage.setItem("maxi_jdc_validated", "false");
   }
 
-  for (const button of buttons) {
-    const text = button.textContent.toLowerCase();
-    if (text.includes('valider') || text.includes('envoyer')) {
-      return button;
+  async function checkSessionStatus() {
+    if (!sessionId) return;
+    try {
+      const url = `${SCRIPT_URL}?action=validatesession&session_id=${encodeURIComponent(
+        sessionId
+      )}&t=${Date.now()}`;
+      const data = await safeFetchJson(url, { method: "GET" });
+
+      if (data && data.success) {
+        localStorage.setItem("maxi_jdc_validated", data.already_validated ? "true" : "false");
+      }
+    } catch (e) {
+      console.warn("⚠️ checkSessionStatus error:", e);
     }
   }
 
-  const forms = document.querySelectorAll('form');
-  for (const form of forms) {
-    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-    if (submitBtn) return submitBtn;
-  }
-
-  return null;
-}
-
-// 8. VALIDER LA SESSION AVANT ENVOI
-async function validateSession() {
-  if (!sessionId) return false;
-
-  try {
-    const response = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${encodeURIComponent(sessionId)}`);
-    const data = await response.json();
-    return data.success && data.can_validate;
-  } catch (error) {
-    console.error('❌ Erreur validation session:', error);
-    return true;
-  }
-}
-
-// 9. COLLECTER LES DONNÉES DE COMMANDE
-function collectOrderData() {
-  const data = {
-    nom_client: getClientName(),
-    telephone: getClientPhone(),
-    adresse: getClientAddress(),
-    articles: getArticles(),
-    total: getTotal()
-  };
-
-  if (data.total) {
-    data.total = String(data.total).replace(/[^\d.,]/g, '').replace(',', '.');
-  }
-
-  return data;
-}
-
-// Extraction
-function getClientName() {
-  const elements = [
-    document.getElementById('client-nom'),
-    document.getElementById('nom-client'),
-    document.querySelector('[name="nom"]'),
-    document.querySelector('.client-nom'),
-    document.querySelector('.nom-client')
-  ];
-
-  for (const el of elements) {
-    if (el) return el.textContent || el.value || 'Client';
-  }
-  return 'Client';
-}
-
-function getClientPhone() {
-  const elements = [
-    document.getElementById('client-telephone'),
-    document.getElementById('telephone'),
-    document.querySelector('[name="telephone"]'),
-    document.querySelector('[name="tel"]'),
-    document.querySelector('.telephone')
-  ];
-
-  for (const el of elements) {
-    if (el) return el.textContent || el.value || '';
-  }
-  return '';
-}
-
-function getClientAddress() {
-  const elements = [
-    document.getElementById('client-adresse'),
-    document.getElementById('adresse'),
-    document.querySelector('[name="adresse"]'),
-    document.querySelector('.adresse')
-  ];
-
-  for (const el of elements) {
-    if (el) return el.textContent || el.value || '';
-  }
-  return '';
-}
-
-function getArticles() {
-  const containers = [
-    document.getElementById('articles-list'),
-    document.getElementById('panier'),
-    document.querySelector('.articles-list'),
-    document.querySelector('.panier'),
-    document.querySelector('.items-list')
-  ];
-
-  for (const container of containers) {
-    if (container) {
-      let text = container.textContent || container.innerText;
-      text = text.replace(/TOTAL.*/gi, '')
-                 .replace(/Sous-total.*/gi, '')
-                 .replace(/Livraison.*/gi, '')
-                 .trim();
-      return text;
+  async function validateSessionServerSide() {
+    if (!sessionId) return false;
+    try {
+      const url = `${SCRIPT_URL}?action=validatesession&session_id=${encodeURIComponent(
+        sessionId
+      )}&t=${Date.now()}`;
+      const data = await safeFetchJson(url, { method: "GET" });
+      return !!(data && data.success && data.can_validate);
+    } catch (e) {
+      console.warn("⚠️ validateSessionServerSide error:", e);
+      // En cas d'erreur réseau, on laisse passer plutôt que bloquer
+      return true;
     }
   }
 
-  const items = document.querySelectorAll('.article-item, .product-item, .item');
-  if (items.length > 0) {
-    return Array.from(items)
-      .map(item => item.textContent.trim())
-      .filter(text => text && !text.toLowerCase().includes('total'))
-      .join('\n');
+  // -------------------------
+  // 4) PROTECTION BOUTON
+  // -------------------------
+  function protectSubmitButton() {
+    const button = findSubmitButton();
+    if (!button) {
+      // ne bloque pas le site, juste log
+      console.warn("⚠️ Bouton de validation introuvable sur cette page");
+      return;
+    }
+
+    // déjà validé ?
+    const alreadyValidated = localStorage.getItem("maxi_jdc_validated") === "true";
+    if (alreadyValidated) {
+      disableButton(button, "✅ Déjà validé", "#e0e0e0");
+      return;
+    }
+
+    // marquage visuel (sans casser l'UI)
+    if (!String(button.innerHTML).includes("🔒")) {
+      button.innerHTML = "🔒 " + String(button.innerHTML).replace("🔒 ", "");
+    }
+
+    // sauvegarder état original
+    const originalState = {
+      onclick: button.onclick,
+      text: button.innerHTML,
+      disabled: button.disabled,
+      bgColor: button.style.backgroundColor || ""
+    };
+
+    // override click
+    button.addEventListener(
+      "click",
+      async function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (isSubmitting) return false;
+
+        isSubmitting = true;
+        disableButton(button, "⏳ Validation en cours…", "#ff9800");
+
+        submitTimeout = setTimeout(() => {
+          if (isSubmitting) {
+            resetButton(button, originalState);
+            isSubmitting = false;
+            showError("Délai dépassé. Réessayez.");
+          }
+        }, 30000);
+
+        try {
+          if (!sessionId) await loadOrCreateSession();
+
+          // validation session
+          const canValidate = await validateSessionServerSide();
+          if (!canValidate) {
+            clearTimeout(submitTimeout);
+            disableButton(button, "✅ Déjà validé", "#e0e0e0");
+            localStorage.setItem("maxi_jdc_validated", "true");
+            showInfo("Cette commande a déjà été validée.");
+            isSubmitting = false;
+            return false;
+          }
+
+          // construire payload
+          const orderData = collectOrderData();
+
+          // ✅ obligatoire pour ton Code.gs
+          orderData.session_id = sessionId;
+
+          // ✅ IMPORTANT: ton routeur utilise action OU method
+          orderData.method = "saveOrder";
+
+          console.log("📤 Envoi commande:", orderData);
+
+          // envoi
+          const result = await sendOrder(orderData);
+
+          clearTimeout(submitTimeout);
+
+          if (result && result.success) {
+            disableButton(button, "✅ Commande envoyée", "#4CAF50");
+            localStorage.setItem("maxi_jdc_validated", "true");
+
+            showSuccess(
+              `Commande #${result.commande_id || result.commandeId || "OK"} validée !<br>Total: ${
+                result.total || ""
+              } dt`
+            );
+
+            // mise à jour UI si éléments existent
+            updateOrderDisplay(result.commande_id || result.commandeId);
+
+            // exécuter l'action originale après succès (si elle existait)
+            if (typeof originalState.onclick === "function") {
+              setTimeout(() => {
+                try {
+                  originalState.onclick();
+                } catch (_) {}
+              }, 800);
+            }
+          } else {
+            // erreurs serveur
+            resetButton(button, originalState);
+
+            if (result && result.requires_session) {
+              showError("Problème de session. Rechargez la page.");
+              localStorage.removeItem("maxi_jdc_session");
+              localStorage.removeItem("maxi_jdc_validated");
+            } else if (result && result.is_duplicate) {
+              showInfo("⚠️ Commande déjà enregistrée récemment (doublon).");
+            } else {
+              showError((result && result.message) || "Erreur lors de l’enregistrement.");
+            }
+          }
+
+          isSubmitting = false;
+          return false;
+        } catch (e) {
+          clearTimeout(submitTimeout);
+          console.error("❌ Erreur submit:", e);
+          resetButton(button, originalState);
+          isSubmitting = false;
+          showError("Erreur réseau. Vérifiez votre connexion.");
+          return false;
+        }
+      },
+      true
+    );
+
+    console.log("✅ Bouton protégé:", button.textContent);
   }
 
-  return 'Articles non spécifiés';
-}
+  function findSubmitButton() {
+    const buttons = document.querySelectorAll("button");
 
-function getTotal() {
-  const elements = [
-    document.getElementById('total-commande'),
-    document.getElementById('total'),
-    document.getElementById('montant-total'),
-    document.querySelector('.total-amount'),
-    document.querySelector('[class*="total"]')
-  ];
+    // priorité: libellés connus
+    for (const b of buttons) {
+      const t = (b.textContent || "").toLowerCase();
+      if (t.includes("valider et envoyer") || t.includes("valider la commande") || t.includes("confirmer")) {
+        return b;
+      }
+    }
 
-  for (const el of elements) {
-    if (el) {
-      const text = el.textContent || el.innerText;
-      const match = text.match(/[\d,\.]+/);
-      return match ? match[0] : '0';
+    // ids connus
+    const ids = ["btn-valider", "btn-envoyer", "valider-commande", "submit-order"];
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el) return el;
+    }
+
+    // fallback: premier bouton valider/envoyer
+    for (const b of buttons) {
+      const t = (b.textContent || "").toLowerCase();
+      if (t.includes("valider") || t.includes("envoyer")) return b;
+    }
+
+    return null;
+  }
+
+  // -------------------------
+  // 5) COLLECTE DONNÉES (ne casse rien)
+  // -------------------------
+  function collectOrderData() {
+    const data = {
+      nom_client: getClientName(),
+      telephone: getClientPhone(),
+      adresse: getClientAddress(),
+      articles: getArticles(),
+      total: getTotal()
+    };
+
+    // normaliser total
+    if (data.total != null) {
+      data.total = String(data.total).replace(/[^\d.,]/g, "").replace(",", ".");
+    }
+    return data;
+  }
+
+  function getClientName() {
+    const candidates = [
+      document.getElementById("client-nom"),
+      document.getElementById("nom-client"),
+      document.querySelector('[name="nom"]'),
+      document.querySelector(".client-nom"),
+      document.querySelector(".nom-client")
+    ];
+    for (const el of candidates) {
+      if (el) return (el.value || el.textContent || "Client").trim();
+    }
+    return "Client";
+  }
+
+  function getClientPhone() {
+    const candidates = [
+      document.getElementById("client-telephone"),
+      document.getElementById("telephone"),
+      document.querySelector('[name="telephone"]'),
+      document.querySelector('[name="tel"]'),
+      document.querySelector(".telephone")
+    ];
+    for (const el of candidates) {
+      if (el) return (el.value || el.textContent || "").trim();
+    }
+    return "";
+  }
+
+  function getClientAddress() {
+    const candidates = [
+      document.getElementById("client-adresse"),
+      document.getElementById("adresse"),
+      document.querySelector('[name="adresse"]'),
+      document.querySelector(".adresse")
+    ];
+    for (const el of candidates) {
+      if (el) return (el.value || el.textContent || "").trim();
+    }
+    return "";
+  }
+
+  function getArticles() {
+    // conteneurs typiques
+    const containers = [
+      document.getElementById("articles-list"),
+      document.getElementById("panier"),
+      document.querySelector(".articles-list"),
+      document.querySelector(".panier"),
+      document.querySelector(".items-list")
+    ];
+
+    for (const c of containers) {
+      if (c) {
+        let text = (c.innerText || c.textContent || "").trim();
+        text = text.replace(/TOTAL.*/gi, "").replace(/Sous-total.*/gi, "").replace(/Livraison.*/gi, "").trim();
+        if (text) return text;
+      }
+    }
+
+    // fallback: items
+    const items = document.querySelectorAll(".article-item, .product-item, .item");
+    if (items.length) {
+      return Array.from(items)
+        .map((x) => (x.textContent || "").trim())
+        .filter((t) => t && !t.toLowerCase().includes("total"))
+        .join("\n");
+    }
+
+    return "";
+  }
+
+  function getTotal() {
+    const candidates = [
+      document.getElementById("total-commande"),
+      document.getElementById("total"),
+      document.getElementById("montant-total"),
+      document.querySelector(".total-amount"),
+      document.querySelector('[class*="total"]')
+    ];
+    for (const el of candidates) {
+      if (el) {
+        const text = (el.innerText || el.textContent || "").trim();
+        const m = text.match(/[\d]+(?:[.,][\d]{1,2})?/);
+        return m ? m[0] : "0";
+      }
+    }
+    return "0";
+  }
+
+  // -------------------------
+  // 6) ENVOI (FIABLE) : form-urlencoded → pas de préflight
+  // -------------------------
+  async function sendOrder(orderData) {
+    const payload = new URLSearchParams();
+
+    // envoyer toutes les clés (Apps Script va parser)
+    Object.keys(orderData || {}).forEach((k) => {
+      const v = orderData[k];
+      if (v !== undefined && v !== null) payload.append(k, String(v));
+    });
+
+    // cache buster
+    payload.append("_t", String(Date.now()));
+
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: payload.toString()
+    });
+
+    // si Apps Script renvoie du JSON
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch (_) {
+      return { success: false, message: "Réponse non JSON", raw: text };
     }
   }
-  return '0';
-}
 
-// 10. ENVOYER LA COMMANDE
-async function sendOrder(orderData) {
-  console.log('📨 Envoi vers:', SCRIPT_URL);
-
-  const response = await fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(orderData)
-  });
-
-  return await response.json();
-}
-
-// 11. GÉRER LES ERREURS
-function handleSubmissionError(result, button, originalState) {
-  if (result.already_validated) {
-    disableButton(button, '✅ Déjà validé', '#e0e0e0');
-    localStorage.setItem('maxi_jdc_validated', 'true');
-    showInfo('Cette commande a déjà été validée.');
-  } else if (result.requires_session) {
-    resetButton(button, originalState);
-    showError('Problème de session. Rechargez la page.');
-    localStorage.removeItem('maxi_jdc_session');
-    localStorage.removeItem('maxi_jdc_validated');
-    setTimeout(() => location.reload(), 2000);
-  } else {
-    resetButton(button, originalState);
-    showError(result.message || 'Erreur inconnue. Réessayez.');
+  // -------------------------
+  // 7) UI messages (identique)
+  // -------------------------
+  function disableButton(button, text, color) {
+    button.disabled = true;
+    button.innerHTML = text;
+    button.style.backgroundColor = color;
+    button.style.cursor = "not-allowed";
   }
-}
 
-// 12. METTRE À JOUR L'AFFICHAGE
-function updateOrderDisplay(commandeId) {
-  const elements = [
-    document.getElementById('commande-numero'),
-    document.getElementById('order-id'),
-    document.querySelector('.commande-numero'),
-    document.querySelector('.order-id')
-  ];
-
-  for (const el of elements) {
-    if (el) { el.textContent = commandeId; break; }
+  function resetButton(button, originalState) {
+    button.disabled = originalState.disabled;
+    button.innerHTML = originalState.text;
+    button.style.backgroundColor = originalState.bgColor;
+    button.style.cursor = "";
   }
-}
 
-// 13. UI
-function disableButton(button, text, color) {
-  button.disabled = true;
-  button.innerHTML = text;
-  button.style.backgroundColor = color;
-  button.style.cursor = 'not-allowed';
-}
+  function updateOrderDisplay(commandeId) {
+    if (!commandeId) return;
+    const els = [
+      document.getElementById("commande-numero"),
+      document.getElementById("order-id"),
+      document.querySelector(".commande-numero"),
+      document.querySelector(".order-id")
+    ];
+    for (const el of els) {
+      if (el) {
+        el.textContent = commandeId;
+        break;
+      }
+    }
+  }
 
-function resetButton(button, originalState) {
-  button.disabled = originalState.disabled;
-  button.innerHTML = originalState.text;
-  button.style.backgroundColor = originalState.bgColor;
-  button.style.cursor = '';
-}
+  function showSuccess(msg) {
+    showNotification(msg, "#4CAF50");
+  }
+  function showError(msg) {
+    showNotification(msg, "#F44336");
+  }
+  function showInfo(msg) {
+    showNotification(msg, "#2196F3");
+  }
 
-function showSessionInfo() {
-  if (window.location.hash === '#debug') {
-    const info = document.createElement('div');
+  function showNotification(message, color) {
+    document.querySelectorAll(".validation-notification").forEach((n) => n.remove());
+
+    const n = document.createElement("div");
+    n.className = "validation-notification";
+    n.innerHTML = message;
+
+    n.style.cssText = `
+      position: fixed; top: 20px; right: 20px;
+      background: ${color}; color: white;
+      padding: 15px 20px; border-radius: 5px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10000; max-width: 420px;
+      animation: slideIn 0.3s ease;
+    `;
+    document.body.appendChild(n);
+
+    setTimeout(() => {
+      n.style.animation = "slideOut 0.3s ease";
+      setTimeout(() => n.remove(), 250);
+    }, 5000);
+  }
+
+  function addStyles() {
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+      @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+      button:disabled { cursor: not-allowed !important; opacity: 0.7 !important; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function showSessionInfo() {
+    if (window.location.hash !== "#debug") return;
+
+    const info = document.createElement("div");
     info.style.cssText = `
       position: fixed; bottom: 10px; left: 10px;
       background: rgba(0,0,0,0.8); color: white;
       padding: 5px 10px; border-radius: 3px;
       font-size: 10px; z-index: 9999;
     `;
-    info.innerHTML = `Session: ${sessionId ? sessionId.substring(0, 10) + '...' : 'none'}`;
+    info.textContent = `Session: ${sessionId ? sessionId.slice(0, 10) + "…" : "none"}`;
     document.body.appendChild(info);
   }
-}
 
-function showSuccess(message) { showNotification(message, '#4CAF50'); }
-function showError(message) { showNotification(message, '#F44336'); }
-function showInfo(message) { showNotification(message, '#2196F3'); }
-
-function showNotification(message, color) {
-  const old = document.querySelectorAll('.validation-notification');
-  old.forEach(n => n.remove());
-
-  const notification = document.createElement('div');
-  notification.className = 'validation-notification';
-  notification.innerHTML = message;
-
-  notification.style.cssText = `
-    position: fixed; top: 20px; right: 20px;
-    background: ${color}; color: white;
-    padding: 15px 20px; border-radius: 5px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 10000; max-width: 400px;
-    animation: slideIn 0.3s ease;
-  `;
-
-  document.body.appendChild(notification);
-
-  setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease';
-    setTimeout(() => notification.remove(), 300);
-  }, 5000);
-}
-
-function addStyles() {
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
-    button:disabled { cursor: not-allowed !important; opacity: 0.7 !important; }
-  `;
-  document.head.appendChild(style);
-}
-
-function resetValidation() {
-  localStorage.removeItem('maxi_jdc_session');
-  localStorage.removeItem('maxi_jdc_validated');
-  sessionId = null;
-  location.reload();
-}
-
-// 17. INITIALISATION AU CHARGEMENT
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('📄 Page chargée, démarrage protection...');
-
-  if (!window.APP_CONFIG) {
-    console.warn('⚠️ config.js non chargé. Assurez-vous que <script src="config.js"></script> est présent avant ce script.');
+  async function safeFetchJson(url, options) {
+    const res = await fetch(url, options);
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch (_) {
+      return { success: false, message: "Réponse non JSON", raw: text };
+    }
   }
 
-  addStyles();
-  initValidationSystem();
-
-  if (window.location.hash === '#debug') {
-    const debugBtn = document.createElement('button');
-    debugBtn.textContent = '🔄 Debug: Réinitialiser';
-    debugBtn.onclick = resetValidation;
-    debugBtn.style.cssText = `
-      position: fixed; bottom: 50px; right: 20px;
-      background: #FF9800; color: white; border: none;
-      padding: 8px 12px; border-radius: 5px;
-      cursor: pointer; z-index: 9999; font-size: 11px;
-    `;
-    document.body.appendChild(debugBtn);
+  // -------------------------
+  // 8) Reset debug
+  // -------------------------
+  function resetValidation() {
+    localStorage.removeItem("maxi_jdc_session");
+    localStorage.removeItem("maxi_jdc_validated");
+    sessionId = null;
+    location.reload();
   }
-});
+
+  // expose debug
+  window.maxiValidation = {
+    reset: resetValidation,
+    getSessionId: () => sessionId,
+    getScriptUrl: () => SCRIPT_URL
+  };
+
+  // -------------------------
+  // 9) START
+  // -------------------------
+  document.addEventListener("DOMContentLoaded", function () {
+    addStyles();
+    initValidationSystem();
+
+    if (window.location.hash === "#debug") {
+      const b = document.createElement("button");
+      b.textContent = "🔄 Debug: Réinitialiser";
+      b.onclick = resetValidation;
+      b.style.cssText = `
+        position: fixed; bottom: 50px; right: 20px;
+        background: #FF9800; color: white; border: none;
+        padding: 8px 12px; border-radius: 5px;
+        cursor: pointer; z-index: 9999; font-size: 11px;
+      `;
+      document.body.appendChild(b);
+    }
+  });
+})();
