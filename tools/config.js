@@ -4,13 +4,16 @@
 
 window.APP_CONFIG = window.APP_CONFIG || {};
 
-// URL du Google Apps Script
+// URL du Google Apps Script (METTEZ VOTRE URL ICI)
 window.APP_CONFIG.googleScriptUrl = "https://script.google.com/macros/s/AKfycbziOpsrvIpaFP9CP0tA38CZfwRzHTVTbdzXHVxcK9AxY60GNSltkvN6BedwrbMu4kx6/exec";
 
 // Fonction pour obtenir l'URL du script
 window.APP_CONFIG.getScriptUrl = function() {
   return this.googleScriptUrl;
 };
+
+// Token API (optionnel)
+window.APP_CONFIG.apiToken = "CHANGE-ME-SECRET-123456";
 
 // Autres configurations
 window.APP_CONFIG.appName = "MAXI JDC MARKET";
@@ -26,4 +29,5 @@ window.APP_CONFIG.whatsapp = {
   message: "Bonjour, je souhaite commander sur MAXI JDC MARKET"
 };
 
-console.log("✅ Configuration chargée:", window.APP_CONFIG);
+console.log("✅ Configuration chargée:", window.APP_CONFIG.appName, "v" + window.APP_CONFIG.version);
+console.log("🔗 URL API:", window.APP_CONFIG.googleScriptUrl);
