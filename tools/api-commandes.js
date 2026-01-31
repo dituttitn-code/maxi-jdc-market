@@ -1,22 +1,47 @@
 /*********************************
  * API COMMANDES - MAXI JDC MARKET
- * Fix définitif session_id
+ * Version corrigée - Utilise config.js uniquement
  *********************************/
 
-// ✅ URL depuis config.js
-const API_URL =
-  (window.APP_CONFIG && typeof window.APP_CONFIG.getScriptUrl === "function")
-    ? window.APP_CONFIG.getScriptUrl()
-    : (window.APP_CONFIG?.googleScriptUrl || "https://script.google.com/macros/s/AKfycbziOpsrvIpaFP9CP0tA38CZfwRzHTVTbdzXHVxcK9AxY60GNSltkvN6BedwrbMu4kx6/exec");
-
-// ✅ Token (optionnel selon serveur)
-const API_TOKEN = "CHANGE-ME-SECRET-123456";
+// ⚠️ NE PAS mettre l'URL directement ici
+// Elle doit venir de config.js uniquement
 
 // Anti double-click client
 let sendingOrder = false;
 
 // session storage
 const SESSION_KEY = "maxi_jdc_session_id";
+
+// Fonction pour obtenir l'URL API
+function getAPIUrl() {
+  // Vérifier d'abord si APP_CONFIG existe
+  if (!window.APP_CONFIG) {
+    console.error("❌ APP_CONFIG non défini. config.js n'est pas chargé.");
+    throw new Error("Configuration manquante. Vérifiez que config.js est chargé avant api-commandes.js");
+  }
+  
+  // Utiliser la fonction getScriptUrl si elle existe
+  if (typeof window.APP_CONFIG.getScriptUrl === 'function') {
+    const url = window.APP_CONFIG.getScriptUrl();
+    console.log("🔗 URL API (via getScriptUrl):", url);
+    return url;
+  }
+  
+  // Sinon utiliser googleScriptUrl directement
+  const url = window.APP_CONFIG.googleScriptUrl;
+  if (!url) {
+    console.error("❌ googleScriptUrl non défini dans APP_CONFIG");
+    throw new Error("URL Google Script non configurée dans config.js");
+  }
+  
+  console.log("🔗 URL API (via googleScriptUrl):", url);
+  return url;
+}
+
+// Token (optionnel selon serveur)
+function getAPIToken() {
+  return window.APP_CONFIG?.apiToken || "CHANGE-ME-SECRET-123456";
+}
 
 /**
  * GET helper
@@ -31,15 +56,13 @@ async function getJson(url) {
  * POST helper optimisé pour Google Apps Script
  */
 async function postToGoogleScript(payloadObj) {
-  if (!API_URL) {
-    console.error("❌ API_URL manquante");
-    throw new Error("API_URL manquante (config.js).");
-  }
-
+  const API_URL = getAPIUrl();
+  const API_TOKEN = getAPIToken();
+  
   // Vérifier que 'method' est présent
   if (!payloadObj.method) {
     console.error("❌ Paramètre 'method' manquant dans le payload");
-    payloadObj.method = 'saveOrder'; // Valeur par défaut
+    payloadObj.method = 'saveOrder';
   }
 
   const formData = new URLSearchParams();
@@ -53,7 +76,6 @@ async function postToGoogleScript(payloadObj) {
   console.log("🚀 Envoi POST à Google Apps Script");
   console.log("🔗 URL:", API_URL);
   console.log("📦 Payload:", payloadObj);
-  console.log("📄 FormData:", formData.toString());
 
   try {
     const resp = await fetch(API_URL, {
@@ -64,28 +86,27 @@ async function postToGoogleScript(payloadObj) {
       body: formData.toString()
     });
 
-    console.log("📨 Réponse reçue - Status:", resp.status, resp.statusText);
+    console.log("📨 Réponse reçue - Status:", resp.status);
     
     const text = await resp.text();
-    console.log("📄 Réponse brute:", text);
+    console.log("📄 Réponse brute (premiers 500 caractères):", text.substring(0, 500));
     
     try {
       const json = JSON.parse(text);
       console.log("✅ Réponse JSON parsée:", json);
       return json;
     } catch (jsonError) {
-      console.warn("⚠️ Réponse non-JSON:", text);
-      // Essayer de parser malgré tout si c'est du JSON mal formé
-      try {
-        // Chercher du JSON dans le texte
-        const jsonMatch = text.match(/{.*}/s);
-        if (jsonMatch) {
+      console.warn("⚠️ Réponse non-JSON");
+      // Essayer d'extraire du JSON
+      const jsonMatch = text.match(/{[\s\S]*}/);
+      if (jsonMatch) {
+        try {
           const parsed = JSON.parse(jsonMatch[0]);
           console.log("✅ JSON extrait du texte:", parsed);
           return parsed;
+        } catch (e) {
+          // Ignorer
         }
-      } catch (e) {
-        // Ignorer
       }
       
       return { 
@@ -108,6 +129,8 @@ async function postToGoogleScript(payloadObj) {
  * ✅ récupère/assure une session valide
  */
 async function ensureSessionId() {
+  const API_URL = getAPIUrl();
+  
   // Vérifier si on a déjà une session
   const existing = localStorage.getItem(SESSION_KEY);
   if (existing && existing.trim()) {
@@ -124,18 +147,18 @@ async function ensureSessionId() {
     
     const response = await fetch(url);
     const text = await response.text();
-    console.log("📄 Réponse startSession brute:", text);
+    console.log("📄 Réponse startSession reçue");
     
     let json;
     try {
       json = JSON.parse(text);
     } catch (e) {
       // Essayer d'extraire le JSON
-      const match = text.match(/{.*}/s);
+      const match = text.match(/{[\s\S]*}/);
       if (match) {
         json = JSON.parse(match[0]);
       } else {
-        throw new Error("Réponse non-JSON");
+        throw new Error("Réponse non-JJSON");
       }
     }
     
@@ -179,6 +202,8 @@ export async function envoyerCommande(dataCommande) {
   console.log("🔄 Début envoi commande...");
 
   try {
+    const API_TOKEN = getAPIToken();
+    
     // ✅ Session obligatoire
     const sid = await ensureSessionId();
     console.log("✅ Session ID à utiliser:", sid);
@@ -213,7 +238,7 @@ export async function envoyerCommande(dataCommande) {
 
     // Préparer le payload pour Google Apps Script
     const payload = {
-      method: 'saveOrder',  // ✅ DOIT être 'method' pour Google Apps Script
+      method: 'saveOrder',
       token: API_TOKEN,
       session_id: sid,
 
@@ -229,8 +254,6 @@ export async function envoyerCommande(dataCommande) {
       
       // Totaux
       total: total.toFixed(2),
-      sous_total: (total * 0.8).toFixed(2), // Exemple de calcul
-      livraison: dataCommande.frais_livraison || "0.00",
       
       // Métadonnées
       date: new Date().toISOString(),
@@ -287,19 +310,21 @@ export async function envoyerCommande(dataCommande) {
 export async function testerConnexionAPI() {
   console.log("🧪 Test connexion API...");
   
+  const API_URL = getAPIUrl();
+  
   try {
     const url = `${API_URL}?method=test&t=${Date.now()}`;
     console.log("🔗 URL test:", url);
     
     const response = await fetch(url);
     const text = await response.text();
-    console.log("📄 Réponse test brute:", text);
+    console.log("📄 Réponse test reçue");
     
     let data;
     try {
       data = JSON.parse(text);
     } catch (e) {
-      const match = text.match(/{.*}/s);
+      const match = text.match(/{[\s\S]*}/);
       data = match ? JSON.parse(match[0]) : { success: false, message: "Réponse non-JSON" };
     }
     
@@ -308,7 +333,7 @@ export async function testerConnexionAPI() {
       message: data.message, 
       details: data.details, 
       url: API_URL,
-      raw: text
+      raw: text.substring(0, 200) + (text.length > 200 ? "..." : "")
     };
     
     console.log("📊 Résultat test:", result);
@@ -343,7 +368,7 @@ export function resetSession() {
   const oldId = localStorage.getItem(SESSION_KEY);
   localStorage.removeItem(SESSION_KEY);
   console.log("🔄 Session réinitialisée. Ancien ID:", oldId);
-  return ensureSessionId(); // Crée une nouvelle session
+  return ensureSessionId();
 }
 
 /**
@@ -375,24 +400,30 @@ export async function testCommandeRapide() {
   return result;
 }
 
-// Debug config
+// Initialisation
 if (typeof window !== 'undefined') {
-  if (!window.APP_CONFIG) {
-    console.warn("⚠️ config.js non chargé. Vérifie le chemin vers tools/config.js");
-    console.warn("⚠️ URL API utilisée:", API_URL);
-  } else {
-    console.log("✅ config.js chargé");
-    console.log("🔗 API_URL =", API_URL);
-    
-    // Initialiser la session au chargement (silencieusement)
-    setTimeout(() => {
-      ensureSessionId()
-        .then(sid => console.log("✅ Session initialisée:", sid))
-        .catch(e => console.warn("⚠️ Initialisation session échouée:", e.message));
-    }, 1000);
-  }
+  // Attendre que le DOM soit chargé
+  document.addEventListener('DOMContentLoaded', function() {
+    // Vérifier la configuration
+    if (!window.APP_CONFIG) {
+      console.error("❌ CRITIQUE: APP_CONFIG non défini. config.js doit être chargé avant api-commandes.js");
+      console.error("❌ Vérifiez l'ordre des scripts dans votre HTML:");
+      console.error("❌ 1. <script src='tools/config.js'></script>");
+      console.error("❌ 2. <script src='tools/api-commandes.js'></script>");
+    } else {
+      console.log("✅ config.js détecté");
+      console.log("🔗 URL API configurée:", window.APP_CONFIG.googleScriptUrl || window.APP_CONFIG.getScriptUrl?.());
+      
+      // Initialiser la session
+      setTimeout(() => {
+        ensureSessionId()
+          .then(sid => console.log("✅ Session initialisée:", sid))
+          .catch(e => console.warn("⚠️ Initialisation session échouée:", e.message));
+      }, 1500);
+    }
+  });
   
-  // Exposer les fonctions pour débogage dans la console
+  // Exposer les fonctions pour débogage
   window.API_COMMANDES = {
     envoyerCommande,
     testerConnexionAPI,
@@ -401,8 +432,8 @@ if (typeof window !== 'undefined') {
     resetSession,
     isSendingOrder,
     ensureSessionId,
-    API_URL,
-    API_TOKEN
+    getAPIUrl,
+    getAPIToken
   };
   
   console.log("🔧 API Commandes chargée. Utilisez window.API_COMMANDES pour tester.");
