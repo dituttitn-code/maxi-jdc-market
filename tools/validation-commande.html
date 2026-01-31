@@ -8,14 +8,11 @@
   <!-- CONFIGURATION CENTRALE -->
   <script src="config.js"></script>
   
-  <!-- PROTECTION ANTI-DOUBLON -->
-  <script src="validation-protection.js"></script>
-
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
-    /* [LE CSS RESTE IDENTIQUE - PAS DE CHANGEMENT] */
+    /* [LE CSS RESTE IDENTIQUE] */
     :root {
       --bg: #05070a;
       --panel: #0e1622;
@@ -661,28 +658,19 @@
 
   <div class="toast" id="toast"></div>
   
-<script src="config.js"></script>
-<script src="validation-protection.js"></script>
+  <script>
+    // ===================== CONFIGURATION =====================
+    const API_BASE_URL = window.APP_CONFIG?.googleScriptUrl || "";
+    const WHATSAPP_NUMBER = window.APP_CONFIG?.whatsappNumber || "21625600978";
 
-<script>
-  // ===================== CONFIGURATION =====================
+    if (!API_BASE_URL) {
+      console.error("❌ API_BASE_URL introuvable : config.js non chargé");
+      showToast("⚠️ Configuration manquante", "err");
+    }
 
-  const WHATSAPP_NUMBER =
-    window.APP_CONFIG?.whatsappNumber || "21625600978";
-
-  const API_BASE_URL =
-    window.APP_CONFIG?.googleScriptUrl;
-
-  if (!API_BASE_URL) {
-    console.error("❌ API_BASE_URL introuvable : config.js non chargé");
-  }
-
-  // Variables globales
-  let currentOrder = null;
-  let validationInProgress = false;
-
-  // ... le reste de ton code
-</script>
+    // Variables globales
+    let currentOrder = null;
+    let validationInProgress = false;
 
     /**
      * ==========================
@@ -993,7 +981,7 @@
 
     /**
      * ==========================
-     *  VALIDATION ET ENVOI
+     *  VALIDATION ET ENVOI VERS GOOGLE SHEETS
      * ==========================
      */
     async function validerEtEnvoyerCommande() {
@@ -1031,9 +1019,10 @@
         
         if (sheetsResult.success) {
           updateValidationStep(2, 'completed', '✅ Google Sheets mis à jour');
+          showToast("✅ Commande envoyée à Google Sheets", "ok");
         } else {
           updateValidationStep(2, 'error', '⚠️ Google Sheets: ' + (sheetsResult.error || 'Erreur'));
-          // Continuer même si Google Sheets échoue
+          showToast("⚠️ Google Sheets non mis à jour, sauvegarde locale uniquement", "warning");
         }
         
         // Étape 4: Envoyer notification WhatsApp
@@ -1045,9 +1034,6 @@
         
         // Jouer le son de notification
         playTabletSound();
-        
-        // Afficher message de succès
-        showToast("✅ Commande validée et envoyée avec succès !", "ok");
         
         // Réinitialiser après 3 secondes
         setTimeout(() => {
@@ -1072,48 +1058,74 @@
 
     /**
      * ==========================
-     *  GOOGLE SHEETS INTEGRATION
+     *  GOOGLE SHEETS INTEGRATION - CORRIGÉE
      * ==========================
      */
     async function envoyerVersGoogleSheets(commande) {
+      if (!API_BASE_URL) {
+        return { success: false, error: "URL Google Script non configurée" };
+      }
+
       try {
-        // Préparer les données
-        const data = {
-          commande_id: commande.numero_commande,
-          nom: commande.nom || '',
-          telephone: commande.telephone || '',
-          adresse: commande.adresse || '',
-          articles: JSON.stringify(commande.articles || []),
-          total: commande.total ? commande.total.toFixed(3) : '0.000',
-          statut: commande.statut || 'En attente',
-          date: new Date().toISOString(),
-          action: 'saveOrder'
-        };
+        // Formater les données pour Google Sheets
+        const formData = new FormData();
+        formData.append('action', 'saveOrder');
+        formData.append('commande_id', commande.numero_commande || '');
+        formData.append('nom', commande.nom || '');
+        formData.append('telephone', commande.telephone || '');
+        formData.append('adresse', commande.adresse || '');
+        formData.append('articles', JSON.stringify(commande.articles || []));
+        formData.append('total', commande.total ? commande.total.toFixed(3) : '0.000');
+        formData.append('statut', commande.statut || 'En attente');
+        formData.append('date', new Date().toISOString());
+        formData.append('source', 'validation-page');
 
-        // Essayer plusieurs méthodes
-        const methods = [
-          () => envoyerAvecFetch(data),
-          () => envoyerAvecXHR(data),
-          () => envoyerAvecJSONP(data)
-        ];
+        // Méthode 1: Essayer fetch avec mode 'cors' d'abord
+        console.log("📤 Envoi vers Google Sheets:", {
+          url: API_BASE_URL,
+          data: Object.fromEntries(formData)
+        });
 
-        for (let method of methods) {
-          try {
-            const result = await method();
-            if (result) {
-              return { success: true, method: method.name };
-            }
-          } catch (e) {
-            console.warn(`Méthode ${method.name} échouée:`, e);
+        try {
+          const response = await fetch(API_BASE_URL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+              'Accept': 'application/json',
+            },
+            body: formData
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log("✅ Réponse Google Sheets:", result);
+            return { success: true, data: result };
+          } else {
+            console.warn("⚠️ Réponse non-OK de Google Sheets:", response.status);
           }
+        } catch (fetchError) {
+          console.warn("⚠️ Fetch échoué, tentative avec XHR:", fetchError.message);
+        }
+
+        // Méthode 2: XMLHttpRequest (plus compatible avec CORS)
+        const xhrResult = await envoyerAvecXHR(formData);
+        if (xhrResult.success) {
+          return { success: true, method: 'XHR' };
+        }
+
+        // Méthode 3: JSONP pour contourner CORS
+        const jsonpResult = await envoyerAvecJSONP(Object.fromEntries(formData));
+        if (jsonpResult) {
+          return { success: true, method: 'JSONP' };
         }
 
         return { 
           success: false, 
-          error: "Toutes les méthodes ont échoué" 
+          error: "Toutes les méthodes ont échoué. Vérifiez l'URL et les autorisations CORS." 
         };
 
       } catch (error) {
+        console.error("❌ Erreur Google Sheets:", error);
         return { 
           success: false, 
           error: error.message 
@@ -1121,88 +1133,92 @@
       }
     }
 
-    // Méthode 1: Fetch avec mode no-cors
-    function envoyerAvecFetch(data) {
-      return new Promise((resolve) => {
-        const formData = new URLSearchParams();
-        for (const key in data) {
-          formData.append(key, data[key]);
-        }
-
-        fetch(API_BASE_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: formData.toString()
-        })
-        .then(() => resolve(true))
-        .catch(() => resolve(false));
-      });
-    }
-
-    // Méthode 2: XMLHttpRequest (plus compatible)
-    function envoyerAvecXHR(data) {
+    // Méthode XMLHttpRequest
+    function envoyerAvecXHR(formData) {
       return new Promise((resolve) => {
         const xhr = new XMLHttpRequest();
-        const formData = new URLSearchParams();
         
-        for (const key in data) {
-          formData.append(key, data[key]);
+        // Convertir FormData en URLSearchParams
+        const params = new URLSearchParams();
+        for (const pair of formData.entries()) {
+          params.append(pair[0], pair[1]);
         }
 
         xhr.open('POST', API_BASE_URL, true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         
         xhr.onload = function() {
+          console.log("📨 XHR Response:", xhr.status, xhr.responseText);
           if (xhr.status === 200 || xhr.status === 0) {
-            resolve(true);
+            try {
+              const response = JSON.parse(xhr.responseText);
+              resolve({ success: true, data: response });
+            } catch (e) {
+              resolve({ success: true }); // Réponse non-JSON mais succès
+            }
           } else {
-            resolve(false);
+            resolve({ success: false, error: `HTTP ${xhr.status}` });
           }
         };
         
         xhr.onerror = function() {
-          resolve(false);
+          console.error("❌ XHR Error");
+          resolve({ success: false, error: 'Network error' });
         };
         
-        xhr.send(formData.toString());
+        xhr.timeout = 10000; // 10 secondes timeout
+        xhr.ontimeout = function() {
+          resolve({ success: false, error: 'Timeout' });
+        };
+        
+        xhr.send(params.toString());
       });
     }
 
-    // Méthode 3: JSONP (contournement CORS)
+    // Méthode JSONP pour contourner CORS
     function envoyerAvecJSONP(data) {
       return new Promise((resolve) => {
-        const callbackName = 'callback_' + Date.now();
+        const callbackName = 'jsonp_callback_' + Date.now();
         
         window[callbackName] = function(response) {
+          console.log("📨 JSONP Response:", response);
           resolve(true);
           delete window[callbackName];
         };
 
-        const params = new URLSearchParams(data);
-        params.append('callback', callbackName);
+        // Ajouter le callback au data
+        data.callback = callbackName;
+        
+        // Créer l'URL avec les paramètres
+        const params = new URLSearchParams();
+        for (const key in data) {
+          params.append(key, data[key]);
+        }
         
         const script = document.createElement('script');
         script.src = `${API_BASE_URL}?${params.toString()}`;
         
         script.onerror = () => {
+          console.error("❌ JSONP Error");
           resolve(false);
-          document.head.removeChild(script);
+          if (script.parentNode) {
+            document.head.removeChild(script);
+          }
           delete window[callbackName];
         };
         
         document.head.appendChild(script);
         
-        // Timeout
+        // Timeout après 10 secondes
         setTimeout(() => {
           if (window[callbackName]) {
             resolve(false);
-            document.head.removeChild(script);
+            if (script.parentNode) {
+              document.head.removeChild(script);
+            }
             delete window[callbackName];
           }
-        }, 5000);
+        }, 10000);
       });
     }
 
@@ -1239,7 +1255,10 @@
         message += `\n✅ PRÊT POUR LA PRÉPARATION`;
         
         const encoded = encodeURIComponent(message);
-        window.open(`https://wa.me/${phone}?text=${encoded}`, '_blank');
+        const whatsappUrl = `https://wa.me/${phone}?text=${encoded}`;
+        
+        // Ouvrir dans un nouvel onglet
+        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
         
         return true;
       } catch (error) {
