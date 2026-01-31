@@ -3974,18 +3974,18 @@
   <script>
   // ===================== CONFIGURATION =====================
 
-// URL Google Apps Script (chargée depuis tools/config.js)
-// ⚠️ Version sécurisée pour éviter le crash si config.js n’est pas encore chargé
-const API_URL = window.APP_CONFIG?.googleScriptUrl;
+// 1) URL Google Apps Script (centralisée dans tools/config.js)
+// ⚠️ Sécurité: si config.js n'est pas chargé, on met un fallback pour éviter que tout plante.
+const API_URL =
+  (window.APP_CONFIG && window.APP_CONFIG.googleScriptUrl)
+    ? window.APP_CONFIG.googleScriptUrl
+    : "https://script.google.com/macros/s/AKfycby3acB0gMMk-Ub8CXt__33nH0NNIrYfPeU3DEiLmUCLDW-RMLnPc_F_5eDjLYnxDu8/exec";
 
-if (!API_URL) {
-  console.error("❌ APP_CONFIG introuvable : vérifie <script src='tools/config.js'>");
-}
-
-// URL Google Sheets (CSV) – corrigée pour les problèmes de colonnes
+// 2) URL Google Sheets (CSV) – corrigée pour les problèmes de colonnes
 const GOOGLE_SHEETS_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv";
 
+// 3) Objet config global utilisé par l'app
 const CONFIG = {
   // Boutique
   minOrder: 15,
@@ -4026,6 +4026,9 @@ const CONFIG = {
   googleSheetsUrl: GOOGLE_SHEETS_URL,
   apiUrl: API_URL
 };
+
+// (optionnel mais conseillé) rendre accessible partout
+window.CONFIG = CONFIG;
 
 // ===================== TRADUCTIONS =====================
 
@@ -6598,6 +6601,7 @@ const CONFIG = {
   </script>
 </body>
 </html>
+
 
 
 
