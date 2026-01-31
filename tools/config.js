@@ -1,7 +1,7 @@
 // config.js - VERSION CORRIGÉE
 const APP_CONFIG = {
   // URL de votre Google Apps Script
-  googleScriptUrl: "https://script.google.com/macros/s/AKfycby3acB0gMMk-Ub8CXt__33nH0NNIrYfPeU3DEiLmUCLDW-RMLnPc_F_5eDjLYnxDu8/exec",
+  googleScriptUrl: "https://script.google.com/macros/s/AKfycbzavyRmmqMZBTansAtWwCr8-XW4Pa1PWrFyM0pg1TlVvKPK1hoPaMchyadWkOCda9eq/exec",
   
   // Configuration existante
   minOrder: 15,
