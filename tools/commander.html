@@ -1,602 +1,227 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enregistrement Caisse - MAXI JDC MARKET</title>
-    
-    <!-- CONFIGURATION CENTRALE -->
-    <script src="config.js"></script>
-    
-    <style>
-        :root { --primary: #0a1929; --secondary: #00ff88; --accent: #00d4ff; --light: #f0f6fc; --dark: #1a365d; }
-        body { background: linear-gradient(135deg, var(--primary) 0%, #112240 100%); color: var(--light); min-height: 100vh; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: var(--dark); padding: 30px; border-radius: 15px; border: 2px solid var(--secondary); }
-        h1 { color: var(--secondary); margin-bottom: 30px; text-align: center; }
-        .form-section { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid var(--accent); background: rgba(255,255,255,0.1); color: white; }
-        button { background: var(--secondary); color: var(--primary); font-weight: bold; cursor: pointer; border: none; }
-        button:hover { opacity: 0.9; }
-        .article-row { display: flex; gap: 10px; margin: 10px 0; }
-        .article-row input { flex: 1; }
-        .btn-small { width: auto; padding: 8px 15px; }
-        .nav { text-align: center; margin-top: 30px; }
-        .nav a { color: var(--accent); margin: 0 15px; }
-        .message { padding: 15px; border-radius: 6px; margin: 15px 0; display: none; }
-        .success { background: rgba(0, 255, 136, 0.2); border-left: 4px solid var(--secondary); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enregistrement Caisse - MAXI JDC MARKET</title>
+
+  <!-- CONFIGURATION CENTRALE -->
+  <script src="config.js"></script>
+
+  <style>
+    :root { --primary: #0a1929; --secondary: #00ff88; --accent: #00d4ff; --light: #f0f6fc; --dark: #1a365d; }
+    body { background: linear-gradient(135deg, var(--primary) 0%, #112240 100%); color: var(--light); min-height: 100vh; margin: 0; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; background: var(--dark); padding: 30px; border-radius: 15px; border: 2px solid var(--secondary); }
+    h1 { color: var(--secondary); margin-bottom: 30px; text-align: center; }
+    .form-section { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+    input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid var(--accent); background: rgba(255,255,255,0.1); color: white; }
+    button { background: var(--secondary); color: var(--primary); font-weight: bold; cursor: pointer; border: none; }
+    button:hover { opacity: 0.9; }
+    .article-row { display: flex; gap: 10px; margin: 10px 0; }
+    .article-row input { flex: 1; }
+    .btn-small { width: auto; padding: 8px 15px; }
+    .nav { text-align: center; margin-top: 30px; }
+    .nav a { color: var(--accent); margin: 0 15px; }
+    .message { padding: 15px; border-radius: 6px; margin: 15px 0; display: none; }
+    .success { background: rgba(0, 255, 136, 0.2); border-left: 4px solid var(--secondary); }
+    .warning { background: rgba(255, 152, 0, 0.2); border-left: 4px solid #FF9800; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>💵 Enregistrement de Vente en Caisse</h1>
-        
-        <div class="form-section">
-            <h3>Informations Client</h3>
-            <input type="text" id="nomClient" placeholder="Nom du client (ou 'Client Caisse')">
-            <input type="tel" id="telClient" placeholder="Téléphone (optionnel)">
-        </div>
+  <div class="container">
+    <h1>💵 Enregistrement de Vente en Caisse</h1>
 
-        <div class="form-section">
-            <h3>Articles Vendus</h3>
-            <div id="articlesContainer">
-                <div class="article-row">
-                    <input type="text" class="article-nom" placeholder="Nom de l'article" value="Lait 1L">
-                    <input type="number" class="article-qte" placeholder="Qté" value="1" min="1">
-                    <input type="number" class="article-prix" placeholder="Prix" step="0.01" value="1.50">
-                    <button type="button" class="btn-small" onclick="supprimerArticle(this)" style="background:#ff6b6b;">🗑</button>
-                </div>
-            </div>
-            <button type="button" onclick="ajouterArticle()" style="background: var(--accent);">+ Ajouter un article</button>
-        </div>
-
-        <div class="form-section">
-            <h3>Total & Statut</h3>
-            <div style="font-size: 24px; color: var(--secondary); margin: 15px 0;">
-                Total : <span id="totalCaisse">0.00</span> DT
-            </div>
-            <select id="statutCaisse">
-                <option value="nouvelle">🆕 Nouvelle (à préparer)</option>
-                <option value="pret">✅ Prête / Déjà vendue</option>
-                <option value="livree">🚚 Livrée (pour livraison)</option>
-            </select>
-        </div>
-
-        <button onclick="enregistrerVenteCaisse()" style="background: #9b59b6; padding: 15px; font-size: 18px;">
-            💾 ENREGISTRER CETTE VENTE EN CAISSE
-        </button>
-
-        <div id="messageCaisse" class="message"></div>
-
-        <div class="nav">
-            <a href="index.html">← Retour à l'accueil</a>
-            <a href="suivi-commandes.html">Voir toutes les commandes →</a>
-        </div>
+    <div class="form-section">
+      <h3>Informations Client</h3>
+      <input type="text" id="nomClient" placeholder="Nom du client (ou 'Client Caisse')">
+      <input type="tel" id="telClient" placeholder="Téléphone (optionnel)">
     </div>
 
-    <script>
-        function ajouterArticle() {
-            const container = document.getElementById('articlesContainer');
-            const div = document.createElement('div');
-            div.className = 'article-row';
-            div.innerHTML = `
-                <input type="text" class="article-nom" placeholder="Nom de l'article">
-                <input type="number" class="article-qte" placeholder="Qté" value="1" min="1">
-                <input type="number" class="article-prix" placeholder="Prix" step="0.01" value="0.00">
-                <button type="button" class="btn-small" onclick="supprimerArticle(this)" style="background:#ff6b6b;">🗑</button>
-            `;
-            container.appendChild(div);
-            div.querySelectorAll('input').forEach(input => input.addEventListener('input', calculerTotal));
-            calculerTotal();
-        }
+    <div class="form-section">
+      <h3>Articles Vendus</h3>
+      <div id="articlesContainer">
+        <div class="article-row">
+          <input type="text" class="article-nom" placeholder="Nom de l'article" value="Lait 1L">
+          <input type="number" class="article-qte" placeholder="Qté" value="1" min="1">
+          <input type="number" class="article-prix" placeholder="Prix" step="0.01" value="1.50">
+          <button type="button" class="btn-small" onclick="supprimerArticle(this)" style="background:#ff6b6b;">🗑</button>
+        </div>
+      </div>
+      <button type="button" onclick="ajouterArticle()" style="background: var(--accent);">+ Ajouter un article</button>
+    </div>
 
-        function supprimerArticle(btn) {
-            if(document.querySelectorAll('.article-row').length > 1) {
-                btn.closest('.article-row').remove();
-                calculerTotal();
-            }
-        }
+    <div class="form-section">
+      <h3>Total & Statut</h3>
+      <div style="font-size: 24px; color: var(--secondary); margin: 15px 0;">
+        Total : <span id="totalCaisse">0.00</span> DT
+      </div>
+      <select id="statutCaisse">
+        <option value="nouvelle">🆕 Nouvelle (à préparer)</option>
+        <option value="pret">✅ Prête / Déjà vendue</option>
+        <option value="livree">🚚 Livrée (pour livraison)</option>
+      </select>
+    </div>
 
-        function calculerTotal() {
-            let total = 0;
-            document.querySelectorAll('.article-row').forEach(row => {
-                const qte = parseFloat(row.querySelector('.article-qte').value) || 0;
-                const prix = parseFloat(row.querySelector('.article-prix').value) || 0;
-                total += qte * prix;
-            });
-            document.getElementById('totalCaisse').textContent = total.toFixed(2);
-        }
+    <button onclick="enregistrerVenteCaisse()" style="background: #9b59b6; padding: 15px; font-size: 18px;">
+      💾 ENREGISTRER CETTE VENTE EN CAISSE
+    </button>
 
-        function enregistrerVenteCaisse() {
-            const nom = document.getElementById('nomClient').value.trim() || 'Client Caisse';
-            const tel = document.getElementById('telClient').value.trim() || 'Non renseigné';
-            const statut = document.getElementById('statutCaisse').value;
-            const statutLabel = document.getElementById('statutCaisse').options[document.getElementById('statutCaisse').selectedIndex].text;
-            const total = parseFloat(document.getElementById('totalCaisse').textContent);
+    <div id="messageCaisse" class="message"></div>
 
-            // Récupérer articles
-            const articles = [];
-            document.querySelectorAll('.article-row').forEach(row => {
-                articles.push({
-                    nom: row.querySelector('.article-nom').value || 'Article',
-                    qte: parseFloat(row.querySelector('.article-qte').value) || 0,
-                    prix: parseFloat(row.querySelector('.article-prix').value) || 0
-                });
-            });
+    <div class="nav">
+      <a href="index.html">← Retour à l'accueil</a>
+      <a href="suivi-commandes.html">Voir toutes les commandes →</a>
+    </div>
+  </div>
 
-            // Créer commande
-            const commande = {
-                id: Date.now(),
-                date: new Date().toLocaleString('fr-FR'),
-                client: nom,
-                telephone: tel,
-                articles: articles,
-                total: total,
-                statut: statut,
-                statutLabel: statutLabel,
-                source: 'caisse_physique'
-            };
+  <script>
+    function ajouterArticle() {
+      const container = document.getElementById('articlesContainer');
+      const div = document.createElement('div');
+      div.className = 'article-row';
+      div.innerHTML = `
+        <input type="text" class="article-nom" placeholder="Nom de l'article">
+        <input type="number" class="article-qte" placeholder="Qté" value="1" min="1">
+        <input type="number" class="article-prix" placeholder="Prix" step="0.01" value="0.00">
+        <button type="button" class="btn-small" onclick="supprimerArticle(this)" style="background:#ff6b6b;">🗑</button>
+      `;
+      container.appendChild(div);
+      div.querySelectorAll('input').forEach(input => input.addEventListener('input', calculerTotal));
+      calculerTotal();
+    }
 
-            // Sauvegarder
-            let commandes = JSON.parse(localStorage.getItem('commandesMaxiJDC')) || [];
-            commandes.push(commande);
-            localStorage.setItem('commandesMaxiJDC', JSON.stringify(commandes));
-
-            // Confirmation
-            const msg = document.getElementById('messageCaisse');
-            msg.textContent = `✅ Vente #${commande.id} enregistrée ! Client: ${nom}, Total: ${total} DT`;
-            msg.className = 'message success';
-            msg.style.display = 'block';
-
-            // Réinitialiser (garder un article)
-            document.getElementById('nomClient').value = '';
-            document.getElementById('telClient').value = '';
-            document.getElementById('articlesContainer').innerHTML = '';
-            ajouterArticle();
-            document.getElementById('statutCaisse').value = 'nouvelle';
-            calculerTotal();
-        }
-
-        // Initialiser
-        window.onload = function() {
-            ajouterArticle();
-            document.querySelectorAll('input').forEach(input => input.addEventListener('input', calculerTotal));
-            calculerTotal();
-        };
-    </script>
-
-<!-- 
-   AJOUTEZ CE SCRIPT À VOTRE PAGE HTML EXISTANTE
-   (Juste avant la balise </body>)
--->
-
-<script>
-// MODIFICATION : Utilisation de config.js
-const API_URL = window.APP_CONFIG.googleScriptUrl;
-
-// Variables globales
-let sessionId = null;
-let isSubmitting = false;
-let submitTimeout = null;
-
-// 1. PROTECTION CONTRE LES CLICS MULTIPLES
-function protectSubmitButton() {
-  // Trouver le bouton "Valider et envoyer"
-  const submitButtons = [
-    document.querySelector('button[onclick*="valider"]'),
-    document.querySelector('button[onclick*="envoyer"]'),
-    document.querySelector('button:contains("Valider")'),
-    document.querySelector('button:contains("Envoyer")'),
-    document.querySelector('[class*="valider"]'),
-    document.querySelector('[class*="envoyer"]'),
-    document.getElementById('btn-valider'),
-    document.getElementById('btn-envoyer')
-  ].filter(btn => btn !== null);
-
-  if (submitButtons.length === 0) {
-    console.warn('⚠️ Bouton de validation non trouvé');
-    return;
-  }
-
-  const submitBtn = submitButtons[0];
-  const originalText = submitBtn.innerHTML;
-  const originalOnClick = submitBtn.onclick;
-  const originalBgColor = submitBtn.style.backgroundColor;
-
-  // 2. GÉNÉRER UNE SESSION UNIQUE
-  async function initializeSession() {
-    try {
-      const response = await fetch(`${SCRIPT_URL}?action=generatesession`);
-      const data = await response.json();
-      
-      if (data.success) {
-        sessionId = data.session_id;
-        localStorage.setItem('maxi_jdc_session', sessionId);
-        console.log('🔒 Session créée:', sessionId.substring(0, 8) + '...');
-        
-        // Vérifier si déjà validé
-        checkSessionStatus();
+    function supprimerArticle(btn) {
+      if (document.querySelectorAll('.article-row').length > 1) {
+        btn.closest('.article-row').remove();
+        calculerTotal();
       }
-    } catch (error) {
-      console.error('❌ Erreur session:', error);
     }
-  }
 
-  // 3. VÉRIFIER STATUT SESSION
-  async function checkSessionStatus() {
-    if (!sessionId) return;
-    
-    try {
-      const response = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${sessionId}`);
-      const data = await response.json();
-      
-      if (data.success && data.already_validated) {
-        // Désactiver le bouton si déjà validé
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '✅ Déjà validé';
-        submitBtn.style.backgroundColor = '#e0e0e0';
-        submitBtn.style.cursor = 'not-allowed';
-        
-        // Afficher message
-        showMessage('Cette commande a déjà été validée. Le bouton est désactivé.', 'info');
-      }
-    } catch (error) {
-      console.error('❌ Erreur vérification:', error);
+    function calculerTotal() {
+      let total = 0;
+      document.querySelectorAll('.article-row').forEach(row => {
+        const qte = parseFloat(row.querySelector('.article-qte').value) || 0;
+        const prix = parseFloat(row.querySelector('.article-prix').value) || 0;
+        total += qte * prix;
+      });
+      document.getElementById('totalCaisse').textContent = total.toFixed(2);
     }
-  }
 
-  // 4. FONCTION DE VALIDATION SÉCURISÉE
-  async function secureValidateOrder() {
-    if (isSubmitting) {
-      console.log('⏳ Validation déjà en cours...');
-      return;
+    // ✅ Ton enregistrement local (inchangé)
+    function enregistrerVenteCaisse() {
+      const nom = document.getElementById('nomClient').value.trim() || 'Client Caisse';
+      const tel = document.getElementById('telClient').value.trim() || '';
+      const statut = document.getElementById('statutCaisse').value;
+      const statutLabel = document.getElementById('statutCaisse').options[document.getElementById('statutCaisse').selectedIndex].text;
+      const total = parseFloat(document.getElementById('totalCaisse').textContent);
+
+      const articles = [];
+      document.querySelectorAll('.article-row').forEach(row => {
+        articles.push({
+          nom: row.querySelector('.article-nom').value || 'Article',
+          qte: parseFloat(row.querySelector('.article-qte').value) || 0,
+          prix: parseFloat(row.querySelector('.article-prix').value) || 0
+        });
+      });
+
+      const commande = {
+        id: Date.now(),
+        date: new Date().toLocaleString('fr-FR'),
+        client: nom,
+        telephone: tel,
+        articles: articles,
+        total: total,
+        statut: statut,
+        statutLabel: statutLabel,
+        source: 'caisse_physique'
+      };
+
+      let commandes = JSON.parse(localStorage.getItem('commandesMaxiJDC')) || [];
+      commandes.push(commande);
+      localStorage.setItem('commandesMaxiJDC', JSON.stringify(commandes));
+
+      const msg = document.getElementById('messageCaisse');
+      msg.textContent = `✅ Vente #${commande.id} enregistrée (local) ! Client: ${nom}, Total: ${total} DT`;
+      msg.className = 'message success';
+      msg.style.display = 'block';
+
+      // reset
+      document.getElementById('nomClient').value = '';
+      document.getElementById('telClient').value = '';
+      document.getElementById('articlesContainer').innerHTML = '';
+      ajouterArticle();
+      document.getElementById('statutCaisse').value = 'nouvelle';
+      calculerTotal();
     }
-    
-    // Vérifier session
-    if (!sessionId) {
-      showMessage('❌ Session non initialisée. Rechargez la page.', 'error');
-      return;
-    }
-    
-    // DÉSACTIVER IMMÉDIATEMENT LE BOUTON
-    isSubmitting = true;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '⏳ Validation en cours...';
-    submitBtn.style.backgroundColor = '#ff9800';
-    
-    // Désactiver après 30 secondes max
-    submitTimeout = setTimeout(() => {
-      if (isSubmitting) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-        submitBtn.style.backgroundColor = originalBgColor;
-        isSubmitting = false;
-        showMessage('⚠️ Délai dépassé. Réessayez.', 'warning');
-      }
-    }, 30000);
-    
-    try {
-      // VÉRIFIER SESSION AVANT ENVOI
-      const checkResponse = await fetch(`${SCRIPT_URL}?action=validatesession&session_id=${sessionId}`);
-      const checkData = await checkResponse.json();
-      
-      if (!checkData.can_validate) {
-        clearTimeout(submitTimeout);
-        
-        if (checkData.already_validated) {
-          submitBtn.innerHTML = '✅ Déjà validé';
-          submitBtn.style.backgroundColor = '#e0e0e0';
-          showMessage('Cette commande a déjà été validée.', 'info');
-        } else if (checkData.too_many_attempts) {
-          submitBtn.innerHTML = '🚫 Trop de tentatives';
-          showMessage('Trop de tentatives. Attendez 5 minutes.', 'error');
-        }
-        
-        isSubmitting = false;
+
+    window.onload = function() {
+      ajouterArticle();
+      document.querySelectorAll('input').forEach(input => input.addEventListener('input', calculerTotal));
+      calculerTotal();
+    };
+  </script>
+
+  <!-- ✅ AJOUT : envoi vers Google Sheets sans changer ton interface -->
+  <script type="module">
+    import { envoyerCommande } from './api-commandes.js';
+
+    const oldFn = window.enregistrerVenteCaisse;
+
+    window.enregistrerVenteCaisse = async function() {
+      // 1) garder le comportement local EXACT (inchangé)
+      oldFn();
+
+      // 2) envoyer vers Google Sheets
+      const msg = document.getElementById('messageCaisse');
+
+      // Reprendre valeurs AVANT reset : on relit depuis le localStorage (dernier élément)
+      const commandes = JSON.parse(localStorage.getItem('commandesMaxiJDC')) || [];
+      const last = commandes[commandes.length - 1];
+      if (!last) return;
+
+      const nom = last.client || "Client Caisse";
+      // ✅ éviter "Non renseigné" (ça casse l’anti-doublon)
+      const tel = (last.telephone && last.telephone.trim()) ? last.telephone.trim() : ("CAISSE-" + last.id);
+
+      const total = Number(last.total) || 0;
+      if (total <= 0) {
+        msg.innerHTML = `⚠️ Vente locale OK, mais total=0 donc non envoyée à Google Sheets.`;
+        msg.className = 'message warning';
+        msg.style.display = 'block';
         return;
       }
-      
-      // RÉCUPÉRER LES DONNÉES DE COMMANDE
-      const orderData = collectOrderData();
-      orderData.session_id = sessionId;
-      
-      console.log('📤 Envoi sécurisé:', orderData);
-      
-      // ENVOYER LA COMMANDE
-      const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(orderData)
-      });
-      
-      const result = await response.json();
-      console.log('📥 Réponse:', result);
-      clearTimeout(submitTimeout);
-      
-      if (result.success) {
-        // SUCCÈS
-        submitBtn.innerHTML = '✅ Commande envoyée';
-        submitBtn.style.backgroundColor = '#4CAF50';
-        isSubmitting = false;
-        
-        showMessage(
-          `Commande #${result.commande_id} validée !<br>Total: ${result.total} dt`,
-          'success'
-        );
-        
-        // Mettre à jour le numéro de commande affiché
-        updateOrderDisplay(result.commande_id);
-        
-        // Exécuter l'action originale si elle existe
-        if (typeof originalOnClick === 'function') {
-          setTimeout(originalOnClick, 1000);
-        }
-        
-      } else {
-        // ÉCHEC
-        if (result.already_validated) {
-          submitBtn.innerHTML = '✅ Déjà validé';
-          submitBtn.style.backgroundColor = '#e0e0e0';
-          showMessage('Cette commande a déjà été validée.', 'info');
-        } else if (result.is_duplicate) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = originalText;
-          submitBtn.style.backgroundColor = originalBgColor;
-          showMessage(
-            '⚠️ Commande similaire déjà enregistrée récemment.<br>Attendez quelques secondes.',
-            'warning'
-          );
+
+      const articles = (last.articles || []).map(a => ({
+        produit: a.nom || "Article",
+        quantite: Number(a.qte || 1),
+        prix_unitaire: Number(a.prix || 0)
+      }));
+
+      try {
+        const res = await envoyerCommande({
+          nom_client: nom,
+          telephone: tel,
+          adresse: "VENTE CAISSE - MAGASIN",
+          articles: articles,
+          total: total
+        });
+
+        if (res?.success) {
+          msg.innerHTML = `✅ Vente envoyée à Google Sheets !<br>Commande: <b>${res.commande_id}</b> | Total: <b>${res.total}</b> DT`;
+          msg.className = 'message success';
+          msg.style.display = 'block';
         } else {
-          // Réactiver le bouton pour réessayer
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '🔄 Réessayer';
-          submitBtn.style.backgroundColor = '#F44336';
-          showMessage(`Erreur: ${result.message || 'Inconnue'}`, 'error');
+          msg.innerHTML = `⚠️ Vente locale OK mais envoi Sheets échoué :<br>${res?.message || "Erreur inconnue"}`;
+          msg.className = 'message warning';
+          msg.style.display = 'block';
         }
-        isSubmitting = false;
+      } catch (e) {
+        msg.innerHTML = `🌐 Vente locale OK mais erreur réseau Sheets :<br>${String(e)}`;
+        msg.className = 'message warning';
+        msg.style.display = 'block';
       }
-      
-    } catch (error) {
-      // ERREUR RÉSEAU
-      console.error('❌ Erreur réseau:', error);
-      clearTimeout(submitTimeout);
-      
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '🌐 Réessayer (erreur réseau)';
-      submitBtn.style.backgroundColor = '#FF9800';
-      isSubmitting = false;
-      
-      showMessage('Erreur réseau. Vérifiez votre connexion.', 'error');
-    }
-  }
-
-  // 5. COLLECTER LES DONNÉES (ADAPTEZ À VOTRE INTERFACE)
-  function collectOrderData() {
-    // EXEMPLE - ADAPTEZ À VOS CHAMPS
-    return {
-      nom_client: getElementText('client-nom', 'Lotfi'),
-      telephone: getElementText('client-telephone', '+216 55532482'),
-      adresse: getElementText('client-adresse', 'Jardins De Carthage'),
-      gps: getElementText('client-gps', '36.858550, 10.301463'),
-      articles: getArticlesText(),
-      total: getTotalAmount()
     };
-  }
-
-  // Fonctions utilitaires
-  function getElementText(id, defaultValue = '') {
-    const el = document.getElementById(id);
-    return el ? el.textContent.trim() : defaultValue;
-  }
-
-  function getArticlesText() {
-    // Adaptez cette fonction à votre structure d'articles
-    const articles = [];
-    
-    // Exemple: chercher tous les éléments d'article
-    const articleElements = document.querySelectorAll('.article-item, [class*="article"], [class*="produit"]');
-    
-    if (articleElements.length > 0) {
-      articleElements.forEach(el => {
-        const text = el.textContent.trim();
-        if (text && !text.includes('TOTAL') && !text.includes('Sous-total')) {
-          articles.push(text);
-        }
-      });
-    } else {
-      // Fallback: utiliser un conteneur d'articles
-      const container = document.getElementById('articles-container') || 
-                       document.querySelector('.articles-list');
-      if (container) {
-        return container.textContent.trim();
-      }
-    }
-    
-    return articles.join('\n');
-  }
-
-  function getTotalAmount() {
-    const totalEl = document.getElementById('total-commande') || 
-                   document.querySelector('[class*="total"]');
-    
-    if (totalEl) {
-      const text = totalEl.textContent.trim();
-      // Extraire les nombres
-      const match = text.match(/[\d,]+/);
-      if (match) {
-        return match[0].replace(',', '.');
-      }
-    }
-    
-    return '0';
-  }
-
-  // 6. AFFICHER DES MESSAGES
-  function showMessage(message, type = 'info') {
-    // Créer ou réutiliser un élément de message
-    let messageEl = document.getElementById('validation-message');
-    
-    if (!messageEl) {
-      messageEl = document.createElement('div');
-      messageEl.id = 'validation-message';
-      messageEl.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        background: ${type === 'success' ? '#4CAF50' : 
-                     type === 'error' ? '#F44336' : 
-                     type === 'warning' ? '#FF9800' : '#2196F3'};
-        color: white;
-        border-radius: 5px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 10000;
-        max-width: 400px;
-        animation: slideIn 0.3s ease;
-      `;
-      document.body.appendChild(messageEl);
-    }
-    
-    messageEl.innerHTML = message;
-    messageEl.style.background = type === 'success' ? '#4CAF50' : 
-                                 type === 'error' ? '#F44336' : 
-                                 type === 'warning' ? '#FF9800' : '#2196F3';
-    
-    // Masquer après 5 secondes
-    setTimeout(() => {
-      messageEl.style.animation = 'slideOut 0.3s ease';
-      setTimeout(() => {
-        if (messageEl.parentNode) {
-          messageEl.parentNode.removeChild(messageEl);
-        }
-      }, 300);
-    }, 5000);
-  }
-
-  // 7. METTRE À JOUR L'AFFICHAGE
-  function updateOrderDisplay(commandeId) {
-    // Mettre à jour le numéro de commande affiché
-    const orderNumEl = document.getElementById('commande-numero') || 
-                      document.querySelector('[class*="commande"]');
-    if (orderNumEl) {
-      orderNumEl.textContent = commandeId;
-    }
-  }
-
-  // 8. REMPLACER L'ACTION DU BOUTON
-  submitBtn.onclick = function(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-    
-    secureValidateOrder();
-    return false;
-  };
-
-  // 9. AJOUTER UN INDICATEUR VISUEL
-  submitBtn.style.position = 'relative';
-  submitBtn.innerHTML = '🔒 ' + originalText;
-  
-  // 10. INITIALISER LA SESSION AU CHARGEMENT
-  window.addEventListener('load', function() {
-    // Récupérer session existante
-    sessionId = localStorage.getItem('maxi_jdc_session');
-    
-    if (sessionId) {
-      console.log('🔍 Session existante trouvée');
-      checkSessionStatus();
-    } else {
-      initializeSession();
-    }
-  });
-
-  // 11. AJOUTER LES ANIMATIONS CSS
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-      from { transform: translateX(0); opacity: 1; }
-      to { transform: translateX(100%); opacity: 0; }
-    }
-    
-    button:disabled {
-      cursor: not-allowed !important;
-      opacity: 0.7 !important;
-    }
-    
-    .protected-button {
-      position: relative;
-    }
-    
-    .protected-button::after {
-      content: "🔒";
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-  `;
-  document.head.appendChild(style);
-  
-  // Ajouter la classe
-  submitBtn.classList.add('protected-button');
-}
-
-// 12. INITIALISER LA PROTECTION
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('🛡️ Initialisation protection anti-doublon...');
-  
-  // Attendre que la page soit complètement chargée
-  setTimeout(protectSubmitButton, 1000);
-  
-  // Protection supplémentaire: empêcher les clics multiples rapides
-  document.addEventListener('click', function(e) {
-    const target = e.target;
-    if (target.tagName === 'BUTTON' && 
-        (target.textContent.includes('Valider') || target.textContent.includes('Envoyer'))) {
-      if (target.disabled) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }
-  }, true);
-});
-
-// 13. FONCTION DE RÉINITIALISATION (pour tests)
-function resetValidation() {
-  localStorage.removeItem('maxi_jdc_session');
-  sessionId = null;
-  location.reload();
-}
-
-// Optionnel: ajouter un bouton de réinitialisation en mode debug
-if (window.location.hash === '#debug') {
-  const resetBtn = document.createElement('button');
-  resetBtn.textContent = '🔄 Réinitialiser session';
-  resetBtn.onclick = resetValidation;
-  resetBtn.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #FF9800;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    z-index: 9999;
-    font-size: 12px;
-  `;
-  document.body.appendChild(resetBtn);
-}
-</script>
-
-<!-- PROTECTION ANTI-DOUBLON -->
-<script src="validation-protection.js"></script>
+  </script>
 
 </body>
 </html>
