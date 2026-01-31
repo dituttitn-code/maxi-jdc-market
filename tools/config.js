@@ -1,5 +1,5 @@
 const APP_CONFIG = {
-  googleScriptUrl: "https://script.google.com/macros/s/AKfycbxYL6UI7ONUOBzeBFHwX_OsJ8gjFFYQEFc49oD9fBfVhPyZ-th-dA7NDhRAYIbwU7bF/exec",
+  googleScriptUrl: "https://script.google.com/macros/s/AKfycbziOpsrvIpaFP9CP0tA38CZfwRzHTVTbdzXHVxcK9AxY60GNSltkvN6BedwrbMu4kx6/exec",
   minOrder: 15,
   freeShipping: 100,
   shippingFee: 3,
