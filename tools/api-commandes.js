@@ -3,44 +3,60 @@
  *********************************/
 
 // ✅ URL WebApp Apps Script (depuis config.js)
-const API_URL = window.APP_CONFIG?.googleScriptUrl || "";
+const API_URL = window.APP_CONFIG?.googleScriptUrl || window.APP_CONFIG?.getScriptUrl?.() || "";
 
-// ✅ Token (optionnel côté serveur si TOKEN_OPTIONNEL=true)
+// ✅ Token (doit être EXACTEMENT le même que dans Code.gs si tu l'utilises)
 const API_TOKEN = "CHANGE-ME-SECRET-123456";
 
 /*********************************
  * ANTI DOUBLE-CLICK (client)
+ * - empêche 2 envois simultanés
  *********************************/
 let sendingOrder = false;
 
 /*********************************
- * UTIL: générer/charger une session_id
+ * SESSION ID (obligatoire pour Code.gs v4)
  *********************************/
+const SESSION_KEY = "maxi_jdc_session";
+const VALIDATED_KEY = "maxi_jdc_validated";
+
+function getStoredSessionId() {
+  return localStorage.getItem(SESSION_KEY) || "";
+}
+
+function storeSessionId(sessionId) {
+  if (!sessionId) return;
+  localStorage.setItem(SESSION_KEY, sessionId);
+  localStorage.setItem(VALIDATED_KEY, "false");
+}
+
+/**
+ * Crée une session côté serveur si possible, sinon fallback local.
+ * Le serveur répond: {success:true, session_id:"..."}
+ */
 async function ensureSessionId(telephone = "") {
-  // 1) Session déjà existante ?
-  let sid = localStorage.getItem("maxi_jdc_session");
+  let sid = getStoredSessionId();
   if (sid) return sid;
 
-  // 2) Sinon créer via Apps Script (action=generatesession)
+  // Essayer génération serveur
   try {
-    const url = `${API_URL}?action=generatesession&telephone=${encodeURIComponent(telephone || "")}`;
-    const res = await fetch(url, { method: "GET" });
-    const json = await res.json();
-
-    if (json?.success && json?.session_id) {
-      sid = json.session_id;
-      localStorage.setItem("maxi_jdc_session", sid);
-      localStorage.setItem("maxi_jdc_validated", "false");
-      return sid;
+    if (API_URL) {
+      const url = `${API_URL}?action=generatesession&telephone=${encodeURIComponent(String(telephone || "").trim())}`;
+      const res = await fetch(url, { method: "GET" });
+      const json = await res.json();
+      if (json?.success && json?.session_id) {
+        sid = String(json.session_id).trim();
+        storeSessionId(sid);
+        return sid;
+      }
     }
   } catch (e) {
-    // ignore
+    // ignore et fallback
   }
 
-  // 3) Fallback local (si réseau down)
-  sid = "local-" + Date.now() + "-" + Math.random().toString(36).slice(2, 10);
-  localStorage.setItem("maxi_jdc_session", sid);
-  localStorage.setItem("maxi_jdc_validated", "false");
+  // Fallback local (si offline)
+  sid = `local-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  storeSessionId(sid);
   return sid;
 }
 
@@ -64,16 +80,19 @@ export async function envoyerCommande(dataCommande) {
 
   try {
     if (!API_URL) {
-      return { success: false, message: "URL API manquante (config.js)." };
+      return { success: false, message: "❌ API_URL manquante. Vérifie config.js (googleScriptUrl)." };
     }
 
-    // normaliser articles en array d'objets
+    // ---------------------------
+    // 1) Normaliser les articles
+    // ---------------------------
     let articlesFormat = [];
 
     if (Array.isArray(dataCommande.articles)) {
       articlesFormat = dataCommande.articles.map((item) => {
-        const q = parseInt(item.quantite || item.qty || item.quantity || 1, 10) || 1;
+        const q = parseInt(item.quantite || item.qty || item.quantity || item.qte || 1, 10) || 1;
         const pu = parseFloat(item.prix_unitaire || item.prix || item.price || 0) || 0;
+
         return {
           produit: item.produit || item.nom || item.name || "",
           quantite: q,
@@ -91,40 +110,64 @@ export async function envoyerCommande(dataCommande) {
       }
     }
 
-    // total
+    // ---------------------------
+    // 2) Calcul/normalisation total
+    // ---------------------------
     let total = parseFloat(dataCommande.total || 0);
     if ((!total || total === 0) && articlesFormat.length) {
       total = articlesFormat.reduce((sum, it) => sum + (Number(it.prix_total) || 0), 0);
     }
 
-    // ✅ session_id obligatoire (Code.gs v4)
-    const telephone = dataCommande.telephone || dataCommande.Telephone || "";
+    // Si total vide mais articles texte brut, on envoie quand même (ton serveur fera extractTotalFromText)
+    const totalStr = total ? total.toFixed(2) : (String(dataCommande.total || "").trim() || "");
+
+    // ---------------------------
+    // 3) Session obligatoire (Code.gs v4)
+    // ---------------------------
+    const telephone = String(
+      dataCommande.telephone || dataCommande.Telephone || dataCommande.tel || dataCommande.phone || ""
+    ).trim();
+
     const session_id =
-      dataCommande.session_id ||
-      localStorage.getItem("maxi_jdc_session") ||
+      String(dataCommande.session_id || "").trim() ||
+      getStoredSessionId() ||
       (await ensureSessionId(telephone));
 
     if (!session_id) {
-      return { success: false, requires_session: true, message: "Session manquante. Rechargez la page." };
+      return {
+        success: false,
+        requires_session: true,
+        message: "❌ Session manquante. Rechargez la page."
+      };
     }
 
-    // IMPORTANT: method=saveOrder + session_id + token
+    // ---------------------------
+    // 4) Payload compatible Code.gs
+    // ---------------------------
     const payload = {
       method: "saveOrder",
       token: API_TOKEN,
+
+      // ✅ obligatoire
       session_id: session_id,
 
-      nom_client: dataCommande.nom_client || dataCommande.nom || dataCommande.Nom_Client || "",
+      nom_client: String(
+        dataCommande.nom_client || dataCommande.nom || dataCommande.client || dataCommande.Nom_Client || "Client"
+      ).trim(),
+
       telephone: telephone,
-      adresse: dataCommande.adresse || dataCommande.Adresse || "",
+      adresse: String(dataCommande.adresse || dataCommande.Adresse || dataCommande.address || "").trim(),
 
       articles: articlesFormat.length
         ? JSON.stringify(articlesFormat)
-        : (dataCommande.articles || ""),
+        : (String(dataCommande.articles || "").trim()),
 
-      total: total ? total.toFixed(2) : ""
+      total: totalStr
     };
 
+    // ---------------------------
+    // 5) POST form-urlencoded (comme ton code actuel)
+    // ---------------------------
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -135,14 +178,19 @@ export async function envoyerCommande(dataCommande) {
 
     const result = await response.json();
 
-    // ✅ si succès, marquer validated pour bloquer double clic (optionnel côté UI)
+    // ✅ Si serveur dit session validée, on mémorise
     if (result?.success) {
-      localStorage.setItem("maxi_jdc_validated", "true");
+      localStorage.setItem(VALIDATED_KEY, "true");
     }
 
-    // ✅ Si serveur détecte doublon
+    // ✅ Compat : panier ignoré / total 0
+    if (result && result.ignored) return result;
+
+    // ✅ Compat : doublon détecté
     if (result && (result.duplicate || result.duplicated || result.is_duplicate)) {
-      if (!result.message) result.message = "⛔ Doublon détecté — commande ignorée.";
+      if (!result.message) {
+        result.message = "⛔ Doublon détecté — commande ignorée.";
+      }
       return result;
     }
 
@@ -218,7 +266,7 @@ export async function mettreAJourStatut(commandeId, nouveauStatut) {
 }
 
 /*********************************
- * TOP PRODUITS
+ * TOP PRODUITS (compat: topProducts OU top)
  *********************************/
 export async function recupererTopProduits() {
   const response = await fetch(`${API_URL}?method=getTopProducts&t=${Date.now()}`);
@@ -238,8 +286,13 @@ export async function testerConnexionAPI() {
   return { connecte: !!data.success, message: data.message, version: data.version, url: API_URL };
 }
 
+/* =========================================================
+ * =====================  STOCK API  =======================
+ * Ajouté sans toucher COMMANDES
+ * ========================================================= */
+
 /*********************************
- * STOCK API (inchangé)
+ * LIRE STOCK (ADMIN)
  *********************************/
 export async function getStock() {
   const response = await fetch(`${API_URL}?method=getStock&t=${Date.now()}`);
@@ -249,6 +302,9 @@ export async function getStock() {
   return data.items || [];
 }
 
+/*********************************
+ * METTRE A JOUR UN STOCK
+ *********************************/
 export async function updateStock(code, stock) {
   const payload = {
     method: "updateStock",
@@ -266,9 +322,12 @@ export async function updateStock(code, stock) {
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
   if (!data.success) throw new Error(data.error || data.message || "Erreur updateStock");
-  return data;
+  return data; // contient low_stock, threshold, message
 }
 
+/*********************************
+ * BATCH UPDATE STOCK
+ *********************************/
 export async function batchUpdateStock(items = []) {
   const response = await fetch(`${API_URL}?method=batchUpdateStock&token=${encodeURIComponent(API_TOKEN)}`, {
     method: "POST",
@@ -282,19 +341,22 @@ export async function batchUpdateStock(items = []) {
   return data;
 }
 
+/*********************************
+ * LISTER TOUS LES PRODUITS STOCK FAIBLE
+ *********************************/
 export async function getLowStock() {
   const response = await fetch(`${API_URL}?method=getLowStock&t=${Date.now()}`);
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur getLowStock");
-  return data;
+  return data; // {threshold,count,items[]}
 }
 
 /*********************************
  * VÉRIFICATION CONFIG.JS
  *********************************/
 if (!window.APP_CONFIG) {
-  console.warn('⚠️ config.js non chargé. Assurez-vous que <script src="config.js"></script> est présent.');
+  console.warn("⚠️ config.js non chargé. Assurez-vous que <script src='config.js'></script> est présent.");
 } else {
-  console.log('✅ config.js chargé:', window.APP_CONFIG.googleScriptUrl ? 'URL configurée' : 'URL manquante');
+  console.log("✅ config.js chargé:", window.APP_CONFIG.googleScriptUrl ? "URL configurée" : "URL manquante");
 }
