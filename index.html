@@ -3970,10 +3970,15 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <script>
-    // ===================== CONFIGURATION =====================
+  // ===================== CONFIGURATION =====================
 
-// URL Google Apps Script (centralisée dans tools/config.js)
-const API_URL = window.APP_CONFIG.googleScriptUrl;
+// URL Google Apps Script (chargée depuis tools/config.js)
+// ⚠️ Version sécurisée pour éviter le crash si config.js n’est pas encore chargé
+const API_URL = window.APP_CONFIG?.googleScriptUrl;
+
+if (!API_URL) {
+  console.error("❌ APP_CONFIG introuvable : vérifie <script src='tools/config.js'>");
+}
 
 // URL Google Sheets (CSV) – corrigée pour les problèmes de colonnes
 const GOOGLE_SHEETS_URL =
@@ -4020,7 +4025,8 @@ const CONFIG = {
   apiUrl: API_URL
 };
 
-    // ===================== TRADUCTIONS =====================
+// ===================== TRADUCTIONS =====================
+
     const TRANSLATIONS = {
       fr: {
         appTitle: "MAXI JDC MARKET",
@@ -6590,6 +6596,7 @@ const CONFIG = {
   </script>
 </body>
 </html>
+
 
 
 
