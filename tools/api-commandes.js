@@ -2,18 +2,47 @@
  * CONFIGURATION API - MAXI JDC MARKET
  *********************************/
 
-// ✅ URL WebApp Apps Script (⚠️ sans espace au début)
-const API_URL = window.APP_CONFIG.googleScriptUrl;
+// ✅ URL WebApp Apps Script (depuis config.js)
+const API_URL = window.APP_CONFIG?.googleScriptUrl || "";
 
-// ✅ Token (doit être EXACTEMENT le même que dans Code.gs)
-// (Si côté serveur TOKEN_OPTIONNEL=true, il ne bloque pas même si token faux/vide)
+// ✅ Token (optionnel côté serveur si TOKEN_OPTIONNEL=true)
 const API_TOKEN = "CHANGE-ME-SECRET-123456";
 
 /*********************************
  * ANTI DOUBLE-CLICK (client)
- * - empêche 2 envois simultanés
  *********************************/
 let sendingOrder = false;
+
+/*********************************
+ * UTIL: générer/charger une session_id
+ *********************************/
+async function ensureSessionId(telephone = "") {
+  // 1) Session déjà existante ?
+  let sid = localStorage.getItem("maxi_jdc_session");
+  if (sid) return sid;
+
+  // 2) Sinon créer via Apps Script (action=generatesession)
+  try {
+    const url = `${API_URL}?action=generatesession&telephone=${encodeURIComponent(telephone || "")}`;
+    const res = await fetch(url, { method: "GET" });
+    const json = await res.json();
+
+    if (json?.success && json?.session_id) {
+      sid = json.session_id;
+      localStorage.setItem("maxi_jdc_session", sid);
+      localStorage.setItem("maxi_jdc_validated", "false");
+      return sid;
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // 3) Fallback local (si réseau down)
+  sid = "local-" + Date.now() + "-" + Math.random().toString(36).slice(2, 10);
+  localStorage.setItem("maxi_jdc_session", sid);
+  localStorage.setItem("maxi_jdc_validated", "false");
+  return sid;
+}
 
 /*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
@@ -34,6 +63,10 @@ export async function envoyerCommande(dataCommande) {
   sendingOrder = true;
 
   try {
+    if (!API_URL) {
+      return { success: false, message: "URL API manquante (config.js)." };
+    }
+
     // normaliser articles en array d'objets
     let articlesFormat = [];
 
@@ -64,16 +97,31 @@ export async function envoyerCommande(dataCommande) {
       total = articlesFormat.reduce((sum, it) => sum + (Number(it.prix_total) || 0), 0);
     }
 
-    // IMPORTANT: method=saveOrder + token
+    // ✅ session_id obligatoire (Code.gs v4)
+    const telephone = dataCommande.telephone || dataCommande.Telephone || "";
+    const session_id =
+      dataCommande.session_id ||
+      localStorage.getItem("maxi_jdc_session") ||
+      (await ensureSessionId(telephone));
+
+    if (!session_id) {
+      return { success: false, requires_session: true, message: "Session manquante. Rechargez la page." };
+    }
+
+    // IMPORTANT: method=saveOrder + session_id + token
     const payload = {
       method: "saveOrder",
-      token: API_TOKEN, // (optionnel si TOKEN_OPTIONNEL=true côté serveur)
+      token: API_TOKEN,
+      session_id: session_id,
+
       nom_client: dataCommande.nom_client || dataCommande.nom || dataCommande.Nom_Client || "",
-      telephone: dataCommande.telephone || dataCommande.Telephone || "",
+      telephone: telephone,
       adresse: dataCommande.adresse || dataCommande.Adresse || "",
+
       articles: articlesFormat.length
         ? JSON.stringify(articlesFormat)
         : (dataCommande.articles || ""),
+
       total: total ? total.toFixed(2) : ""
     };
 
@@ -87,14 +135,14 @@ export async function envoyerCommande(dataCommande) {
 
     const result = await response.json();
 
-    // ✅ Si serveur bloque panier vide / total 0 -> message clair
-    if (result && result.ignored) return result;
+    // ✅ si succès, marquer validated pour bloquer double clic (optionnel côté UI)
+    if (result?.success) {
+      localStorage.setItem("maxi_jdc_validated", "true");
+    }
 
-    // ✅ Si serveur détecte doublon (commande_id / signature 90s)
-    if (result && (result.duplicate || result.duplicated)) {
-      if (!result.message) {
-        result.message = "⛔ Doublon détecté — commande ignorée.";
-      }
+    // ✅ Si serveur détecte doublon
+    if (result && (result.duplicate || result.duplicated || result.is_duplicate)) {
+      if (!result.message) result.message = "⛔ Doublon détecté — commande ignorée.";
       return result;
     }
 
@@ -142,7 +190,6 @@ export async function suivreCommande(commandeId) {
 
 /*********************************
  * HISTORIQUE PAR TELEPHONE
- * (inchangé : si ton code.gs supporte telephone)
  *********************************/
 export async function recupererHistorique(telephone) {
   const response = await fetch(
@@ -171,7 +218,7 @@ export async function mettreAJourStatut(commandeId, nouveauStatut) {
 }
 
 /*********************************
- * TOP PRODUITS (compat: topProducts OU top)
+ * TOP PRODUITS
  *********************************/
 export async function recupererTopProduits() {
   const response = await fetch(`${API_URL}?method=getTopProducts&t=${Date.now()}`);
@@ -191,14 +238,8 @@ export async function testerConnexionAPI() {
   return { connecte: !!data.success, message: data.message, version: data.version, url: API_URL };
 }
 
-/* =========================================================
- * =====================  STOCK API  =======================
- * Ajouté sans toucher COMMANDES
- * - Alerte PRO via low_stock renvoyé par Code.gs
- * ========================================================= */
-
 /*********************************
- * LIRE STOCK (ADMIN)
+ * STOCK API (inchangé)
  *********************************/
 export async function getStock() {
   const response = await fetch(`${API_URL}?method=getStock&t=${Date.now()}`);
@@ -208,10 +249,6 @@ export async function getStock() {
   return data.items || [];
 }
 
-/*********************************
- * METTRE A JOUR UN STOCK
- * → renvoie low_stock=true si stock <= seuil (ex: 3)
- *********************************/
 export async function updateStock(code, stock) {
   const payload = {
     method: "updateStock",
@@ -229,13 +266,9 @@ export async function updateStock(code, stock) {
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
   if (!data.success) throw new Error(data.error || data.message || "Erreur updateStock");
-  return data; // contient low_stock, threshold, message
+  return data;
 }
 
-/*********************************
- * BATCH UPDATE STOCK
- * items = [{code:"1017", stock:5}, ...]
- *********************************/
 export async function batchUpdateStock(items = []) {
   const response = await fetch(`${API_URL}?method=batchUpdateStock&token=${encodeURIComponent(API_TOKEN)}`, {
     method: "POST",
@@ -246,25 +279,22 @@ export async function batchUpdateStock(items = []) {
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur batchUpdateStock");
-  return data; // contient low_stock_count + low_stock_items
+  return data;
 }
 
-/*********************************
- * LISTER TOUS LES PRODUITS STOCK FAIBLE
- *********************************/
 export async function getLowStock() {
   const response = await fetch(`${API_URL}?method=getLowStock&t=${Date.now()}`);
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur getLowStock");
-  return data; // {threshold,count,items[]}
+  return data;
 }
 
 /*********************************
  * VÉRIFICATION CONFIG.JS
  *********************************/
 if (!window.APP_CONFIG) {
-  console.warn('⚠️ config.js non chargé. Assurez-vous que <script src="config.js"></script> est présent dans vos fichiers HTML.');
+  console.warn('⚠️ config.js non chargé. Assurez-vous que <script src="config.js"></script> est présent.');
 } else {
   console.log('✅ config.js chargé:', window.APP_CONFIG.googleScriptUrl ? 'URL configurée' : 'URL manquante');
 }
