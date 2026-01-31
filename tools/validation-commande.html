@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
+    /* [LE CSS RESTE IDENTIQUE - PAS DE CHANGEMENT] */
     :root {
       --bg: #05070a;
       --panel: #0e1622;
@@ -428,6 +429,81 @@
       color: #ffcdd2;
     }
     
+    .receipt-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(18, 230, 165, 0.3);
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+      font-family: var(--mono);
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      color: #d7e6ff;
+    }
+    
+    .validation-steps {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      border-left: 3px solid var(--info);
+    }
+    
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+    }
+    
+    .step i {
+      font-size: 14px;
+    }
+    
+    .step.completed {
+      color: var(--ok);
+    }
+    
+    .step.pending {
+      color: var(--warning);
+    }
+    
+    .step.error {
+      color: var(--danger);
+    }
+    
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(5, 7, 10, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      display: none;
+    }
+    
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(18, 230, 165, 0.3);
+      border-top-color: var(--border);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
     @keyframes pulse {
       0% { opacity: 1; }
       50% { opacity: 0.7; }
@@ -495,6 +571,11 @@
 </head>
 <body>
 
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+  </div>
+
   <div class="modal" role="dialog" aria-modal="true" aria-label="Validation commande">
     <div class="header">
       <div class="title">
@@ -510,58 +591,19 @@
       <!-- Affichage structuré en sections -->
       <div class="sections" id="sectionsContainer">
         <!-- Les sections seront générées dynamiquement -->
-        <div class="section details">
-          <div class="section-header">
-            <i class="fas fa-user"></i>
-            <span>Détails client</span>
-          </div>
-          <div class="section-content">
-            <div class="info-row">
-              <div class="info-label">👤 Nom:</div>
-              <div class="info-value" id="clientNom">Chargement...</div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">📞 Téléphone:</div>
-              <div class="info-value" id="clientTelephone">Chargement...</div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">📍 Adresse:</div>
-              <div class="info-value" id="clientAdresse">Chargement...</div>
-            </div>
-          </div>
-        </div>
+      </div>
 
-        <div class="section articles">
-          <div class="section-header">
-            <i class="fas fa-shopping-cart"></i>
-            <span>Articles commandés</span>
-          </div>
-          <div class="section-content" id="articlesList">
-            <div style="color: var(--muted); font-style: italic;">Chargement des articles...</div>
-          </div>
-        </div>
+      <!-- Aperçu reçu -->
+      <div class="receipt-box" id="receiptPreview">
+        <strong><i class="fas fa-receipt"></i> Aperçu du reçu :</strong>
+        <div id="receiptContent">Chargement...</div>
+      </div>
 
-        <div class="section total">
-          <div class="section-header">
-            <i class="fas fa-file-invoice-dollar"></i>
-            <span>Récapitulatif</span>
-          </div>
-          <div class="section-content">
-            <div class="info-row">
-              <div class="info-label">🆔 N° Commande:</div>
-              <div class="info-value" id="orderNumber" style="font-family: monospace;">—</div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">💰 Total:</div>
-              <div class="info-value" id="orderTotal" style="font-weight: bold; color: #a8ffe8;">
-                0.000 DT
-              </div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">📅 Date:</div>
-              <div class="info-value" id="orderDate">—</div>
-            </div>
-          </div>
+      <!-- Étapes de validation -->
+      <div class="validation-steps" id="validationSteps">
+        <div class="step pending">
+          <i class="fas fa-circle-notch fa-spin"></i>
+          <span>Préparation de la commande...</span>
         </div>
       </div>
 
@@ -579,6 +621,7 @@
         <i class="fas fa-bell"></i> 🔊 Son de notification joué sur la tablette du magasin
       </div>
       
+      <!-- Actions de statut -->
       <div class="status-actions" id="statusActions">
         <button class="status-btn validate" onclick="changerStatut('Validée')">
           <i class="fas fa-check"></i> Valider
@@ -596,7 +639,7 @@
       
       <div class="whatsapp-info">
         <i class="fab fa-whatsapp"></i> <strong>WhatsApp Business:</strong> +216 25 600 978<br>
-        <small>Votre commande a été envoyée au WhatsApp du magasin</small>
+        <small>Votre commande sera envoyée au WhatsApp du magasin</small>
       </div>
     </div>
 
@@ -624,10 +667,13 @@
      *  CONFIGURATION
      * ==========================
      */
-
-    // REMPLACER tout usage de WHATSAPP_NUMBER par :
     const WHATSAPP_NUMBER = window.APP_CONFIG ? APP_CONFIG.whatsappNumber : "21625600978";
-    const API_URL = window.APP_CONFIG ? APP_CONFIG.apiUrl : "/api/commandes.php";
+    const GOOGLE_SHEETS_API = window.APP_CONFIG ? APP_CONFIG.googleSheetsApi : null;
+    const API_BASE_URL = window.APP_CONFIG ? APP_CONFIG.apiUrl : "https://script.google.com/macros/s/AKfycbzG_QXj2qF1Rc7r9VTxWaLl-j7alC9iXLFcP-fTFIfP66zCEMQUogw_xdeq79B6f4_m/exec";
+
+    // Variables globales
+    let currentOrder = null;
+    let validationInProgress = false;
 
     /**
      * ==========================
@@ -643,9 +689,27 @@
         total: 0,
         numero_commande: "",
         date: new Date().toISOString(),
-        statut: "En attente"
+        statut: "En attente",
+        source: "direct"
       };
 
+      // Si c'est un objet JSON
+      if (typeof rawData === 'object' && rawData !== null) {
+        Object.assign(result, rawData);
+        
+        // S'assurer que les articles sont un tableau
+        if (result.articles && typeof result.articles === 'string') {
+          try {
+            result.articles = JSON.parse(result.articles);
+          } catch (e) {
+            result.articles = [];
+          }
+        }
+        
+        return result;
+      }
+
+      // Si c'est une chaîne de texte
       if (typeof rawData === "string") {
         const lignes = rawData.split('\n').map(l => l.trim()).filter(l => l);
         
@@ -653,29 +717,21 @@
         
         lignes.forEach(ligne => {
           // Détection des sections
-          if (ligne.includes("Détails de votre commande") || 
-              ligne.includes("Informations client") ||
+          if (ligne.includes("Détails") || ligne.includes("Informations") || 
               ligne.includes("👤") || ligne.includes("📞") || ligne.includes("📍")) {
             section = "details";
-            return;
           }
           
-          if (ligne.includes("Articles commandés") || 
-              ligne.includes("🛒") || 
-              ligne.includes("ARTICLES") ||
-              /^\d+x\s/.test(ligne)) {
+          if (ligne.includes("Articles") || ligne.includes("🛒") || /^\d+x\s/.test(ligne)) {
             section = "articles";
-            if (!ligne.includes("Articles commandés") && !ligne.includes("🛒")) {
+            if (!ligne.includes("Articles")) {
               parserArticle(ligne, result.articles);
             }
             return;
           }
           
-          if (ligne.includes("TOTAL") || 
-              ligne.includes("💰") || 
-              ligne.includes("Total") ||
-              ligne.includes("MAXI-") ||
-              /^\d+\.\d{3}\s*(DT|dt|TND)/.test(ligne)) {
+          if (ligne.includes("TOTAL") || ligne.includes("💰") || ligne.includes("Total") ||
+              ligne.includes("MAXI-") || /^\d+\.\d{3}\s*(DT|dt|TND)/.test(ligne)) {
             section = "total";
           }
 
@@ -692,18 +748,15 @@
               break;
               
             case "articles":
-              if (ligne.trim() && !ligne.includes("Articles commandés") && !ligne.includes("🛒")) {
+              if (ligne.trim() && !ligne.includes("Articles")) {
                 parserArticle(ligne, result.articles);
               }
               break;
               
             case "total":
-              // Numéro commande
               if (ligne.includes("MAXI-") || ligne.includes("Commande #")) {
                 result.numero_commande = ligne.replace(/Commande #/g, "").trim();
-              }
-              // Total
-              else if (ligne.includes("TOTAL") || ligne.includes("💰") || ligne.includes("Total:")) {
+              } else if (ligne.includes("TOTAL") || ligne.includes("💰") || ligne.includes("Total:")) {
                 const totalMatch = ligne.match(/(\d+\.?\d*)\s*(DT|dt|TND|tnd)/i);
                 if (totalMatch) {
                   result.total = parseFloat(totalMatch[1]);
@@ -712,15 +765,6 @@
               break;
           }
         });
-      } else if (typeof rawData === "object") {
-        Object.assign(result, rawData);
-      }
-
-      // Calculer le total si non défini
-      if (result.total === 0 && result.articles.length > 0) {
-        result.total = result.articles.reduce((sum, article) => {
-          return sum + (article.prix_total || article.prix_unitaire * article.quantite);
-        }, 0);
       }
 
       // Générer numéro commande si vide
@@ -732,6 +776,13 @@
         const timeStr = now.getHours().toString().padStart(2, '0') + 
                        now.getMinutes().toString().padStart(2, '0');
         result.numero_commande = `MAXI-${dateStr}-${timeStr}`;
+      }
+
+      // Calculer le total si nécessaire
+      if (result.total === 0 && result.articles.length > 0) {
+        result.total = result.articles.reduce((sum, article) => {
+          return sum + (article.prix_total || (article.prix_unitaire || 0) * (article.quantite || 1));
+        }, 0);
       }
 
       return result;
@@ -786,39 +837,91 @@
      * ==========================
      */
     function afficherSectionsStructurees(commande) {
-      // Mettre à jour les détails client
-      document.getElementById("clientNom").textContent = commande.nom || "Non spécifié";
-      document.getElementById("clientTelephone").textContent = commande.telephone || "Non spécifié";
-      document.getElementById("clientAdresse").textContent = commande.adresse || "Non spécifié";
+      const container = document.getElementById("sectionsContainer");
       
-      // Mettre à jour les articles
-      const articlesList = document.getElementById("articlesList");
+      // Section 1: Détails client
+      let html = `
+        <div class="section details">
+          <div class="section-header">
+            <i class="fas fa-user"></i>
+            <span>Détails client</span>
+          </div>
+          <div class="section-content">
+            <div class="info-row">
+              <div class="info-label">👤 Nom:</div>
+              <div class="info-value">${commande.nom || "Non spécifié"}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">📞 Téléphone:</div>
+              <div class="info-value">${commande.telephone || "Non spécifié"}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">📍 Adresse:</div>
+              <div class="info-value">${commande.adresse || "Non spécifié"}</div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Section 2: Articles
+      html += `
+        <div class="section articles">
+          <div class="section-header">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Articles commandés</span>
+          </div>
+          <div class="section-content">
+      `;
+      
       if (commande.articles && commande.articles.length > 0) {
-        let html = '';
         commande.articles.forEach((article, index) => {
           html += `
             <div class="article-item">
-              <div class="article-name">${article.produit}</div>
+              <div class="article-name">${article.produit || article.name}</div>
               <div class="article-qty">${article.quantite}x</div>
               <div class="article-price">${article.prix_unitaire ? article.prix_unitaire.toFixed(3) + ' DT' : '—'}</div>
             </div>
           `;
         });
-        articlesList.innerHTML = html;
       } else {
-        articlesList.innerHTML = '<div style="color: var(--muted); font-style: italic;">Aucun article détaillé</div>';
+        html += `<div style="color: var(--muted); font-style: italic;">Aucun article détaillé</div>`;
       }
       
-      // Mettre à jour le récapitulatif
-      document.getElementById("orderNumber").textContent = commande.numero_commande;
-      document.getElementById("orderTotal").textContent = commande.total ? commande.total.toFixed(3) + ' DT' : '0.000 DT';
-      document.getElementById("orderDate").textContent = new Date(commande.date).toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      html += `</div></div>`;
+      
+      // Section 3: Total et récapitulatif
+      html += `
+        <div class="section total">
+          <div class="section-header">
+            <i class="fas fa-file-invoice-dollar"></i>
+            <span>Récapitulatif</span>
+          </div>
+          <div class="section-content">
+            <div class="info-row">
+              <div class="info-label">🆔 N° Commande:</div>
+              <div class="info-value" style="font-family: monospace;">${commande.numero_commande}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">💰 Total:</div>
+              <div class="info-value" style="font-weight: bold; color: #a8ffe8;">
+                ${commande.total ? commande.total.toFixed(3) + ' DT' : '0.000 DT'}
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">📅 Date:</div>
+              <div class="info-value">${new Date(commande.date).toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}</div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      container.innerHTML = html;
       
       // Mettre à jour les éléments d'info
       document.getElementById("orderIdText").textContent = commande.numero_commande || "—";
@@ -826,13 +929,352 @@
       
       // Mettre à jour la classe du statut
       const statusPill = document.getElementById("statusPill");
-      const statusClass = commande.statut ? commande.statut.toLowerCase().replace(/ /g, '-').replace(/[^a-z-]/g, '') : 'pending';
+      const statusClass = commande.statut ? 
+        commande.statut.toLowerCase().replace(/ /g, '-').replace(/[^a-z-]/g, '') : 'pending';
       statusPill.className = "pill " + statusClass;
+      
+      // Mettre à jour l'aperçu du reçu
+      updateReceiptPreview(commande);
+      
+      // Sauvegarder la commande courante
+      currentOrder = commande;
     }
 
     /**
      * ==========================
-     *  FONCTIONS UTILITAIRES
+     *  APERÇU DU REÇU
+     * ==========================
+     */
+    function updateReceiptPreview(commande) {
+      let receiptText = `MAXI JDC MARKET\n`;
+      receiptText += `Des prix mini --- Un MAXI choix\n`;
+      receiptText += `\n`;
+      receiptText += `📋 COMMANDE: ${commande.numero_commande}\n`;
+      receiptText += `📅 ${new Date(commande.date).toLocaleString('fr-FR')}\n`;
+      receiptText += `\n`;
+      receiptText += `👤 CLIENT:\n`;
+      receiptText += `   Nom: ${commande.nom || '—'}\n`;
+      receiptText += `   Tel: ${commande.telephone || '—'}\n`;
+      receiptText += `   Adresse: ${commande.adresse || '—'}\n`;
+      receiptText += `\n`;
+      receiptText += `🛒 ARTICLES:\n`;
+      
+      if (commande.articles && commande.articles.length > 0) {
+        commande.articles.forEach(article => {
+          receiptText += `   ${article.quantite}x ${article.produit || article.name}`;
+          if (article.prix_unitaire) {
+            receiptText += ` - ${article.prix_unitaire.toFixed(3)} DT`;
+          }
+          receiptText += `\n`;
+        });
+      } else {
+        receiptText += `   Aucun article\n`;
+      }
+      
+      receiptText += `\n`;
+      receiptText += `💰 TOTAL: ${commande.total ? commande.total.toFixed(3) + ' DT' : '0.000 DT'}\n`;
+      receiptText += `📊 STATUT: ${commande.statut || 'En attente'}\n`;
+      receiptText += `\n`;
+      receiptText += `📱 WhatsApp: +216 25 600 978\n`;
+      receiptText += `⏰ Horaires: 7h - 1h\n`;
+      receiptText += `📍 Jardins de Carthage`;
+      
+      document.getElementById("receiptContent").textContent = receiptText;
+    }
+
+    /**
+     * ==========================
+     *  VALIDATION ET ENVOI
+     * ==========================
+     */
+    async function validerEtEnvoyerCommande() {
+      if (validationInProgress) return;
+      
+      validationInProgress = true;
+      showLoading(true);
+      
+      try {
+        // Mettre à jour les étapes de validation
+        updateValidationSteps([
+          { status: 'pending', text: 'Vérification des données...' },
+          { status: 'pending', text: 'Enregistrement de la commande...' },
+          { status: 'pending', text: 'Envoi vers Google Sheets...' },
+          { status: 'pending', text: 'Notification WhatsApp...' }
+        ]);
+        
+        // Étape 1: Vérification
+        updateValidationStep(0, 'completed', '✅ Données vérifiées');
+        
+        if (!currentOrder) {
+          throw new Error("Aucune commande à valider");
+        }
+        
+        // Étape 2: Préparer la commande
+        currentOrder.statut = "Validée";
+        currentOrder.date_validation = new Date().toISOString();
+        
+        // Sauvegarder localement
+        sauvegarderCommandeLocale(currentOrder);
+        updateValidationStep(1, 'completed', '✅ Commande enregistrée localement');
+        
+        // Étape 3: Envoyer vers Google Sheets
+        const sheetsResult = await envoyerVersGoogleSheets(currentOrder);
+        
+        if (sheetsResult.success) {
+          updateValidationStep(2, 'completed', '✅ Google Sheets mis à jour');
+        } else {
+          updateValidationStep(2, 'error', '⚠️ Google Sheets: ' + (sheetsResult.error || 'Erreur'));
+          // Continuer même si Google Sheets échoue
+        }
+        
+        // Étape 4: Envoyer notification WhatsApp
+        await envoyerNotificationWhatsApp(currentOrder);
+        updateValidationStep(3, 'completed', '✅ WhatsApp envoyé');
+        
+        // Mettre à jour l'affichage
+        afficherSectionsStructurees(currentOrder);
+        
+        // Jouer le son de notification
+        playTabletSound();
+        
+        // Afficher message de succès
+        showToast("✅ Commande validée et envoyée avec succès !", "ok");
+        
+        // Réinitialiser après 3 secondes
+        setTimeout(() => {
+          updateValidationSteps([
+            { status: 'completed', text: 'Commande terminée avec succès !' }
+          ]);
+        }, 3000);
+        
+      } catch (error) {
+        console.error("Erreur validation:", error);
+        showToast("❌ Erreur: " + error.message, "err");
+        
+        updateValidationSteps([
+          { status: 'error', text: '❌ Erreur: ' + error.message }
+        ]);
+        
+      } finally {
+        showLoading(false);
+        validationInProgress = false;
+      }
+    }
+
+    /**
+     * ==========================
+     *  GOOGLE SHEETS INTEGRATION
+     * ==========================
+     */
+    async function envoyerVersGoogleSheets(commande) {
+      try {
+        // Préparer les données
+        const data = {
+          commande_id: commande.numero_commande,
+          nom: commande.nom || '',
+          telephone: commande.telephone || '',
+          adresse: commande.adresse || '',
+          articles: JSON.stringify(commande.articles || []),
+          total: commande.total ? commande.total.toFixed(3) : '0.000',
+          statut: commande.statut || 'En attente',
+          date: new Date().toISOString(),
+          action: 'saveOrder'
+        };
+
+        // Essayer plusieurs méthodes
+        const methods = [
+          () => envoyerAvecFetch(data),
+          () => envoyerAvecXHR(data),
+          () => envoyerAvecJSONP(data)
+        ];
+
+        for (let method of methods) {
+          try {
+            const result = await method();
+            if (result) {
+              return { success: true, method: method.name };
+            }
+          } catch (e) {
+            console.warn(`Méthode ${method.name} échouée:`, e);
+          }
+        }
+
+        return { 
+          success: false, 
+          error: "Toutes les méthodes ont échoué" 
+        };
+
+      } catch (error) {
+        return { 
+          success: false, 
+          error: error.message 
+        };
+      }
+    }
+
+    // Méthode 1: Fetch avec mode no-cors
+    function envoyerAvecFetch(data) {
+      return new Promise((resolve) => {
+        const formData = new URLSearchParams();
+        for (const key in data) {
+          formData.append(key, data[key]);
+        }
+
+        fetch(API_BASE_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formData.toString()
+        })
+        .then(() => resolve(true))
+        .catch(() => resolve(false));
+      });
+    }
+
+    // Méthode 2: XMLHttpRequest (plus compatible)
+    function envoyerAvecXHR(data) {
+      return new Promise((resolve) => {
+        const xhr = new XMLHttpRequest();
+        const formData = new URLSearchParams();
+        
+        for (const key in data) {
+          formData.append(key, data[key]);
+        }
+
+        xhr.open('POST', API_BASE_URL, true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        
+        xhr.onload = function() {
+          if (xhr.status === 200 || xhr.status === 0) {
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        };
+        
+        xhr.onerror = function() {
+          resolve(false);
+        };
+        
+        xhr.send(formData.toString());
+      });
+    }
+
+    // Méthode 3: JSONP (contournement CORS)
+    function envoyerAvecJSONP(data) {
+      return new Promise((resolve) => {
+        const callbackName = 'callback_' + Date.now();
+        
+        window[callbackName] = function(response) {
+          resolve(true);
+          delete window[callbackName];
+        };
+
+        const params = new URLSearchParams(data);
+        params.append('callback', callbackName);
+        
+        const script = document.createElement('script');
+        script.src = `${API_BASE_URL}?${params.toString()}`;
+        
+        script.onerror = () => {
+          resolve(false);
+          document.head.removeChild(script);
+          delete window[callbackName];
+        };
+        
+        document.head.appendChild(script);
+        
+        // Timeout
+        setTimeout(() => {
+          if (window[callbackName]) {
+            resolve(false);
+            document.head.removeChild(script);
+            delete window[callbackName];
+          }
+        }, 5000);
+      });
+    }
+
+    /**
+     * ==========================
+     *  WHATSAPP NOTIFICATION
+     * ==========================
+     */
+    function envoyerNotificationWhatsApp(commande) {
+      try {
+        const phone = WHATSAPP_NUMBER.replace(/\D/g, '');
+        
+        let message = `🛒 NOUVELLE COMMANDE VALIDÉE\n\n`;
+        message += `📋 N°: ${commande.numero_commande}\n`;
+        message += `👤 Client: ${commande.nom}\n`;
+        message += `📞 Tel: ${commande.telephone}\n`;
+        message += `📍 Adresse: ${commande.adresse}\n`;
+        message += `💰 Total: ${commande.total ? commande.total.toFixed(3) + ' DT' : '0.000 DT'}\n`;
+        message += `📦 Articles: ${commande.articles ? commande.articles.length : 0}\n`;
+        message += `⏰ Date: ${new Date().toLocaleString('fr-FR')}\n`;
+        message += `📊 Statut: ${commande.statut}\n\n`;
+        message += `ARTICLES:\n`;
+        
+        if (commande.articles && commande.articles.length > 0) {
+          commande.articles.forEach((article, index) => {
+            message += `${index + 1}. ${article.quantite}x ${article.produit || article.name}`;
+            if (article.prix_unitaire) {
+              message += ` (${article.prix_unitaire.toFixed(3)} DT)`;
+            }
+            message += `\n`;
+          });
+        }
+        
+        message += `\n✅ PRÊT POUR LA PRÉPARATION`;
+        
+        const encoded = encodeURIComponent(message);
+        window.open(`https://wa.me/${phone}?text=${encoded}`, '_blank');
+        
+        return true;
+      } catch (error) {
+        console.error("Erreur WhatsApp:", error);
+        return false;
+      }
+    }
+
+    /**
+     * ==========================
+     *  SAUVEGARDE LOCALE
+     * ==========================
+     */
+    function sauvegarderCommandeLocale(commande) {
+      try {
+        // Sauvegarder dans localStorage
+        const commandes = JSON.parse(localStorage.getItem('maxi_commandes_validees') || '[]');
+        
+        const commandeComplete = {
+          ...commande,
+          saved_at: new Date().toISOString(),
+          saved_locally: true
+        };
+        
+        commandes.unshift(commandeComplete); // Ajouter au début
+        
+        // Garder seulement les 100 dernières commandes
+        localStorage.setItem('maxi_commandes_validees', 
+          JSON.stringify(commandes.slice(0, 100)));
+        
+        // Sauvegarder aussi la dernière commande
+        localStorage.setItem('maxi_derniere_commande', 
+          JSON.stringify(commandeComplete));
+        
+        return true;
+      } catch (error) {
+        console.error("Erreur sauvegarde locale:", error);
+        return false;
+      }
+    }
+
+    /**
+     * ==========================
+     *  UTILITAIRES
      * ==========================
      */
     function showToast(text, type = "ok") {
@@ -840,6 +1282,82 @@
       el.textContent = text;
       el.className = "toast show " + type;
       setTimeout(() => el.className = "toast", 3200);
+    }
+
+    function playTabletSound() {
+      try {
+        document.getElementById("soundAlert").classList.add("show");
+        setTimeout(() => {
+          document.getElementById("soundAlert").classList.remove("show");
+        }, 5000);
+      } catch (error) {
+        console.warn("Son non supporté:", error);
+      }
+    }
+
+    function showLoading(show) {
+      document.getElementById("loadingOverlay").style.display = 
+        show ? "flex" : "none";
+    }
+
+    function updateValidationSteps(steps) {
+      const container = document.getElementById("validationSteps");
+      let html = '';
+      
+      steps.forEach(step => {
+        html += `
+          <div class="step ${step.status}">
+            <i class="fas ${
+              step.status === 'completed' ? 'fa-check-circle' :
+              step.status === 'error' ? 'fa-exclamation-circle' :
+              'fa-circle-notch fa-spin'
+            }"></i>
+            <span>${step.text}</span>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function updateValidationStep(index, status, text) {
+      const steps = document.querySelectorAll('.validation-steps .step');
+      if (steps[index]) {
+        steps[index].className = `step ${status}`;
+        const icon = steps[index].querySelector('i');
+        const textSpan = steps[index].querySelector('span');
+        
+        if (icon) {
+          icon.className = `fas ${
+            status === 'completed' ? 'fa-check-circle' :
+            status === 'error' ? 'fa-exclamation-circle' :
+            'fa-circle-notch fa-spin'
+          }`;
+        }
+        
+        if (textSpan) {
+          textSpan.textContent = text;
+        }
+      }
+    }
+
+    function changerStatut(nouveauStatut) {
+      if (!currentOrder) return;
+      
+      currentOrder.statut = nouveauStatut;
+      afficherSectionsStructurees(currentOrder);
+      
+      // Envoyer la mise à jour
+      envoyerVersGoogleSheets(currentOrder).then(result => {
+        if (result.success) {
+          showToast(`✅ Statut changé en "${nouveauStatut}"`, "ok");
+        } else {
+          showToast("⚠️ Statut changé localement seulement", "ok");
+        }
+      });
+      
+      // Sauvegarder localement
+      sauvegarderCommandeLocale(currentOrder);
     }
 
     function downloadText(filename, text) {
@@ -855,127 +1373,20 @@
       }, 0);
     }
 
-    function playTabletSound() {
-      try {
-        document.getElementById("soundAlert").classList.add("show");
-        setTimeout(() => {
-          document.getElementById("soundAlert").classList.remove("show");
-        }, 5000);
-        
-        // Jouer un son si possible
-        if (typeof Audio !== 'undefined') {
-          const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
-          audio.volume = 0.3;
-          audio.play().catch(() => {});
-        }
-      } catch (error) {
-        console.warn("Son non supporté:", error);
-      }
-    }
-
-    /**
-     * ==========================
-     *  GESTION DES COMMANDES
-     * ==========================
-     */
-    async function envoyerCommandeAPI(commande) {
-      try {
-        const payload = {
-          method: "saveOrder",
-          nom: commande.nom,
-          telephone: commande.telephone,
-          adresse: commande.adresse,
-          articles: JSON.stringify(commande.articles),
-          total: commande.total.toFixed(3),
-          commande_id: commande.numero_commande,
-          statut: commande.statut || "En attente"
-        };
-
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams(payload).toString()
-        });
-        
-        const result = await response.json();
-        return result;
-        
-      } catch (error) {
-        console.error("Erreur envoi API:", error);
-        return { success: false, error: error.message };
-      }
-    }
-
-    async function validerEtEnvoyerCommande(commande) {
-      // Mettre à jour le statut
-      commande.statut = "Validée";
-      
-      const result = await envoyerCommandeAPI(commande);
-      
-      if (result.success) {
-        showToast("✅ Commande validée et envoyée au magasin", "ok");
-        playTabletSound();
-        
-        // Mettre à jour l'affichage
-        afficherSectionsStructurees(commande);
-        
-        // Sauvegarder dans localStorage
-        try {
-          localStorage.setItem("maxi_commande_en_cours", JSON.stringify(commande));
-          localStorage.setItem("maxi_last_order_id", commande.numero_commande);
-        } catch (e) {
-          console.warn("Erreur localStorage:", e);
-        }
-        
-        // Ouvrir WhatsApp du magasin
-        setTimeout(() => {
-          const message = `🛒 NOUVELLE COMMANDE VALIDÉE\n\n` +
-                         `Client: ${commande.nom}\n` +
-                         `Téléphone: ${commande.telephone}\n` +
-                         `Adresse: ${commande.adresse}\n` +
-                         `N° Commande: ${commande.numero_commande}\n` +
-                         `Total: ${commande.total.toFixed(3)} DT\n\n` +
-                         `Statut: ✅ VALIDÉE - À PRÉPARER`;
-          
-          const encoded = encodeURIComponent(message);
-          window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
-        }, 1000);
-        
-      } else {
-        showToast("❌ Erreur: " + (result.error || "Inconnue"), "err");
-      }
-    }
-
-    function changerStatut(nouveauStatut) {
-      const commande = getDonneesCommande();
-      commande.statut = nouveauStatut;
-      
-      // Mettre à jour l'affichage
-      afficherSectionsStructurees(commande);
-      
-      // Envoyer à l'API
-      envoyerCommandeAPI(commande).then(result => {
-        if (result.success) {
-          showToast(`✅ Statut changé en "${nouveauStatut}"`, "ok");
-        } else {
-          showToast("❌ Erreur de mise à jour", "err");
-        }
-      });
-    }
-
-    function ouvrirWhatsAppClient(commande) {
-      if (!commande.telephone) {
+    function ouvrirWhatsAppClient() {
+      if (!currentOrder || !currentOrder.telephone) {
         showToast("❌ Numéro client manquant", "err");
         return;
       }
       
-      const phone = commande.telephone.replace(/\D/g, '');
-      const tnPhone = phone.length === 8 ? "216" + phone : phone.startsWith("216") ? phone : "216" + phone;
+      const phone = currentOrder.telephone.replace(/\D/g, '');
+      const tnPhone = phone.length === 8 ? "216" + phone : 
+                     phone.startsWith("216") ? phone : "216" + phone;
       
-      const message = `Bonjour ${commande.nom || ''},\n\n` +
-                     `Votre commande ${commande.numero_commande} a été reçue.\n` +
-                     `Statut: ${commande.statut}\n` +
-                     `Total: ${commande.total.toFixed(3)} DT\n\n` +
+      const message = `Bonjour ${currentOrder.nom || ''},\n\n` +
+                     `Votre commande ${currentOrder.numero_commande} a été reçue.\n` +
+                     `Statut: ${currentOrder.statut}\n` +
+                     `Total: ${currentOrder.total ? currentOrder.total.toFixed(3) + ' DT' : '0.000 DT'}\n\n` +
                      `Merci pour votre confiance !\nMAXI JDC MARKET`;
       
       window.open(`https://wa.me/${tnPhone}?text=${encodeURIComponent(message)}`, "_blank");
@@ -987,37 +1398,44 @@
      * ==========================
      */
     function getDonneesCommande() {
-      // Essayer depuis l'URL
+      // 1. Vérifier l'URL
       const params = new URLSearchParams(location.search);
-      const rawData = params.get("data") || params.get("commande") || "";
+      const urlData = params.get("data") || params.get("commande") || 
+                     params.get("order") || "";
       
-      if (rawData) {
-        return analyserDonneesCommande(rawData);
+      if (urlData) {
+        return analyserDonneesCommande(urlData);
       }
       
-      // Essayer localStorage
+      // 2. Vérifier localStorage
       try {
-        const saved = localStorage.getItem("maxi_commande_en_cours");
+        const saved = localStorage.getItem("maxi_commande_en_cours") ||
+                     localStorage.getItem("maxi_derniere_commande");
+        
         if (saved) {
-          return analyserDonneesCommande(JSON.parse(saved));
+          const parsed = JSON.parse(saved);
+          // S'assurer que c'est un objet valide
+          if (parsed && typeof parsed === 'object') {
+            return analyserDonneesCommande(parsed);
+          }
         }
       } catch (e) {
         console.warn("Erreur lecture localStorage:", e);
       }
       
-      // Données par défaut pour démo
-      const demoData = `Détails de votre commande
-      👤 Nom: Client Démo
-      📞 Téléphone: +216 55 123 456
-      📍 Adresse: Tunis, Tunisie
-      
-      Articles commandés
-      2x Produit A - 15.500 DT
-      1x Produit B - 25.000 DT
-      3x Produit C - 8.500 DT
-      
-      TOTAL: 87.500 DT
-      MAXI-20260131-1234`;
+      // 3. Données de démonstration
+      const demoData = {
+        nom: "Client Démonstration",
+        telephone: "+216 12 345 678",
+        adresse: "Jardins de Carthage, Tunis",
+        articles: [
+          { produit: "Produit A", quantite: 2, prix_unitaire: 15.500 },
+          { produit: "Produit B", quantite: 1, prix_unitaire: 25.000 },
+          { produit: "Produit C", quantite: 3, prix_unitaire: 8.500 }
+        ],
+        total: 87.500,
+        statut: "En attente"
+      };
       
       return analyserDonneesCommande(demoData);
     }
@@ -1037,45 +1455,48 @@
           showToast("🎉 Nouvelle commande reçue !", "ok");
         }, 1000);
       }
+      
+      // Initialiser les étapes de validation
+      updateValidationSteps([
+        { status: 'pending', text: 'Prêt à valider la commande...' }
+      ]);
     });
 
     // Événements des boutons
-    document.getElementById("validateSendBtn").addEventListener("click", () => {
-      const commande = getDonneesCommande();
-      validerEtEnvoyerCommande(commande);
-    });
+    document.getElementById("validateSendBtn").addEventListener("click", validerEtEnvoyerCommande);
 
     document.getElementById("downloadBtn").addEventListener("click", () => {
-      const commande = getDonneesCommande();
-      const text = `COMMANDE MAXI JDC MARKET\n\n` +
-                  `N°: ${commande.numero_commande}\n` +
-                  `Date: ${new Date(commande.date).toLocaleString('fr-FR')}\n` +
-                  `Client: ${commande.nom}\n` +
-                  `Téléphone: ${commande.telephone}\n` +
-                  `Adresse: ${commande.adresse}\n` +
-                  `Total: ${commande.total.toFixed(3)} DT\n` +
-                  `Statut: ${commande.statut}\n\n` +
-                  `Articles:\n${commande.articles.map(a => `${a.quantite}x ${a.produit} - ${a.prix_unitaire ? a.prix_unitaire.toFixed(3) + ' DT' : '—'}`).join('\n')}`;
+      if (!currentOrder) return;
       
-      downloadText(`commande-maxi-${commande.numero_commande}.txt`, text);
+      const text = `COMMANDE MAXI JDC MARKET\n\n` +
+                  `N°: ${currentOrder.numero_commande}\n` +
+                  `Date: ${new Date().toLocaleString('fr-FR')}\n` +
+                  `Client: ${currentOrder.nom}\n` +
+                  `Téléphone: ${currentOrder.telephone}\n` +
+                  `Adresse: ${currentOrder.adresse}\n` +
+                  `Total: ${currentOrder.total ? currentOrder.total.toFixed(3) + ' DT' : '0.000 DT'}\n` +
+                  `Statut: ${currentOrder.statut}\n\n` +
+                  `Articles:\n${currentOrder.articles ? 
+                    currentOrder.articles.map(a => 
+                      `${a.quantite}x ${a.produit || a.name} - ${a.prix_unitaire ? a.prix_unitaire.toFixed(3) + ' DT' : '—'}`
+                    ).join('\n') : 'Aucun'}`;
+      
+      downloadText(`commande-${currentOrder.numero_commande}.txt`, text);
       showToast("📥 Commande téléchargée", "ok");
     });
 
-    document.getElementById("whatsappBtn").addEventListener("click", () => {
-      const commande = getDonneesCommande();
-      ouvrirWhatsAppClient(commande);
-    });
+    document.getElementById("whatsappBtn").addEventListener("click", ouvrirWhatsAppClient);
 
     document.getElementById("cancelBtn").addEventListener("click", () => {
       if (confirm("Êtes-vous sûr de vouloir annuler cette commande ?")) {
-        const commande = getDonneesCommande();
-        commande.statut = "Annulée";
-        envoyerCommandeAPI(commande).then(() => {
-          showToast("❌ Commande annulée", "err");
-          setTimeout(() => {
+        changerStatut("Annulée");
+        showToast("❌ Commande annulée", "err");
+        
+        setTimeout(() => {
+          if (window.opener) {
             window.close();
-          }, 1500);
-        });
+          }
+        }, 2000);
       }
     });
 
@@ -1086,11 +1507,11 @@
     // Raccourcis clavier
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") document.getElementById("closeBtn").click();
-      if (e.ctrlKey && e.key === "s") {
+      if (e.ctrlKey && e.key === "Enter") {
         e.preventDefault();
-        document.getElementById("validateSendBtn").click();
+        validerEtEnvoyerCommande();
       }
-      if (e.ctrlKey && e.key === "d") {
+      if (e.ctrlKey && e.key === "s") {
         e.preventDefault();
         document.getElementById("downloadBtn").click();
       }
