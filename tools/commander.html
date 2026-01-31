@@ -107,7 +107,7 @@
       document.getElementById('totalCaisse').textContent = total.toFixed(2);
     }
 
-    // ✅ Ton enregistrement local (inchangé)
+    // ✅ Enregistrement local (inchangé)
     function enregistrerVenteCaisse() {
       const nom = document.getElementById('nomClient').value.trim() || 'Client Caisse';
       const tel = document.getElementById('telClient').value.trim() || '';
@@ -161,7 +161,7 @@
     };
   </script>
 
-  <!-- ✅ AJOUT : envoi vers Google Sheets sans changer ton interface -->
+  <!-- ✅ Envoi vers Google Sheets -->
   <script type="module">
     import { envoyerCommande } from './api-commandes.js';
 
@@ -174,13 +174,13 @@
       // 2) envoyer vers Google Sheets
       const msg = document.getElementById('messageCaisse');
 
-      // Reprendre valeurs AVANT reset : on relit depuis le localStorage (dernier élément)
+      // Relire depuis le localStorage (dernier élément)
       const commandes = JSON.parse(localStorage.getItem('commandesMaxiJDC')) || [];
       const last = commandes[commandes.length - 1];
       if (!last) return;
 
       const nom = last.client || "Client Caisse";
-      // ✅ éviter "Non renseigné" (ça casse l’anti-doublon)
+      // ✅ éviter vide
       const tel = (last.telephone && last.telephone.trim()) ? last.telephone.trim() : ("CAISSE-" + last.id);
 
       const total = Number(last.total) || 0;
@@ -198,6 +198,7 @@
       }));
 
       try {
+        // ✅ session_id est géré automatiquement par api-commandes.js
         const res = await envoyerCommande({
           nom_client: nom,
           telephone: tel,
@@ -207,7 +208,7 @@
         });
 
         if (res?.success) {
-          msg.innerHTML = `✅ Vente envoyée à Google Sheets !<br>Commande: <b>${res.commande_id}</b> | Total: <b>${res.total}</b> DT`;
+          msg.innerHTML = `✅ Vente envoyée à Google Sheets !<br>Commande: <b>${res.commande_id || res.commandeId || ""}</b> | Total: <b>${res.total || total}</b> DT`;
           msg.className = 'message success';
           msg.style.display = 'block';
         } else {
