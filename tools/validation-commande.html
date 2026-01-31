@@ -5,14 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Validation commande - MAXI JDC MARKET</title>
 
-  <!-- CONFIGURATION CENTRALE -->
-  <script src="config.js"></script>
-  
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
-    /* [LE CSS RESTE IDENTIQUE] */
+    /* [TOUT LE CSS RESTE IDENTIQUE À VOTRE VERSION ORIGINALE] */
     :root {
       --bg: #05070a;
       --panel: #0e1622;
@@ -660,11 +657,24 @@
   
   <script>
     // ===================== CONFIGURATION =====================
-    const API_BASE_URL = window.APP_CONFIG?.googleScriptUrl || "";
-    const WHATSAPP_NUMBER = window.APP_CONFIG?.whatsappNumber || "21625600978";
+    // Configuration intégrée directement pour éviter les erreurs 404
+    const APP_CONFIG = {
+      googleScriptUrl: "https://script.google.com/macros/s/AKfycbziOpsrvIpaFP9CP0tA38CZfwRzHTVTbdzXHVxcK9AxY60GNSltkvN6BedwrbMu4kx6/exec",
+      minOrder: 15,
+      freeShipping: 100,
+      shippingFee: 3,
+      whatsappNumber: "21625600978",
+      itemsPerPage: 24,
+      getScriptUrl: function() { return this.googleScriptUrl; }
+    };
+    
+    window.APP_CONFIG = APP_CONFIG;
+    
+    const API_BASE_URL = APP_CONFIG.googleScriptUrl;
+    const WHATSAPP_NUMBER = APP_CONFIG.whatsappNumber;
 
     if (!API_BASE_URL) {
-      console.error("❌ API_BASE_URL introuvable : config.js non chargé");
+      console.error("❌ API_BASE_URL introuvable");
       showToast("⚠️ Configuration manquante", "err");
     }
 
@@ -672,38 +682,6 @@
     let currentOrder = null;
     let validationInProgress = false;
     let sessionId = null;
-
-    /**
-     * ==========================
-     *  INITIALISER LA SESSION
-     * ==========================
-     */
-    async function initialiserSession() {
-      try {
-        const response = await fetch(`${API_BASE_URL}?method=startSession`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.session_id) {
-            sessionId = data.session_id;
-            console.log("✅ Session initialisée:", sessionId);
-            return true;
-          }
-        }
-      } catch (error) {
-        console.warn("⚠️ Impossible d'initialiser la session:", error);
-      }
-      
-      // Si la session échoue, générer un ID local
-      sessionId = "LOCAL-SESSION-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
-      console.log("⚠️ Session locale générée:", sessionId);
-      return false;
-    }
 
     /**
      * ==========================
@@ -1027,9 +1005,9 @@
         // Mettre à jour les étapes de validation
         updateValidationSteps([
           { status: 'pending', text: 'Vérification des données...' },
-          { status: 'pending', text: 'Initialisation de la session...' },
           { status: 'pending', text: 'Envoi vers Google Sheets...' },
-          { status: 'pending', text: 'Notification WhatsApp...' }
+          { status: 'pending', text: 'Notification WhatsApp...' },
+          { status: 'pending', text: 'Finalisation...' }
         ]);
         
         // Étape 1: Vérification
@@ -1039,56 +1017,51 @@
           throw new Error("Aucune commande à valider");
         }
         
-        // Étape 2: Initialiser la session si nécessaire
-        if (!sessionId) {
-          const sessionInitialisee = await initialiserSession();
-          if (!sessionInitialisee) {
-            updateValidationStep(1, 'error', '⚠️ Session locale seulement');
-          } else {
-            updateValidationStep(1, 'completed', '✅ Session Google Sheets initialisée');
-          }
-        } else {
-          updateValidationStep(1, 'completed', '✅ Session déjà active');
-        }
-        
-        // Étape 3: Préparer la commande
+        // Étape 2: Préparer la commande
         currentOrder.statut = "Validée";
         currentOrder.date_validation = new Date().toISOString();
         
         // Sauvegarder localement
         sauvegarderCommandeLocale(currentOrder);
         
-        // Envoyer vers Google Sheets
-        const sheetsResult = await envoyerVersGoogleSheets(currentOrder);
-        
-        if (sheetsResult.success) {
-          updateValidationStep(2, 'completed', '✅ Google Sheets mis à jour');
+        // Envoyer vers Google Sheets (méthode simplifiée)
+        try {
+          const sheetsResult = await envoyerVersGoogleSheets(currentOrder);
           
-          // Mettre à jour le numéro de commande si Google Sheets en a généré un nouveau
-          if (sheetsResult.commande_id) {
-            currentOrder.numero_commande = sheetsResult.commande_id;
-            afficherSectionsStructurees(currentOrder);
+          if (sheetsResult.success) {
+            updateValidationStep(1, 'completed', '✅ Google Sheets mis à jour');
+            showToast("✅ Commande enregistrée dans Google Sheets", "ok");
+            
+            // Mettre à jour le numéro de commande si Google Sheets en a généré un nouveau
+            if (sheetsResult.commande_id) {
+              currentOrder.numero_commande = sheetsResult.commande_id;
+              afficherSectionsStructurees(currentOrder);
+            }
+          } else {
+            updateValidationStep(1, 'warning', '⚠️ Google Sheets: Sauvegarde locale');
+            showToast("⚠️ Google Sheets non mis à jour, sauvegarde locale uniquement", "warning");
           }
-          
-          showToast("✅ Commande enregistrée dans Google Sheets", "ok");
-        } else {
-          updateValidationStep(2, 'error', '⚠️ Google Sheets: ' + (sheetsResult.error || 'Erreur'));
-          showToast("⚠️ Google Sheets non mis à jour, sauvegarde locale uniquement", "warning");
+        } catch (sheetsError) {
+          updateValidationStep(1, 'error', '❌ Erreur Google Sheets');
+          console.warn("Erreur Google Sheets:", sheetsError);
         }
         
-        // Étape 4: Envoyer notification WhatsApp
-        await envoyerNotificationWhatsApp(currentOrder);
-        updateValidationStep(3, 'completed', '✅ WhatsApp envoyé');
+        // Étape 3: Envoyer notification WhatsApp
+        try {
+          await envoyerNotificationWhatsApp(currentOrder);
+          updateValidationStep(2, 'completed', '✅ WhatsApp envoyé');
+        } catch (whatsappError) {
+          updateValidationStep(2, 'warning', '⚠️ WhatsApp non envoyé');
+        }
+        
+        // Étape 4: Finalisation
+        updateValidationStep(3, 'completed', '✅ Commande validée');
         
         // Jouer le son de notification
         playTabletSound();
         
-        // Réinitialiser après 3 secondes
-        setTimeout(() => {
-          updateValidationSteps([
-            { status: 'completed', text: 'Commande terminée avec succès !' }
-          ]);
-        }, 3000);
+        // Afficher message final
+        showToast("🎉 Commande validée avec succès !", "ok");
         
       } catch (error) {
         console.error("Erreur validation:", error);
@@ -1106,7 +1079,7 @@
 
     /**
      * ==========================
-     *  GOOGLE SHEETS INTEGRATION - CORRIGÉE
+     *  GOOGLE SHEETS INTEGRATION
      * ==========================
      */
     async function envoyerVersGoogleSheets(commande) {
@@ -1115,76 +1088,60 @@
       }
 
       try {
-        // Préparer les données au format attendu par votre script Google
-        const data = {
-          action: 'saveOrder',
-          session_id: sessionId || 'NO-SESSION',
-          nom_client: commande.nom || '',
-          telephone: commande.telephone || '',
-          adresse: commande.adresse || '',
-          articles: JSON.stringify(commande.articles || []),
-          total: commande.total ? commande.total.toFixed(3) : '0.000',
-          statut: commande.statut || 'Validée'
-        };
+        // Préparer les données au format attendu par votre script
+        const formData = new URLSearchParams();
+        formData.append('action', 'saveOrder');
+        formData.append('nom_client', commande.nom || '');
+        formData.append('telephone', commande.telephone || '');
+        formData.append('adresse', commande.adresse || '');
+        formData.append('articles', JSON.stringify(commande.articles || []));
+        formData.append('total', commande.total ? commande.total.toFixed(3) : '0.000');
+        formData.append('statut', commande.statut || 'Validée');
 
-        console.log("📤 Envoi vers Google Sheets:", data);
-
-        // Méthode 1: Envoyer avec POST (FormData)
+        // Essayer d'abord avec GET (plus simple pour CORS)
+        const params = new URLSearchParams(formData);
+        const urlWithParams = `${API_BASE_URL}?${params.toString()}`;
+        
+        console.log("📤 Envoi vers Google Sheets:", urlWithParams);
+        
+        // Essayer plusieurs méthodes
         try {
-          const formData = new URLSearchParams();
-          for (const key in data) {
-            formData.append(key, data[key]);
-          }
-
-          const response = await fetch(API_BASE_URL, {
-            method: 'POST',
-            mode: 'no-cors', // Important: mode no-cors pour Google Apps Script
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: formData.toString()
-          });
-
-          // Avec mode no-cors, on ne peut pas lire la réponse
-          // Mais la requête est envoyée
-          console.log("✅ Requête POST envoyée (mode no-cors)");
-          return { success: true, message: "Requête envoyée" };
-
-        } catch (fetchError) {
-          console.warn("⚠️ Fetch POST échoué:", fetchError);
-        }
-
-        // Méthode 2: Tenter avec GET (pour contourner CORS)
-        try {
-          const params = new URLSearchParams(data);
-          const getUrl = `${API_BASE_URL}?${params.toString()}`;
-          
-          const response = await fetch(getUrl, {
+          // Méthode 1: fetch avec mode 'no-cors'
+          const response = await fetch(urlWithParams, {
             method: 'GET',
-            mode: 'no-cors'
+            mode: 'no-cors',
+            headers: {
+              'Accept': 'application/json',
+            }
           });
           
-          console.log("✅ Requête GET envoyée");
-          return { success: true, message: "Requête GET envoyée" };
+          console.log("✅ Requête envoyée (mode no-cors)");
+          return { success: true, message: "Requête envoyée" };
           
-        } catch (getError) {
-          console.warn("⚠️ Fetch GET échoué:", getError);
-        }
-
-        // Méthode 3: JSONP pour contourner CORS complètement
-        try {
-          const jsonpResult = await envoyerViaJSONP(data);
-          if (jsonpResult) {
-            return { success: true, method: 'JSONP' };
+        } catch (fetchError) {
+          console.warn("⚠️ Fetch échoué, tentative alternative:", fetchError);
+          
+          // Méthode 2: Créer une image pour déclencher la requête (méthode hack)
+          try {
+            const img = new Image();
+            img.src = urlWithParams;
+            img.style.display = 'none';
+            document.body.appendChild(img);
+            
+            setTimeout(() => {
+              if (img.parentNode) document.body.removeChild(img);
+            }, 1000);
+            
+            console.log("✅ Requête envoyée via image hack");
+            return { success: true, method: 'image-hack' };
+            
+          } catch (imgError) {
+            console.warn("⚠️ Image hack échoué:", imgError);
+            
+            // Méthode 3: JSONP
+            return await envoyerViaJSONP(formData);
           }
-        } catch (jsonpError) {
-          console.warn("⚠️ JSONP échoué:", jsonpError);
         }
-
-        return { 
-          success: false, 
-          error: "Impossible d'envoyer vers Google Sheets. Vérifiez votre connexion." 
-        };
 
       } catch (error) {
         console.error("❌ Erreur Google Sheets:", error);
@@ -1196,13 +1153,13 @@
     }
 
     // Méthode JSONP pour contourner CORS
-    function envoyerViaJSONP(data) {
+    function envoyerViaJSONP(formData) {
       return new Promise((resolve, reject) => {
-        const callbackName = 'callback_' + Date.now() + '_' + Math.random().toString(36).substr(2);
+        const callbackName = 'callback_' + Date.now();
         
         window[callbackName] = function(response) {
           console.log("📨 Réponse JSONP:", response);
-          resolve(response);
+          resolve({ success: true, data: response });
           
           // Nettoyage
           delete window[callbackName];
@@ -1211,14 +1168,9 @@
           }
         };
 
-        // Ajouter le callback et transformer en paramètres GET
-        data.callback = callbackName;
-        data.method = 'saveOrder'; // Forcer la méthode
-        
-        const params = new URLSearchParams();
-        for (const key in data) {
-          params.append(key, data[key]);
-        }
+        // Transformer en paramètres GET
+        const params = new URLSearchParams(formData);
+        params.append('callback', callbackName);
         
         const script = document.createElement('script');
         script.src = `${API_BASE_URL}?${params.toString()}`;
@@ -1233,16 +1185,16 @@
         
         document.head.appendChild(script);
         
-        // Timeout après 10 secondes
+        // Timeout
         setTimeout(() => {
           if (window[callbackName]) {
-            reject(new Error('JSONP timeout'));
+            resolve({ success: false, error: 'Timeout' });
             delete window[callbackName];
             if (script.parentNode) {
               document.head.removeChild(script);
             }
           }
-        }, 10000);
+        }, 5000);
       });
     }
 
@@ -1304,8 +1256,7 @@
         const commandeComplete = {
           ...commande,
           saved_at: new Date().toISOString(),
-          saved_locally: true,
-          session_id: sessionId
+          saved_locally: true
         };
         
         commandes.unshift(commandeComplete); // Ajouter au début
@@ -1318,6 +1269,7 @@
         localStorage.setItem('maxi_derniere_commande', 
           JSON.stringify(commandeComplete));
         
+        console.log("💾 Commande sauvegardée localement");
         return true;
       } catch (error) {
         console.error("Erreur sauvegarde locale:", error);
@@ -1499,9 +1451,6 @@
       
       // Afficher les données structurées
       afficherSectionsStructurees(commande);
-      
-      // Initialiser la session Google Sheets
-      await initialiserSession();
       
       // Vérifier si nouvelle commande
       const isNew = new URLSearchParams(location.search).get("new") === "true";
