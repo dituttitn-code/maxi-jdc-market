@@ -15,6 +15,9 @@ const API_TOKEN = "CHANGE-ME-SECRET-123456";
 // Anti double-click client
 let sendingOrder = false;
 
+// Clé session localStorage
+const SESSION_KEY = "maxi_jdc_session_id";
+
 /**
  * Petit helper : POST "simple request" (pas de preflight CORS)
  * => Content-Type: application/x-www-form-urlencoded
@@ -47,6 +50,44 @@ async function getJson(url) {
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`Erreur HTTP: ${resp.status}`);
   return await resp.json();
+}
+
+/**
+ * ✅ Génère un id de session local (fallback)
+ */
+function generateLocalSessionId() {
+  return `SID-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+/**
+ * ✅ Assure un session_id non vide
+ * 1) localStorage
+ * 2) tente serveur: ?method=startSession (si dispo côté Code.gs)
+ * 3) fallback local
+ */
+async function ensureSessionId() {
+  // 1) déjà en local ?
+  const existing = localStorage.getItem(SESSION_KEY);
+  if (existing && existing.trim()) return existing.trim();
+
+  // 2) tenter serveur (si ton Code.gs le supporte)
+  try {
+    const data = await getJson(`${API_URL}?method=startSession&t=${Date.now()}`);
+    // Formats possibles :
+    // {success:true, session_id:"..."} ou {success:true, sessionId:"..."}
+    const sid = (data && (data.session_id || data.sessionId || data.sid)) ? String(data.session_id || data.sessionId || data.sid) : "";
+    if (data?.success && sid.trim()) {
+      localStorage.setItem(SESSION_KEY, sid.trim());
+      return sid.trim();
+    }
+  } catch (_) {
+    // ignore et fallback
+  }
+
+  // 3) fallback local
+  const localSid = generateLocalSessionId();
+  localStorage.setItem(SESSION_KEY, localSid);
+  return localSid;
 }
 
 /*********************************
@@ -95,12 +136,17 @@ export async function envoyerCommande(dataCommande) {
       total = articlesFormat.reduce((sum, it) => sum + (Number(it.prix_total) || 0), 0);
     }
 
+    // ✅ session_id : ne jamais envoyer vide
+    const sid =
+      (dataCommande.session_id && String(dataCommande.session_id).trim())
+        ? String(dataCommande.session_id).trim()
+        : await ensureSessionId();
+
     // IMPORTANT : ton Code.gs accepte action=saveOrder OU method=saveOrder
-    // + session_id obligatoire (sinon rejected)
     const payload = {
       action: "saveOrder",            // ✅ important (ou method)
       token: API_TOKEN,               // ✅ optionnel si serveur TOKEN_OPTIONNEL=true
-      session_id: dataCommande.session_id || "",
+      session_id: sid,                // ✅ plus jamais vide
 
       nom_client: dataCommande.nom_client || dataCommande.nom || "",
       telephone: dataCommande.telephone || "",
@@ -115,6 +161,14 @@ export async function envoyerCommande(dataCommande) {
     };
 
     const result = await postFormUrlEncoded(payload);
+
+    // Si serveur retourne requires_session, on purge session et on retente 1 fois
+    if (result && result.requires_session) {
+      localStorage.removeItem(SESSION_KEY);
+      const sid2 = await ensureSessionId();
+      payload.session_id = sid2;
+      return await postFormUrlEncoded(payload);
+    }
 
     // serveurs: ignore / duplicate / already_validated
     if (result && (result.ignored || result.is_duplicate || result.already_validated)) {
@@ -224,8 +278,6 @@ export async function updateStock(code, stock) {
 }
 
 export async function batchUpdateStock(items = []) {
-  // ⚠️ JSON ici peut déclencher preflight — si ça bloque, on peut le convertir en urlencoded aussi.
-  // Pour l'instant on le laisse, mais si tu veux 100% safe GitHub Pages, dis-moi et je te le convertis.
   const resp = await fetch(`${API_URL}?method=batchUpdateStock&token=${encodeURIComponent(API_TOKEN)}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -245,7 +297,9 @@ export async function getLowStock() {
 
 // Debug config
 if (!window.APP_CONFIG) {
-  console.warn("⚠️ config.js non chargé. Assurez-vous que <script src='tools/config.js'></script> est correct.");
+  console.warn("⚠️ config.js non chargé. Assurez-vous que <script src='config.js'></script> est correct.");
 } else {
   console.log("✅ config.js chargé, API_URL =", API_URL);
+  // Optionnel: init session en arrière-plan
+  ensureSessionId().then((sid) => console.log("✅ session_id =", sid)).catch(() => {});
 }
