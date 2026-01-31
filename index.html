@@ -3971,31 +3971,237 @@
 
   <script>
     // ===================== CONFIGURATION =====================
-    const CONFIG = {
-      minOrder: 15,
-      freeShipping: 100,
-      shippingFee: 3,
-      whatsappNumber: "21625600978",
-      itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v39',
-      imagesBasePath: 'images/products/',
-      historyRetentionYears: 2,
-      adminPasswordKey: 'maxi_jdc_admin_password',
-      syncStorageKey: 'maxi_jdc_sync_data',
-      qrCodeUrl: window.location.href,
-      adminPassword: "admin123",
-      storeLocation: {
-        lat: 36.851234,
-        lng: 10.301234
-      },
-      syncInterval: 30000,
-      dashboardUrl: 'tools/tableau-de-bord.html',
-      trackingUrl: 'tools/suivi-commandes.html',
+      <!-- Leaflet JS (tu gardes) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-      // URL Google Apps Script CORRIGÉE pour résoudre les problèmes de colonnes
-      googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
-      commandeApiUrl: "https://script.google.com/macros/s/AKfycbziOpsrvIpaFP9CP0tA38CZfwRzHTVTbdzXHVxcK9AxY60GNSltkvN6BedwrbMu4kx6/exec",
+  <!-- ✅ 1) config.js (OBLIGATOIRE avant API_COMMANDES ET avant API_URL) -->
+  <script src="tools/config.js"></script>
+
+  <!-- ✅ 2) API COMMANDES (INLINE) — ne touche pas à tes commandes existantes -->
+  <script>
+  /*********************************
+   * API COMMANDES MAXI JDC MARKET
+   * Version inline - Garantie de fonctionnement
+   *********************************/
+
+  console.log("🚀 Chargement API Commandes...");
+
+  // Variables globales
+  let sendingOrder = false;
+  const SESSION_KEY = "maxi_jdc_session_id";
+  const API_TOKEN = "CHANGE-ME-SECRET-123456";
+
+  // Fonction pour obtenir l'URL API
+  function getAPIUrl() {
+    if (!window.APP_CONFIG || !window.APP_CONFIG.googleScriptUrl) {
+      console.error("❌ Configuration manquante");
+      return null;
+    }
+    return window.APP_CONFIG.googleScriptUrl;
+  }
+
+  // Fonction pour créer une session
+  async function ensureSessionId() {
+    const existing = localStorage.getItem(SESSION_KEY);
+    if (existing) return existing;
+
+    const API_URL = getAPIUrl();
+    if (!API_URL) {
+      const fallbackId = 'local_' + Date.now();
+      localStorage.setItem(SESSION_KEY, fallbackId);
+      return fallbackId;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}?method=startSession`);
+      const text = await response.text();
+      const json = JSON.parse(text);
+
+      if (json.success && json.session_id) {
+        localStorage.setItem(SESSION_KEY, json.session_id);
+        return json.session_id;
+      }
+    } catch (error) {
+      console.warn("⚠️ Erreur session:", error);
+    }
+
+    const fallbackId = 'local_' + Date.now();
+    localStorage.setItem(SESSION_KEY, fallbackId);
+    return fallbackId;
+  }
+
+  // TEST API - Fonction principale
+  async function testerConnexionAPI() {
+    console.log("🧪 Début test API...");
+
+    const API_URL = getAPIUrl();
+    if (!API_URL) {
+      return { connecte: false, message: "URL API non configurée" };
+    }
+
+    console.log("🔗 Test URL:", API_URL);
+
+    try {
+      const response = await fetch(`${API_URL}?method=test&t=${Date.now()}`);
+      const text = await response.text();
+      console.log("📄 Réponse brute:", text);
+
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch (e) {
+        return { connecte: false, message: "Réponse non-JSON: " + text.substring(0, 100) };
+      }
+
+      const result = {
+        connecte: !!json.success,
+        message: json.message || "Pas de message",
+        details: json.details || {},
+        url: API_URL
+      };
+
+      console.log("✅ Résultat test:", result);
+      return result;
+
+    } catch (error) {
+      console.error("❌ Erreur test:", error);
+      return {
+        connecte: false,
+        message: "Erreur: " + error.message,
+        url: API_URL
+      };
+    }
+  }
+
+  // ENVOYER COMMANDE
+  async function envoyerCommande(dataCommande) {
+    if (sendingOrder) {
+      return { success: true, duplicated: true, message: "⏳ Envoi déjà en cours" };
+    }
+
+    sendingOrder = true;
+    console.log("🔄 Envoi commande...");
+
+    try {
+      const API_URL = getAPIUrl();
+      if (!API_URL) {
+        return { success: false, message: "URL API non configurée" };
+      }
+
+      const sessionId = await ensureSessionId();
+
+      // Préparer les articles
+      const articles = Array.isArray(dataCommande.articles)
+        ? dataCommande.articles.map(item => ({
+            produit: item.produit || item.nom || "",
+            quantite: parseInt(item.quantite || 1),
+            prix_unitaire: parseFloat(item.prix_unitaire || 0)
+          }))
+        : [];
+
+      const total = articles.reduce((sum, item) => {
+        return sum + (item.quantite * item.prix_unitaire);
+      }, 0);
+
+      // Préparer les données POST
+      const formData = new URLSearchParams();
+      formData.append('method', 'saveOrder');
+      formData.append('token', API_TOKEN);
+      formData.append('session_id', sessionId);
+      formData.append('nom_client', dataCommande.nom_client || "");
+      formData.append('telephone', dataCommande.telephone || "");
+      formData.append('adresse', dataCommande.adresse || "");
+      formData.append('articles', JSON.stringify(articles));
+      formData.append('total', total.toFixed(2));
+      formData.append('date', new Date().toISOString());
+
+      // Envoyer la requête
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData.toString()
+      });
+
+      const text = await response.text();
+      console.log("📄 Réponse serveur:", text);
+
+      try {
+        const json = JSON.parse(text);
+        return json;
+      } catch (e) {
+        return { success: false, message: "Réponse non-JSON", raw: text };
+      }
+
+    } catch (error) {
+      console.error("❌ Erreur envoi:", error);
+      return { success: false, message: "Erreur: " + error.message };
+    } finally {
+      sendingOrder = false;
+    }
+  }
+
+  // TEST RAPIDE
+  async function testCommandeRapide() {
+    console.log("🧪 Test commande rapide...");
+
+    const commandeTest = {
+      nom_client: "Client Test API",
+      telephone: "123456789",
+      adresse: "123 Rue Test, Tunis",
+      articles: [
+        { produit: "Café 250g", quantite: 2, prix_unitaire: 12.5 },
+        { produit: "Sucre 1kg", quantite: 1, prix_unitaire: 8.0 }
+      ]
     };
+
+    const result = await envoyerCommande(commandeTest);
+    console.log("📊 Résultat test:", result);
+    return result;
+  }
+
+  // Fonctions utilitaires
+  function getCurrentSessionId() {
+    return localStorage.getItem(SESSION_KEY);
+  }
+
+  function resetSession() {
+    localStorage.removeItem(SESSION_KEY);
+    return ensureSessionId();
+  }
+
+  // EXPOSER LES FONCTIONS GLOBALEMENT
+  window.API_COMMANDES = {
+    testerConnexionAPI,
+    envoyerCommande,
+    testCommandeRapide,
+    getCurrentSessionId,
+    resetSession,
+    getAPIUrl
+  };
+
+  // Initialiser une session
+  setTimeout(() => {
+    ensureSessionId()
+      .then(sessionId => {
+        console.log("✅ Session initialisée:", sessionId);
+        console.log("🔗 URL API:", getAPIUrl());
+        console.log("🔧 API_COMMANDES prêt.");
+      })
+      .catch(error => console.warn("⚠️ Erreur initialisation:", error));
+  }, 1000);
+
+  console.log("✅ API Commandes chargée avec succès!");
+  </script>
+
+  <!-- ✅ 3) TON SCRIPT PRINCIPAL (tu gardes EXACTEMENT le tien, sans changer) -->
+  <script>
+    /*
+      ICI TU LAISSES TON GROS CODE EXISTANT TEL QUEL
+      (CONFIGURATION, produits, panier, stock, etc.)
+      Ne change rien.
+    */
+  </script>
 
     // ===================== TRADUCTIONS =====================
     const TRANSLATIONS = {
@@ -6567,6 +6773,7 @@
   </script>
 </body>
 </html>
+
 
 
 
