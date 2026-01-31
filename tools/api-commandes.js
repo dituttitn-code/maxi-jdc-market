@@ -1,6 +1,6 @@
 /*********************************
  * API COMMANDES - MAXI JDC MARKET
- * Version "safe CORS" (GitHub Pages)
+ * Fix définitif session_id
  *********************************/
 
 // ✅ URL depuis config.js
@@ -9,39 +9,14 @@ const API_URL =
     ? window.APP_CONFIG.getScriptUrl()
     : (window.APP_CONFIG?.googleScriptUrl || "");
 
-// ✅ Token (si TOKEN_OPTIONNEL=true côté serveur, il n'est pas bloquant)
+// ✅ Token (optionnel selon serveur)
 const API_TOKEN = "CHANGE-ME-SECRET-123456";
 
 // Anti double-click client
 let sendingOrder = false;
 
-// Clé session localStorage
+// session storage
 const SESSION_KEY = "maxi_jdc_session_id";
-
-/**
- * Petit helper : POST "simple request" (pas de preflight CORS)
- * => Content-Type: application/x-www-form-urlencoded
- */
-async function postFormUrlEncoded(payloadObj) {
-  if (!API_URL) throw new Error("API_URL manquante (config.js).");
-
-  const body = new URLSearchParams();
-  Object.entries(payloadObj || {}).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    body.append(k, String(v));
-  });
-
-  const resp = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-    },
-    body: body.toString()
-  });
-
-  if (!resp.ok) throw new Error(`Erreur HTTP: ${resp.status}`);
-  return await resp.json();
-}
 
 /**
  * GET helper
@@ -53,65 +28,71 @@ async function getJson(url) {
 }
 
 /**
- * ✅ Génère un id de session local (fallback)
+ * POST helper sans preflight CORS (urlencoded)
  */
-function generateLocalSessionId() {
-  return `SID-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+async function postFormUrlEncoded(payloadObj) {
+  if (!API_URL) throw new Error("API_URL manquante (config.js).");
+
+  const body = new URLSearchParams();
+  Object.entries(payloadObj || {}).forEach(([k, v]) => {
+    if (v === undefined || v === null) return;
+    body.append(k, String(v));
+  });
+
+  console.log("🚀 POST vers API_URL =", API_URL);
+  console.log("📦 payload =", payloadObj);
+
+  const resp = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+    body: body.toString()
+  });
+
+  if (!resp.ok) throw new Error(`Erreur HTTP: ${resp.status}`);
+  const json = await resp.json();
+
+  console.log("✅ réponse API =", json);
+  return json;
 }
 
 /**
- * ✅ Assure un session_id non vide
- * 1) localStorage
- * 2) tente serveur: ?method=startSession (si dispo côté Code.gs)
- * 3) fallback local
+ * ✅ récupère/assure une session valide
  */
 async function ensureSessionId() {
-  // 1) déjà en local ?
   const existing = localStorage.getItem(SESSION_KEY);
   if (existing && existing.trim()) return existing.trim();
 
-  // 2) tenter serveur (si ton Code.gs le supporte)
-  try {
-    const data = await getJson(`${API_URL}?method=startSession&t=${Date.now()}`);
-    // Formats possibles :
-    // {success:true, session_id:"..."} ou {success:true, sessionId:"..."}
-    const sid = (data && (data.session_id || data.sessionId || data.sid)) ? String(data.session_id || data.sessionId || data.sid) : "";
-    if (data?.success && sid.trim()) {
-      localStorage.setItem(SESSION_KEY, sid.trim());
-      return sid.trim();
-    }
-  } catch (_) {
-    // ignore et fallback
+  // demander au serveur
+  const j = await getJson(`${API_URL}?method=startSession&t=${Date.now()}`);
+  const sid = String(j?.session_id || "").trim();
+
+  if (j?.success && sid) {
+    localStorage.setItem(SESSION_KEY, sid);
+    return sid;
   }
 
-  // 3) fallback local
-  const localSid = generateLocalSessionId();
-  localStorage.setItem(SESSION_KEY, localSid);
-  return localSid;
+  throw new Error("Impossible de créer une session (startSession).");
 }
 
 /*********************************
- * ENVOYER UNE COMMANDE (ECRITURE)
+ * ENVOYER UNE COMMANDE
  *********************************/
 export async function envoyerCommande(dataCommande) {
   if (!dataCommande || typeof dataCommande !== "object") {
     throw new Error("Données de commande invalides.");
   }
 
-  // anti double submit
   if (sendingOrder) {
-    return {
-      success: true,
-      duplicated: true,
-      message: "⏳ Envoi déjà en cours (double clic bloqué)."
-    };
+    return { success: true, duplicated: true, message: "⏳ Envoi déjà en cours (double clic bloqué)." };
   }
   sendingOrder = true;
 
   try {
+    // ✅ session obligatoire
+    const sid = await ensureSessionId();
+
     // normaliser articles
     let articlesFormat = [];
-
     if (Array.isArray(dataCommande.articles)) {
       articlesFormat = dataCommande.articles.map((item) => {
         const q = parseInt(item.quantite || item.qty || item.quantity || 1, 10) || 1;
@@ -123,11 +104,6 @@ export async function envoyerCommande(dataCommande) {
           prix_total: parseFloat((q * pu).toFixed(2))
         };
       });
-    } else if (typeof dataCommande.articles === "string") {
-      try {
-        const parsed = JSON.parse(dataCommande.articles);
-        if (Array.isArray(parsed)) articlesFormat = parsed;
-      } catch (_) {}
     }
 
     // total
@@ -136,115 +112,34 @@ export async function envoyerCommande(dataCommande) {
       total = articlesFormat.reduce((sum, it) => sum + (Number(it.prix_total) || 0), 0);
     }
 
-    // ✅ session_id : ne jamais envoyer vide
-    const sid =
-      (dataCommande.session_id && String(dataCommande.session_id).trim())
-        ? String(dataCommande.session_id).trim()
-        : await ensureSessionId();
-
-    // IMPORTANT : ton Code.gs accepte action=saveOrder OU method=saveOrder
     const payload = {
-      action: "saveOrder",            // ✅ important (ou method)
-      token: API_TOKEN,               // ✅ optionnel si serveur TOKEN_OPTIONNEL=true
-      session_id: sid,                // ✅ plus jamais vide
+      action: "saveOrder",
+      token: API_TOKEN,
+      session_id: sid,
 
       nom_client: dataCommande.nom_client || dataCommande.nom || "",
       telephone: dataCommande.telephone || "",
       adresse: dataCommande.adresse || "",
       gps: dataCommande.gps || "",
 
-      articles: articlesFormat.length
-        ? JSON.stringify(articlesFormat)
-        : (dataCommande.articles || ""),
-
+      articles: articlesFormat.length ? JSON.stringify(articlesFormat) : "",
       total: total ? total.toFixed(2) : ""
     };
 
-    const result = await postFormUrlEncoded(payload);
+    const res = await postFormUrlEncoded(payload);
 
-    // Si serveur retourne requires_session, on purge session et on retente 1 fois
-    if (result && result.requires_session) {
+    // Si serveur dit session invalide => on purge et on retente 1 fois
+    if (res?.requires_session) {
       localStorage.removeItem(SESSION_KEY);
       const sid2 = await ensureSessionId();
       payload.session_id = sid2;
       return await postFormUrlEncoded(payload);
     }
 
-    // serveurs: ignore / duplicate / already_validated
-    if (result && (result.ignored || result.is_duplicate || result.already_validated)) {
-      return result;
-    }
-
-    return result;
-
+    return res;
   } finally {
     sendingOrder = false;
   }
-}
-
-/*********************************
- * LIRE TOUTES LES COMMANDES (ADMIN)
- *********************************/
-export async function getAllOrders() {
-  const data = await getJson(`${API_URL}?method=getorders&t=${Date.now()}`);
-  if (!data.success) throw new Error(data.error || "Erreur getorders");
-  return data.orders || [];
-}
-
-/*********************************
- * SUIVRE UNE COMMANDE (Client)
- *********************************/
-export async function suivreCommande(commandeId) {
-  const data = await getJson(
-    `${API_URL}?method=getOrderStatus&commande_id=${encodeURIComponent(commandeId)}&t=${Date.now()}`
-  );
-
-  if (!data.success) throw new Error(data.error || "Commande non trouvée");
-
-  return {
-    Date: data.date || "",
-    Nom: data.nom || "",
-    Téléphone: data.telephone || "",
-    Adresse: data.adresse || "",
-    Commande: data.commande_id || "",
-    Articles: data.articles || "",
-    Total: data.total || "0",
-    Statut: data.statut || "⏳ EN ATTENTE",
-    history: data.history || []
-  };
-}
-
-/*********************************
- * HISTORIQUE PAR TELEPHONE
- *********************************/
-export async function recupererHistorique(telephone) {
-  const data = await getJson(
-    `${API_URL}?method=getOrderHistory&telephone=${encodeURIComponent(telephone)}&t=${Date.now()}`
-  );
-  if (!data.success) throw new Error(data.error || "Erreur historique");
-  return data.history || [];
-}
-
-/*********************************
- * METTRE A JOUR LE STATUT (ADMIN)
- *********************************/
-export async function mettreAJourStatut(commandeId, nouveauStatut) {
-  const data = await getJson(
-    `${API_URL}?method=updateOrderStatus&token=${encodeURIComponent(API_TOKEN)}&commande_id=${encodeURIComponent(
-      commandeId
-    )}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
-  );
-  if (!data.success) throw new Error(data.error || "Erreur mise à jour statut");
-  return data;
-}
-
-/*********************************
- * TOP PRODUITS
- *********************************/
-export async function recupererTopProduits() {
-  const data = await getJson(`${API_URL}?method=getTopProducts&t=${Date.now()}`);
-  if (!data.success) throw new Error(data.error || "Erreur top produits");
-  return data.topProducts || data.top || [];
 }
 
 /*********************************
@@ -255,51 +150,13 @@ export async function testerConnexionAPI() {
   return { connecte: !!data.success, message: data.message, details: data.details, url: API_URL };
 }
 
-/*********************************
- * STOCK API (inchangé)
- *********************************/
-export async function getStock() {
-  const data = await getJson(`${API_URL}?method=getStock&t=${Date.now()}`);
-  if (!data.success) throw new Error(data.error || "Erreur getStock");
-  return data.items || [];
-}
-
-export async function updateStock(code, stock) {
-  const payload = {
-    action: "updateStock",
-    token: API_TOKEN,
-    code: String(code || "").trim(),
-    stock: String(stock ?? "").trim()
-  };
-
-  const data = await postFormUrlEncoded(payload);
-  if (!data.success) throw new Error(data.error || data.message || "Erreur updateStock");
-  return data;
-}
-
-export async function batchUpdateStock(items = []) {
-  const resp = await fetch(`${API_URL}?method=batchUpdateStock&token=${encodeURIComponent(API_TOKEN)}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(items)
-  });
-  if (!resp.ok) throw new Error(`Erreur HTTP: ${resp.status}`);
-  const data = await resp.json();
-  if (!data.success) throw new Error(data.error || "Erreur batchUpdateStock");
-  return data;
-}
-
-export async function getLowStock() {
-  const data = await getJson(`${API_URL}?method=getLowStock&t=${Date.now()}`);
-  if (!data.success) throw new Error(data.error || "Erreur getLowStock");
-  return data;
-}
-
 // Debug config
 if (!window.APP_CONFIG) {
-  console.warn("⚠️ config.js non chargé. Assurez-vous que <script src='config.js'></script> est correct.");
+  console.warn("⚠️ config.js non chargé. Vérifie le chemin vers tools/config.js");
 } else {
   console.log("✅ config.js chargé, API_URL =", API_URL);
-  // Optionnel: init session en arrière-plan
-  ensureSessionId().then((sid) => console.log("✅ session_id =", sid)).catch(() => {});
+  // init session au chargement
+  ensureSessionId()
+    .then((sid) => console.log("✅ session_id prêt =", sid))
+    .catch((e) => console.warn("⚠️ session init échouée:", e));
 }
