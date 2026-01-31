@@ -4,12 +4,26 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Validation commande - MAXI JDC MARKET</title>
+  
+  <!-- Configuration intégrée directement -->
+  <script>
+    // CONFIGURATION
+    const APP_CONFIG = {
+      googleScriptUrl: "https://script.google.com/macros/s/AKfycbziOpsrvIpaFP9CP0tA38CZfwRzHTVTbdzXHVxcK9AxY60GNSltkvN6BedwrbMu4kx6/exec",
+      minOrder: 15,
+      freeShipping: 100,
+      shippingFee: 3,
+      whatsappNumber: "21625600978",
+      itemsPerPage: 24
+    };
+    window.APP_CONFIG = APP_CONFIG;
+  </script>
 
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
-    /* [TOUT LE CSS RESTE IDENTIQUE À VOTRE VERSION ORIGINALE] */
+    /* TOUT LE CSS ORIGINAL RESTE ICI */
     :root {
       --bg: #05070a;
       --panel: #0e1622;
@@ -657,26 +671,8 @@
   
   <script>
     // ===================== CONFIGURATION =====================
-    // Configuration intégrée directement pour éviter les erreurs 404
-    const APP_CONFIG = {
-      googleScriptUrl: "https://script.google.com/macros/s/AKfycbziOpsrvIpaFP9CP0tA38CZfwRzHTVTbdzXHVxcK9AxY60GNSltkvN6BedwrbMu4kx6/exec",
-      minOrder: 15,
-      freeShipping: 100,
-      shippingFee: 3,
-      whatsappNumber: "21625600978",
-      itemsPerPage: 24,
-      getScriptUrl: function() { return this.googleScriptUrl; }
-    };
-    
-    window.APP_CONFIG = APP_CONFIG;
-    
-    const API_BASE_URL = APP_CONFIG.googleScriptUrl;
-    const WHATSAPP_NUMBER = APP_CONFIG.whatsappNumber;
-
-    if (!API_BASE_URL) {
-      console.error("❌ API_BASE_URL introuvable");
-      showToast("⚠️ Configuration manquante", "err");
-    }
+    const API_BASE_URL = window.APP_CONFIG?.googleScriptUrl || "";
+    const WHATSAPP_NUMBER = window.APP_CONFIG?.whatsappNumber || "21625600978";
 
     // Variables globales
     let currentOrder = null;
@@ -1104,10 +1100,9 @@
         
         console.log("📤 Envoi vers Google Sheets:", urlWithParams);
         
-        // Essayer plusieurs méthodes
+        // Méthode 1: fetch avec mode 'no-cors'
         try {
-          // Méthode 1: fetch avec mode 'no-cors'
-          const response = await fetch(urlWithParams, {
+          await fetch(urlWithParams, {
             method: 'GET',
             mode: 'no-cors',
             headers: {
@@ -1119,9 +1114,9 @@
           return { success: true, message: "Requête envoyée" };
           
         } catch (fetchError) {
-          console.warn("⚠️ Fetch échoué, tentative alternative:", fetchError);
+          console.warn("⚠️ Fetch échoué:", fetchError);
           
-          // Méthode 2: Créer une image pour déclencher la requête (méthode hack)
+          // Méthode 2: Créer une image pour déclencher la requête
           try {
             const img = new Image();
             img.src = urlWithParams;
@@ -1132,7 +1127,7 @@
               if (img.parentNode) document.body.removeChild(img);
             }, 1000);
             
-            console.log("✅ Requête envoyée via image hack");
+            console.log("✅ Requête envoyée via image");
             return { success: true, method: 'image-hack' };
             
           } catch (imgError) {
