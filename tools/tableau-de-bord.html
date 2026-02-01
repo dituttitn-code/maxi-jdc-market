@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tableau de Bord - MAXI JDC MARKET</title>
 
-  <!-- CONFIGURATION CENTRALE -->
-  <script src="config.js"></script>
-
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Font Awesome -->
@@ -516,8 +513,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // MODIFICATION IMPORTANTE : Utilisation de config.js
-    const API_URL = window.APP_CONFIG.googleScriptUrl;
+    const API_URL = "https://script.google.com/macros/s/AKfycbziOpsrvIpaFP9CP0tA38CZfwRzHTVTbdzXHVxcK9AxY60GNSltkvN6BedwrbMu4kx6/exec";
     const STATUTS = ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
 
     const state = {
@@ -657,7 +653,7 @@
 
         state.orders = ordersData.orders.map(order => ({
           date: order.date,
-          nom: order.nom_client || order.nom || order.name || "",
+          nom: order.nom || order.name || "",
           telephone: order.telephone || order.phone || "",
           adresse: order.adresse || order.address || "",
           commande_id: order.commande_id || order.numero || order.order_id || "",
