@@ -3174,7 +3174,7 @@
       box-shadow: none;
     }
 
-    /* MODAL CONFIRMATION */
+    /* MODAL CONFIRMATION - NOUVELLE STYLE POUR BOUTON VALIDER */
     .order-modal-overlay {
       position: fixed;
       inset: 0;
@@ -3304,6 +3304,47 @@
 
     .order-btn.whatsapp:hover {
       background: rgba(37, 211, 102, 0.2);
+    }
+
+    /* NOUVEAU STYLE POUR BOUTON VALIDER ET ENVOYER */
+    .order-btn.validate {
+      background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+      border-color: transparent;
+      color: var(--bg0);
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .order-btn.validate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 255, 136, 0.4);
+    }
+
+    .order-btn.validate:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .order-btn.validate:active {
+      transform: translateY(0);
+    }
+
+    /* Animation pour éviter les clics multiples */
+    .order-btn.validate.sending {
+      animation: sendingAnimation 2s ease;
+      pointer-events: none;
+    }
+
+    @keyframes sendingAnimation {
+      0% { background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%); }
+      50% { background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%); }
+      100% { background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%); }
     }
 
     /* MODAL MAP */
@@ -3557,6 +3598,14 @@
       .catalogue-grid {
         grid-template-columns: repeat(2, 1fr);
       }
+      
+      .order-modal-footer {
+        flex-direction: column;
+      }
+      
+      .order-btn {
+        min-width: 100%;
+      }
     }
 
     @media (max-width: 480px) {
@@ -3669,6 +3718,15 @@
 
       .catalogue-grid {
         grid-template-columns: repeat(1, 1fr);
+      }
+      
+      .gps-btn-wrapper {
+        flex-direction: column;
+      }
+      
+      .map-preview {
+        width: 100%;
+        height: 60px;
       }
     }
 
@@ -4026,7 +4084,7 @@
             </span>
             <span class="savings-value">
               <span id="savingsPercentage">0%</span>
-              <span class="avings-percentage" id="savingsPercentageText"></span>
+              <span class="savings-percentage" id="savingsPercentageText"></span>
             </span>
           </div>
         </div>
@@ -4285,7 +4343,7 @@
     </div>
   </div>
 
-  <!-- MODAL COMMANDE -->
+  <!-- MODAL COMMANDE - MODIFIÉ AVEC LE NOUVEAU BOUTON -->
   <div class="order-modal-overlay" id="orderModal">
     <div class="order-modal">
       <div class="order-modal-header">
@@ -4304,7 +4362,8 @@
         <button class="order-btn download" id="downloadOrderBtn">
           💾 Télécharger
         </button>
-        <button class="order-btn" id="sendOrderBtn">
+        <!-- NOUVEAU BOUTON VALIDER ET ENVOYER -->
+        <button class="order-btn validate" id="sendOrderBtn">
           ✅ Valider et envoyer
         </button>
       </div>
@@ -4323,7 +4382,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v39',
+      localStorageKey: 'maxi_jdc_market_app_v41',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -4401,7 +4460,8 @@
         toastCartCleared: "Panier vidé",
         toastAccountSaved: "Compte enregistré avec succès !",
         toastOrderPlaced: "Commande créée !",
-        toastOrderSaved: "Commande enregistrée dans le système !"
+        toastOrderSaved: "Commande enregistrée dans le système !",
+        toastOrderValidated: "Commande validée et envoyée !"
       },
       en: {
         appTitle: "MAXI JDC MARKET",
@@ -4461,7 +4521,8 @@
         toastCartCleared: "Cart cleared",
         toastAccountSaved: "Account saved successfully!",
         toastOrderPlaced: "Order created!",
-        toastOrderSaved: "Order saved to system!"
+        toastOrderSaved: "Order saved to system!",
+        toastOrderValidated: "Order validated and sent!"
       },
       ar: {
         appTitle: "ماكسي جي دي سي ماركت",
@@ -4521,7 +4582,8 @@
         toastCartCleared: "تم تفريغ السلة",
         toastAccountSaved: "تم حفظ الحساب بنجاح!",
         toastOrderPlaced: "تم إنشاء الطلب!",
-        toastOrderSaved: "تم حفظ الطلب في النظام!"
+        toastOrderSaved: "تم حفظ الطلب في النظام!",
+        toastOrderValidated: "تم التحقق من الطلب وإرساله!"
       }
     };
 
@@ -4580,7 +4642,9 @@
       pendingOrder: null,
       catalogueProducts: [],
       catalogueSearchQuery: '',
-      catalogueQuantityPicks: {}
+      catalogueQuantityPicks: {},
+      isSendingOrder: false, // Nouveau: pour empêcher les clics multiples
+      addressLinksEnabled: true // Nouveau: pour les liens d'adresse cliquables
     };
 
     // ===================== TRADUCTION =====================
@@ -4693,6 +4757,41 @@
       } else {
         return { class: 'ok', text: 'En stock', available: true };
       }
+    }
+
+    // ===================== FONCTIONS POUR LES LIENS D'ADRESSE =====================
+    function createAddressLink(addressText) {
+      // Détecter les coordonnées GPS dans l'adresse
+      const gpsMatch = addressText.match(/GPS:\s*([-+]?\d*\.\d+),\s*([-+]?\d*\.\d+)/i);
+      
+      if (gpsMatch) {
+        const lat = gpsMatch[1];
+        const lng = gpsMatch[2];
+        const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
+        
+        return `<a href="${googleMapsUrl}" target="_blank" style="color: var(--accent2); text-decoration: underline; font-weight: bold;" 
+                onclick="event.stopPropagation(); window.open('${googleMapsUrl}', '_blank'); return false;">
+                ${addressText}</a>`;
+      }
+      
+      // Si pas de GPS, créer un lien de recherche Google Maps
+      const encodedAddress = encodeURIComponent(addressText);
+      const googleMapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+      
+      return `<a href="${googleMapsSearchUrl}" target="_blank" style="color: var(--accent2); text-decoration: underline; font-weight: bold;"
+              onclick="event.stopPropagation(); window.open('${googleMapsSearchUrl}', '_blank'); return false;">
+              ${addressText}</a>`;
+    }
+
+    function renderAddressWithLink(addressText) {
+      if (!state.addressLinksEnabled) return addressText;
+      
+      // Vérifier si c'est une adresse avec GPS
+      if (addressText.includes('GPS:')) {
+        return createAddressLink(addressText);
+      }
+      
+      return addressText;
     }
 
     // ===================== GOOGLE SHEETS INTÉGRATION =====================
@@ -6144,6 +6243,13 @@
         const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
+        
+        // Rendre l'adresse cliquable si elle contient GPS
+        let addressDisplay = order.address;
+        if (order.address && (order.address.includes('GPS:') || order.coords)) {
+          addressDisplay = renderAddressWithLink(order.address);
+        }
+        
         historyItem.innerHTML = `
           <div class="history-date">📅 ${formattedDate}</div>
           <div class="history-summary">
@@ -6158,6 +6264,11 @@
           ${order.orderId ? `
             <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
               📦 N°: ${order.orderId}
+            </div>
+          ` : ''}
+          ${addressDisplay.includes('href=') ? `
+            <div style="font-size:10px;color:var(--accent2);margin-top:4px;">
+              📍 ${addressDisplay}
             </div>
           ` : ''}
         `;
@@ -6180,10 +6291,20 @@
       })}\n`;
       detailsText += `👤 ${order.clientName}\n`;
       detailsText += `📱 ${order.clientPhone}\n`;
-      detailsText += `📍 ${order.address}\n`;
+      
+      // Rendre l'adresse cliquable dans les détails
+      let addressDisplay = order.address;
+      if (order.address && (order.address.includes('GPS:') || order.coords)) {
+        addressDisplay = renderAddressWithLink(order.address);
+        detailsText += `📍 ${addressDisplay}\n`;
+      } else {
+        detailsText += `📍 ${order.address}\n`;
+      }
+      
       if (order.coords) {
+        const googleMapsUrl = `https://maps.google.com/?q=${order.coords.lat},${order.coords.lng}`;
         detailsText += `🗺️ GPS: ${order.coords.lat}, ${order.coords.lng}\n`;
-        detailsText += `🔗 Maps: https://maps.google.com/?q=${order.coords.lat},${order.coords.lng}\n`;
+        detailsText += `🔗 Maps: ${googleMapsUrl}\n`;
       }
       detailsText += `\n🛒 ARTICLES :\n`;
       detailsText += '─'.repeat(50) + '\n';
@@ -6657,13 +6778,26 @@
       showToast(`📝 Commande préparée. Cliquez sur "Valider et envoyer" pour finaliser.`);
     }
 
-    // ===================== BOUTON "VALIDER ET ENVOYER" =====================
+    // ===================== BOUTON "VALIDER ET ENVOYER" - MODIFIÉ POUR UN CLIC UNIQUE =====================
     $('sendOrderBtn').onclick = async () => {
       try {
+        // Empêcher les clics multiples
+        if (state.isSendingOrder) {
+          showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
+          return;
+        }
+
         if (!state.pendingOrder) {
           showToast('❌ Aucune commande en attente', 'error');
           return;
         }
+
+        // Désactiver le bouton pendant l'envoi
+        state.isSendingOrder = true;
+        const sendBtn = $('sendOrderBtn');
+        sendBtn.disabled = true;
+        sendBtn.classList.add('sending');
+        sendBtn.innerHTML = '⏳ Envoi en cours...';
 
         const orderData = state.pendingOrder;
         
@@ -6680,9 +6814,21 @@
         
         envoyerMessageClient(commandeId);
         
+        const t = TRANSLATIONS[state.currentLanguage];
+        showToast(`✅ ${t.toastOrderValidated}`);
+        
       } catch (error) {
         console.error('Erreur validation commande:', error);
         showToast('❌ Erreur lors de la validation de la commande', 'error');
+      } finally {
+        // Réactiver le bouton après 3 secondes
+        setTimeout(() => {
+          state.isSendingOrder = false;
+          const sendBtn = $('sendOrderBtn');
+          sendBtn.disabled = false;
+          sendBtn.classList.remove('sending');
+          sendBtn.innerHTML = '✅ Valider et envoyer';
+        }, 3000);
       }
     };
 
@@ -6709,6 +6855,7 @@
       }
 
       state.pendingOrder = null;
+      state.isSendingOrder = false;
 
       $('cartTopBtn').onclick = () => {
         $('drawer').classList.add('open');
@@ -6993,7 +7140,7 @@
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '40.0'
+        version: '41.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
