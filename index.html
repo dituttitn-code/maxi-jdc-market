@@ -5200,22 +5200,28 @@ window.CONFIG = CONFIG;
       section.style.display = 'block';
       grid.innerHTML = '';
       similar.forEach(product => {
-        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-        const stockStatus = getStockStatus(product.stock);
-        const card = document.createElement('div');
-        card.className = 'similar-product-card';
-        card.innerHTML = `
-          <div class="similar-product-image">
-            <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
-          </div>
-          <div class="similar-product-info">
-            <div class="similar-product-name">${product.name}</div>
-            <div class="similar-product-price">${formatPrice(product.price)}</div>
-            <div class="similar-product-stock ${stockStatus.class}">
-              ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
-            </div>
-          </div>
-        `;
+        const imgSrc = product.image && product.image.trim() !== ""
+  ? product.image
+  : `${CONFIG.imagesBasePath}placeholder.jpg`;
+
+card.innerHTML = `
+  <div class="similar-product-image">
+    <img
+      src="${imgSrc}"
+      alt="${product.name}"
+      loading="lazy"
+      onerror="this.src='${CONFIG.imagesBasePath}placeholder.jpg'"
+    >
+  </div>
+  <div class="similar-product-info">
+    <div class="similar-product-name">${product.name}</div>
+    <div class="similar-product-price">${formatPrice(product.price)}</div>
+    <div class="similar-product-stock ${stockStatus.class}">
+      ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠' : '✗'} ${stockStatus.text}
+    </div>
+  </div>
+`;
+
         card.addEventListener('click', () => {
           closeProductModal();
           setTimeout(() => openProductModal(product), 300);
@@ -6697,6 +6703,7 @@ window.CONFIG = CONFIG;
 
 </body>
 </html>
+
 
 
 
