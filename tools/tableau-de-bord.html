@@ -127,33 +127,17 @@
       font-size: 40px;
       color: var(--yellow);
     }
-    .product-details {
-      flex: 1;
-    }
+    .product-details { flex: 1; }
     .product-name {
       font-size: 18px;
       font-weight: 900;
       color: var(--txt);
       margin-bottom: 5px;
     }
-    .product-stats {
-      display: flex;
-      gap: 15px;
-      font-size: 13px;
-    }
-    .product-stat {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    .stat-value {
-      font-weight: 900;
-      color: var(--green);
-    }
-    .stat-label {
-      color: var(--muted);
-      font-size: 11px;
-    }
+    .product-stats { display: flex; gap: 15px; font-size: 13px; }
+    .product-stat { display: flex; flex-direction: column; gap: 3px; }
+    .stat-value { font-weight: 900; color: var(--green); }
+    .stat-label { color: var(--muted); font-size: 11px; }
 
     /* CHART CONTAINER */
     .chart-container {
@@ -162,12 +146,7 @@
       gap: 20px;
       margin-top: 20px;
     }
-
-    .chart-card {
-      flex: 1 1 calc(50% - 20px);
-      min-width: 300px;
-    }
-
+    .chart-card { flex: 1 1 calc(50% - 20px); min-width: 300px; }
     .sectionTitle{
       display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px
     }
@@ -213,18 +192,12 @@
       transition: all 0.2s;
       white-space:nowrap;
     }
-
     .statut-select:focus {
       outline: none;
       border-color: var(--green);
       box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
     }
-
-    .statut-select option {
-      background: var(--card);
-      color: var(--txt);
-      padding: 8px;
-    }
+    .statut-select option { background: var(--card); color: var(--txt); padding: 8px; }
 
     /* ✅ ARTICLES (plus large) */
     .articles-cell {
@@ -512,20 +485,19 @@
 
   <div class="toast" id="toast"></div>
 
-  <!-- ✅ CONFIG (doit être chargé AVANT le script principal) -->
+  <!-- ✅ config.js obligatoire -->
   <script src="./config.js"></script>
 
   <script>
-    // ✅ Lecture config.js (avec fallback si absent)
-    const APP_CONFIG = (window.APP_CONFIG && typeof window.APP_CONFIG === "object") ? window.APP_CONFIG : {};
+    // =========================
+    // CONFIG (UNIQUEMENT config.js)
+    // =========================
+    const APP_CONFIG = window.APP_CONFIG;
 
-    // ✅ On ne touche pas aux commandes/fonctions API: juste la source des constantes
-    const API_URL = APP_CONFIG.API_URL || "https://script.google.com/macros/s/AKfycbyvppJUxeCw2RU2RMu9GkBQktyZhVUkaUz_skV_naARek23JJhx8xdoB3DQb9-qJSS6/exec";
-    const STATUTS = Array.isArray(APP_CONFIG.STATUTS) && APP_CONFIG.STATUTS.length
-      ? APP_CONFIG.STATUTS
-      : ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
-
-    const AUTO_REFRESH_MS = Number(APP_CONFIG.AUTO_REFRESH_MS || 30000);
+    // ⚠️ pas de fallback URL: on exige config.js
+    const API_URL = APP_CONFIG && APP_CONFIG.API_URL ? String(APP_CONFIG.API_URL) : "";
+    const STATUTS = Array.isArray(APP_CONFIG && APP_CONFIG.STATUTS) ? APP_CONFIG.STATUTS : ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
+    const AUTO_REFRESH_MS = Number((APP_CONFIG && APP_CONFIG.AUTO_REFRESH_MS) || 30000);
 
     const state = {
       orders: [],
@@ -637,9 +609,6 @@
           const name = (a.produit || "Produit").trim();
           const q = num(a.quantite);
 
-          // revenu:
-          // 1) si prix_total présent -> on l'utilise
-          // 2) sinon -> on répartit total commande
           const lineRevenue = a.prix_total > 0 ? num(a.prix_total) : (orderTotal * (q / totalQty));
 
           if (!map.has(name)) map.set(name, { name, quantity: 0, revenue: 0 });
@@ -657,6 +626,9 @@
 
     async function loadData() {
       try {
+        // ✅ config.js obligatoire
+        if (!API_URL) throw new Error("API_URL manquant dans config.js");
+
         const ordersResponse = await fetch(`${API_URL}?method=getorders&t=${Date.now()}`, { cache: "no-store" });
         if (!ordersResponse.ok) throw new Error("API commandes non disponible");
         const ordersData = await ordersResponse.json();
@@ -676,7 +648,7 @@
         state.apiStatus = 'online';
         $("apiStatus").className = "api-status api-online";
         $("apiStatus").innerHTML = '<span><i class="fas fa-circle"></i></span><span>API Connectée</span>';
-        $("dataSourceInfo").textContent = "Source des données : API Google Sheets";
+        $("dataSourceInfo").textContent = "Source des données : API (config.js)";
 
         state.topProducts = computeTopProductsFromOrders(state.orders);
         return true;
@@ -719,13 +691,9 @@
         const dayKey = d.toISOString().slice(0,10);
         const hour = d.getHours();
 
-        // ventes par jour
         state.analytics.salesByDay[dayKey] = (state.analytics.salesByDay[dayKey] || 0) + num(order.total);
-
-        // CA par heure (optionnel)
         state.analytics.salesByHourRevenue[hour] = (state.analytics.salesByHourRevenue[hour] || 0) + num(order.total);
 
-        // commandes count
         state.analytics.ordersByHour[hour] = (state.analytics.ordersByHour[hour] || 0) + 1;
         state.analytics.ordersByDay[dayKey] = (state.analytics.ordersByDay[dayKey] || 0) + 1;
 
@@ -764,7 +732,6 @@
       $("ordersToday").textContent = state.analytics.ordersToday;
       $("revenueToday").textContent = formatPrice(state.analytics.revenueToday);
 
-      // Table commandes
       const allOrdersBody = $("allOrdersBody");
       allOrdersBody.innerHTML = "";
 
@@ -802,7 +769,6 @@
         });
       }
 
-      // Table Top 10 produits
       const topProductsBody = $("topProductsBody");
       topProductsBody.innerHTML = "";
       if (state.topProducts.length === 0) {
@@ -908,7 +874,6 @@
       state.charts.products.update();
     }
 
-    // ✅ menu déroulant: commandes par heure / par jour
     function updateActivityChart() {
       const mode = $("activityMode").value;
 
@@ -926,7 +891,6 @@
         return;
       }
 
-      // mode day : 30 derniers jours
       const labels = [];
       const data = [];
       const today = new Date();
@@ -982,6 +946,8 @@
     async function createTestOrder() {
       try {
         showToast("⏳ Création commande test...", "info");
+
+        if (!API_URL) throw new Error("API_URL manquant dans config.js");
 
         const payload = new URLSearchParams({
           method: "saveOrder",
