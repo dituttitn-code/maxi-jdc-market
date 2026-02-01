@@ -1704,6 +1704,313 @@
       box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
     }
 
+    /* MODAL CATALOGUE - NOUVEAU */
+    .catalogue-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.98);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2100;
+      padding: 0;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .catalogue-modal-overlay.open {
+      display: flex;
+    }
+
+    .catalogue-modal-container {
+      width: 100%;
+      height: 100%;
+      max-width: 100vw;
+      max-height: 100vh;
+      background: linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .catalogue-header {
+      padding: 15px;
+      background: rgba(10, 25, 47, 0.95);
+      border-bottom: 1px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      backdrop-filter: blur(10px);
+    }
+
+    .catalogue-title {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .catalogue-title h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--accent);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .catalogue-search {
+      margin: 15px 15px 0;
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      padding: 8px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .catalogue-search input {
+      flex: 1;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .08);
+      color: var(--text);
+      padding: 0 12px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .catalogue-search input:focus {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, .12);
+    }
+
+    .catalogue-search-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      background: rgba(0, 255, 136, 0.15);
+      color: var(--accent);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .catalogue-content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 15px;
+    }
+
+    .catalogue-grid {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 15px;
+    }
+
+    @media (min-width: 480px) {
+      .catalogue-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 768px) {
+      .catalogue-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .catalogue-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .catalogue-item {
+      background: var(--card2);
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .catalogue-item:hover {
+      border-color: var(--accent2);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 212, 255, 0.1);
+    }
+
+    .catalogue-item-header {
+      display: flex;
+      gap: 10px;
+    }
+
+    .catalogue-item-image {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, .1);
+      background: linear-gradient(135deg, #1a365d 0%, #112240 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .catalogue-item-image img {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+    }
+
+    .catalogue-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .catalogue-item-name {
+      font-weight: 900;
+      font-size: 14px;
+      line-height: 1.3;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .catalogue-item-code {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .catalogue-item-price {
+      font-weight: 900;
+      font-size: 16px;
+      color: var(--accent);
+    }
+
+    .catalogue-item-old-price {
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: line-through;
+      margin-right: 8px;
+    }
+
+    .catalogue-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .catalogue-qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 4px;
+      border: 1px solid var(--line);
+    }
+
+    .catalogue-qty-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .catalogue-qty-btn:hover {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .catalogue-qty-input {
+      width: 50px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid var(--accent);
+      background: rgba(0, 255, 136, 0.1);
+      color: var(--accent);
+      text-align: center;
+      font-size: 14px;
+      font-weight: 900;
+      outline: none;
+    }
+
+    .catalogue-add-btn {
+      flex: 1;
+      height: 40px;
+      border-radius: 8px;
+      border: 2px solid var(--accent);
+      background: rgba(0, 255, 136, 0.15);
+      color: var(--accent);
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .catalogue-add-btn:hover {
+      background: rgba(0, 255, 136, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .catalogue-add-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      border-color: var(--muted);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--muted);
+    }
+
+    .catalogue-add-btn.has-qty {
+      background: rgba(0, 212, 255, 0.2);
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+
+    .catalogue-add-btn.has-qty:hover {
+      background: rgba(0, 212, 255, 0.3);
+    }
+
+    .catalogue-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+
+    .catalogue-empty-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+
     /* PANIER */
     .drawer-overlay {
       position: fixed;
@@ -3246,6 +3553,10 @@
       .stock-input {
         width: 60px;
       }
+
+      .catalogue-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     @media (max-width: 480px) {
@@ -3354,6 +3665,10 @@
         width: 45px;
         height: 45px;
         font-size: 20px;
+      }
+
+      .catalogue-grid {
+        grid-template-columns: repeat(1, 1fr);
       }
     }
 
@@ -3764,7 +4079,7 @@
     </div>
   </aside>
 
-  <!-- MODAL PRODUIT -->
+  <!-- MODAL PRODUIT (EXISTANT) -->
   <div class="product-modal-overlay" id="productModal">
     <div class="product-modal-container">
       <div class="modal-header">
@@ -3848,6 +4163,37 @@
           <button class="modal-close-bottom-btn" id="modalCloseBottomBtn">
             ✕ Fermer
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CATALOGUE - NOUVEAU -->
+  <div class="catalogue-modal-overlay" id="catalogueModal">
+    <div class="catalogue-modal-container">
+      <div class="catalogue-header">
+        <div class="catalogue-title">
+          <h3 id="catalogueTitle">Catalogue</h3>
+        </div>
+        <button class="modal-close-btn" id="closeCatalogueModalBtn">×</button>
+      </div>
+      
+      <div class="catalogue-search">
+        <input type="text" id="catalogueSearchInput" placeholder="🔍 Rechercher dans le catalogue...">
+        <button class="catalogue-search-btn" id="catalogueSearchBtn">
+          ↵
+        </button>
+      </div>
+      
+      <div class="catalogue-content">
+        <div class="catalogue-grid" id="catalogueGrid">
+          <!-- Les produits du catalogue seront ajoutés dynamiquement ici -->
+        </div>
+        
+        <div class="catalogue-empty" id="catalogueEmpty" style="display:none">
+          <div class="catalogue-empty-icon">🔍</div>
+          <h4>Aucun produit trouvé</h4>
+          <p>Essayez de modifier votre recherche</p>
         </div>
       </div>
     </div>
@@ -3991,8 +4337,6 @@
       syncInterval: 30000,
       dashboardUrl: 'tools/tableau-de-bord.html',
       trackingUrl: 'tools/suivi-commandes.html',
-
-      // URL Google Apps Script CORRIGÉE pour résoudre les problèmes de colonnes
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
       commandeApiUrl: "https://script.google.com/macros/s/AKfycbwL59yDDEzYXu5heg9Y3g8sFWdU_aEFRw33HiyACrqSoVf2YhC1REGrlNFehzKkjA2q/exec",
     };
@@ -4047,6 +4391,7 @@
         items: "article(s)",
         noProductsFound: "Aucun produit trouvé",
         addToCart: "🛒 Ajouter au panier",
+        sendToCart: "📤 Envoyer au panier",
         similarProducts: "🛍️ Articles similaires",
         closeModal: "✕ Fermer",
         codeLabel: "Code:",
@@ -4106,6 +4451,7 @@
         items: "item(s)",
         noProductsFound: "No products found",
         addToCart: "🛒 Add to cart",
+        sendToCart: "📤 Send to cart",
         similarProducts: "🛍️ Similar products",
         closeModal: "✕ Close",
         codeLabel: "Code:",
@@ -4165,6 +4511,7 @@
         items: "منتج(ات)",
         noProductsFound: "لم يتم العثور على منتجات",
         addToCart: "🛒 إضافة إلى السلة",
+        sendToCart: "📤 إرسال إلى السلة",
         similarProducts: "🛍️ منتجات مماثلة",
         closeModal: "✕ إغلاق",
         codeLabel: "الرمز:",
@@ -4230,7 +4577,10 @@
       googleSheetsStock: new Map(),
       currentLanguage: 'fr',
       clientSpaceVisible: false,
-      pendingOrder: null
+      pendingOrder: null,
+      catalogueProducts: [],
+      catalogueSearchQuery: '',
+      catalogueQuantityPicks: {}
     };
 
     // ===================== TRADUCTION =====================
@@ -4977,13 +5327,216 @@
         `;
         card.addEventListener('click', () => {
           if (stockStatus.available) {
-            openProductModal(product);
+            openCatalogueForCategory(product.categoryKey);
           } else {
             showToast('❌ Ce produit est en rupture de stock', 'error');
           }
         });
         grid.appendChild(card);
       });
+    }
+
+    // ===================== MODAL CATALOGUE - NOUVEAU =====================
+    function openCatalogueForCategory(categoryKey) {
+      const category = CATEGORIES.find(c => c.key === categoryKey);
+      if (!category) return;
+      
+      const products = state.products.get(categoryKey) || [];
+      if (products.length === 0) {
+        showToast('⚠️ Aucun produit dans cette catégorie', 'warning');
+        return;
+      }
+      
+      state.catalogueProducts = products;
+      state.catalogueSearchQuery = '';
+      $('catalogueTitle').textContent = category.label;
+      $('catalogueSearchInput').value = '';
+      
+      // Réinitialiser les quantités
+      state.catalogueQuantityPicks = {};
+      
+      renderCatalogue();
+      $('catalogueModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function renderCatalogue() {
+      const grid = $('catalogueGrid');
+      const empty = $('catalogueEmpty');
+      
+      let filteredProducts = state.catalogueProducts;
+      if (state.catalogueSearchQuery) {
+        const query = state.catalogueSearchQuery.toLowerCase();
+        filteredProducts = filteredProducts.filter(p =>
+          p.name.toLowerCase().includes(query) ||
+          p.code.toLowerCase().includes(query)
+        );
+      }
+      
+      if (filteredProducts.length === 0) {
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+      
+      grid.style.display = 'grid';
+      empty.style.display = 'none';
+      grid.innerHTML = '';
+      
+      filteredProducts.forEach(product => {
+        const productId = generateProductId(product);
+        const quantity = state.catalogueQuantityPicks[productId] || 0;
+        const availableStock = getAvailableStock(product);
+        const stockStatus = getStockStatus(availableStock);
+        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+        
+        const item = document.createElement('div');
+        item.className = 'catalogue-item';
+        item.innerHTML = `
+          <div class="catalogue-item-header">
+            <div class="catalogue-item-image">
+              <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
+            </div>
+            <div class="catalogue-item-info">
+              <div class="catalogue-item-name">${product.name}</div>
+              <div class="catalogue-item-code">Code: ${product.code}</div>
+              <div class="catalogue-item-price">
+                ${product.isPromotion && product.oldPrice && product.oldPrice > product.price
+                  ? `<span class="catalogue-item-old-price">${formatPrice(product.oldPrice)}</span>`
+                  : ''}
+                <span>${formatPrice(product.price)}</span>
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+                Stock: ${stockStatus.text}
+              </div>
+            </div>
+          </div>
+          <div class="catalogue-item-actions">
+            <div class="catalogue-qty-controls">
+              <button class="catalogue-qty-btn" data-action="decrease" data-id="${productId}">−</button>
+              <input type="number" class="catalogue-qty-input" 
+                data-id="${productId}"
+                value="${quantity}"
+                min="0"
+                max="${availableStock}"
+                step="1">
+              <button class="catalogue-qty-btn" data-action="increase" data-id="${productId}">+</button>
+            </div>
+            <button class="catalogue-add-btn ${quantity > 0 ? 'has-qty' : ''}" 
+                    data-id="${productId}"
+                    ${stockStatus.available ? '' : 'disabled'}>
+              ${quantity > 0 
+                ? `📤 ${TRANSLATIONS[state.currentLanguage].sendToCart} ${quantity}` 
+                : `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`}
+            </button>
+          </div>
+        `;
+        
+        grid.appendChild(item);
+      });
+      
+      // Ajouter les événements
+      setupCatalogueEvents();
+    }
+
+    function setupCatalogueEvents() {
+      // Boutons + et -
+      document.querySelectorAll('.catalogue-qty-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const action = e.target.dataset.action;
+          const productId = e.target.dataset.id;
+          const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+          let value = parseInt(input.value) || 0;
+          
+          if (action === 'increase') {
+            const availableStock = parseInt(input.max) || 0;
+            if (value < availableStock) {
+              value++;
+            } else {
+              showToast('❌ Stock limité', 'warning');
+            }
+          } else if (action === 'decrease') {
+            value = Math.max(0, value - 1);
+          }
+          
+          input.value = value;
+          updateCatalogueQuantity(productId, value);
+        });
+      });
+      
+      // Inputs de quantité
+      document.querySelectorAll('.catalogue-qty-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const productId = e.target.dataset.id;
+          let value = parseInt(e.target.value) || 0;
+          const max = parseInt(e.target.max) || 0;
+          
+          if (value > max) {
+            value = max;
+            e.target.value = value;
+            showToast('❌ Stock limité', 'warning');
+          }
+          
+          updateCatalogueQuantity(productId, value);
+        });
+        
+        input.addEventListener('change', (e) => {
+          const productId = e.target.dataset.id;
+          let value = parseInt(e.target.value) || 0;
+          if (value < 0) value = 0;
+          e.target.value = value;
+          updateCatalogueQuantity(productId, value);
+        });
+      });
+      
+      // Boutons ajouter au panier
+      document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const productId = e.target.dataset.id;
+          const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
+          const quantity = state.catalogueQuantityPicks[productId] || 0;
+          
+          if (product && quantity > 0) {
+            addToCart(productId, product, quantity);
+            // Réinitialiser la quantité après ajout
+            state.catalogueQuantityPicks[productId] = 0;
+            // Mettre à jour l'affichage
+            const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+            const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
+            if (input) input.value = 0;
+            if (addBtn) {
+              addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
+              addBtn.classList.remove('has-qty');
+            }
+          } else {
+            showToast('❌ Quantité invalide', 'error');
+          }
+        });
+      });
+    }
+
+    function updateCatalogueQuantity(productId, quantity) {
+      state.catalogueQuantityPicks[productId] = quantity;
+      
+      // Mettre à jour le bouton
+      const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
+      if (addBtn) {
+        const t = TRANSLATIONS[state.currentLanguage];
+        if (quantity > 0) {
+          addBtn.textContent = `📤 ${t.sendToCart} ${quantity}`;
+          addBtn.classList.add('has-qty');
+        } else {
+          addBtn.textContent = `🛒 ${t.addToCart}`;
+          addBtn.classList.remove('has-qty');
+        }
+      }
+    }
+
+    function closeCatalogueModal() {
+      $('catalogueModal').classList.remove('open');
+      document.body.style.overflow = '';
+      state.catalogueProducts = [];
+      state.catalogueQuantityPicks = {};
     }
 
     // ===================== NAVIGATION ARTICLES =====================
@@ -4994,97 +5547,73 @@
       );
     }
 
-    function updateModalNavigationButtons() {
-      if (!state.currentModalProduct) return;
-      const currentIndex = findProductIndex(state.currentModalProduct);
-      const prevBtn = $('modalPrevProduct');
-      const nextBtn = $('modalNextProduct');
-      prevBtn.disabled = currentIndex <= 0;
-      nextBtn.disabled = currentIndex >= state.filteredProducts.length - 1;
-    }
-
-    function showPrevProduct() {
-      if (!state.currentModalProduct) return;
-      const currentIndex = findProductIndex(state.currentModalProduct);
-      if (currentIndex > 0) {
-        const prevProduct = state.filteredProducts[currentIndex - 1];
-        openProductModal(prevProduct);
-      }
-    }
-
-    function showNextProduct() {
-      if (!state.currentModalProduct) return;
-      const currentIndex = findProductIndex(state.currentModalProduct);
-      if (currentIndex < state.filteredProducts.length - 1) {
-        const nextProduct = state.filteredProducts[currentIndex + 1];
-        openProductModal(nextProduct);
-      }
-    }
-
     // ===================== MODAL PRODUIT =====================
     function openProductModal(product) {
-      if (!product) return;
-      state.currentModalProduct = product;
-      const productId = generateProductId(product);
-      const quantity = state.quantityPicks[productId] || 0;
-      const availableStock = getAvailableStock(product);
-      const stockStatus = getStockStatus(availableStock);
-      $('modalProductName').textContent = product.name;
-      $('modalProductNameFull').textContent = product.name;
-      if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
-        $('modalCurrentPrice').textContent = formatPrice(product.price);
-        $('modalOldPrice').textContent = formatPrice(product.oldPrice);
-        $('modalOldPrice').style.display = 'block';
-        const discountPercent = product.discountPercent || Math.round((1 - product.price / product.oldPrice) * 100);
-        if (discountPercent > 0) {
-          $('modalDiscount').textContent = `-${discountPercent}%`;
-          $('modalDiscount').style.display = 'block';
-          $('modalPromoBadge').style.display = 'block';
-          $('modalPromoBadge').textContent = `${discountPercent}% OFF`;
+      // Cette fonction est conservée pour compatibilité
+      closeCatalogueModal();
+      setTimeout(() => {
+        if (!product) return;
+        state.currentModalProduct = product;
+        const productId = generateProductId(product);
+        const quantity = state.quantityPicks[productId] || 0;
+        const availableStock = getAvailableStock(product);
+        const stockStatus = getStockStatus(availableStock);
+        $('modalProductName').textContent = product.name;
+        $('modalProductNameFull').textContent = product.name;
+        if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
+          $('modalCurrentPrice').textContent = formatPrice(product.price);
+          $('modalOldPrice').textContent = formatPrice(product.oldPrice);
+          $('modalOldPrice').style.display = 'block';
+          const discountPercent = product.discountPercent || Math.round((1 - product.price / product.oldPrice) * 100);
+          if (discountPercent > 0) {
+            $('modalDiscount').textContent = `-${discountPercent}%`;
+            $('modalDiscount').style.display = 'block';
+            $('modalPromoBadge').style.display = 'block';
+            $('modalPromoBadge').textContent = `${discountPercent}% OFF`;
+          } else {
+            $('modalDiscount').style.display = 'none';
+            $('modalPromoBadge').style.display = 'none';
+          }
         } else {
+          $('modalCurrentPrice').textContent = formatPrice(product.price);
+          $('modalOldPrice').style.display = 'none';
           $('modalDiscount').style.display = 'none';
           $('modalPromoBadge').style.display = 'none';
         }
-      } else {
-        $('modalCurrentPrice').textContent = formatPrice(product.price);
-        $('modalOldPrice').style.display = 'none';
-        $('modalDiscount').style.display = 'none';
-        $('modalPromoBadge').style.display = 'none';
-      }
-      $('modalProductCode').textContent = product.code;
-      $('modalProductCategory').textContent = product.category;
-      $('modalProductStock').textContent = stockStatus.text;
-      $('modalProductStock').style.color = stockStatus.class === 'ok' ? 'var(--accent)' : stockStatus.class === 'low' ? 'var(--warning)' : 'var(--danger)';
-      const quantityInput = $('modalQuantityInput');
-      quantityInput.value = quantity;
-      quantityInput.max = Math.min(999, availableStock);
-      const addBtn = $('modalAddToCartBtn');
-      addBtn.disabled = quantity === 0 || !stockStatus.available;
-      const t = TRANSLATIONS[state.currentLanguage];
-      addBtn.textContent = quantity > 0 ? `🛒 ${t.addToCart} ${quantity}` : `🛒 ${t.addToCart}`;
-      const img = $('modalProductImage');
-      const noPhoto = $('modalNoPhoto');
-      const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-      img.src = imgSrc;
-      img.onload = () => {
-        img.style.display = 'block';
-        noPhoto.style.display = 'none';
-      };
-      img.onerror = () => {
-        img.style.display = 'none';
-        noPhoto.style.display = 'flex';
-        noPhoto.textContent = `Aucune photo pour ${product.code}`;
-      };
-      updateModalNavigationButtons();
-      $('modalPrevImageBtn').style.display = 'none';
-      $('modalNextImageBtn').style.display = 'none';
-      $('imageNavBar').innerHTML = '';
-      renderSimilarProducts(product);
-      $('productModal').classList.add('open');
-      document.body.style.overflow = 'hidden';
-      setTimeout(() => {
-        quantityInput.focus();
-        quantityInput.select();
+        $('modalProductCode').textContent = product.code;
+        $('modalProductCategory').textContent = product.category;
+        $('modalProductStock').textContent = stockStatus.text;
+        $('modalProductStock').style.color = stockStatus.class === 'ok' ? 'var(--accent)' : stockStatus.class === 'low' ? 'var(--warning)' : 'var(--danger)';
+        const quantityInput = $('modalQuantityInput');
+        quantityInput.value = quantity;
+        quantityInput.max = Math.min(999, availableStock);
+        const addBtn = $('modalAddToCartBtn');
+        addBtn.disabled = quantity === 0 || !stockStatus.available;
+        const t = TRANSLATIONS[state.currentLanguage];
+        addBtn.textContent = quantity > 0 ? `🛒 ${t.addToCart} ${quantity}` : `🛒 ${t.addToCart}`;
+        const img = $('modalProductImage');
+        const noPhoto = $('modalNoPhoto');
+        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+        img.src = imgSrc;
+        img.onload = () => {
+          img.style.display = 'block';
+          noPhoto.style.display = 'none';
+        };
+        img.onerror = () => {
+          img.style.display = 'none';
+          noPhoto.style.display = 'flex';
+          noPhoto.textContent = `Aucune photo pour ${product.code}`;
+        };
+        $('modalPrevImageBtn').style.display = 'none';
+        $('modalNextImageBtn').style.display = 'none';
+        $('imageNavBar').innerHTML = '';
+        renderSimilarProducts(product);
+        $('productModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+          quantityInput.focus();
+          quantityInput.select();
+        }, 300);
       }, 300);
     }
 
@@ -5092,50 +5621,6 @@
       $('productModal').classList.remove('open');
       document.body.style.overflow = '';
       state.currentModalProduct = null;
-    }
-
-    function updateModalQuantity() {
-      if (!state.currentModalProduct) return;
-      const productId = generateProductId(state.currentModalProduct);
-      const quantityInput = $('modalQuantityInput');
-      let quantity = parseInt(quantityInput.value) || 0;
-      const availableStock = getAvailableStock(state.currentModalProduct);
-      if (quantity > availableStock) {
-        quantity = availableStock;
-        quantityInput.value = quantity;
-        showToast(`⚠️ Stock limité à ${availableStock} unités`, 'warning');
-      }
-      state.quantityPicks[productId] = quantity;
-      const addBtn = $('modalAddToCartBtn');
-      addBtn.disabled = quantity === 0 || availableStock === 0;
-      const t = TRANSLATIONS[state.currentLanguage];
-      addBtn.textContent = quantity > 0 ? `🛒 ${t.addToCart} ${quantity}` : `🛒 ${t.addToCart}`;
-    }
-
-    function handleQuantityInputChange() {
-      const quantityInput = $('modalQuantityInput');
-      let value = parseInt(quantityInput.value) || 0;
-      if (value < 0) value = 0;
-      if (value > 999) value = 999;
-      quantityInput.value = value;
-      updateModalQuantity();
-    }
-
-    function increaseQuantity() {
-      const quantityInput = $('modalQuantityInput');
-      let value = parseInt(quantityInput.value) || 0;
-      const availableStock = getAvailableStock(state.currentModalProduct);
-      value = Math.min(999, value + 1, availableStock);
-      quantityInput.value = value;
-      updateModalQuantity();
-    }
-
-    function decreaseQuantity() {
-      const quantityInput = $('modalQuantityInput');
-      let value = parseInt(quantityInput.value) || 0;
-      value = Math.max(0, value - 1);
-      quantityInput.value = value;
-      updateModalQuantity();
     }
 
     // ===================== ARTICLES SIMILAIRES =====================
@@ -5196,7 +5681,6 @@
       $('cartTopCount').textContent = cartCount;
       $('cartItemsCount').textContent = `${cartCount} ${TRANSLATIONS[state.currentLanguage].items}`;
       
-      // CORRECTION : Les frais de livraison doivent être de 3.00 dt SAUF si gratuit
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.00;
       let shippingText = formatPrice(shippingFee);
       
@@ -5311,11 +5795,6 @@
         showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded} Économie: ${formatPrice(saving)}`);
       } else {
         showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded}`);
-      }
-      if (state.currentModalProduct &&
-        generateProductId(state.currentModalProduct) === productId) {
-        state.quantityPicks[productId] = 0;
-        updateModalQuantity();
       }
     }
 
@@ -5883,28 +6362,24 @@
                       String(now.getMonth() + 1).padStart(2, '0') + 
                       String(now.getDate()).padStart(2, '0');
       
-      // Récupérer le dernier numéro de commande pour cette date
       const lastOrderKey = `last_order_${datePart}`;
       let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
       
       const sequencePart = String(lastOrderNumber + 1).padStart(3, '0');
       
-      // Format CMD-MAXI-AAAAAMMJJ-NNN
       return `CMD-MAXI-${datePart}-${sequencePart}`;
     }
 
-    // ===================== ENREGISTREMENT VERS GOOGLE SHEETS - CORRIGÉ =====================
+    // ===================== ENREGISTREMENT VERS GOOGLE SHEETS =====================
     async function enregistrerCommandeGoogleSheets(orderData) {
       try {
         showToast('📤 Enregistrement de la commande...', 'warning');
 
-        // Construire l'adresse complète avec GPS
         let adresseComplete = state.user.address || '';
         if (state.user.lat && state.user.lng) {
           adresseComplete += ` | GPS: ${state.user.lat}, ${state.user.lng}`;
         }
 
-        // CORRECTION : Formater les articles correctement
         let articlesText = '';
         let totalPanier = 0;
         
@@ -5912,7 +6387,6 @@
           const itemTotal = item.price * item.quantity;
           totalPanier += itemTotal;
           
-          // Format correct pour la colonne Articles
           articlesText += `${item.quantity}x ${item.name} (${item.code})\n`;
           articlesText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
           
@@ -5926,13 +6400,10 @@
           articlesText += '\n';
         });
         
-        // Calculs
         const sousTotal = totalPanier;
-        // CORRECTION IMPORTANTE : Les frais de livraison doivent être de 3.00 dt SAUF si livraison gratuite
         const livraison = sousTotal >= CONFIG.freeShipping ? 0 : 3.00;
         const total = sousTotal + livraison;
         
-        // Date formatée
         const now = new Date();
         const dateStr = now.toLocaleDateString('fr-FR', {
           day: '2-digit',
@@ -5942,22 +6413,19 @@
           minute: '2-digit'
         });
 
-        // CORRECTION FINALE : Structure des données pour Google Sheets
         const sheetData = {
-          // Colonnes de Google Sheets dans l'ordre correct
           'Date': dateStr,
-          'N_Commande': orderData.commandeId, // CORRECTION : Le bon numéro ici
-          'Nom_Client': state.user.name, // 👤 NOM CLIENT depuis "Détails de votre commande"
-          'Telephone': '+216 ' + state.user.phone, // 📞 TÉLÉPHONE
-          'Adresse': adresseComplete, // 📍 ADRESSE (colonne maintenant remplie)
-          'Articles': `COMMANDE: ${orderData.commandeId}\n` + articlesText, // 🛒 ARTICLES + numéro de commande
-          'Total': total.toFixed(2).replace('.', ','), // Format européen avec virgule
+          'N_Commande': orderData.commandeId,
+          'Nom_Client': state.user.name,
+          'Telephone': '+216 ' + state.user.phone,
+          'Adresse': adresseComplete,
+          'Articles': `COMMANDE: ${orderData.commandeId}\n` + articlesText,
+          'Total': total.toFixed(2).replace('.', ','),
           'Statut': 'NOUVELLE'
         };
 
         console.log('📊 Données envoyées à Google Sheets:', sheetData);
 
-        // CORRECTION : Préparer les données dans l'ordre exact attendu
         const postData = {
           'Date': sheetData.Date,
           'N_Commande': sheetData.N_Commande,
@@ -5969,13 +6437,11 @@
           'Statut': sheetData.Statut
         };
 
-        // Créer les paramètres URL encodés
         const params = new URLSearchParams();
         Object.keys(postData).forEach(key => {
           params.append(key, postData[key]);
         });
 
-        // CORRECTION : Utiliser POST avec mode 'cors'
         const response = await fetch(CONFIG.commandeApiUrl, {
           method: 'POST',
           mode: 'cors',
@@ -5992,7 +6458,6 @@
         const result = await response.text();
         console.log('✅ Réponse Google Sheets:', result);
 
-        // Incrémenter le compteur de commandes
         const datePart = now.getFullYear() + 
                         String(now.getMonth() + 1).padStart(2, '0') + 
                         String(now.getDate()).padStart(2, '0');
@@ -6000,7 +6465,6 @@
         let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
         localStorage.setItem(lastOrderKey, lastOrderNumber + 1);
         
-        // Jouer le son de notification
         playOrderNotificationSound();
         
         const t = TRANSLATIONS[state.currentLanguage];
@@ -6012,7 +6476,6 @@
         console.error('Erreur enregistrement Google Sheets:', error);
         showToast('⚠️ Commande créée mais erreur d\'enregistrement système', 'warning');
         
-        // Fallback : sauvegarder localement
         saveOrderToHistory(orderData);
         
         return orderData.commandeId;
@@ -6021,14 +6484,12 @@
 
     // ===================== ENVOI MESSAGE AU CLIENT =====================
     function envoyerMessageClient(commandeId) {
-      // Message avec le bon format de numéro de commande
       const message = `Merci pour votre commande chez MAXI JDC MARKET.
 📦 Votre commande, référence ${commandeId}, a bien été enregistrée.
 ⏳ Elle est actuellement en cours de préparation.
 📞 Nous vous contacterons prochainement pour la livraison.
 🔗 Pour suivre l'état de votre commande, utilisez le numéro ${commandeId} dans la section « Suivi commande » de votre espace client.`;
       
-      // Afficher dans une boîte de dialogue
       const modal = document.createElement('div');
       modal.style.cssText = `
         position: fixed;
@@ -6074,7 +6535,6 @@
       
       document.body.appendChild(modal);
       
-      // Overlay
       const overlay = document.createElement('div');
       overlay.style.cssText = `
         position: fixed;
@@ -6087,14 +6547,12 @@
       `;
       document.body.appendChild(overlay);
       
-      // Bouton copier
       modal.querySelector('#copyMsgBtn').onclick = () => {
         navigator.clipboard.writeText(message).then(() => {
           showToast('📋 Message copié dans le presse-papier');
         });
       };
       
-      // Bouton fermer
       const closeModal = () => {
         document.body.removeChild(modal);
         document.body.removeChild(overlay);
@@ -6104,7 +6562,7 @@
       overlay.onclick = closeModal;
     }
 
-    // ===================== COMMANDES - CORRIGÉ =====================
+    // ===================== COMMANDES =====================
     async function placeOrder() {
       if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
         showToast('❌ Veuillez compléter vos informations personnelles', 'error');
@@ -6124,11 +6582,9 @@
       }
 
       const savings = calculateTotalSavings();
-      // CORRECTION : Les frais de livraison de 3.00 dt doivent être ajoutés au total
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.00;
       const total = subtotal + shippingFee;
 
-      // Générer le numéro de commande
       const commandeId = genererNumeroCommande();
 
       let orderText = `📦 COMMANDE - MAXI JDC MARKET\n`;
@@ -6174,7 +6630,6 @@
         orderText += `💰 ÉCONOMIES TOTALES: ${formatPrice(savings.totalSavings)} (${savings.percentage}%)\n`;
       }
 
-      // CORRECTION : Afficher clairement les frais de livraison
       orderText += `Livraison: ${shippingFee === 0 ? 'GRATUIT' : formatPrice(shippingFee)}\n`;
       orderText += `TOTAL: ${formatPrice(total)}\n\n`;
 
@@ -6189,7 +6644,6 @@
       $('orderDetails').textContent = orderText;
       $('orderModal').classList.add('open');
 
-      // Les données sont conservées temporairement
       state.pendingOrder = {
         subtotal,
         shipping: shippingFee,
@@ -6206,7 +6660,6 @@
     // ===================== BOUTON "VALIDER ET ENVOYER" =====================
     $('sendOrderBtn').onclick = async () => {
       try {
-        // Récupérer les données de commande temporaires
         if (!state.pendingOrder) {
           showToast('❌ Aucune commande en attente', 'error');
           return;
@@ -6214,23 +6667,17 @@
 
         const orderData = state.pendingOrder;
         
-        // Enregistrer D'ABORD dans l'historique local
         saveOrderToHistory(orderData);
         
-        // Envoyer vers Google Sheets
         const commandeId = await enregistrerCommandeGoogleSheets(orderData);
         
-        // Vider le panier APRÈS enregistrement réussi
         state.cart = {};
         updateCartUI();
         
-        // Nettoyer la commande en attente
         state.pendingOrder = null;
         
-        // Fermer le modal
         $('orderModal').classList.remove('open');
         
-        // Envoyer le message au client
         envoyerMessageClient(commandeId);
         
       } catch (error) {
@@ -6261,7 +6708,6 @@
         console.warn('Erreur chargement état:', e);
       }
 
-      // Initialiser la commande en attente
       state.pendingOrder = null;
 
       $('cartTopBtn').onclick = () => {
@@ -6357,23 +6803,18 @@
         }
       };
 
-      $('modalPrevProduct').onclick = showPrevProduct;
-      $('modalNextProduct').onclick = showNextProduct;
       $('closeProductModalBtn').onclick = $('modalCloseBottomBtn').onclick = closeProductModal;
-      $('modalDecreaseBtn').onclick = decreaseQuantity;
-      $('modalIncreaseBtn').onclick = increaseQuantity;
-      $('modalQuantityInput').addEventListener('input', handleQuantityInputChange);
-      $('modalQuantityInput').addEventListener('change', handleQuantityInputChange);
 
-      $('modalAddToCartBtn').onclick = () => {
-        if (!state.currentModalProduct) return;
-        const productId = generateProductId(state.currentModalProduct);
-        const quantityInput = $('modalQuantityInput');
-        const quantity = parseInt(quantityInput.value) || 0;
-        if (quantity > 0) {
-          addToCart(productId, state.currentModalProduct, quantity);
-          closeProductModal();
-        }
+      $('closeCatalogueModalBtn').onclick = closeCatalogueModal;
+
+      // Recherche catalogue
+      $('catalogueSearchInput').addEventListener('input', (e) => {
+        state.catalogueSearchQuery = e.target.value;
+        renderCatalogue();
+      });
+
+      $('catalogueSearchBtn').onclick = () => {
+        $('catalogueSearchInput').focus();
       };
 
       $('qrInfoBtn').onclick = openQRModal;
@@ -6552,7 +6993,7 @@
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '39.0'
+        version: '40.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
@@ -6567,11 +7008,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
