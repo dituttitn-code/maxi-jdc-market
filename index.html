@@ -2565,6 +2565,340 @@
       gap: 10px;
     }
 
+    /* MODAL CATALOGUE */
+    .catalogue-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 4500;
+      padding: 0;
+      backdrop-filter: blur(20px);
+    }
+
+    .catalogue-modal-overlay.open {
+      display: flex;
+    }
+
+    .catalogue-modal {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
+      border-radius: 0;
+      border: none;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .catalogue-modal-header {
+      padding: 15px 20px;
+      background: rgba(0, 255, 136, 0.1);
+      border-bottom: 1px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .catalogue-modal-header h3 {
+      margin: 0;
+      font-size: 18px;
+      color: var(--accent);
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .catalogue-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ARTICLE DANS CATALOGUE */
+    .catalogue-item {
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--card2);
+      padding: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .2);
+      transition: all 0.3s ease;
+      display: flex;
+      gap: 15px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .catalogue-item.promo-item {
+      border: 2px solid #ff9900;
+      background: linear-gradient(135deg, var(--card2) 0%, #1a1a2e 100%);
+      box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2);
+    }
+
+    .catalogue-item:hover {
+      border-color: var(--accent2);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 212, 255, 0.15);
+    }
+
+    .catalogue-item-image {
+      width: 100px;
+      height: 100px;
+      min-width: 100px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      background: linear-gradient(135deg, #1a365d 0%, #112240 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      padding: 8px;
+    }
+
+    .catalogue-item.promo-item .catalogue-item-image {
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      background: linear-gradient(135deg, #0a1929 0%, #1a1a2e 100%);
+    }
+
+    .catalogue-item-image img {
+      max-width: 95%;
+      max-height: 95%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .catalogue-item-no-photo {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 12px;
+      background: linear-gradient(135deg, var(--card) 0%, var(--card2) 100%);
+      text-align: center;
+      padding: 15px;
+    }
+
+    /* BADGE PROMO */
+    .catalogue-promo-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: linear-gradient(135deg, #ff0000 0%, #ff6b00 100%);
+      color: white;
+      font-weight: 900;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      z-index: 2;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 2px 8px rgba(255, 107, 0, 0.5);
+      animation: pulse 1.5s infinite;
+      transform: rotate(5deg);
+    }
+
+    /* CONTENU CATALOGUE */
+    .catalogue-item-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .catalogue-item-name {
+      font-weight: 900;
+      font-size: 15px;
+      line-height: 1.3;
+      color: var(--text);
+    }
+
+    .catalogue-item-meta {
+      color: var(--muted);
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    /* PRIX CATALOGUE */
+    .catalogue-item-price-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .catalogue-item-current-price {
+      font-weight: 900;
+      font-size: 16px;
+      color: var(--accent);
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 8px 12px;
+      white-space: nowrap;
+    }
+
+    .catalogue-item.promo-item .catalogue-item-current-price {
+      border: 1px solid #ff9900;
+      background: rgba(255, 153, 0, 0.15);
+      color: #ffcc00;
+    }
+
+    .catalogue-item-old-price {
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .catalogue-item.promo-item .catalogue-item-old-price {
+      color: #ff8888;
+    }
+
+    .catalogue-item-discount {
+      background: linear-gradient(135deg, #ff0000, #ff6b00);
+      color: white;
+      font-weight: 900;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
+    }
+
+    /* STOCK CATALOGUE */
+    .catalogue-item-stock {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, .1);
+      background: rgba(0, 0, 0, .2);
+      color: rgba(255, 255, 255, .9);
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .catalogue-item-stock.ok {
+      border-color: rgba(0, 255, 136, .3);
+      color: var(--accent);
+      background: rgba(0, 255, 136, .08);
+    }
+
+    .catalogue-item-stock.low {
+      border-color: rgba(255, 167, 38, .3);
+      color: var(--warning);
+      background: rgba(255, 167, 38, .08);
+    }
+
+    .catalogue-item-stock.out {
+      border-color: rgba(255, 107, 107, .3);
+      color: var(--danger);
+      background: rgba(255, 107, 107, .08);
+    }
+
+    /* BOUTONS (+ et -) POUR CATALOGUE */
+    .catalogue-item-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .catalogue-item-stepper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      border: 1px solid var(--line);
+    }
+
+    .catalogue-item-qty-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .catalogue-item-qty-btn:hover {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .catalogue-item-qty-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .catalogue-item-qty {
+      min-width: 35px;
+      text-align: center;
+      font-weight: 900;
+      font-size: 16px;
+      color: var(--accent);
+    }
+
+    .catalogue-item-add-btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--accent);
+      background: rgba(0, 255, 136, 0.1);
+      color: var(--accent);
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .catalogue-item-add-btn:hover {
+      background: rgba(0, 255, 136, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .catalogue-item-add-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      border-color: var(--muted);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--muted);
+    }
+
     /* ANIMATIONS */
     @keyframes scrollHorizontal {
       0% {
@@ -2642,6 +2976,25 @@
 
       .stock-input {
         width: 60px;
+      }
+
+      .catalogue-item {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .catalogue-item-image {
+        width: 100%;
+        height: 150px;
+      }
+
+      .catalogue-item-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .catalogue-item-stepper {
+        justify-content: center;
       }
     }
 
@@ -2740,6 +3093,38 @@
         width: 45px;
         height: 45px;
         font-size: 20px;
+      }
+
+      .catalogue-modal-header {
+        padding: 12px 15px;
+      }
+
+      .catalogue-modal-header h3 {
+        font-size: 16px;
+      }
+
+      .catalogue-item {
+        padding: 12px;
+      }
+
+      .catalogue-item-name {
+        font-size: 14px;
+      }
+
+      .catalogue-item-current-price {
+        font-size: 14px;
+        padding: 6px 10px;
+      }
+
+      .catalogue-item-qty-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+      }
+
+      .catalogue-item-add-btn {
+        padding: 8px 16px;
+        font-size: 13px;
       }
     }
 
@@ -3165,6 +3550,19 @@
     </div>
   </div>
 
+  <!-- MODAL CATALOGUE -->
+  <div class="catalogue-modal-overlay" id="catalogueModal">
+    <div class="catalogue-modal">
+      <div class="catalogue-modal-header">
+        <h3 id="catalogueTitle">📦 Catalogue Complet</h3>
+        <button class="drawer-close" id="closeCatalogueModalBtn">×</button>
+      </div>
+      <div class="catalogue-modal-body" id="catalogueList">
+        <!-- Les articles du catalogue seront ajoutés dynamiquement ici -->
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL GESTION STOCK -->
   <div class="stock-modal-overlay" id="stockModal">
     <div class="stock-modal">
@@ -3265,7 +3663,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v40',
+      localStorageKey: 'maxi_jdc_market_app_v41',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -3499,7 +3897,8 @@
       googleSheetsStock: new Map(),
       currentLanguage: 'fr',
       clientSpaceVisible: false,
-      pendingOrder: null
+      pendingOrder: null,
+      catalogueProduct: null
     };
 
     // ===================== TRADUCTION =====================
@@ -4208,6 +4607,7 @@
         
         const item = document.createElement('div');
         item.className = `product-item ${product.isPromotion ? 'promo-item' : ''}`;
+        item.dataset.productId = productId;
         
         let promoBadge = '';
         let discountBadge = '';
@@ -4307,8 +4707,303 @@
           }
         });
         
+        // Ouvrir le catalogue quand on clique sur l'article
+        item.addEventListener('click', (e) => {
+          // Ne pas ouvrir le catalogue si on clique sur les boutons de quantité
+          if (e.target.closest('.product-item-qty-btn') || 
+              e.target.closest('.product-item-add-btn') ||
+              e.target.closest('.product-item-stepper')) {
+            return;
+          }
+          openCatalogueModal(product);
+        });
+        
         list.appendChild(item);
       });
+    }
+
+    // ===================== CATALOGUE MODAL =====================
+    function openCatalogueModal(product) {
+      state.catalogueProduct = product;
+      const catalogueTitle = $('catalogueTitle');
+      const t = TRANSLATIONS[state.currentLanguage];
+      
+      if (product) {
+        // Catalogue pour un seul produit
+        catalogueTitle.textContent = `📦 ${product.name}`;
+        renderCatalogueForProduct(product);
+      } else {
+        // Catalogue complet
+        catalogueTitle.textContent = '📦 Catalogue Complet';
+        renderFullCatalogue();
+      }
+      
+      $('catalogueModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function renderCatalogueForProduct(product) {
+      const catalogueList = $('catalogueList');
+      catalogueList.innerHTML = '';
+      
+      // Récupérer tous les produits (pour le catalogue complet)
+      let allProducts = [...state.products.values()].flat();
+      
+      // Trier par nom
+      allProducts.sort((a, b) => a.name.localeCompare(b.name));
+      
+      // Afficher tous les produits
+      allProducts.forEach(p => {
+        const productId = generateProductId(p);
+        const currentQuantity = state.cart[productId] ? state.cart[productId].quantity : 0;
+        const availableStock = getAvailableStock(p);
+        const stockStatus = getStockStatus(availableStock);
+        const imgSrc = `${CONFIG.imagesBasePath}${p.code}.jpg`;
+        
+        const item = document.createElement('div');
+        item.className = `catalogue-item ${p.isPromotion ? 'promo-item' : ''}`;
+        
+        let promoBadge = '';
+        let discountBadge = '';
+        let oldPriceDisplay = '';
+        
+        if (p.isPromotion && p.discountPercent > 0) {
+          promoBadge = '<div class="catalogue-promo-badge">PROMO</div>';
+          discountBadge = `<div class="catalogue-item-discount">-${p.discountPercent}%</div>`;
+        }
+        
+        if (p.isPromotion && p.oldPrice && p.oldPrice > p.price) {
+          oldPriceDisplay = `
+            <div class="catalogue-item-old-price">${formatPrice(p.oldPrice)}</div>
+          `;
+        }
+        
+        item.innerHTML = `
+          <div class="catalogue-item-image">
+            <img src="${imgSrc}"
+              alt="${p.name}"
+              loading="lazy"
+              onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="catalogue-item-no-photo">${p.code}</div>
+            ${promoBadge}
+          </div>
+          
+          <div class="catalogue-item-content">
+            <div class="catalogue-item-name">${p.name}</div>
+            <div class="catalogue-item-meta">
+              <div>Code: ${p.code}</div>
+              <div>${p.category}</div>
+            </div>
+            
+            <div class="catalogue-item-price-container">
+              <div class="catalogue-item-current-price">${formatPrice(p.price)}</div>
+              ${oldPriceDisplay}
+              ${discountBadge}
+            </div>
+            
+            <div class="catalogue-item-stock ${stockStatus.class}">
+              ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
+            </div>
+            
+            <div class="catalogue-item-controls">
+              <div class="catalogue-item-stepper">
+                <button class="catalogue-item-qty-btn" data-action="decrease" data-id="${productId}" ${currentQuantity === 0 || !stockStatus.available ? 'disabled' : ''}>
+                  −
+                </button>
+                <span class="catalogue-item-qty">${currentQuantity}</span>
+                <button class="catalogue-item-qty-btn" data-action="increase" data-id="${productId}" ${!stockStatus.available || currentQuantity >= availableStock ? 'disabled' : ''}>
+                  +
+                </button>
+              </div>
+              
+              <button class="catalogue-item-add-btn" data-id="${productId}" ${!stockStatus.available ? 'disabled' : ''}>
+                🛒 ${currentQuantity > 0 ? `(${currentQuantity})` : 'Ajouter'}
+              </button>
+            </div>
+          </div>
+        `;
+        
+        // Ajouter les écouteurs d'événements
+        const decreaseBtn = item.querySelector('[data-action="decrease"]');
+        const increaseBtn = item.querySelector('[data-action="increase"]');
+        const addBtn = item.querySelector('.catalogue-item-add-btn');
+        
+        decreaseBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (currentQuantity > 0) {
+            removeFromCart(productId, 1);
+            renderCatalogueForProduct(product);
+            renderProducts();
+            updateCartUI();
+          }
+        });
+        
+        increaseBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (stockStatus.available && currentQuantity < availableStock) {
+            addToCart(productId, p, 1);
+            renderCatalogueForProduct(product);
+            renderProducts();
+            updateCartUI();
+          } else if (!stockStatus.available) {
+            showToast('❌ Ce produit est en rupture de stock', 'error');
+          } else if (currentQuantity >= availableStock) {
+            showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
+          }
+        });
+        
+        addBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (stockStatus.available) {
+            if (currentQuantity === 0) {
+              addToCart(productId, p, 1);
+              renderCatalogueForProduct(product);
+              renderProducts();
+              updateCartUI();
+            }
+          } else {
+            showToast('❌ Ce produit est en rupture de stock', 'error');
+          }
+        });
+        
+        catalogueList.appendChild(item);
+      });
+    }
+
+    function renderFullCatalogue() {
+      const catalogueList = $('catalogueList');
+      catalogueList.innerHTML = '';
+      
+      // Récupérer tous les produits
+      let allProducts = [...state.products.values()].flat();
+      
+      // Trier par nom
+      allProducts.sort((a, b) => a.name.localeCompare(b.name));
+      
+      // Afficher tous les produits
+      allProducts.forEach(p => {
+        const productId = generateProductId(p);
+        const currentQuantity = state.cart[productId] ? state.cart[productId].quantity : 0;
+        const availableStock = getAvailableStock(p);
+        const stockStatus = getStockStatus(availableStock);
+        const imgSrc = `${CONFIG.imagesBasePath}${p.code}.jpg`;
+        
+        const item = document.createElement('div');
+        item.className = `catalogue-item ${p.isPromotion ? 'promo-item' : ''}`;
+        
+        let promoBadge = '';
+        let discountBadge = '';
+        let oldPriceDisplay = '';
+        
+        if (p.isPromotion && p.discountPercent > 0) {
+          promoBadge = '<div class="catalogue-promo-badge">PROMO</div>';
+          discountBadge = `<div class="catalogue-item-discount">-${p.discountPercent}%</div>`;
+        }
+        
+        if (p.isPromotion && p.oldPrice && p.oldPrice > p.price) {
+          oldPriceDisplay = `
+            <div class="catalogue-item-old-price">${formatPrice(p.oldPrice)}</div>
+          `;
+        }
+        
+        item.innerHTML = `
+          <div class="catalogue-item-image">
+            <img src="${imgSrc}"
+              alt="${p.name}"
+              loading="lazy"
+              onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="catalogue-item-no-photo">${p.code}</div>
+            ${promoBadge}
+          </div>
+          
+          <div class="catalogue-item-content">
+            <div class="catalogue-item-name">${p.name}</div>
+            <div class="catalogue-item-meta">
+              <div>Code: ${p.code}</div>
+              <div>${p.category}</div>
+            </div>
+            
+            <div class="catalogue-item-price-container">
+              <div class="catalogue-item-current-price">${formatPrice(p.price)}</div>
+              ${oldPriceDisplay}
+              ${discountBadge}
+            </div>
+            
+            <div class="catalogue-item-stock ${stockStatus.class}">
+              ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
+            </div>
+            
+            <div class="catalogue-item-controls">
+              <div class="catalogue-item-stepper">
+                <button class="catalogue-item-qty-btn" data-action="decrease" data-id="${productId}" ${currentQuantity === 0 || !stockStatus.available ? 'disabled' : ''}>
+                  −
+                </button>
+                <span class="catalogue-item-qty">${currentQuantity}</span>
+                <button class="catalogue-item-qty-btn" data-action="increase" data-id="${productId}" ${!stockStatus.available || currentQuantity >= availableStock ? 'disabled' : ''}>
+                  +
+                </button>
+              </div>
+              
+              <button class="catalogue-item-add-btn" data-id="${productId}" ${!stockStatus.available ? 'disabled' : ''}>
+                🛒 ${currentQuantity > 0 ? `(${currentQuantity})` : 'Ajouter'}
+              </button>
+            </div>
+          </div>
+        `;
+        
+        // Ajouter les écouteurs d'événements
+        const decreaseBtn = item.querySelector('[data-action="decrease"]');
+        const increaseBtn = item.querySelector('[data-action="increase"]');
+        const addBtn = item.querySelector('.catalogue-item-add-btn');
+        
+        decreaseBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (currentQuantity > 0) {
+            removeFromCart(productId, 1);
+            renderFullCatalogue();
+            renderProducts();
+            updateCartUI();
+          }
+        });
+        
+        increaseBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (stockStatus.available && currentQuantity < availableStock) {
+            addToCart(productId, p, 1);
+            renderFullCatalogue();
+            renderProducts();
+            updateCartUI();
+          } else if (!stockStatus.available) {
+            showToast('❌ Ce produit est en rupture de stock', 'error');
+          } else if (currentQuantity >= availableStock) {
+            showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
+          }
+        });
+        
+        addBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (stockStatus.available) {
+            if (currentQuantity === 0) {
+              addToCart(productId, p, 1);
+              renderFullCatalogue();
+              renderProducts();
+              updateCartUI();
+            }
+          } else {
+            showToast('❌ Ce produit est en rupture de stock', 'error');
+          }
+        });
+        
+        catalogueList.appendChild(item);
+      });
+    }
+
+    function closeCatalogueModal() {
+      $('catalogueModal').classList.remove('open');
+      document.body.style.overflow = '';
+      state.catalogueProduct = null;
     }
 
     // ===================== PANIER =====================
@@ -5360,6 +6055,9 @@
 
       $('drawerOverlay').onclick = $('closeDrawerBtn').onclick;
 
+      // Bouton pour fermer le catalogue modal
+      $('closeCatalogueModalBtn').onclick = closeCatalogueModal;
+
       const langDropdown = $('langDropdown');
       const langHeaderBtn = $('langHeaderBtn');
       
@@ -5610,7 +6308,7 @@
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '40.0'
+        version: '41.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
@@ -5625,4 +6323,3 @@
   </script>
 </body>
 </html>
-
