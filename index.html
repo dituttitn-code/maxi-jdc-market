@@ -967,7 +967,7 @@
       background: rgba(255, 107, 107, .08);
     }
 
-    /* NOUVEAU MODAL CATALOGUE (remplace l'ancien modal) */
+    /* NOUVEAU MODAL CATALOGUE PROFESSIONNEL */
     .catalogue-modal-overlay {
       position: fixed;
       inset: 0;
@@ -996,8 +996,42 @@
       top: 0;
     }
 
-    .catalogue-title {
+    .catalogue-search {
       flex: 1;
+      position: relative;
+      margin: 0 15px;
+    }
+
+    .catalogue-search input {
+      width: 100%;
+      height: 44px;
+      border-radius: 10px;
+      border: 2px solid var(--accent2);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      padding: 0 15px 0 45px;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .catalogue-search input:focus {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+    }
+
+    .catalogue-search .search-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent2);
+      font-size: 18px;
+    }
+
+    .catalogue-title {
+      flex: 0 0 auto;
       min-width: 0;
     }
 
@@ -1026,6 +1060,7 @@
       justify-content: center;
       transition: all 0.3s ease;
       flex-shrink: 0;
+      margin-left: 10px;
     }
 
     .catalogue-close-btn:hover {
@@ -1034,7 +1069,7 @@
       transform: rotate(90deg);
     }
 
-    /* CONTENU CATALOGUE - TOUS LES ARTICLES */
+    /* CONTENU CATALOGUE - NOUVEAU DESIGN PROFESSIONNEL */
     .catalogue-content {
       flex: 1;
       overflow-y: auto;
@@ -1045,16 +1080,17 @@
       gap: 15px;
     }
 
-    /* ARTICLE EN MODE CATALOGUE */
+    /* ARTICLE EN MODE CATALOGUE - NOUVEAU DESIGN */
     .catalogue-product-item {
       background: var(--card2);
       border-radius: 12px;
       border: 1px solid var(--line);
-      padding: 12px;
+      padding: 15px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 15px;
       transition: all 0.3s ease;
+      position: relative;
     }
 
     .catalogue-product-item.promo-item {
@@ -1065,18 +1101,20 @@
 
     .catalogue-product-item:hover {
       border-color: var(--accent2);
-      box-shadow: 0 6px 15px rgba(0, 212, 255, 0.1);
+      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.15);
+      transform: translateY(-2px);
     }
 
     .catalogue-product-top {
       display: flex;
-      gap: 12px;
+      gap: 15px;
+      align-items: flex-start;
     }
 
     .catalogue-product-image {
       width: 100px;
       height: 100px;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid rgba(255, 255, 255, .12);
       background: linear-gradient(135deg, #1a365d 0%, #112240 100%);
       display: flex;
@@ -1101,7 +1139,7 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
 
     .catalogue-product-name {
@@ -1113,20 +1151,22 @@
     }
 
     .catalogue-product-code {
-      font-size: 11px;
-      color: var(--muted);
-      background: rgba(255, 255, 255, 0.05);
-      padding: 3px 8px;
-      border-radius: 999px;
+      font-size: 12px;
+      color: var(--accent2);
+      background: rgba(0, 212, 255, 0.1);
+      padding: 4px 10px;
+      border-radius: 20px;
       align-self: flex-start;
+      font-weight: 700;
+      border: 1px solid rgba(0, 212, 255, 0.3);
     }
 
     .catalogue-product-category {
-      font-size: 11px;
-      color: var(--accent2);
+      font-size: 12px;
+      color: var(--muted);
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
     }
 
     .catalogue-price-container {
@@ -1156,9 +1196,10 @@
     }
 
     .catalogue-old-price {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--muted);
       text-decoration: line-through;
+      font-weight: 600;
     }
 
     .catalogue-discount {
@@ -1166,34 +1207,38 @@
       color: white;
       font-weight: 900;
       font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
       border: 2px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 2px 6px rgba(255, 0, 0, 0.3);
+      box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
       animation: pulse 1.5s infinite;
     }
 
-    /* CONTROLES QUANTITÉ POUR CHAQUE ARTICLE */
+    /* NOUVEAUX CONTROLES QUANTITÉ PROFESSIONNELS */
     .catalogue-product-controls {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      padding-top: 10px;
+      gap: 15px;
+      padding-top: 15px;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
-      margin-top: 5px;
+      margin-top: 10px;
+      flex-wrap: wrap;
     }
 
     .catalogue-stock-info {
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 4px;
       flex: 1;
     }
 
     .catalogue-stock-text {
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .catalogue-stock-text.ok {
@@ -1211,24 +1256,57 @@
     .catalogue-quantity-controls {
       display: flex;
       align-items: center;
+      gap: 10px;
+      flex-wrap: nowrap;
+    }
+
+    /* CHAMP DE SAISIE NUMÉRIQUE */
+    .catalogue-quantity-input-wrapper {
+      display: flex;
+      align-items: center;
       gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 4px;
+      min-width: 120px;
+    }
+
+    .catalogue-quantity-input {
+      width: 60px;
+      height: 36px;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+
+    .catalogue-quantity-input::-webkit-outer-spin-button,
+    .catalogue-quantity-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
     }
 
     .catalogue-qty-btn {
-      width: 36px;
-      height: 36px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       border: 2px solid var(--line);
       background: rgba(255, 255, 255, 0.1);
       color: var(--text);
       cursor: pointer;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 900;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.2s ease;
       flex-shrink: 0;
+      padding: 0;
     }
 
     .catalogue-qty-btn:hover {
@@ -1241,34 +1319,29 @@
       cursor: not-allowed;
     }
 
-    .catalogue-quantity {
-      min-width: 40px;
-      text-align: center;
-      font-weight: 900;
-      font-size: 16px;
-      color: var(--accent);
-    }
-
     .catalogue-add-btn {
-      padding: 8px 15px;
-      border-radius: 8px;
+      padding: 10px 20px;
+      border-radius: 10px;
       border: 2px solid var(--accent);
       background: rgba(0, 255, 136, 0.1);
       color: var(--accent);
       cursor: pointer;
       font-weight: 900;
-      font-size: 13px;
+      font-size: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
       transition: all 0.3s ease;
       min-width: 140px;
+      height: 44px;
+      flex-shrink: 0;
     }
 
     .catalogue-add-btn:hover:not(:disabled) {
       background: rgba(0, 255, 136, 0.2);
       transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 255, 136, 0.2);
     }
 
     .catalogue-add-btn:disabled {
@@ -1283,6 +1356,7 @@
       background: rgba(0, 255, 136, 0.2);
       border-color: var(--accent);
       color: var(--accent);
+      animation: pulse 2s infinite;
     }
 
     /* MODAL QR CODE */
@@ -2914,7 +2988,8 @@
         gap: 15px;
       }
       
-      .catalogue-quantity-controls {
+      .catalogue-quantity-input-wrapper {
+        width: 100%;
         justify-content: center;
       }
       
@@ -2946,6 +3021,17 @@
 
       .stock-input {
         width: 60px;
+      }
+
+      .catalogue-header {
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      
+      .catalogue-search {
+        order: 3;
+        flex: 0 0 100%;
+        margin: 10px 0 0 0;
       }
     }
 
@@ -2980,18 +3066,21 @@
       }
       
       .catalogue-qty-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 18px;
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
       }
       
-      .catalogue-quantity {
+      .catalogue-quantity-input {
+        height: 32px;
         font-size: 14px;
       }
       
       .catalogue-add-btn {
         font-size: 12px;
         padding: 6px 12px;
+        height: 40px;
+        min-width: 120px;
       }
 
       .pagination-bottom {
@@ -3051,6 +3140,20 @@
         width: 45px;
         height: 45px;
         font-size: 20px;
+      }
+
+      .catalogue-product-controls {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .catalogue-quantity-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      
+      .catalogue-quantity-input-wrapper {
+        min-width: 100px;
       }
     }
 
@@ -3465,12 +3568,19 @@
     </div>
   </aside>
 
-  <!-- NOUVEAU MODAL CATALOGUE (remplace l'ancien modal produit) -->
+  <!-- NOUVEAU MODAL CATALOGUE PROFESSIONNEL -->
   <div class="catalogue-modal-overlay" id="catalogueModal">
     <div class="catalogue-header">
       <div class="catalogue-title">
         <h3 id="catalogueTitle">Catalogue</h3>
       </div>
+      
+      <!-- BARRE DE RECHERCHE DANS LE CATALOGUE -->
+      <div class="catalogue-search">
+        <span class="search-icon">🔍</span>
+        <input id="catalogueSearchInput" type="search" placeholder="Rechercher dans cette catégorie..." autocomplete="off">
+      </div>
+      
       <button class="catalogue-close-btn" id="closeCatalogueBtn">×</button>
     </div>
     <div class="catalogue-content" id="catalogueContent">
@@ -3602,7 +3712,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v39',
+      localStorageKey: 'maxi_jdc_market_app_v40',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -3619,7 +3729,7 @@
 
       // URL Google Apps Script CORRIGÉE pour résoudre les problèmes de colonnes
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
-      commandeApiUrl: "https://script.google.com/macros/s/AKfycbz2oD3Xfj8RCvLHcNwqKzqPN0PxLFJmhWAlvsMB3tS2u4u4LEriATp7joXbYZBx4TNY/exec,
+      commandeApiUrl: "https://script.google.com/macros/s/AKfycbyvppJUxeCw2RU2RMu9GkBQktyZhVUkaUz_skV_naARek23JJhx8xdoB3DQb9-qJSS6/exec",
     };
 
     // ===================== TRADUCTIONS =====================
@@ -3628,6 +3738,7 @@
         appTitle: "MAXI JDC MARKET",
         appSubtitle: "Des prix mini --- Un MAXI choix",
         searchPlaceholder: "🔍 Rechercher un produit...",
+        catalogueSearchPlaceholder: "Rechercher dans cette catégorie...",
         searchClear: "Effacer",
         searchAll: "Tous",
         cartTitle: "🛒 Mon Panier & Compte",
@@ -3685,12 +3796,15 @@
         catalogueTitle: "Catalogue",
         increaseQty: "+",
         decreaseQty: "-",
-        addToCartCatalogue: "🛒 Ajouter"
+        addToCartCatalogue: "🛒 Ajouter",
+        enterQuantity: "Quantité:",
+        updateBtn: "Mettre à jour"
       },
       en: {
         appTitle: "MAXI JDC MARKET",
         appSubtitle: "Mini prices --- MAXI choice",
         searchPlaceholder: "🔍 Search a product...",
+        catalogueSearchPlaceholder: "Search in this category...",
         searchClear: "Clear",
         searchAll: "All",
         cartTitle: "🛒 My Cart & Account",
@@ -3748,12 +3862,15 @@
         catalogueTitle: "Catalogue",
         increaseQty: "+",
         decreaseQty: "-",
-        addToCartCatalogue: "🛒 Add"
+        addToCartCatalogue: "🛒 Add",
+        enterQuantity: "Quantity:",
+        updateBtn: "Update"
       },
       ar: {
         appTitle: "ماكسي جي دي سي ماركت",
         appSubtitle: "أسعار مصغرة --- اختيار ماكسي",
         searchPlaceholder: "🔍 ابحث عن منتج...",
+        catalogueSearchPlaceholder: "ابحث في هذه الفئة...",
         searchClear: "مسح",
         searchAll: "الكل",
         cartTitle: "🛒 سلة التسوق و الحساب",
@@ -3811,7 +3928,9 @@
         catalogueTitle: "كتالوج",
         increaseQty: "+",
         decreaseQty: "-",
-        addToCartCatalogue: "🛒 إضافة"
+        addToCartCatalogue: "🛒 إضافة",
+        enterQuantity: "الكمية:",
+        updateBtn: "تحديث"
       }
     };
 
@@ -3852,6 +3971,7 @@
       currentPage: 1,
       catalogueProducts: [],
       catalogueCategory: null,
+      catalogueSearchQuery: '',
       quantityPicks: {},
       filteredProducts: [],
       filteredProductsIndex: -1,
@@ -3882,6 +4002,7 @@
       $('appSubtitle').textContent = t.appSubtitle;
       $('langHeaderLabel').textContent = lang.toUpperCase();
       $('searchInput').placeholder = t.searchPlaceholder;
+      $('catalogueSearchInput').placeholder = t.catalogueSearchPlaceholder;
       $('clearSearchBtn').textContent = t.searchClear;
       $('showAllBtn').textContent = t.searchAll;
       $('drawerTitle').textContent = t.cartTitle;
@@ -4625,7 +4746,7 @@
       });
     }
 
-    // ===================== NOUVEAU MODAL CATALOGUE =====================
+    // ===================== NOUVEAU MODAL CATALOGUE PROFESSIONNEL =====================
     function openCatalogue(clickedProduct) {
       if (!clickedProduct) return;
       
@@ -4646,6 +4767,10 @@
           $('catalogueTitle').textContent = TRANSLATIONS[state.currentLanguage].catalogueTitle;
         }
       }
+      
+      // Réinitialiser la recherche dans le catalogue
+      state.catalogueSearchQuery = '';
+      $('catalogueSearchInput').value = '';
       
       // Trier les produits par nom
       state.catalogueProducts.sort((a, b) => a.name.localeCompare(b.name));
@@ -4678,25 +4803,45 @@
       document.body.style.overflow = '';
       state.catalogueProducts = [];
       state.catalogueCategory = null;
+      state.catalogueSearchQuery = '';
+    }
+
+    function getFilteredCatalogueProducts() {
+      if (!state.catalogueProducts || state.catalogueProducts.length === 0) {
+        return [];
+      }
+      
+      if (!state.catalogueSearchQuery) {
+        return state.catalogueProducts;
+      }
+      
+      const query = state.catalogueSearchQuery.toLowerCase();
+      return state.catalogueProducts.filter(product =>
+        product.name.toLowerCase().includes(query) ||
+        product.code.toLowerCase().includes(query) ||
+        (product.category && product.category.toLowerCase().includes(query))
+      );
     }
 
     function renderCatalogue() {
       const content = $('catalogueContent');
       content.innerHTML = '';
       
-      if (state.catalogueProducts.length === 0) {
+      const filteredProducts = getFilteredCatalogueProducts();
+      
+      if (filteredProducts.length === 0) {
         const t = TRANSLATIONS[state.currentLanguage];
         content.innerHTML = `
           <div style="text-align:center;padding:40px;color:var(--muted);">
             <div style="font-size:48px;margin-bottom:15px;">🔍</div>
             <h3 style="margin-bottom:10px;color:var(--text);">${t.noProductsFound}</h3>
-            <p>Aucun produit à afficher</p>
+            <p>${state.catalogueSearchQuery ? 'Aucun produit ne correspond à votre recherche' : 'Aucun produit à afficher'}</p>
           </div>
         `;
         return;
       }
       
-      state.catalogueProducts.forEach(product => {
+      filteredProducts.forEach(product => {
         const productId = generateProductId(product);
         const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
         const availableStock = getAvailableStock(product);
@@ -4744,18 +4889,27 @@
               </div>
             </div>
             <div class="catalogue-quantity-controls">
-              <button class="catalogue-qty-btn" data-action="decrease" data-id="${productId}" 
-                ${currentQuantity === 0 ? 'disabled' : ''}>
-                ${t.decreaseQty}
-              </button>
-              <span class="catalogue-quantity">${currentQuantity}</span>
-              <button class="catalogue-qty-btn" data-action="increase" data-id="${productId}" 
-                ${currentQuantity >= availableStock ? 'disabled' : ''}>
-                ${t.increaseQty}
-              </button>
+              <div class="catalogue-quantity-input-wrapper">
+                <button class="catalogue-qty-btn" data-action="decrease" data-id="${productId}" 
+                  ${currentQuantity === 0 ? 'disabled' : ''}>
+                  ${t.decreaseQty}
+                </button>
+                <input type="number" 
+                  class="catalogue-quantity-input" 
+                  data-id="${productId}"
+                  value="${currentQuantity}"
+                  min="0" 
+                  max="${availableStock}"
+                  step="1"
+                  placeholder="${t.enterQuantity}">
+                <button class="catalogue-qty-btn" data-action="increase" data-id="${productId}" 
+                  ${currentQuantity >= availableStock ? 'disabled' : ''}>
+                  ${t.increaseQty}
+                </button>
+              </div>
               <button class="catalogue-add-btn ${currentQuantity > 0 ? 'in-cart' : ''}" 
                 data-id="${productId}" ${stockStatus.available ? '' : 'disabled'}>
-                ${t.addToCartCatalogue} ${currentQuantity > 0 ? `(${currentQuantity})` : ''}
+                ${currentQuantity > 0 ? `${t.updateBtn}` : t.addToCartCatalogue}
               </button>
             </div>
           </div>
@@ -4770,6 +4924,12 @@
 
     function attachCatalogueEvents() {
       const content = $('catalogueContent');
+      
+      // Gestion de la recherche dans le catalogue
+      $('catalogueSearchInput').addEventListener('input', (e) => {
+        state.catalogueSearchQuery = e.target.value;
+        renderCatalogue();
+      });
       
       // Boutons + et -
       content.addEventListener('click', (e) => {
@@ -4788,20 +4948,48 @@
         
         if (action === 'increase') {
           if (currentQuantity < availableStock) {
-            addToCart(productId, product, 1);
-            updateCatalogueItem(productId);
+            updateProductQuantity(productId, product, currentQuantity + 1);
           } else {
             showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
           }
         } else if (action === 'decrease') {
           if (currentQuantity > 0) {
-            removeFromCart(productId, 1);
-            updateCatalogueItem(productId);
+            updateProductQuantity(productId, product, currentQuantity - 1);
           }
         }
       });
       
-      // Boutons "Ajouter au panier"
+      // Champ de saisie numérique
+      content.addEventListener('input', (e) => {
+        const input = e.target.closest('.catalogue-quantity-input');
+        if (!input) return;
+        
+        const productId = input.dataset.id;
+        const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
+        
+        if (!product) return;
+        
+        let newQuantity = parseInt(input.value) || 0;
+        const availableStock = getAvailableStock(product);
+        
+        // Validation
+        if (newQuantity < 0) newQuantity = 0;
+        if (newQuantity > availableStock) {
+          newQuantity = availableStock;
+          input.value = availableStock;
+          showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
+        }
+        
+        // Mettre à jour uniquement si la valeur a changé
+        const cartItem = state.cart[productId];
+        const currentQuantity = cartItem ? cartItem.quantity : 0;
+        
+        if (newQuantity !== currentQuantity) {
+          updateProductQuantity(productId, product, newQuantity);
+        }
+      });
+      
+      // Boutons "Ajouter" / "Mettre à jour"
       content.addEventListener('click', (e) => {
         const btn = e.target.closest('.catalogue-add-btn');
         if (!btn || btn.disabled) return;
@@ -4811,19 +4999,56 @@
         
         if (!product) return;
         
-        const cartItem = state.cart[productId];
-        const currentQuantity = cartItem ? cartItem.quantity : 0;
+        // Récupérer la quantité depuis l'input
+        const input = document.querySelector(`.catalogue-quantity-input[data-id="${productId}"]`);
+        if (!input) return;
         
-        if (currentQuantity === 0) {
-          // Ajouter 1 unité si pas encore dans le panier
-          addToCart(productId, product, 1);
-        } else {
-          // Sinon, ajouter une unité supplémentaire
-          addToCart(productId, product, 1);
+        let newQuantity = parseInt(input.value) || 0;
+        const availableStock = getAvailableStock(product);
+        
+        // Validation
+        if (newQuantity < 0) newQuantity = 0;
+        if (newQuantity > availableStock) {
+          newQuantity = availableStock;
+          input.value = availableStock;
+          showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
         }
         
-        updateCatalogueItem(productId);
+        updateProductQuantity(productId, product, newQuantity);
       });
+    }
+
+    // ===================== GESTION DES QUANTITÉS DANS LE CATALOGUE =====================
+    function updateProductQuantity(productId, product, newQuantity) {
+      const cartItem = state.cart[productId];
+      const currentQuantity = cartItem ? cartItem.quantity : 0;
+      const availableStock = getAvailableStock(product);
+      
+      // Validation finale
+      if (newQuantity < 0) newQuantity = 0;
+      if (newQuantity > availableStock) {
+        showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
+        newQuantity = availableStock;
+      }
+      
+      // Calculer la différence
+      const quantityDiff = newQuantity - currentQuantity;
+      
+      if (quantityDiff === 0) {
+        // Pas de changement
+        return;
+      }
+      
+      if (quantityDiff > 0) {
+        // Ajouter des articles
+        addToCart(productId, product, quantityDiff);
+      } else {
+        // Retirer des articles
+        removeFromCart(productId, Math.abs(quantityDiff));
+      }
+      
+      // Mettre à jour l'affichage du catalogue
+      updateCatalogueItem(productId);
     }
 
     function updateCatalogueItem(productId) {
@@ -4839,10 +5064,11 @@
       const stockStatus = getStockStatus(availableStock);
       const t = TRANSLATIONS[state.currentLanguage];
       
-      // Mettre à jour la quantité
-      const quantityElement = productItem.querySelector('.catalogue-quantity');
-      if (quantityElement) {
-        quantityElement.textContent = currentQuantity;
+      // Mettre à jour l'input de quantité
+      const quantityInput = productItem.querySelector('.catalogue-quantity-input');
+      if (quantityInput) {
+        quantityInput.value = currentQuantity;
+        quantityInput.max = availableStock;
       }
       
       // Mettre à jour les boutons
@@ -4861,7 +5087,7 @@
       if (addBtn) {
         addBtn.disabled = !stockStatus.available;
         addBtn.className = `catalogue-add-btn ${currentQuantity > 0 ? 'in-cart' : ''}`;
-        addBtn.textContent = `${t.addToCartCatalogue} ${currentQuantity > 0 ? `(${currentQuantity})` : ''}`;
+        addBtn.textContent = currentQuantity > 0 ? `${t.updateBtn}` : t.addToCartCatalogue;
       }
       
       // Mettre à jour le statut du stock
@@ -4985,7 +5211,6 @@
           quantity: quantity
         };
       }
-      state.quantityPicks[productId] = 0;
       updateCartUI();
       renderProducts();
       const t = TRANSLATIONS[state.currentLanguage];
@@ -5007,7 +5232,6 @@
       item.quantity -= removeQuantity;
       if (item.quantity <= 0) {
         delete state.cart[productId];
-        delete state.quantityPicks[productId];
       }
       renderProducts();
       updateCartUI();
@@ -6057,7 +6281,6 @@
             state.productStocks.set(stockKey, currentStock + item.quantity);
           });
           state.cart = {};
-          state.quantityPicks = {};
           updateCartUI();
           renderProducts();
           // Mettre à jour le catalogue si ouvert
@@ -6092,7 +6315,6 @@
           state.cart[id].quantity--;
           if (state.cart[id].quantity <= 0) {
             delete state.cart[id];
-            delete state.quantityPicks[id];
           }
           removeFromCart(id, 1);
           // Mettre à jour le catalogue si ouvert
@@ -6225,7 +6447,7 @@
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '39.0'
+        version: '40.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
@@ -6240,4 +6462,3 @@
   </script>
 </body>
 </html>
-
