@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -98,7 +98,7 @@
     }
     .value{font-size:30px; font-weight:1000; margin-top:2px}
     .label{font-size:13px; color:var(--muted); font-weight:700}
-
+    
     /* TOP PRODUCT */
     .top-product-card {
       background: linear-gradient(135deg, rgba(26, 36, 93, 0.9), rgba(22, 36, 71, 0.9));
@@ -127,17 +127,33 @@
       font-size: 40px;
       color: var(--yellow);
     }
-    .product-details { flex: 1; }
+    .product-details {
+      flex: 1;
+    }
     .product-name {
       font-size: 18px;
       font-weight: 900;
       color: var(--txt);
       margin-bottom: 5px;
     }
-    .product-stats { display: flex; gap: 15px; font-size: 13px; }
-    .product-stat { display: flex; flex-direction: column; gap: 3px; }
-    .stat-value { font-weight: 900; color: var(--green); }
-    .stat-label { color: var(--muted); font-size: 11px; }
+    .product-stats {
+      display: flex;
+      gap: 15px;
+      font-size: 13px;
+    }
+    .product-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .stat-value {
+      font-weight: 900;
+      color: var(--green);
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: 11px;
+    }
 
     /* CHART CONTAINER */
     .chart-container {
@@ -146,24 +162,29 @@
       gap: 20px;
       margin-top: 20px;
     }
-    .chart-card { flex: 1 1 calc(50% - 20px); min-width: 300px; }
+    
+    .chart-card {
+      flex: 1 1 calc(50% - 20px);
+      min-width: 300px;
+    }
+    
     .sectionTitle{
       display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px
     }
     .sectionTitle h3{font-size:16px; font-weight:1000; color:var(--green)}
     .chartBox{height:300px; position:relative}
-
+    
     /* TABLES */
     .tableWrap{
       border:1px solid var(--line);
       border-radius:12px;
-      overflow:auto;
+      overflow:auto;                 /* ✅ vertical + horizontal scroll */
       max-height:420px;
-      -webkit-overflow-scrolling: touch;
+      -webkit-overflow-scrolling: touch; /* ✅ mobile smooth */
       scrollbar-gutter: stable both-edges;
-      touch-action: pan-x pan-y;
+      touch-action: pan-x pan-y;     /* ✅ mobile scroll x/y */
     }
-    table{width:100%; border-collapse:collapse; min-width:1100px;}
+    table{width:100%; border-collapse:collapse; min-width:1100px;} /* ✅ force horizontal scroll mobile */
     th{
       position:sticky; top:0;
       background:rgba(0,212,255,.10);
@@ -176,7 +197,7 @@
     }
     td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px; vertical-align:top;}
     tr:hover{background:rgba(255,255,255,.05)}
-
+    
     /* STATUT SELECT */
     .statut-select {
       padding: 6px 10px;
@@ -192,13 +213,19 @@
       transition: all 0.2s;
       white-space:nowrap;
     }
+    
     .statut-select:focus {
       outline: none;
       border-color: var(--green);
       box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
     }
-    .statut-select option { background: var(--card); color: var(--txt); padding: 8px; }
-
+    
+    .statut-select option {
+      background: var(--card);
+      color: var(--txt);
+      padding: 8px;
+    }
+    
     /* ✅ ARTICLES (plus large) */
     .articles-cell {
       min-width: 360px;
@@ -207,7 +234,7 @@
       font-size: 12px;
       line-height: 1.35;
     }
-
+    
     /* FOOTER */
     .footer{
       margin-top:18px; padding:14px; text-align:center; color:var(--muted);
@@ -224,14 +251,14 @@
     }
     .toast.show{display:block; animation:pop .2s ease}
     @keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
-
+    
     /* RESPONSIVE */
     @media (max-width: 768px) {
       .chart-card { flex: 1 1 100%; }
       .header { flex-direction: column; align-items: stretch; text-align: center; }
       .left { justify-content: center; margin-bottom: 15px; }
       .product-stats { flex-direction: column; gap: 8px; }
-      .tableWrap { max-height: 520px; }
+      .tableWrap { max-height: 520px; } /* plus haut sur mobile */
     }
   </style>
 </head>
@@ -485,19 +512,9 @@
 
   <div class="toast" id="toast"></div>
 
-  <!-- ✅ config.js obligatoire -->
-  <script src="./config.js"></script>
-
   <script>
-    // =========================
-    // CONFIG (UNIQUEMENT config.js)
-    // =========================
-    const APP_CONFIG = window.APP_CONFIG;
-
-    // ⚠️ pas de fallback URL: on exige config.js
-    const API_URL = APP_CONFIG && APP_CONFIG.API_URL ? String(APP_CONFIG.API_URL) : "";
-    const STATUTS = Array.isArray(APP_CONFIG && APP_CONFIG.STATUTS) ? APP_CONFIG.STATUTS : ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
-    const AUTO_REFRESH_MS = Number((APP_CONFIG && APP_CONFIG.AUTO_REFRESH_MS) || 30000);
+    const API_URL = "https://script.google.com/macros/s/AKfycbyvppJUxeCw2RU2RMu9GkBQktyZhVUkaUz_skV_naARek23JJhx8xdoB3DQb9-qJSS6/exec";
+    const STATUTS = ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
 
     const state = {
       orders: [],
@@ -518,8 +535,8 @@
 
     function showToast(msg, type = "info") {
       const el = $("toast");
-      const bg = type === "success" ? "#00ff88" :
-                  type === "error" ? "#ff6b6b" :
+      const bg = type === "success" ? "#00ff88" : 
+                  type === "error" ? "#ff6b6b" : 
                   type === "warning" ? "#ffa726" : "#00d4ff";
       el.style.background = bg;
       el.textContent = msg;
@@ -609,6 +626,9 @@
           const name = (a.produit || "Produit").trim();
           const q = num(a.quantite);
 
+          // revenu:
+          // 1) si prix_total présent -> on l'utilise
+          // 2) sinon -> on répartit total commande
           const lineRevenue = a.prix_total > 0 ? num(a.prix_total) : (orderTotal * (q / totalQty));
 
           if (!map.has(name)) map.set(name, { name, quantity: 0, revenue: 0 });
@@ -626,9 +646,6 @@
 
     async function loadData() {
       try {
-        // ✅ config.js obligatoire
-        if (!API_URL) throw new Error("API_URL manquant dans config.js");
-
         const ordersResponse = await fetch(`${API_URL}?method=getorders&t=${Date.now()}`, { cache: "no-store" });
         if (!ordersResponse.ok) throw new Error("API commandes non disponible");
         const ordersData = await ordersResponse.json();
@@ -648,7 +665,7 @@
         state.apiStatus = 'online';
         $("apiStatus").className = "api-status api-online";
         $("apiStatus").innerHTML = '<span><i class="fas fa-circle"></i></span><span>API Connectée</span>';
-        $("dataSourceInfo").textContent = "Source des données : API (config.js)";
+        $("dataSourceInfo").textContent = "Source des données : API Google Sheets";
 
         state.topProducts = computeTopProductsFromOrders(state.orders);
         return true;
@@ -691,9 +708,13 @@
         const dayKey = d.toISOString().slice(0,10);
         const hour = d.getHours();
 
+        // ventes par jour
         state.analytics.salesByDay[dayKey] = (state.analytics.salesByDay[dayKey] || 0) + num(order.total);
+
+        // CA par heure (optionnel)
         state.analytics.salesByHourRevenue[hour] = (state.analytics.salesByHourRevenue[hour] || 0) + num(order.total);
 
+        // commandes count
         state.analytics.ordersByHour[hour] = (state.analytics.ordersByHour[hour] || 0) + 1;
         state.analytics.ordersByDay[dayKey] = (state.analytics.ordersByDay[dayKey] || 0) + 1;
 
@@ -732,6 +753,7 @@
       $("ordersToday").textContent = state.analytics.ordersToday;
       $("revenueToday").textContent = formatPrice(state.analytics.revenueToday);
 
+      // Table commandes
       const allOrdersBody = $("allOrdersBody");
       allOrdersBody.innerHTML = "";
 
@@ -769,6 +791,7 @@
         });
       }
 
+      // Table Top 10 produits
       const topProductsBody = $("topProductsBody");
       topProductsBody.innerHTML = "";
       if (state.topProducts.length === 0) {
@@ -874,6 +897,7 @@
       state.charts.products.update();
     }
 
+    // ✅ menu déroulant: commandes par heure / par jour
     function updateActivityChart() {
       const mode = $("activityMode").value;
 
@@ -891,6 +915,7 @@
         return;
       }
 
+      // mode day : 30 derniers jours
       const labels = [];
       const data = [];
       const today = new Date();
@@ -946,8 +971,6 @@
     async function createTestOrder() {
       try {
         showToast("⏳ Création commande test...", "info");
-
-        if (!API_URL) throw new Error("API_URL manquant dans config.js");
 
         const payload = new URLSearchParams({
           method: "saveOrder",
@@ -1008,7 +1031,7 @@
       window.updateOrderStatus = updateOrderStatus;
 
       refreshAll(true);
-      setInterval(() => refreshAll(false), AUTO_REFRESH_MS);
+      setInterval(() => refreshAll(false), 30000);
       document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshAll(true); });
     });
   </script>
