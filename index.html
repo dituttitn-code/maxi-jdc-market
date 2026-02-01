@@ -8,10 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="MAXI JDC MARKET" />
   <meta name="theme-color" content="#0a1929" />
   <title>MAXI JDC MARKET --- Application Mobile</title>
-
-<script src="tools/config.js"></script>
-
-
+  
   <!-- Manifest PWA -->
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -3973,66 +3970,34 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <script>
-  // ===================== CONFIGURATION =====================
+    // ===================== CONFIGURATION =====================
+    const CONFIG = {
+      minOrder: 15,
+      freeShipping: 100,
+      shippingFee: 3,
+      whatsappNumber: "21625600978",
+      itemsPerPage: 24,
+      localStorageKey: 'maxi_jdc_market_app_v39',
+      imagesBasePath: 'images/products/',
+      historyRetentionYears: 2,
+      adminPasswordKey: 'maxi_jdc_admin_password',
+      syncStorageKey: 'maxi_jdc_sync_data',
+      qrCodeUrl: window.location.href,
+      adminPassword: "admin123",
+      storeLocation: {
+        lat: 36.851234,
+        lng: 10.301234
+      },
+      syncInterval: 30000,
+      dashboardUrl: 'tools/tableau-de-bord.html',
+      trackingUrl: 'tools/suivi-commandes.html',
 
-// 1) URL Google Apps Script (centralisée dans tools/config.js)
-// ⚠️ Sécurité: si config.js n'est pas chargé, on met un fallback pour éviter que tout plante.
-const API_URL =
-  (window.APP_CONFIG && window.APP_CONFIG.googleScriptUrl)
-    ? window.APP_CONFIG.googleScriptUrl
-    : "https://script.google.com/macros/s/AKfycby3acB0gMMk-Ub8CXt__33nH0NNIrYfPeU3DEiLmUCLDW-RMLnPc_F_5eDjLYnxDu8/exec";
+      // URL Google Apps Script CORRIGÉE pour résoudre les problèmes de colonnes
+      googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
+      commandeApiUrl: "https://script.google.com/macros/s/AKfycbyvppJUxeCw2RU2RMu9GkBQktyZhVUkaUz_skV_naARek23JJhx8xdoB3DQb9-qJSS6/exec",
+    };
 
-// 2) URL Google Sheets (CSV) – corrigée pour les problèmes de colonnes
-const GOOGLE_SHEETS_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv";
-
-// 3) Objet config global utilisé par l'app
-const CONFIG = {
-  // Boutique
-  minOrder: 15,
-  freeShipping: 100,
-  shippingFee: 3,
-  itemsPerPage: 24,
-
-  // Contact
-  whatsappNumber: "21625600978",
-
-  // Stockage / cache
-  localStorageKey: "maxi_jdc_market_app_v39",
-  syncStorageKey: "maxi_jdc_sync_data",
-  historyRetentionYears: 2,
-
-  // Sécurité admin
-  adminPasswordKey: "maxi_jdc_admin_password",
-  adminPassword: "admin123",
-
-  // Images
-  imagesBasePath: "images/products/",
-
-  // QR / URLs
-  qrCodeUrl: window.location.href,
-  dashboardUrl: "tools/tableau-de-bord.html",
-  trackingUrl: "tools/suivi-commandes.html",
-
-  // Localisation magasin
-  storeLocation: {
-    lat: 36.851234,
-    lng: 10.301234
-  },
-
-  // Synchronisation
-  syncInterval: 30000,
-
-  // Sources de données
-  googleSheetsUrl: GOOGLE_SHEETS_URL,
-  apiUrl: API_URL
-};
-
-// (optionnel mais conseillé) rendre accessible partout
-window.CONFIG = CONFIG;
-
-// ===================== TRADUCTIONS =====================
-
+    // ===================== TRADUCTIONS =====================
     const TRANSLATIONS = {
       fr: {
         appTitle: "MAXI JDC MARKET",
@@ -5200,28 +5165,22 @@ window.CONFIG = CONFIG;
       section.style.display = 'block';
       grid.innerHTML = '';
       similar.forEach(product => {
-        const imgSrc = product.image && product.image.trim() !== ""
-  ? product.image
-  : `${CONFIG.imagesBasePath}placeholder.jpg`;
-
-card.innerHTML = `
-  <div class="similar-product-image">
-    <img
-      src="${imgSrc}"
-      alt="${product.name}"
-      loading="lazy"
-      onerror="this.src='${CONFIG.imagesBasePath}placeholder.jpg'"
-    >
-  </div>
-  <div class="similar-product-info">
-    <div class="similar-product-name">${product.name}</div>
-    <div class="similar-product-price">${formatPrice(product.price)}</div>
-    <div class="similar-product-stock ${stockStatus.class}">
-      ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠' : '✗'} ${stockStatus.text}
-    </div>
-  </div>
-`;
-
+        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+        const stockStatus = getStockStatus(product.stock);
+        const card = document.createElement('div');
+        card.className = 'similar-product-card';
+        card.innerHTML = `
+          <div class="similar-product-image">
+            <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
+          </div>
+          <div class="similar-product-info">
+            <div class="similar-product-name">${product.name}</div>
+            <div class="similar-product-price">${formatPrice(product.price)}</div>
+            <div class="similar-product-stock ${stockStatus.class}">
+              ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
+            </div>
+          </div>
+        `;
         card.addEventListener('click', () => {
           closeProductModal();
           setTimeout(() => openProductModal(product), 300);
@@ -6606,109 +6565,8 @@ card.innerHTML = `
       }
     });
   </script>
- <script src="tools/config.js"></script>
-
-<script>
-(function () {
-  console.log("🚀 Chargement API Commandes...");
-
-  const SESSION_KEY = "maxi_jdc_session_id";
-  let sendingOrder = false;
-
-  function getAPIUrl() {
-    if (!window.APP_CONFIG || !window.APP_CONFIG.googleScriptUrl) {
-      console.error("❌ googleScriptUrl manquant dans config.js");
-      return null;
-    }
-    return window.APP_CONFIG.googleScriptUrl;
-  }
-
-  async function ensureSessionId() {
-    const existing = localStorage.getItem(SESSION_KEY);
-    if (existing) return existing;
-    const id = "local_" + Date.now();
-    localStorage.setItem(SESSION_KEY, id);
-    return id;
-  }
-
-  async function testerConnexionAPI() {
-    const API_URL = getAPIUrl();
-    if (!API_URL) return { connecte: false };
-
-    const res = await fetch(API_URL + "?method=test&t=" + Date.now());
-    const txt = await res.text();
-    try {
-      return JSON.parse(txt);
-    } catch {
-      return { connecte: false, raw: txt };
-    }
-  }
-
-  async function envoyerCommande(data) {
-    if (sendingOrder) return { success: false, duplicated: true };
-    sendingOrder = true;
-
-    try {
-      const API_URL = getAPIUrl();
-      const session = await ensureSessionId();
-
-      const form = new URLSearchParams();
-      form.append("method", "saveOrder");
-      form.append("session_id", session);
-      form.append("nom_client", data.nom_client || "");
-      form.append("telephone", data.telephone || "");
-      form.append("adresse", data.adresse || "");
-      form.append("articles", JSON.stringify(data.articles || []));
-      form.append("date", new Date().toISOString());
-
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: form.toString()
-      });
-
-      const txt = await res.text();
-      try {
-        return JSON.parse(txt);
-      } catch {
-        return { success: false, raw: txt };
-      }
-    } finally {
-      sendingOrder = false;
-    }
-  }
-
-  async function testCommandeRapide() {
-    return envoyerCommande({
-      nom_client: "TEST API",
-      telephone: "00000000",
-      adresse: "TEST",
-      articles: [{ produit: "TEST", quantite: 1, prix_unitaire: 1 }]
-    });
-  }
-
-  window.API_COMMANDES = {
-    testerConnexionAPI,
-    envoyerCommande,
-    testCommandeRapide,
-    getAPIUrl
-  };
-
-  console.log("✅ API Commandes chargée avec succès");
-})();
-</script>
-
 </body>
 </html>
-
-</body>
-</html>
-
-
-
-
-
-
 
 
 
