@@ -4323,7 +4323,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v40',
+      localStorageKey: 'maxi_jdc_market_app_v39',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -4580,9 +4580,7 @@
       pendingOrder: null,
       catalogueProducts: [],
       catalogueSearchQuery: '',
-      catalogueQuantityPicks: {},
-      // Nouvel état pour le bouton "Valider et envoyer"
-      isSendingOrder: false
+      catalogueQuantityPicks: {}
     };
 
     // ===================== TRADUCTION =====================
@@ -6385,846 +6383,628 @@
         let articlesText = '';
         let totalPanier = 0;
         
-Object.values(state.cart).forEach(item => {
-  const itemTotal = item.price * item.quantity;
-  totalPanier += itemTotal;
-  
-  articlesText += `[${item.code}] ${item.name} x${item.quantity} = ${formatPrice(itemTotal)}`;
-  
-  if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
-    const saving = (item.oldPrice - item.price) * item.quantity;
-    articlesText += ` (Économie: ${formatPrice(saving)} -${item.discountPercent || 0}%)`;
-  }
-  
-  articlesText += ' | ';
-});
+        Object.values(state.cart).forEach(item => {
+          const itemTotal = item.price * item.quantity;
+          totalPanier += itemTotal;
+          
+          articlesText += `${item.quantity}x ${item.name} (${item.code})\n`;
+          articlesText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
+          
+          if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
+            const saving = (item.oldPrice - item.price) * item.quantity;
+            articlesText += `\n 💰 ÉCONOMIE: ${formatPrice(saving)}`;
+            if (item.discountPercent) {
+              articlesText += ` (-${item.discountPercent}%)`;
+            }
+          }
+          articlesText += '\n';
+        });
+        
+        const sousTotal = totalPanier;
+        const livraison = sousTotal >= CONFIG.freeShipping ? 0 : 3.00;
+        const total = sousTotal + livraison;
+        
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
 
-// Retirer le dernier séparateur
-articlesText = articlesText.slice(0, -3);
+        const sheetData = {
+          'Date': dateStr,
+          'N_Commande': orderData.commandeId,
+          'Nom_Client': state.user.name,
+          'Telephone': '+216 ' + state.user.phone,
+          'Adresse': adresseComplete,
+          'Articles': `COMMANDE: ${orderData.commandeId}\n` + articlesText,
+          'Total': total.toFixed(2).replace('.', ','),
+          'Statut': 'NOUVELLE'
+        };
 
-const formData = new FormData();
-formData.append('Date', new Date().toLocaleString('fr-FR'));
-formData.append('NumeroCommande', orderData.commandeId);
-formData.append('Client', state.user.name || '');
-formData.append('Telephone', state.user.phone || '');
-formData.append('Adresse', adresseComplete);
-formData.append('Articles', articlesText);
-formData.append('SousTotal', formatPrice(orderData.subtotal));
-formData.append('Livraison', orderData.shipping === 0 ? 'GRATUIT' : formatPrice(orderData.shipping));
-formData.append('Total', formatPrice(orderData.total));
+        console.log('📊 Données envoyées à Google Sheets:', sheetData);
 
-// Ajouter les informations d'économies
-const savings = calculateTotalSavings();
-if (savings.totalSavings > 0) {
-  formData.append('Economies', formatPrice(savings.totalSavings));
-  formData.append('PourcentageEconomie', `${savings.percentage}%`);
-}
+        const postData = {
+          'Date': sheetData.Date,
+          'N_Commande': sheetData.N_Commande,
+          'Nom_Client': sheetData.Nom_Client,
+          'Telephone': sheetData.Telephone,
+          'Adresse': sheetData.Adresse,
+          'Articles': sheetData.Articles,
+          'Total': sheetData.Total,
+          'Statut': sheetData.Statut
+        };
 
-const response = await fetch(CONFIG.commandeApiUrl, {
-  method: 'POST',
-  body: formData
-});
+        const params = new URLSearchParams();
+        Object.keys(postData).forEach(key => {
+          params.append(key, postData[key]);
+        });
 
-if (response.ok) {
-  console.log('✅ Commande enregistrée avec succès dans Google Sheets');
-  
-  // Incrémenter le numéro de commande du jour
-  const now = new Date();
-  const datePart = now.getFullYear() + 
-                  String(now.getMonth() + 1).padStart(2, '0') + 
-                  String(now.getDate()).padStart(2, '0');
-  const lastOrderKey = `last_order_${datePart}`;
-  const currentNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
-  localStorage.setItem(lastOrderKey, currentNumber + 1);
-  
-  return true;
-} else {
-  console.error('❌ Erreur lors de l\'enregistrement:', await response.text());
-  return false;
-}
-} catch (error) {
-console.error('❌ Erreur Google Sheets:', error);
-return false;
-}
-}
+        const response = await fetch(CONFIG.commandeApiUrl, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: params.toString()
+        });
 
-// ===================== CRÉATION COMMANDE =====================
-function createOrder() {
-if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
-  showToast('❌ Veuillez d\'abord compléter vos informations client', 'error');
-  $('clientAccountBtn').click();
-  return;
-}
-
-const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
-if (cartCount === 0) {
-  showToast('❌ Votre panier est vide', 'error');
-  return;
-}
-
-const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : CONFIG.shippingFee;
-if (subtotal < CONFIG.minOrder) {
-  showToast(`❌ Minimum commande: ${formatPrice(CONFIG.minOrder)}`, 'error');
-  return;
-}
-
-const total = subtotal + shippingFee;
-const savings = calculateTotalSavings();
-
-// Générer numéro de commande
-const commandeId = genererNumeroCommande();
-
-const orderDetails = {
-  commandeId,
-  subtotal,
-  shipping: shippingFee,
-  total,
-  savings: savings.totalSavings,
-  savingsPercentage: savings.percentage,
-  date: new Date().toLocaleString('fr-FR'),
-  clientName: state.user.name,
-  clientPhone: state.user.phone,
-  clientAddress: state.user.address,
-  clientCoords: state.user.lat && state.user.lng ? 
-    { lat: state.user.lat, lng: state.user.lng } : null,
-  items: Object.values(state.cart).map(item => ({
-    name: item.name,
-    code: item.code,
-    quantity: item.quantity,
-    price: item.price,
-    oldPrice: item.oldPrice,
-    total: item.price * item.quantity,
-    isPromotion: item.isPromotion,
-    discountPercent: item.discountPercent
-  }))
-};
-
-// Afficher la modale de commande
-showOrderModal(orderDetails);
-
-// Jouer le signal sonore pour nouvelle commande
-playOrderNotificationSound();
-}
-
-function showOrderModal(orderDetails) {
-const orderDetailsElement = $('orderDetails');
-let detailsText = `📦 COMMANDE #${orderDetails.commandeId}\n`;
-detailsText += `📅 ${orderDetails.date}\n`;
-detailsText += `👤 ${orderDetails.clientName}\n`;
-detailsText += `📱 ${orderDetails.clientPhone}\n`;
-detailsText += `📍 ${orderDetails.clientAddress}\n`;
-
-if (orderDetails.clientCoords) {
-  detailsText += `🗺️ GPS: ${orderDetails.clientCoords.lat}, ${orderDetails.clientCoords.lng}\n`;
-  detailsText += `🔗 Maps: https://maps.google.com/?q=${orderDetails.clientCoords.lat},${orderDetails.clientCoords.lng}\n`;
-}
-
-detailsText += `\n🛒 ARTICLES :\n`;
-detailsText += '─'.repeat(50) + '\n';
-
-let totalSavingsInOrder = 0;
-let totalOriginalInOrder = 0;
-
-orderDetails.items.forEach(item => {
-  const itemTotal = item.price * item.quantity;
-  const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
-  const itemSaving = item.isPromotion && item.oldPrice ? 
-    (item.oldPrice - item.price) * item.quantity : 0;
-  
-  totalSavingsInOrder += itemSaving;
-  totalOriginalInOrder += originalTotal;
-  
-  detailsText += `${item.quantity}x ${item.name} (${item.code})\n`;
-  
-  if (itemSaving > 0) {
-    detailsText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}\n`;
-    detailsText += ` 💰 ÉCONOMIE: ${formatPrice(itemSaving)}`;
-    if (item.discountPercent) {
-      detailsText += ` (-${item.discountPercent}%)`;
-    }
-    detailsText += `\n ⚡ Ancien: ${formatPrice(originalTotal)}\n`;
-  } else {
-    detailsText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}\n`;
-  }
-  
-  detailsText += '\n';
-});
-
-detailsText += '─'.repeat(50) + '\n';
-detailsText += `Sous-total: ${formatPrice(orderDetails.subtotal)}\n`;
-
-if (totalSavingsInOrder > 0) {
-  const savingsPercentage = totalOriginalInOrder > 0 ?
-    Math.round((totalSavingsInOrder / totalOriginalInOrder) * 100) : 0;
-  detailsText += `💰 ÉCONOMIES TOTALES: ${formatPrice(totalSavingsInOrder)} (${savingsPercentage}%)\n`;
-}
-
-detailsText += `Livraison: ${orderDetails.shipping === 0 ? 'GRATUIT' : formatPrice(orderDetails.shipping)}\n`;
-detailsText += `TOTAL: ${formatPrice(orderDetails.total)}\n`;
-
-if (totalSavingsInOrder > 0) {
-  detailsText += `\n🎉 Vous avez économisé ${formatPrice(totalSavingsInOrder)} sur cette commande !\n`;
-}
-
-detailsText += `\n📞 Contact WhatsApp: +216 25 600 978\n`;
-detailsText += `📍 Adresse: Jardins de Carthage\n`;
-detailsText += `🕒 Heures: 7h - 1h`;
-
-orderDetailsElement.textContent = detailsText;
-state.pendingOrder = orderDetails;
-
-// Définir la fonction de clic du bouton "Valider et envoyer"
-$('sendOrderBtn').onclick = async function() {
-  if (state.isSendingOrder) return; // Empêcher les clics multiples
-  
-  state.isSendingOrder = true;
-  const sendBtn = $('sendOrderBtn');
-  const originalText = sendBtn.textContent;
-  sendBtn.textContent = '📤 Envoi en cours...';
-  sendBtn.disabled = true;
-  
-  try {
-    // 1. Enregistrer dans Google Sheets
-    const saved = await enregistrerCommandeGoogleSheets(orderDetails);
-    
-    if (saved) {
-      // 2. Ajouter à l'historique local
-      saveOrderToHistory(orderDetails);
-      
-      // 3. Préparer le message WhatsApp
-      let whatsappMessage = `📦 NOUVELLE COMMANDE #${orderDetails.commandeId}%0A`;
-      whatsappMessage += `👤 Client: ${orderDetails.clientName}%0A`;
-      whatsappMessage += `📱 Téléphone: ${orderDetails.clientPhone}%0A`;
-      whatsappMessage += `📍 Adresse: ${orderDetails.clientAddress}%0A`;
-      whatsappMessage += `%0A🛒 ARTICLES:%0A`;
-      
-      orderDetails.items.forEach(item => {
-        whatsappMessage += `• ${item.quantity}x ${item.name} (${item.code}) - ${formatPrice(item.price * item.quantity)}`;
-        if (item.isPromotion) {
-          whatsappMessage += ` 🔥 PROMO`;
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
         }
-        whatsappMessage += `%0A`;
+
+        const result = await response.text();
+        console.log('✅ Réponse Google Sheets:', result);
+
+        const datePart = now.getFullYear() + 
+                        String(now.getMonth() + 1).padStart(2, '0') + 
+                        String(now.getDate()).padStart(2, '0');
+        const lastOrderKey = `last_order_${datePart}`;
+        let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
+        localStorage.setItem(lastOrderKey, lastOrderNumber + 1);
+        
+        playOrderNotificationSound();
+        
+        const t = TRANSLATIONS[state.currentLanguage];
+        showToast(`✅ ${t.toastOrderSaved}`);
+        
+        return orderData.commandeId;
+        
+      } catch (error) {
+        console.error('Erreur enregistrement Google Sheets:', error);
+        showToast('⚠️ Commande créée mais erreur d\'enregistrement système', 'warning');
+        
+        saveOrderToHistory(orderData);
+        
+        return orderData.commandeId;
+      }
+    }
+
+    // ===================== ENVOI MESSAGE AU CLIENT =====================
+    function envoyerMessageClient(commandeId) {
+      const message = `Merci pour votre commande chez MAXI JDC MARKET.
+📦 Votre commande, référence ${commandeId}, a bien été enregistrée.
+⏳ Elle est actuellement en cours de préparation.
+📞 Nous vous contacterons prochainement pour la livraison.
+🔗 Pour suivre l'état de votre commande, utilisez le numéro ${commandeId} dans la section « Suivi commande » de votre espace client.`;
+      
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #0a1929 0%, #112240 100%);
+        border: 3px solid var(--accent);
+        border-radius: 20px;
+        padding: 30px;
+        z-index: 9999;
+        max-width: 90%;
+        width: 400px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+        color: var(--text);
+        font-family: inherit;
+      `;
+      
+      modal.innerHTML = `
+        <h3 style="color: var(--accent); margin-top: 0; text-align: center;">✅ Commande Enregistrée</h3>
+        <div style="white-space: pre-line; margin: 20px 0; font-size: 14px; line-height: 1.5;">${message}</div>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          <button id="copyMsgBtn" style="
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid var(--accent2);
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent2);
+            cursor: pointer;
+            font-weight: 700;
+          ">📋 Copier</button>
+          <button id="closeMsgBtn" style="
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent);
+            cursor: pointer;
+            font-weight: 700;
+          ">✅ OK</button>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.9);
+        z-index: 9998;
+      `;
+      document.body.appendChild(overlay);
+      
+      modal.querySelector('#copyMsgBtn').onclick = () => {
+        navigator.clipboard.writeText(message).then(() => {
+          showToast('📋 Message copié dans le presse-papier');
+        });
+      };
+      
+      const closeModal = () => {
+        document.body.removeChild(modal);
+        document.body.removeChild(overlay);
+      };
+      
+      modal.querySelector('#closeMsgBtn').onclick = closeModal;
+      overlay.onclick = closeModal;
+    }
+
+    // ===================== COMMANDES =====================
+    async function placeOrder() {
+      if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
+        showToast('❌ Veuillez compléter vos informations personnelles', 'error');
+        $('cartTopBtn').click();
+        return;
+      }
+
+      if (Object.keys(state.cart).length === 0) {
+        showToast('❌ Votre panier est vide', 'error');
+        return;
+      }
+
+      const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      if (subtotal < CONFIG.minOrder) {
+        showToast(`❌ Commande minimum: ${formatPrice(CONFIG.minOrder)}`, 'error');
+        return;
+      }
+
+      const savings = calculateTotalSavings();
+      let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.00;
+      const total = subtotal + shippingFee;
+
+      const commandeId = genererNumeroCommande();
+
+      let orderText = `📦 COMMANDE - MAXI JDC MARKET\n`;
+      orderText += `📅 ${new Date().toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}\n\n`;
+
+      orderText += `👤 CLIENT\n`;
+      orderText += `Nom: ${state.user.name}\n`;
+      orderText += `Téléphone: +216 ${state.user.phone}\n`;
+      orderText += `Adresse: ${state.user.address}\n`;
+      if (state.user.lat && state.user.lng) {
+        orderText += `📍 GPS: ${state.user.lat}, ${state.user.lng}\n`;
+      }
+
+      orderText += `\n🛒 ARTICLES\n`;
+      orderText += '─'.repeat(50) + '\n';
+
+      Object.values(state.cart).forEach(item => {
+        const itemTotal = item.price * item.quantity;
+        const itemSaving = calculateItemSavings(item);
+        const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
+        orderText += `${item.quantity}x ${item.name} (${item.code})\n`;
+        orderText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
+        if (itemSaving > 0) {
+          orderText += ` 💰 ÉCONOMIE: ${formatPrice(itemSaving)}`;
+          if (item.discountPercent) {
+            orderText += ` (-${item.discountPercent}%)`;
+          }
+          orderText += `\n ⚡ Ancien prix: ${formatPrice(originalTotal)}`;
+        }
+        orderText += '\n';
+      });
+
+      orderText += '─'.repeat(50) + '\n';
+      orderText += `Sous-total: ${formatPrice(subtotal)}\n`;
+
+      if (savings.totalSavings > 0) {
+        orderText += `💰 ÉCONOMIES TOTALES: ${formatPrice(savings.totalSavings)} (${savings.percentage}%)\n`;
+      }
+
+      orderText += `Livraison: ${shippingFee === 0 ? 'GRATUIT' : formatPrice(shippingFee)}\n`;
+      orderText += `TOTAL: ${formatPrice(total)}\n\n`;
+
+      if (savings.totalSavings > 0) {
+        orderText += `🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(savings.totalSavings)} sur cette commande !\n\n`;
+      }
+
+      orderText += `🕒 Heures: 7h - 1h\n`;
+      orderText += `📱 WhatsApp: +216 25 600 978\n`;
+      orderText += `📦 N° Commande: ${commandeId}`;
+
+      $('orderDetails').textContent = orderText;
+      $('orderModal').classList.add('open');
+
+      state.pendingOrder = {
+        subtotal,
+        shipping: shippingFee,
+        total,
+        savings: savings.totalSavings,
+        savingsPercentage: savings.percentage,
+        commandeId: commandeId
+      };
+
+      const t = TRANSLATIONS[state.currentLanguage];
+      showToast(`📝 Commande préparée. Cliquez sur "Valider et envoyer" pour finaliser.`);
+    }
+
+    // ===================== BOUTON "VALIDER ET ENVOYER" =====================
+    $('sendOrderBtn').onclick = async () => {
+      try {
+        if (!state.pendingOrder) {
+          showToast('❌ Aucune commande en attente', 'error');
+          return;
+        }
+
+        const orderData = state.pendingOrder;
+        
+        saveOrderToHistory(orderData);
+        
+        const commandeId = await enregistrerCommandeGoogleSheets(orderData);
+        
+        state.cart = {};
+        updateCartUI();
+        
+        state.pendingOrder = null;
+        
+        $('orderModal').classList.remove('open');
+        
+        envoyerMessageClient(commandeId);
+        
+      } catch (error) {
+        console.error('Erreur validation commande:', error);
+        showToast('❌ Erreur lors de la validation de la commande', 'error');
+      }
+    };
+
+    // ===================== INITIALISATION =====================
+    function init() {
+      try {
+        const saved = localStorage.getItem(CONFIG.localStorageKey);
+        if (saved) {
+          const data = JSON.parse(saved);
+          state.user = data.user || null;
+          state.cart = data.cart || {};
+          state.orderHistory = data.orderHistory || [];
+          updateUserUI();
+          updateCartUI();
+        }
+        const adminState = localStorage.getItem(CONFIG.adminPasswordKey);
+        state.isAdmin = adminState === 'true';
+        $('adminSection').classList.toggle('visible', state.isAdmin);
+        
+        const savedLang = localStorage.getItem('maxi_jdc_language') || 'fr';
+        setLanguage(savedLang);
+      } catch (e) {
+        console.warn('Erreur chargement état:', e);
+      }
+
+      state.pendingOrder = null;
+
+      $('cartTopBtn').onclick = () => {
+        $('drawer').classList.add('open');
+        $('drawerOverlay').classList.add('open');
+        document.body.classList.add('drawer-open');
+        document.body.style.overflow = 'hidden';
+      };
+
+      $('closeDrawerBtn').onclick = () => {
+        $('drawer').classList.remove('open');
+        $('drawerOverlay').classList.remove('open');
+        document.body.classList.remove('drawer-open');
+        document.body.style.overflow = '';
+      };
+
+      $('drawerOverlay').onclick = $('closeDrawerBtn').onclick;
+
+      // Gestion du bouton langue dans le header
+      const langDropdown = $('langDropdown');
+      const langHeaderBtn = $('langHeaderBtn');
+      
+      langHeaderBtn.onclick = (e) => {
+        e.stopPropagation();
+        langDropdown.classList.toggle('show');
+      };
+      
+      document.addEventListener('click', () => {
+        langDropdown.classList.remove('show');
       });
       
-      whatsappMessage += `%0A💰 SOUS-TOTAL: ${formatPrice(orderDetails.subtotal)}%0A`;
-      whatsappMessage += `🚚 LIVRAISON: ${orderDetails.shipping === 0 ? 'GRATUIT' : formatPrice(orderDetails.shipping)}%0A`;
-      whatsappMessage += `💳 TOTAL: ${formatPrice(orderDetails.total)}%0A`;
-      
-      if (orderDetails.savings > 0) {
-        whatsappMessage += `🎉 ÉCONOMIES: ${formatPrice(orderDetails.savings)} (${orderDetails.savingsPercentage}%)%0A`;
+      document.querySelectorAll('.lang-option').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const lang = btn.dataset.lang;
+          setLanguage(lang);
+          langDropdown.classList.remove('show');
+        };
+      });
+
+      $('searchInput').addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        state.currentPage = 1;
+        renderProducts();
+      });
+
+      $('searchEnterBtn').onclick = () => {
+        state.currentPage = 1;
+        renderProducts();
+        $('searchInput').focus();
+      };
+
+      $('clearSearchBtn').onclick = () => {
+        $('searchInput').value = '';
+        state.searchQuery = '';
+        state.currentPage = 1;
+        renderProducts();
+        $('searchInput').focus();
+      };
+
+      $('showAllBtn').onclick = () => {
+        state.showAllCategories = true;
+        state.activeCategory = null;
+        state.currentPage = 1;
+        renderProducts();
+        updateCategoriesUI();
+      };
+
+      $('viewPromosBtn').onclick = () => {
+        state.showAllCategories = false;
+        state.activeCategory = 'promotions';
+        state.currentPage = 1;
+        renderProducts();
+        updateCategoriesUI();
+        $('closeDrawerBtn').click();
+      };
+
+      $('prevPageBtn').onclick = $('prevPageBottomBtn').onclick = () => {
+        if (state.currentPage > 1) {
+          state.currentPage--;
+          renderProducts();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      };
+
+      $('nextPageBtn').onclick = $('nextPageBottomBtn').onclick = () => {
+        const products = getFilteredProducts();
+        const totalPages = Math.ceil(products.length / CONFIG.itemsPerPage) || 1;
+        if (state.currentPage < totalPages) {
+          state.currentPage++;
+          renderProducts();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      };
+
+      $('closeProductModalBtn').onclick = $('modalCloseBottomBtn').onclick = closeProductModal;
+
+      $('closeCatalogueModalBtn').onclick = closeCatalogueModal;
+
+      // Recherche catalogue
+      $('catalogueSearchInput').addEventListener('input', (e) => {
+        state.catalogueSearchQuery = e.target.value;
+        renderCatalogue();
+      });
+
+      $('catalogueSearchBtn').onclick = () => {
+        $('catalogueSearchInput').focus();
+      };
+
+      $('qrInfoBtn').onclick = openQRModal;
+      $('qrDirectBtn').onclick = openQRModal;
+      $('closeQrModalBtn').onclick = closeQRModal;
+
+      $('secretAdminBtn').onclick = toggleAdminMode;
+      $('adminDashboardBtn').onclick = openDashboard;
+      $('adminStockBtn').onclick = openStockManagement;
+
+      $('toggleClientSpaceBtn').onclick = toggleClientSpace;
+      $('closeClientSpaceBtn').onclick = closeClientSpace;
+
+      $('clearCartBtn').onclick = () => {
+        if (Object.keys(state.cart).length === 0) return;
+        if (confirm('Voulez-vous vraiment vider tout votre panier ?')) {
+          Object.values(state.cart).forEach(item => {
+            const stockKey = `${item.categoryKey}_${item.code}`;
+            const currentStock = state.productStocks.get(stockKey) || 0;
+            state.productStocks.set(stockKey, currentStock + item.quantity);
+          });
+          state.cart = {};
+          state.quantityPicks = {};
+          updateCartUI();
+          renderProducts();
+          const t = TRANSLATIONS[state.currentLanguage];
+          showToast(t.toastCartCleared, 'warning');
+        }
+      };
+
+      $('cartItemsList').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+        if (action === 'increase' && state.cart[id]) {
+          const availableStock = getAvailableStock(state.cart[id]);
+          if (state.cart[id].quantity < availableStock) {
+            state.cart[id].quantity++;
+            updateProductStock(state.cart[id], 1);
+            renderProducts();
+            updateCartUI();
+          } else {
+            showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
+          }
+        } else if (action === 'decrease' && state.cart[id]) {
+          state.cart[id].quantity--;
+          if (state.cart[id].quantity <= 0) {
+            delete state.cart[id];
+            delete state.quantityPicks[id];
+          }
+          removeFromCart(id, 1);
+        }
+      });
+
+      $('saveAccountBtn').onclick = saveUser;
+      $('editAccountBtn').onclick = editUser;
+
+      $('clearPhoneBtn').onclick = () => {
+        $('clientPhone').value = '';
+        $('clientPhone').focus();
+      };
+
+      $('getLocationBtn').onclick = getLocationFromBrowser;
+      $('mapPreview').onclick = openMapModal;
+
+      $('closeMapModalBtn').onclick = () => {
+        $('mapModal').classList.remove('open');
+        document.body.style.overflow = '';
+      };
+
+      $('mapOkBtn').onclick = () => {
+        if (state.tempMapCoords) {
+          $('clientLat').value = state.tempMapCoords.lat.toFixed(6);
+          $('clientLng').value = state.tempMapCoords.lng.toFixed(6);
+          updateMapPreview(state.tempMapCoords.lat, state.tempMapCoords.lng);
+          showToast('✅ Position enregistrée');
+        }
+        $('closeMapModalBtn').click();
+      };
+
+      $('searchHistoryBtn').onclick = () => {
+        const phone = $('searchHistoryPhone').value.trim();
+        if (!phone) {
+          showToast('❌ Veuillez entrer votre numéro de téléphone', 'error');
+          return;
+        }
+        const history = loadHistoryForPhone(phone);
+        renderHistory(history);
+        if (history.length === 0) {
+          showToast('📭 Aucune commande trouvée pour ce numéro', 'warning');
+        } else {
+          showToast(`📜 ${history.length} commande(s) trouvée(s)`);
+        }
+      };
+
+      $('placeOrderBtn').onclick = placeOrder;
+
+      $('closeOrderModalBtn').onclick = () => {
+        $('orderModal').classList.remove('open');
+      };
+
+      $('copyOrderBtn').onclick = () => {
+        const orderText = $('orderDetails').textContent;
+        navigator.clipboard.writeText(orderText).then(() => {
+          showToast('📋 Commande copiée dans le presse-papier');
+        }).catch(err => {
+          console.error('Erreur copie:', err);
+          showToast('❌ Erreur lors de la copie', 'error');
+        });
+      };
+
+      $('downloadOrderBtn').onclick = () => {
+        const orderText = $('orderDetails').textContent;
+        const blob = new Blob([orderText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `commande-maxi-jdc-${Date.now()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('💾 Commande téléchargée');
+      };
+
+      $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
+        $('stockModal').classList.remove('open');
+        document.body.style.overflow = '';
+      };
+
+      $('stockSearchInput').addEventListener('input', (e) => {
+        renderStockTable(e.target.value);
+      });
+
+      $('refreshStockBtn').onclick = () => {
+        loadGoogleSheetsStock().then(() => {
+          updateAllProductStocks();
+          renderStockTable($('stockSearchInput').value);
+          showToast('🔄 Stocks actualisés depuis Google Sheets');
+        });
+      };
+
+      $('stockTableBody').addEventListener('click', (e) => {
+        const saveBtn = e.target.closest('.stock-save-btn');
+        if (saveBtn) {
+          const productKey = saveBtn.dataset.key;
+          const input = document.querySelector(`.stock-input[data-key="${productKey}"]`);
+          if (input) {
+            updateStock(productKey, input.value);
+          }
+        }
+      });
+
+      $('saveAllStockBtn').onclick = () => {
+        const inputs = document.querySelectorAll('.stock-input');
+        inputs.forEach(input => {
+          const productKey = input.dataset.key;
+          const newStock = parseInt(input.value) || 0;
+          const currentStock = state.productStocks.get(productKey) || 0;
+          if (newStock !== currentStock) {
+            updateStock(productKey, newStock);
+          }
+        });
+        showToast('✅ Tous les stocks sauvegardés');
+      };
+
+      loadAllProducts();
+      initializeSync();
+      initClientSpace();
+      showToast('👋 Bienvenue sur MAXI JDC MARKET !');
+    }
+
+    function saveState() {
+      const data = {
+        user: state.user,
+        cart: state.cart,
+        orderHistory: state.orderHistory,
+        version: '40.0'
+      };
+      localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    window.addEventListener('beforeunload', () => {
+      if (state.syncTimer) {
+        clearInterval(state.syncTimer);
       }
-      
-      // 4. Ouvrir WhatsApp
-      const whatsappUrl = `https://wa.me/${CONFIG.whatsappNumber}?text=${whatsappMessage}`;
-      window.open(whatsappUrl, '_blank');
-      
-      // 5. Vider le panier
-      state.cart = {};
-      state.quantityPicks = {};
-      updateCartUI();
-      
-      // 6. Fermer les modales
-      closeOrderModal();
-      closeDrawer();
-      
-      // 7. Afficher message de confirmation
-      showToast('✅ Commande envoyée avec succès !');
-      
-      // 8. Réinitialiser l'état d'envoi après un délai
-      setTimeout(() => {
-        state.isSendingOrder = false;
-      }, 3000);
-    } else {
-      throw new Error('Échec de l\'enregistrement');
-    }
-  } catch (error) {
-    console.error('Erreur lors de l\'envoi de la commande:', error);
-    showToast('❌ Erreur lors de l\'envoi de la commande', 'error');
-    
-    // Réinitialiser le bouton
-    sendBtn.textContent = originalText;
-    sendBtn.disabled = false;
-    state.isSendingOrder = false;
-  }
-};
-
-$('orderModal').classList.add('open');
-}
-
-function closeOrderModal() {
-$('orderModal').classList.remove('open');
-state.pendingOrder = null;
-}
-
-function copyOrderToClipboard() {
-const orderText = $('orderDetails').textContent;
-navigator.clipboard.writeText(orderText).then(() => {
-  showToast('📋 Commande copiée dans le presse-papier');
-}).catch(err => {
-  console.error('Erreur copie:', err);
-  showToast('❌ Erreur lors de la copie', 'error');
-});
-}
-
-function downloadOrder() {
-const orderText = $('orderDetails').textContent;
-const blob = new Blob([orderText], { type: 'text/plain' });
-const url = URL.createObjectURL(blob);
-const a = document.createElement('a');
-a.href = url;
-a.download = `commande-${state.pendingOrder?.commandeId || 'maxi-jdc'}.txt`;
-document.body.appendChild(a);
-a.click();
-document.body.removeChild(a);
-URL.revokeObjectURL(url);
-showToast('💾 Commande téléchargée');
-}
-
-// ===================== GESTION D'ÉTAT =====================
-function saveState() {
-const appState = {
-  user: state.user,
-  cart: state.cart,
-  quantityPicks: state.quantityPicks,
-  activeCategory: state.activeCategory,
-  showAllCategories: state.showAllCategories,
-  currentPage: state.currentPage,
-  searchQuery: state.searchQuery,
-  orderHistory: state.orderHistory,
-  productStocks: Object.fromEntries(state.productStocks),
-  currentLanguage: state.currentLanguage,
-  clientSpaceVisible: state.clientSpaceVisible,
-  version: '4.0'
-};
-localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(appState));
-}
-
-function loadState() {
-try {
-  const saved = localStorage.getItem(CONFIG.localStorageKey);
-  if (!saved) return;
-  
-  const appState = JSON.parse(saved);
-  
-  // Charger l'état de base
-  state.user = appState.user || null;
-  state.cart = appState.cart || {};
-  state.quantityPicks = appState.quantityPicks || {};
-  state.activeCategory = appState.activeCategory || 'promotions';
-  state.showAllCategories = appState.showAllCategories || false;
-  state.currentPage = appState.currentPage || 1;
-  state.searchQuery = appState.searchQuery || '';
-  state.orderHistory = appState.orderHistory || [];
-  state.currentLanguage = appState.currentLanguage || 'fr';
-  state.clientSpaceVisible = appState.clientSpaceVisible || false;
-  
-  // Charger les stocks sauvegardés
-  if (appState.productStocks) {
-    Object.entries(appState.productStocks).forEach(([key, stock]) => {
-      state.productStocks.set(key, stock);
     });
-  }
-  
-  console.log('État chargé avec succès');
-} catch (error) {
-  console.error('Erreur chargement état:', error);
-}
-}
-
-// ===================== INITIALISATION =====================
-function initEventListeners() {
-// Recherche
-$('searchInput').addEventListener('input', (e) => {
-  state.searchQuery = e.target.value.trim();
-  state.currentPage = 1;
-  renderProducts();
-});
-
-$('searchEnterBtn').onclick = () => {
-  state.searchQuery = $('searchInput').value.trim();
-  state.currentPage = 1;
-  renderProducts();
-};
-
-$('clearSearchBtn').onclick = () => {
-  $('searchInput').value = '';
-  state.searchQuery = '';
-  state.currentPage = 1;
-  renderProducts();
-};
-
-$('showAllBtn').onclick = () => {
-  state.showAllCategories = true;
-  state.activeCategory = null;
-  state.currentPage = 1;
-  renderProducts();
-  updateCategoriesUI();
-};
-
-// Pagination
-$('prevPageBtn').onclick = () => {
-  if (state.currentPage > 1) {
-    state.currentPage--;
-    renderProducts();
-  }
-};
-
-$('nextPageBtn').onclick = () => {
-  const totalPages = Math.ceil(state.filteredProducts.length / CONFIG.itemsPerPage);
-  if (state.currentPage < totalPages) {
-    state.currentPage++;
-    renderProducts();
-  }
-};
-
-$('prevPageBottomBtn').onclick = () => $('prevPageBtn').click();
-$('nextPageBottomBtn').onclick = () => $('nextPageBtn').click();
-
-// Panier
-$('cartTopBtn').onclick = openDrawer;
-$('closeDrawerBtn').onclick = closeDrawer;
-$('drawerOverlay').onclick = closeDrawer;
-
-$('clearCartBtn').onclick = () => {
-  if (Object.keys(state.cart).length === 0) {
-    showToast('🛒 Panier déjà vide', 'warning');
-    return;
-  }
-  
-  if (confirm('Vider tout le panier ?')) {
-    // Restaurer les stocks
-    Object.values(state.cart).forEach(item => {
-      const stockKey = `${item.categoryKey}_${item.code}`;
-      const currentStock = state.productStocks.get(stockKey) || 0;
-      state.productStocks.set(stockKey, currentStock + item.quantity);
-    });
-    
-    state.cart = {};
-    state.quantityPicks = {};
-    updateCartUI();
-    renderProducts();
-    showToast('🗑️ Panier vidé');
-  }
-};
-
-$('placeOrderBtn').onclick = createOrder;
-
-// Délegation d'événements pour les boutons de quantité du panier
-$('cartItemsList').addEventListener('click', (e) => {
-  const btn = e.target.closest('.cart-item-qty-btn');
-  if (!btn) return;
-  
-  const action = btn.dataset.action;
-  const productId = btn.dataset.id;
-  const item = state.cart[productId];
-  
-  if (!item) return;
-  
-  if (action === 'increase') {
-    const availableStock = getAvailableStock(item);
-    if (item.quantity < availableStock) {
-      addToCart(productId, item, 1);
-    } else {
-      showToast('❌ Stock limité', 'warning');
-    }
-  } else if (action === 'decrease') {
-    removeFromCart(productId, 1);
-  }
-});
-
-// Modal produit
-$('closeProductModalBtn').onclick = closeProductModal;
-$('modalCloseBottomBtn').onclick = closeProductModal;
-
-$('modalDecreaseBtn').onclick = () => {
-  const input = $('modalQuantityInput');
-  let value = parseInt(input.value) || 0;
-  if (value > 0) {
-    value--;
-    input.value = value;
-    updateModalQuantity(value);
-  }
-};
-
-$('modalIncreaseBtn').onclick = () => {
-  const input = $('modalQuantityInput');
-  let value = parseInt(input.value) || 0;
-  const max = parseInt(input.max) || 0;
-  if (value < max) {
-    value++;
-    input.value = value;
-    updateModalQuantity(value);
-  } else {
-    showToast('❌ Stock limité', 'warning');
-  }
-};
-
-$('modalQuantityInput').addEventListener('input', (e) => {
-  let value = parseInt(e.target.value) || 0;
-  const max = parseInt(e.target.max) || 0;
-  
-  if (value > max) {
-    value = max;
-    e.target.value = value;
-    showToast('❌ Stock limité', 'warning');
-  }
-  
-  updateModalQuantity(value);
-});
-
-$('modalQuantityInput').addEventListener('change', (e) => {
-  let value = parseInt(e.target.value) || 0;
-  if (value < 0) value = 0;
-  e.target.value = value;
-  updateModalQuantity(value);
-});
-
-$('modalAddToCartBtn').onclick = () => {
-  if (!state.currentModalProduct) return;
-  
-  const productId = generateProductId(state.currentModalProduct);
-  const quantity = state.quantityPicks[productId] || 0;
-  
-  if (quantity > 0) {
-    addToCart(productId, state.currentModalProduct, quantity);
-    closeProductModal();
-  } else {
-    showToast('❌ Quantité invalide', 'error');
-  }
-};
-
-// Navigation articles dans modal
-$('modalPrevProduct').onclick = () => {
-  if (!state.currentModalProduct || state.filteredProducts.length === 0) return;
-  
-  const currentIndex = findProductIndex(state.currentModalProduct);
-  if (currentIndex === -1) return;
-  
-  const prevIndex = (currentIndex - 1 + state.filteredProducts.length) % state.filteredProducts.length;
-  const prevProduct = state.filteredProducts[prevIndex];
-  
-  if (prevProduct) {
-    closeProductModal();
-    setTimeout(() => openProductModal(prevProduct), 300);
-  }
-};
-
-$('modalNextProduct').onclick = () => {
-  if (!state.currentModalProduct || state.filteredProducts.length === 0) return;
-  
-  const currentIndex = findProductIndex(state.currentModalProduct);
-  if (currentIndex === -1) return;
-  
-  const nextIndex = (currentIndex + 1) % state.filteredProducts.length;
-  const nextProduct = state.filteredProducts[nextIndex];
-  
-  if (nextProduct) {
-    closeProductModal();
-    setTimeout(() => openProductModal(nextProduct), 300);
-  }
-};
-
-// Catalogue modal
-$('closeCatalogueModalBtn').onclick = closeCatalogueModal;
-$('catalogueModal').addEventListener('click', (e) => {
-  if (e.target.classList.contains('catalogue-modal-overlay')) {
-    closeCatalogueModal();
-  }
-});
-
-$('catalogueSearchInput').addEventListener('input', (e) => {
-  state.catalogueSearchQuery = e.target.value.trim();
-  renderCatalogue();
-});
-
-$('catalogueSearchBtn').onclick = () => {
-  state.catalogueSearchQuery = $('catalogueSearchInput').value.trim();
-  renderCatalogue();
-};
-
-// QR Code
-$('qrInfoBtn').onclick = openQRModal;
-$('qrDirectBtn').onclick = openQRModal;
-$('closeQrModalBtn').onclick = closeQRModal;
-$('qrModal').addEventListener('click', (e) => {
-  if (e.target.classList.contains('qr-modal-overlay')) {
-    closeQRModal();
-  }
-});
-
-// Administration
-$('secretAdminBtn').onclick = toggleAdminMode;
-$('adminStockBtn').onclick = openStockManagement;
-$('adminDashboardBtn').onclick = openDashboard;
-
-// Gestion stock modal
-$('closeStockModalBtn').onclick = closeStockModal;
-$('closeStockModalBtn2').onclick = closeStockModal;
-$('stockModal').addEventListener('click', (e) => {
-  if (e.target.classList.contains('stock-modal-overlay')) {
-    closeStockModal();
-  }
-});
-
-function closeStockModal() {
-  $('stockModal').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-// Délégation pour les boutons de stock
-$('stockTableBody').addEventListener('click', (e) => {
-  const btn = e.target.closest('.stock-save-btn');
-  if (!btn) return;
-  
-  const productKey = btn.dataset.key;
-  const input = document.querySelector(`.stock-input[data-key="${productKey}"]`);
-  if (input) {
-    updateStock(productKey, input.value);
-  }
-});
-
-$('stockSearchInput').addEventListener('input', (e) => {
-  renderStockTable(e.target.value);
-});
-
-$('refreshStockBtn').onclick = () => {
-  $('stockSearchInput').value = '';
-  renderStockTable('');
-  showToast('🔄 Stocks actualisés');
-};
-
-$('saveAllStockBtn').onclick = () => {
-  const inputs = document.querySelectorAll('.stock-input');
-  let updatedCount = 0;
-  
-  inputs.forEach(input => {
-    const productKey = input.dataset.key;
-    const newStock = parseInt(input.value) || 0;
-    const currentStock = state.productStocks.get(productKey) || 0;
-    
-    if (newStock !== currentStock) {
-      updateStock(productKey, newStock);
-      updatedCount++;
-    }
-  });
-  
-  showToast(`✅ ${updatedCount} stocks mis à jour`);
-};
-
-// Espace client
-$('toggleClientSpaceBtn').onclick = toggleClientSpace;
-$('closeClientSpaceBtn').onclick = closeClientSpace;
-
-// Compte utilisateur
-$('saveAccountBtn').onclick = saveUser;
-$('editAccountBtn').onclick = editUser;
-$('clearPhoneBtn').onclick = () => {
-  $('clientPhone').value = '';
-};
-
-$('getLocationBtn').onclick = getLocationFromBrowser;
-$('mapPreview').onclick = openMapModal;
-
-// Map modal
-$('closeMapModalBtn').onclick = closeMapModal;
-$('mapModal').addEventListener('click', (e) => {
-  if (e.target.classList.contains('map-modal-overlay')) {
-    closeMapModal();
-  }
-});
-
-$('mapOkBtn').onclick = () => {
-  if (state.tempMapCoords) {
-    $('clientLat').value = state.tempMapCoords.lat.toFixed(6);
-    $('clientLng').value = state.tempCoords.lng.toFixed(6);
-    updateMapPreview(state.tempMapCoords.lat, state.tempMapCoords.lng);
-    showToast('✅ Position GPS enregistrée');
-  }
-  closeMapModal();
-};
-
-function closeMapModal() {
-  $('mapModal').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-// Historique
-$('searchHistoryBtn').onclick = () => {
-  const phone = $('searchHistoryPhone').value.trim();
-  if (!phone) {
-    showToast('❌ Veuillez entrer un numéro de téléphone', 'error');
-    return;
-  }
-  
-  const history = loadHistoryForPhone(phone);
-  renderHistory(history);
-  
-  if (history.length === 0) {
-    showToast('📭 Aucune commande trouvée pour ce numéro', 'warning');
-  } else {
-    showToast(`📊 ${history.length} commande(s) trouvée(s)`);
-  }
-};
-
-// Modal commande
-$('closeOrderModalBtn').onclick = closeOrderModal;
-$('orderModal').addEventListener('click', (e) => {
-  if (e.target.classList.contains('order-modal-overlay')) {
-    closeOrderModal();
-  }
-});
-
-$('copyOrderBtn').onclick = copyOrderToClipboard;
-$('downloadOrderBtn').onclick = downloadOrder;
-
-// Navigation modal images
-$('modalPrevImageBtn').onclick = () => {
-  // Navigation entre images (si plusieurs images disponibles)
-  console.log('Image précédente');
-};
-
-$('modalNextImageBtn').onclick = () => {
-  // Navigation entre images (si plusieurs images disponibles)
-  console.log('Image suivante');
-};
-
-// Langue
-$('langHeaderBtn').onclick = () => {
-  $('langDropdown').classList.toggle('show');
-};
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.lang-btn-header') && !e.target.closest('.lang-dropdown')) {
-    $('langDropdown').classList.remove('show');
-  }
-});
-
-document.querySelectorAll('.lang-option').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const lang = btn.dataset.lang;
-    setLanguage(lang);
-    $('langDropdown').classList.remove('show');
-  });
-});
-
-// Bannière promo
-$('viewPromosBtn').onclick = () => {
-  state.showAllCategories = false;
-  state.activeCategory = 'promotions';
-  state.currentPage = 1;
-  renderProducts();
-  updateCategoriesUI();
-  
-  // Fermer le panier si ouvert
-  if ($('drawer').classList.contains('open')) {
-    closeDrawer();
-  }
-};
-}
-
-function updateModalQuantity(quantity) {
-if (!state.currentModalProduct) return;
-
-const productId = generateProductId(state.currentModalProduct);
-state.quantityPicks[productId] = quantity;
-
-const availableStock = getAvailableStock(state.currentModalProduct);
-const addBtn = $('modalAddToCartBtn');
-const t = TRANSLATIONS[state.currentLanguage];
-
-addBtn.disabled = quantity === 0 || availableStock === 0;
-addBtn.textContent = quantity > 0 ? 
-  `🛒 ${t.addToCart} ${quantity}` : 
-  `🛒 ${t.addToCart}`;
-}
-
-function openDrawer() {
-$('drawer').classList.add('open');
-$('drawerOverlay').classList.add('open');
-document.body.style.overflow = 'hidden';
-updateCartUI();
-updateUserUI();
-}
-
-function closeDrawer() {
-$('drawer').classList.remove('open');
-$('drawerOverlay').classList.remove('open');
-document.body.style.overflow = '';
-}
-
-// ===================== INITIALISATION APP =====================
-async function initApp() {
-console.log('🚀 Initialisation MAXI JDC MARKET...');
-
-// Charger l'état sauvegardé
-loadState();
-
-// Initialiser la langue
-const savedLang = localStorage.getItem('maxi_jdc_language') || 'fr';
-setLanguage(savedLang);
-
-// Initialiser l'espace client
-initClientSpace();
-
-// Initialiser la synchronisation
-initializeSync();
-
-// Charger tous les produits
-await loadAllProducts();
-
-// Initialiser les événements
-initEventListeners();
-
-// Afficher le statut admin si déjà activé
-const adminActive = localStorage.getItem(CONFIG.adminPasswordKey) === 'true';
-if (adminActive) {
-  state.isAdmin = true;
-  $('adminSection').classList.add('visible');
-}
-
-// Vérifier si l'espace client doit être visible
-if (state.clientSpaceVisible) {
-  $('clientSpaceSection').classList.add('visible');
-  $('toggleClientSpaceBtn').style.display = 'none';
-}
-
-// Mettre à jour l'interface
-updateCartUI();
-updateUserUI();
-renderProducts();
-
-console.log('✅ Application prête !');
-showToast('🌟 MAXI JDC MARKET - Prêt à commander !');
-}
-
-// ===================== DÉMARRAGE =====================
-// Vérifier si le DOM est chargé
-if (document.readyState === 'loading') {
-document.addEventListener('DOMContentLoaded', initApp);
-} else {
-initApp();
-}
-
-// Service Worker pour PWA
-if ('serviceWorker' in navigator) {
-window.addEventListener('load', () => {
-  navigator.serviceWorker.register('/sw.js').then(registration => {
-    console.log('✅ Service Worker enregistré:', registration);
-  }).catch(error => {
-    console.log('❌ Échec enregistrement Service Worker:', error);
-  });
-});
-}
-
-// Gestionnaire d'erreurs global
-window.addEventListener('error', (event) => {
-console.error('Erreur globale:', event.error);
-showToast('❌ Une erreur est survenue', 'error');
-});
-
-window.addEventListener('unhandledrejection', (event) => {
-console.error('Promise rejetée:', event.reason);
-showToast('❌ Erreur de traitement', 'error');
-});
-     
+  </script>
+</body>
+</html>
