@@ -5,7 +5,7 @@
 window.APP_CONFIG = window.APP_CONFIG || {};
 
 // URL du Google Apps Script (METTEZ VOTRE URL ICI)
-window.APP_CONFIG.googleScriptUrl = "https://script.google.com/macros/s/AKfycbynsa5g1r3tmPohU61ArVm2kc4lg-IPMBhbnBPjwbSMTluTVleV1uucq5Ry3BDURV7V/exec";
+window.APP_CONFIG.googleScriptUrl = "https://script.google.com/macros/s/AKfycbzpIBKhYI5oKrCmdSAy1f5kdLkJ0n-f5CxdwL5EBKnvZ7kILUhBdQ7-BByWhfEgqHQN/exec";
 
 // Fonction pour obtenir l'URL du script
 window.APP_CONFIG.getScriptUrl = function() {
