@@ -2,8 +2,8 @@
  * CONFIGURATION API - MAXI JDC MARKET
  *********************************/
 
-// ⚠️ Mets ICI la même URL que ta page suivi (celle qui marche chez toi)
-const API_URL =
+// ✅ URL OK (celle qui marche chez toi)
+export const API_URL =
   "https://script.google.com/macros/s/AKfycbyTI6g9kQYMw8srpaOuaqeTj6isL42co0s9DndANm98M9As_rLo415QSeyA9uusALKA/exec";
 
 /*********************************
@@ -60,7 +60,14 @@ export async function envoyerCommande(dataCommande) {
   });
 
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
-  return await response.json();
+  const data = await response.json();
+
+  // ✅ Tolérance : si l’API change un peu de clé
+  if (data && data.success && !data.commande_id) {
+    data.commande_id = data.commandeId || data.orderId || data.id || "";
+  }
+
+  return data;
 }
 
 /*********************************
@@ -71,8 +78,6 @@ export async function getAllOrders() {
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur getorders");
-
-  // retourne un tableau simple
   return data.orders || [];
 }
 
@@ -87,13 +92,12 @@ export async function suivreCommande(commandeId) {
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Commande non trouvée");
 
-  // format "8 colonnes"
   return {
     Date: data.date || "",
-    Nom: data.nom || "",
+    Nom: data.nom || data.nom_client || "",
     Téléphone: data.telephone || "",
     Adresse: data.adresse || "",
-    Commande: data.commande_id || "",
+    Commande: data.commande_id || commandeId || "",
     Articles: data.articles || "",
     Total: data.total || "0",
     Statut: data.statut || "⏳ EN ATTENTE",
@@ -111,7 +115,6 @@ export async function recupererHistorique(telephone) {
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur historique");
-
   return data.history || [];
 }
 
