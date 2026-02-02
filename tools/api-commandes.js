@@ -4,7 +4,7 @@
 
 // ⚠️ Mets ICI la même URL que ta page suivi (celle qui marche chez toi)
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbyuF6yfYVFkIXG-B3qAFWWn3K67iZVdlx_QmMcNQALi_nepennRdDvt1j_Rb_24Odqb/exec";
+  "https://script.google.com/macros/s/AKfycbz_QF0kHQy2wty3x1kdMD5BMZaNfYGStTpppCaudvzQm8-ubsmewWfx6BCb-KFLFnZK/exec";
 
 /*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
