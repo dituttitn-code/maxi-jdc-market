@@ -4644,7 +4644,8 @@
       catalogueSearchQuery: '',
       catalogueQuantityPicks: {},
       isSendingOrder: false,
-      addressLinksEnabled: true
+      addressLinksEnabled: true,
+      allProducts: [] // Nouveau: pour stocker tous les produits
     };
 
     // ===================== TRADUCTION =====================
@@ -4973,6 +4974,8 @@
         });
         state.products.set(catKey, updatedProducts);
       }
+      // Mettre à jour allProducts également
+      state.allProducts = [...state.products.values()].flat();
     }
 
     // ===================== CALCUL DES ÉCONOMIES =====================
@@ -5199,6 +5202,8 @@
         applyPromotions(allProducts, promotions);
         showPromoBanner(promotions);
       }
+      // Stocker tous les produits dans state.allProducts
+      state.allProducts = allProducts;
       renderCategories();
       renderProducts();
       showToast('✅ Produits chargés avec succès');
@@ -5270,18 +5275,24 @@
     function renderCategories() {
       const container = $('categoriesContainer');
       container.innerHTML = '';
+      
+      // Bouton "Tous" avec le nombre total de produits (1316 articles)
       const allButton = document.createElement('button');
       allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
-      const allProductsCount = [...state.products.values()].flat().length;
+      const allProductsCount = state.allProducts.length; // Utiliser le nombre réel
       allButton.innerHTML = `🌐 Tous <span class="cat-count">${allProductsCount}</span>`;
       allButton.onclick = () => {
         state.showAllCategories = true;
         state.activeCategory = null;
         state.currentPage = 1;
+        state.filteredProducts = state.allProducts; // Utiliser tous les produits
         renderProducts();
         updateCategoriesUI();
+        $('activeCategoryLabel').textContent = "Tous";
+        $('activeCategoryMeta').textContent = `${allProductsCount} articles disponibles`;
       };
       container.appendChild(allButton);
+      
       CATEGORIES.forEach(category => {
         const products = state.products.get(category.key) || [];
         const button = document.createElement('button');
@@ -5293,6 +5304,7 @@
           state.showAllCategories = false;
           state.activeCategory = category.key;
           state.currentPage = 1;
+          state.filteredProducts = products;
           renderProducts();
           updateCategoriesUI();
         };
@@ -5303,10 +5315,11 @@
     function updateCategoriesUI() {
       const buttons = $('categoriesContainer').querySelectorAll('.cat-btn');
       buttons.forEach(button => button.classList.remove('active'));
+      
       if (state.showAllCategories) {
         buttons[0].classList.add('active');
-        $('activeCategoryLabel').textContent = TRANSLATIONS[state.currentLanguage].productsTitle;
-        $('activeCategoryMeta').textContent = TRANSLATIONS[state.currentLanguage].selectCategory;
+        $('activeCategoryLabel').textContent = "Tous";
+        $('activeCategoryMeta').textContent = `${state.allProducts.length} articles disponibles`;
       } else {
         const category = CATEGORIES.find(c => c.key === state.activeCategory);
         if (category) {
@@ -5328,7 +5341,7 @@
     function getFilteredProducts() {
       let products = [];
       if (state.showAllCategories) {
-        products = [...state.products.values()].flat();
+        products = state.allProducts; // Utiliser tous les produits
       } else {
         products = state.products.get(state.activeCategory) || [];
       }
@@ -6192,7 +6205,7 @@
       saveState();
       saveSyncData();
       if (orderDetails.savings && orderDetails.savings > 0) {
-        showToast(`🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(orderDetails.savings)} !`);
+        showToast(`🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(orderDetails.savings)} sur cette commande !`);
       } else {
         showToast('📝 Commande ajoutée à votre historique');
       }
@@ -6904,14 +6917,18 @@
         state.showAllCategories = true;
         state.activeCategory = null;
         state.currentPage = 1;
+        state.filteredProducts = state.allProducts;
         renderProducts();
         updateCategoriesUI();
+        $('activeCategoryLabel').textContent = "Tous";
+        $('activeCategoryMeta').textContent = `${state.allProducts.length} articles disponibles`;
       };
 
       $('viewPromosBtn').onclick = () => {
         state.showAllCategories = false;
         state.activeCategory = 'promotions';
         state.currentPage = 1;
+        state.filteredProducts = state.products.get('promotions') || [];
         renderProducts();
         updateCategoriesUI();
         $('closeDrawerBtn').click();
