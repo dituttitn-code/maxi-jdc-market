@@ -3,7 +3,8 @@
  *********************************/
 
 // ⚠️ Mets ICI la même URL que ta page suivi (celle qui marche chez toi)
-const API_URL = "https://script.google.com/macros/s/AKfycbynsa5g1r3tmPohU61ArVm2kc4lg-IPMBhbnBPjwbSMTluTVleV1uucq5Ry3BDURV7V/exec";
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbynsa5g1r3tmPohU61ArVm2kc4lg-IPMBhbnBPjwbSMTluTVleV1uucq5Ry3BDURV7V/exec";
 
 /*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
@@ -16,13 +17,16 @@ export async function envoyerCommande(dataCommande) {
   // normaliser articles en array d'objets
   let articlesFormat = [];
   if (Array.isArray(dataCommande.articles)) {
-    articlesFormat = dataCommande.articles.map(item => ({
+    articlesFormat = dataCommande.articles.map((item) => ({
       produit: item.produit || item.nom || item.name || "",
       quantite: parseInt(item.quantite || item.qty || item.quantity || 1, 10),
       prix_unitaire: parseFloat(item.prix_unitaire || item.prix || item.price || 0),
       prix_total: parseFloat(
-        (parseInt(item.quantite || item.qty || 1, 10) * parseFloat(item.prix_unitaire || item.prix || 0)).toFixed(2)
-      )
+        (
+          parseInt(item.quantite || item.qty || 1, 10) *
+          parseFloat(item.prix_unitaire || item.prix || 0)
+        ).toFixed(2)
+      ),
     }));
   } else if (typeof dataCommande.articles === "string") {
     try {
@@ -46,13 +50,13 @@ export async function envoyerCommande(dataCommande) {
     telephone: dataCommande.telephone || dataCommande.Telephone || "",
     adresse: dataCommande.adresse || dataCommande.Adresse || "",
     articles: articlesFormat.length ? JSON.stringify(articlesFormat) : (dataCommande.articles || ""),
-    total: total ? total.toFixed(2) : ""
+    total: total ? total.toFixed(2) : "",
   };
 
   const response = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams(payload).toString()
+    body: new URLSearchParams(payload).toString(),
   });
 
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
@@ -93,7 +97,7 @@ export async function suivreCommande(commandeId) {
     Articles: data.articles || "",
     Total: data.total || "0",
     Statut: data.statut || "⏳ EN ATTENTE",
-    history: data.history || []
+    history: data.history || [],
   };
 }
 
@@ -116,7 +120,9 @@ export async function recupererHistorique(telephone) {
  *********************************/
 export async function mettreAJourStatut(commandeId, nouveauStatut) {
   const response = await fetch(
-    `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
+    `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(
+      commandeId
+    )}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
   );
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
