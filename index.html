@@ -4645,8 +4645,28 @@
       catalogueQuantityPicks: {},
       isSendingOrder: false,
       addressLinksEnabled: true,
-      allProducts: [] // Nouveau: pour stocker tous les produits
+      allProducts: [],
+      currentOrderNumber: 0 // Nouveau: pour suivre le numéro de commande
     };
+
+    // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
+    function genererNumeroCommande() {
+      const now = new Date();
+      const datePart = now.getFullYear() + 
+                      String(now.getMonth() + 1).padStart(2, '0') + 
+                      String(now.getDate()).padStart(2, '0');
+      
+      const lastOrderKey = `last_order_number_${datePart}`;
+      let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
+      
+      // CORRECTION DU PROBLÈME: Incrémenter d'abord, puis sauvegarder
+      lastOrderNumber++;
+      localStorage.setItem(lastOrderKey, lastOrderNumber);
+      
+      const sequencePart = String(lastOrderNumber).padStart(3, '0');
+      
+      return `CMD-MAXI-${datePart}-${sequencePart}`;
+    }
 
     // ===================== TRADUCTION =====================
     function setLanguage(lang) {
@@ -5276,16 +5296,16 @@
       const container = $('categoriesContainer');
       container.innerHTML = '';
       
-      // Bouton "Tous" avec le nombre total de produits (1316 articles)
+      // Bouton "Tous" avec le nombre total de produits
       const allButton = document.createElement('button');
       allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
-      const allProductsCount = state.allProducts.length; // Utiliser le nombre réel
+      const allProductsCount = state.allProducts.length;
       allButton.innerHTML = `🌐 Tous <span class="cat-count">${allProductsCount}</span>`;
       allButton.onclick = () => {
         state.showAllCategories = true;
         state.activeCategory = null;
         state.currentPage = 1;
-        state.filteredProducts = state.allProducts; // Utiliser tous les produits
+        state.filteredProducts = state.allProducts;
         renderProducts();
         updateCategoriesUI();
         $('activeCategoryLabel').textContent = "Tous";
@@ -5341,7 +5361,7 @@
     function getFilteredProducts() {
       let products = [];
       if (state.showAllCategories) {
-        products = state.allProducts; // Utiliser tous les produits
+        products = state.allProducts;
       } else {
         products = state.products.get(state.activeCategory) || [];
       }
@@ -6478,21 +6498,6 @@
       }
     }
 
-    // ===================== GÉNÉRATION NUMÉRO COMMANDE =====================
-    function genererNumeroCommande() {
-      const now = new Date();
-      const datePart = now.getFullYear() + 
-                      String(now.getMonth() + 1).padStart(2, '0') + 
-                      String(now.getDate()).padStart(2, '0');
-      
-      const lastOrderKey = `last_order_${datePart}`;
-      let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
-      
-      const sequencePart = String(lastOrderNumber + 1).padStart(3, '0');
-      
-      return `CMD-MAXI-${datePart}-${sequencePart}`;
-    }
-
     // ===================== ENREGISTREMENT VERS GOOGLE SHEETS =====================
     async function enregistrerCommandeGoogleSheets(orderData) {
       try {
@@ -6580,13 +6585,6 @@
 
         const result = await response.text();
         console.log('✅ Réponse Google Sheets:', result);
-
-        const datePart = now.getFullYear() + 
-                        String(now.getMonth() + 1).padStart(2, '0') + 
-                        String(now.getDate()).padStart(2, '0');
-        const lastOrderKey = `last_order_${datePart}`;
-        let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
-        localStorage.setItem(lastOrderKey, lastOrderNumber + 1);
         
         playOrderNotificationSound();
         
@@ -7156,4 +7154,3 @@
   </script>
 </body>
 </html>
-
