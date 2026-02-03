@@ -62,7 +62,7 @@ export async function envoyerCommande(dataCommande) {
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
 
-  // ✅ Tolérance : si l’API change un peu de clé
+  // ✅ Tolérance : si l'API change un peu de clé
   if (data && data.success && !data.commande_id) {
     data.commande_id = data.commandeId || data.orderId || data.id || "";
   }
