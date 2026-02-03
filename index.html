@@ -4382,7 +4382,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v41',
+      localStorageKey: 'maxi_jdc_market_app_v43',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -4643,9 +4643,37 @@
       catalogueProducts: [],
       catalogueSearchQuery: '',
       catalogueQuantityPicks: {},
-      isSendingOrder: false, // Nouveau: pour empêcher les clics multiples
-      addressLinksEnabled: true // Nouveau: pour les liens d'adresse cliquables
+      isSendingOrder: false,
+      addressLinksEnabled: true,
+      allProducts: []
     };
+
+    // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
+    // CORRECTION 1: Fonction pour générer un numéro de commande unique
+    function genererNumeroCommande() {
+      const now = new Date();
+      const datePart = now.getFullYear() + 
+                      String(now.getMonth() + 1).padStart(2, '0') + 
+                      String(now.getDate()).padStart(2, '0');
+      
+      // Utiliser un stockage séparé pour le compteur de commandes
+      const lastOrderKey = 'maxi_jdc_last_order_number';
+      let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
+      
+      // Incrémenter le compteur
+      lastOrderNumber++;
+      
+      // Sauvegarder le nouveau numéro
+      localStorage.setItem(lastOrderKey, lastOrderNumber);
+      
+      const sequencePart = String(lastOrderNumber).padStart(4, '0');
+      
+      // Format: CMD-MAXI-YYYYMMDD-XXXX
+      const commandeId = `CMD-MAXI-${datePart}-${sequencePart}`;
+      
+      console.log(`Nouveau numéro de commande généré: ${commandeId}`);
+      return commandeId;
+    }
 
     // ===================== TRADUCTION =====================
     function setLanguage(lang) {
@@ -4724,7 +4752,6 @@
     function $(id) { return document.getElementById(id); }
 
     function formatPrice(amount) {
-      // Toujours afficher 2 décimales
       const num = Number(amount);
       if (isNaN(num)) return '0,00 dt';
       return num.toFixed(2).replace('.', ',') + ' dt';
@@ -4760,38 +4787,36 @@
     }
 
     // ===================== FONCTIONS POUR LES LIENS D'ADRESSE =====================
+    // CORRECTION 2: Fonction pour créer des liens d'adresse cliquables
     function createAddressLink(addressText) {
-      // Détecter les coordonnées GPS dans l'adresse
+      if (!addressText || addressText.trim() === '') return addressText;
+      
+      // Vérifier si l'adresse contient des coordonnées GPS
       const gpsMatch = addressText.match(/GPS:\s*([-+]?\d*\.\d+),\s*([-+]?\d*\.\d+)/i);
       
       if (gpsMatch) {
         const lat = gpsMatch[1];
         const lng = gpsMatch[2];
-        const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
+        const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
         
         return `<a href="${googleMapsUrl}" target="_blank" style="color: var(--accent2); text-decoration: underline; font-weight: bold;" 
                 onclick="event.stopPropagation(); window.open('${googleMapsUrl}', '_blank'); return false;">
-                ${addressText}</a>`;
+                📍 ${addressText}</a>`;
       }
       
-      // Si pas de GPS, créer un lien de recherche Google Maps
+      // Si pas de GPS, utiliser la recherche Google Maps
       const encodedAddress = encodeURIComponent(addressText);
       const googleMapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
       
       return `<a href="${googleMapsSearchUrl}" target="_blank" style="color: var(--accent2); text-decoration: underline; font-weight: bold;"
               onclick="event.stopPropagation(); window.open('${googleMapsSearchUrl}', '_blank'); return false;">
-              ${addressText}</a>`;
+              📍 ${addressText}</a>`;
     }
 
     function renderAddressWithLink(addressText) {
-      if (!state.addressLinksEnabled) return addressText;
+      if (!state.addressLinksEnabled || !addressText) return addressText;
       
-      // Vérifier si c'est une adresse avec GPS
-      if (addressText.includes('GPS:')) {
-        return createAddressLink(addressText);
-      }
-      
-      return addressText;
+      return createAddressLink(addressText);
     }
 
     // ===================== GOOGLE SHEETS INTÉGRATION =====================
@@ -4966,6 +4991,10 @@
           if (currentStock !== undefined && currentStock < googleStock) {
             finalStock = currentStock;
           }
+          // IMPORTANT: Si le stock est 0 dans Google Sheets, marquer comme rupture
+          if (finalStock <= 0) {
+            finalStock = 0;
+          }
           return {
             ...product,
             stock: finalStock
@@ -4973,6 +5002,8 @@
         });
         state.products.set(catKey, updatedProducts);
       }
+      // Mettre à jour allProducts également
+      state.allProducts = [...state.products.values()].flat();
     }
 
     // ===================== CALCUL DES ÉCONOMIES =====================
@@ -5199,6 +5230,8 @@
         applyPromotions(allProducts, promotions);
         showPromoBanner(promotions);
       }
+      // Stocker tous les produits dans state.allProducts
+      state.allProducts = allProducts;
       renderCategories();
       renderProducts();
       showToast('✅ Produits chargés avec succès');
@@ -5270,18 +5303,24 @@
     function renderCategories() {
       const container = $('categoriesContainer');
       container.innerHTML = '';
+      
+      // Bouton "Tous" avec le nombre total de produits
       const allButton = document.createElement('button');
       allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
-      const allProductsCount = [...state.products.values()].flat().length;
+      const allProductsCount = state.allProducts.length;
       allButton.innerHTML = `🌐 Tous <span class="cat-count">${allProductsCount}</span>`;
       allButton.onclick = () => {
         state.showAllCategories = true;
         state.activeCategory = null;
         state.currentPage = 1;
+        state.filteredProducts = state.allProducts;
         renderProducts();
         updateCategoriesUI();
+        $('activeCategoryLabel').textContent = "Tous";
+        $('activeCategoryMeta').textContent = `${allProductsCount} articles disponibles`;
       };
       container.appendChild(allButton);
+      
       CATEGORIES.forEach(category => {
         const products = state.products.get(category.key) || [];
         const button = document.createElement('button');
@@ -5293,6 +5332,7 @@
           state.showAllCategories = false;
           state.activeCategory = category.key;
           state.currentPage = 1;
+          state.filteredProducts = products;
           renderProducts();
           updateCategoriesUI();
         };
@@ -5303,10 +5343,11 @@
     function updateCategoriesUI() {
       const buttons = $('categoriesContainer').querySelectorAll('.cat-btn');
       buttons.forEach(button => button.classList.remove('active'));
+      
       if (state.showAllCategories) {
         buttons[0].classList.add('active');
-        $('activeCategoryLabel').textContent = TRANSLATIONS[state.currentLanguage].productsTitle;
-        $('activeCategoryMeta').textContent = TRANSLATIONS[state.currentLanguage].selectCategory;
+        $('activeCategoryLabel').textContent = "Tous";
+        $('activeCategoryMeta').textContent = `${state.allProducts.length} articles disponibles`;
       } else {
         const category = CATEGORIES.find(c => c.key === state.activeCategory);
         if (category) {
@@ -5328,7 +5369,7 @@
     function getFilteredProducts() {
       let products = [];
       if (state.showAllCategories) {
-        products = [...state.products.values()].flat();
+        products = state.allProducts;
       } else {
         products = state.products.get(state.activeCategory) || [];
       }
@@ -5451,7 +5492,6 @@
       $('catalogueTitle').textContent = category.label;
       $('catalogueSearchInput').value = '';
       
-      // Réinitialiser les quantités
       state.catalogueQuantityPicks = {};
       
       renderCatalogue();
@@ -5534,12 +5574,10 @@
         grid.appendChild(item);
       });
       
-      // Ajouter les événements
       setupCatalogueEvents();
     }
 
     function setupCatalogueEvents() {
-      // Boutons + et -
       document.querySelectorAll('.catalogue-qty-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const action = e.target.dataset.action;
@@ -5563,7 +5601,6 @@
         });
       });
       
-      // Inputs de quantité
       document.querySelectorAll('.catalogue-qty-input').forEach(input => {
         input.addEventListener('input', (e) => {
           const productId = e.target.dataset.id;
@@ -5588,7 +5625,6 @@
         });
       });
       
-      // Boutons ajouter au panier
       document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const productId = e.target.dataset.id;
@@ -5597,9 +5633,7 @@
           
           if (product && quantity > 0) {
             addToCart(productId, product, quantity);
-            // Réinitialiser la quantité après ajout
             state.catalogueQuantityPicks[productId] = 0;
-            // Mettre à jour l'affichage
             const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
             const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
             if (input) input.value = 0;
@@ -5617,7 +5651,6 @@
     function updateCatalogueQuantity(productId, quantity) {
       state.catalogueQuantityPicks[productId] = quantity;
       
-      // Mettre à jour le bouton
       const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
       if (addBtn) {
         const t = TRANSLATIONS[state.currentLanguage];
@@ -5648,7 +5681,6 @@
 
     // ===================== MODAL PRODUIT =====================
     function openProductModal(product) {
-      // Cette fonction est conservée pour compatibilité
       closeCatalogueModal();
       setTimeout(() => {
         if (!product) return;
@@ -6201,7 +6233,7 @@
       saveState();
       saveSyncData();
       if (orderDetails.savings && orderDetails.savings > 0) {
-        showToast(`🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(orderDetails.savings)} !`);
+        showToast(`🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(orderDetails.savings)} sur cette commande !`);
       } else {
         showToast('📝 Commande ajoutée à votre historique');
       }
@@ -6244,11 +6276,8 @@
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
         
-        // Rendre l'adresse cliquable si elle contient GPS
-        let addressDisplay = order.address;
-        if (order.address && (order.address.includes('GPS:') || order.coords)) {
-          addressDisplay = renderAddressWithLink(order.address);
-        }
+        // CORRECTION 3: Utiliser renderAddressWithLink pour l'adresse
+        let addressDisplay = renderAddressWithLink(order.address || '');
         
         historyItem.innerHTML = `
           <div class="history-date">📅 ${formattedDate}</div>
@@ -6268,9 +6297,13 @@
           ` : ''}
           ${addressDisplay.includes('href=') ? `
             <div style="font-size:10px;color:var(--accent2);margin-top:4px;">
-              📍 ${addressDisplay}
+              ${addressDisplay}
             </div>
-          ` : ''}
+          ` : (order.address ? `
+            <div style="font-size:10px;color:var(--muted);margin-top:4px;">
+              📍 ${order.address}
+            </div>
+          ` : '')}
         `;
         historyItem.addEventListener('click', () => {
           showOrderDetails(order);
@@ -6292,17 +6325,16 @@
       detailsText += `👤 ${order.clientName}\n`;
       detailsText += `📱 ${order.clientPhone}\n`;
       
-      // Rendre l'adresse cliquable dans les détails
-      let addressDisplay = order.address;
-      if (order.address && (order.address.includes('GPS:') || order.coords)) {
-        addressDisplay = renderAddressWithLink(order.address);
+      // CORRECTION 4: Utiliser renderAddressWithLink dans les détails de commande
+      let addressDisplay = renderAddressWithLink(order.address || '');
+      if (addressDisplay.includes('href=')) {
         detailsText += `📍 ${addressDisplay}\n`;
       } else {
-        detailsText += `📍 ${order.address}\n`;
+        detailsText += `📍 ${order.address || ''}\n`;
       }
       
       if (order.coords) {
-        const googleMapsUrl = `https://maps.google.com/?q=${order.coords.lat},${order.coords.lng}`;
+        const googleMapsUrl = `https://www.google.com/maps?q=${order.coords.lat},${order.coords.lng}`;
         detailsText += `🗺️ GPS: ${order.coords.lat}, ${order.coords.lng}\n`;
         detailsText += `🔗 Maps: ${googleMapsUrl}\n`;
       }
@@ -6476,21 +6508,6 @@
       }
     }
 
-    // ===================== GÉNÉRATION NUMÉRO COMMANDE =====================
-    function genererNumeroCommande() {
-      const now = new Date();
-      const datePart = now.getFullYear() + 
-                      String(now.getMonth() + 1).padStart(2, '0') + 
-                      String(now.getDate()).padStart(2, '0');
-      
-      const lastOrderKey = `last_order_${datePart}`;
-      let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
-      
-      const sequencePart = String(lastOrderNumber + 1).padStart(3, '0');
-      
-      return `CMD-MAXI-${datePart}-${sequencePart}`;
-    }
-
     // ===================== ENREGISTREMENT VERS GOOGLE SHEETS =====================
     async function enregistrerCommandeGoogleSheets(orderData) {
       try {
@@ -6534,18 +6551,22 @@
           minute: '2-digit'
         });
 
+        // CORRECTION 5: Utiliser le même numéro de commande dans toutes les sections
+        const commandeId = orderData.commandeId; // Utiliser le même ID partout
+        
         const sheetData = {
           'Date': dateStr,
-          'N_Commande': orderData.commandeId,
+          'N_Commande': commandeId, // Même numéro
           'Nom_Client': state.user.name,
           'Telephone': '+216 ' + state.user.phone,
           'Adresse': adresseComplete,
-          'Articles': `COMMANDE: ${orderData.commandeId}\n` + articlesText,
+          'Articles': `COMMANDE: ${commandeId}\n` + articlesText, // Même numéro
           'Total': total.toFixed(2).replace('.', ','),
           'Statut': 'NOUVELLE'
         };
 
         console.log('📊 Données envoyées à Google Sheets:', sheetData);
+        console.log('✅ Numéro de commande utilisé partout:', commandeId);
 
         const postData = {
           'Date': sheetData.Date,
@@ -6578,20 +6599,13 @@
 
         const result = await response.text();
         console.log('✅ Réponse Google Sheets:', result);
-
-        const datePart = now.getFullYear() + 
-                        String(now.getMonth() + 1).padStart(2, '0') + 
-                        String(now.getDate()).padStart(2, '0');
-        const lastOrderKey = `last_order_${datePart}`;
-        let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
-        localStorage.setItem(lastOrderKey, lastOrderNumber + 1);
         
         playOrderNotificationSound();
         
         const t = TRANSLATIONS[state.currentLanguage];
         showToast(`✅ ${t.toastOrderSaved}`);
         
-        return orderData.commandeId;
+        return commandeId;
         
       } catch (error) {
         console.error('Erreur enregistrement Google Sheets:', error);
@@ -6706,6 +6720,7 @@
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.00;
       const total = subtotal + shippingFee;
 
+      // CORRECTION 6: Utiliser la même fonction pour générer le numéro de commande
       const commandeId = genererNumeroCommande();
 
       let orderText = `📦 COMMANDE - MAXI JDC MARKET\n`;
@@ -6760,7 +6775,7 @@
 
       orderText += `🕒 Heures: 7h - 1h\n`;
       orderText += `📱 WhatsApp: +216 25 600 978\n`;
-      orderText += `📦 N° Commande: ${commandeId}`;
+      orderText += `📦 N° Commande: ${commandeId}`; // Même numéro partout
 
       $('orderDetails').textContent = orderText;
       $('orderModal').classList.add('open');
@@ -6771,17 +6786,16 @@
         total,
         savings: savings.totalSavings,
         savingsPercentage: savings.percentage,
-        commandeId: commandeId
+        commandeId: commandeId // Stocker le même ID
       };
 
       const t = TRANSLATIONS[state.currentLanguage];
       showToast(`📝 Commande préparée. Cliquez sur "Valider et envoyer" pour finaliser.`);
     }
 
-    // ===================== BOUTON "VALIDER ET ENVOYER" - MODIFIÉ POUR UN CLIC UNIQUE =====================
+    // ===================== BOUTON "VALIDER ET ENVOYER" =====================
     $('sendOrderBtn').onclick = async () => {
       try {
-        // Empêcher les clics multiples
         if (state.isSendingOrder) {
           showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
           return;
@@ -6792,7 +6806,6 @@
           return;
         }
 
-        // Désactiver le bouton pendant l'envoi
         state.isSendingOrder = true;
         const sendBtn = $('sendOrderBtn');
         sendBtn.disabled = true;
@@ -6803,6 +6816,7 @@
         
         saveOrderToHistory(orderData);
         
+        // CORRECTION 7: Passer le même orderData à enregistrerCommandeGoogleSheets
         const commandeId = await enregistrerCommandeGoogleSheets(orderData);
         
         state.cart = {};
@@ -6821,7 +6835,6 @@
         console.error('Erreur validation commande:', error);
         showToast('❌ Erreur lors de la validation de la commande', 'error');
       } finally {
-        // Réactiver le bouton après 3 secondes
         setTimeout(() => {
           state.isSendingOrder = false;
           const sendBtn = $('sendOrderBtn');
@@ -6873,7 +6886,6 @@
 
       $('drawerOverlay').onclick = $('closeDrawerBtn').onclick;
 
-      // Gestion du bouton langue dans le header
       const langDropdown = $('langDropdown');
       const langHeaderBtn = $('langHeaderBtn');
       
@@ -6919,14 +6931,18 @@
         state.showAllCategories = true;
         state.activeCategory = null;
         state.currentPage = 1;
+        state.filteredProducts = state.allProducts;
         renderProducts();
         updateCategoriesUI();
+        $('activeCategoryLabel').textContent = "Tous";
+        $('activeCategoryMeta').textContent = `${state.allProducts.length} articles disponibles`;
       };
 
       $('viewPromosBtn').onclick = () => {
         state.showAllCategories = false;
         state.activeCategory = 'promotions';
         state.currentPage = 1;
+        state.filteredProducts = state.products.get('promotions') || [];
         renderProducts();
         updateCategoriesUI();
         $('closeDrawerBtn').click();
@@ -6954,7 +6970,6 @@
 
       $('closeCatalogueModalBtn').onclick = closeCatalogueModal;
 
-      // Recherche catalogue
       $('catalogueSearchInput').addEventListener('input', (e) => {
         state.catalogueSearchQuery = e.target.value;
         renderCatalogue();
@@ -7140,7 +7155,7 @@
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '41.0'
+        version: '43.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
