@@ -4646,10 +4646,10 @@
       isSendingOrder: false,
       addressLinksEnabled: true,
       allProducts: [],
-      currentOrderNumber: 0 // Nouveau: pour suivre le numéro de commande
+      currentOrderNumber: 0
     };
 
-    // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
+    // ===================== CORRECTION DU PROBLÈME 1: NUMÉRO DE COMMANDE =====================
     function genererNumeroCommande() {
       const now = new Date();
       const datePart = now.getFullYear() + 
@@ -4666,6 +4666,38 @@
       const sequencePart = String(lastOrderNumber).padStart(3, '0');
       
       return `CMD-MAXI-${datePart}-${sequencePart}`;
+    }
+
+    // ===================== FONCTIONS POUR LES LIENS D'ADRESSE (PROBLÈME 2) =====================
+    function createAddressLink(addressText) {
+      const gpsMatch = addressText.match(/GPS:\s*([-+]?\d*\.\d+),\s*([-+]?\d*\.\d+)/i);
+      
+      if (gpsMatch) {
+        const lat = gpsMatch[1];
+        const lng = gpsMatch[2];
+        const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
+        
+        return `<a href="${googleMapsUrl}" target="_blank" style="color: var(--accent2); text-decoration: underline; font-weight: bold;" 
+                onclick="event.stopPropagation(); window.open('${googleMapsUrl}', '_blank'); return false;">
+                ${addressText}</a>`;
+      }
+      
+      const encodedAddress = encodeURIComponent(addressText);
+      const googleMapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+      
+      return `<a href="${googleMapsSearchUrl}" target="_blank" style="color: var(--accent2); text-decoration: underline; font-weight: bold;"
+              onclick="event.stopPropagation(); window.open('${googleMapsSearchUrl}', '_blank'); return false;">
+              ${addressText}</a>`;
+    }
+
+    function renderAddressWithLink(addressText) {
+      if (!state.addressLinksEnabled) return addressText;
+      
+      if (addressText.includes('GPS:')) {
+        return createAddressLink(addressText);
+      }
+      
+      return addressText;
     }
 
     // ===================== TRADUCTION =====================
@@ -4777,38 +4809,6 @@
       } else {
         return { class: 'ok', text: 'En stock', available: true };
       }
-    }
-
-    // ===================== FONCTIONS POUR LES LIENS D'ADRESSE =====================
-    function createAddressLink(addressText) {
-      const gpsMatch = addressText.match(/GPS:\s*([-+]?\d*\.\d+),\s*([-+]?\d*\.\d+)/i);
-      
-      if (gpsMatch) {
-        const lat = gpsMatch[1];
-        const lng = gpsMatch[2];
-        const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
-        
-        return `<a href="${googleMapsUrl}" target="_blank" style="color: var(--accent2); text-decoration: underline; font-weight: bold;" 
-                onclick="event.stopPropagation(); window.open('${googleMapsUrl}', '_blank'); return false;">
-                ${addressText}</a>`;
-      }
-      
-      const encodedAddress = encodeURIComponent(addressText);
-      const googleMapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-      
-      return `<a href="${googleMapsSearchUrl}" target="_blank" style="color: var(--accent2); text-decoration: underline; font-weight: bold;"
-              onclick="event.stopPropagation(); window.open('${googleMapsSearchUrl}', '_blank'); return false;">
-              ${addressText}</a>`;
-    }
-
-    function renderAddressWithLink(addressText) {
-      if (!state.addressLinksEnabled) return addressText;
-      
-      if (addressText.includes('GPS:')) {
-        return createAddressLink(addressText);
-      }
-      
-      return addressText;
     }
 
     // ===================== GOOGLE SHEETS INTÉGRATION =====================
@@ -6268,6 +6268,7 @@
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
         
+        // CORRECTION DU PROBLÈME 2: Utiliser renderAddressWithLink pour afficher l'adresse avec lien
         let addressDisplay = order.address;
         if (order.address && (order.address.includes('GPS:') || order.coords)) {
           addressDisplay = renderAddressWithLink(order.address);
@@ -6315,6 +6316,7 @@
       detailsText += `👤 ${order.clientName}\n`;
       detailsText += `📱 ${order.clientPhone}\n`;
       
+      // CORRECTION DU PROBLÈME 2: Utiliser renderAddressWithLink pour afficher l'adresse avec lien
       let addressDisplay = order.address;
       if (order.address && (order.address.includes('GPS:') || order.coords)) {
         addressDisplay = renderAddressWithLink(order.address);
@@ -6541,13 +6543,16 @@
           minute: '2-digit'
         });
 
+        // CORRECTION DU PROBLÈME 1: Utiliser le même numéro de commande que dans le message client
+        const commandeId = genererNumeroCommande();
+
         const sheetData = {
           'Date': dateStr,
-          'N_Commande': orderData.commandeId,
+          'N_Commande': commandeId, // Utiliser le même numéro généré
           'Nom_Client': state.user.name,
           'Telephone': '+216 ' + state.user.phone,
           'Adresse': adresseComplete,
-          'Articles': `COMMANDE: ${orderData.commandeId}\n` + articlesText,
+          'Articles': `COMMANDE: ${commandeId}\n` + articlesText,
           'Total': total.toFixed(2).replace('.', ','),
           'Statut': 'NOUVELLE'
         };
@@ -6591,7 +6596,7 @@
         const t = TRANSLATIONS[state.currentLanguage];
         showToast(`✅ ${t.toastOrderSaved}`);
         
-        return orderData.commandeId;
+        return commandeId;
         
       } catch (error) {
         console.error('Erreur enregistrement Google Sheets:', error);
@@ -6706,6 +6711,7 @@
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.00;
       const total = subtotal + shippingFee;
 
+      // CORRECTION DU PROBLÈME 1: Utiliser la fonction corrigée
       const commandeId = genererNumeroCommande();
 
       let orderText = `📦 COMMANDE - MAXI JDC MARKET\n`;
@@ -6720,9 +6726,15 @@
       orderText += `👤 CLIENT\n`;
       orderText += `Nom: ${state.user.name}\n`;
       orderText += `Téléphone: +216 ${state.user.phone}\n`;
-      orderText += `Adresse: ${state.user.address}\n`;
+      
+      // CORRECTION DU PROBLÈME 2: Afficher l'adresse avec lien
+      let addressDisplay = state.user.address;
       if (state.user.lat && state.user.lng) {
-        orderText += `📍 GPS: ${state.user.lat}, ${state.user.lng}\n`;
+        addressDisplay += ` | GPS: ${state.user.lat}, ${state.user.lng}`;
+        addressDisplay = renderAddressWithLink(addressDisplay);
+        orderText += `Adresse: ${addressDisplay}\n`;
+      } else {
+        orderText += `Adresse: ${state.user.address}\n`;
       }
 
       orderText += `\n🛒 ARTICLES\n`;
@@ -6760,8 +6772,7 @@
 
       orderText += `🕒 Heures: 7h - 1h\n`;
       orderText += `📱 WhatsApp: +216 25 600 978\n`;
-     // orderText += `📦 N° Commande: ${commandeId}`;  // ✅ supprimé (on ne l'affiche plus dans les détails)
-
+      orderText += `📦 N° Commande: ${commandeId}`;
 
       $('orderDetails').textContent = orderText;
       $('orderModal').classList.add('open');
@@ -6802,6 +6813,7 @@
         
         saveOrderToHistory(orderData);
         
+        // CORRECTION DU PROBLÈME 1: Passer le bon numéro de commande
         const commandeId = await enregistrerCommandeGoogleSheets(orderData);
         
         state.cart = {};
@@ -7155,18 +7167,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
