@@ -4382,7 +4382,7 @@
       shippingFee: 3,
       whatsappNumber: "21625600978",
       itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v41',
+      localStorageKey: 'maxi_jdc_market_app_v42',
       imagesBasePath: 'images/products/',
       historyRetentionYears: 2,
       adminPasswordKey: 'maxi_jdc_admin_password',
@@ -4643,8 +4643,8 @@
       catalogueProducts: [],
       catalogueSearchQuery: '',
       catalogueQuantityPicks: {},
-      isSendingOrder: false, // Nouveau: pour empêcher les clics multiples
-      addressLinksEnabled: true // Nouveau: pour les liens d'adresse cliquables
+      isSendingOrder: false,
+      addressLinksEnabled: true
     };
 
     // ===================== TRADUCTION =====================
@@ -4724,7 +4724,6 @@
     function $(id) { return document.getElementById(id); }
 
     function formatPrice(amount) {
-      // Toujours afficher 2 décimales
       const num = Number(amount);
       if (isNaN(num)) return '0,00 dt';
       return num.toFixed(2).replace('.', ',') + ' dt';
@@ -4761,7 +4760,6 @@
 
     // ===================== FONCTIONS POUR LES LIENS D'ADRESSE =====================
     function createAddressLink(addressText) {
-      // Détecter les coordonnées GPS dans l'adresse
       const gpsMatch = addressText.match(/GPS:\s*([-+]?\d*\.\d+),\s*([-+]?\d*\.\d+)/i);
       
       if (gpsMatch) {
@@ -4774,7 +4772,6 @@
                 ${addressText}</a>`;
       }
       
-      // Si pas de GPS, créer un lien de recherche Google Maps
       const encodedAddress = encodeURIComponent(addressText);
       const googleMapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
       
@@ -4786,7 +4783,6 @@
     function renderAddressWithLink(addressText) {
       if (!state.addressLinksEnabled) return addressText;
       
-      // Vérifier si c'est une adresse avec GPS
       if (addressText.includes('GPS:')) {
         return createAddressLink(addressText);
       }
@@ -5435,7 +5431,7 @@
       });
     }
 
-    // ===================== MODAL CATALOGUE - NOUVEAU =====================
+    // ===================== MODAL CATALOGUE =====================
     function openCatalogueForCategory(categoryKey) {
       const category = CATEGORIES.find(c => c.key === categoryKey);
       if (!category) return;
@@ -5451,7 +5447,6 @@
       $('catalogueTitle').textContent = category.label;
       $('catalogueSearchInput').value = '';
       
-      // Réinitialiser les quantités
       state.catalogueQuantityPicks = {};
       
       renderCatalogue();
@@ -5534,12 +5529,10 @@
         grid.appendChild(item);
       });
       
-      // Ajouter les événements
       setupCatalogueEvents();
     }
 
     function setupCatalogueEvents() {
-      // Boutons + et -
       document.querySelectorAll('.catalogue-qty-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const action = e.target.dataset.action;
@@ -5563,7 +5556,6 @@
         });
       });
       
-      // Inputs de quantité
       document.querySelectorAll('.catalogue-qty-input').forEach(input => {
         input.addEventListener('input', (e) => {
           const productId = e.target.dataset.id;
@@ -5588,7 +5580,6 @@
         });
       });
       
-      // Boutons ajouter au panier
       document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const productId = e.target.dataset.id;
@@ -5597,9 +5588,7 @@
           
           if (product && quantity > 0) {
             addToCart(productId, product, quantity);
-            // Réinitialiser la quantité après ajout
             state.catalogueQuantityPicks[productId] = 0;
-            // Mettre à jour l'affichage
             const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
             const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
             if (input) input.value = 0;
@@ -5617,7 +5606,6 @@
     function updateCatalogueQuantity(productId, quantity) {
       state.catalogueQuantityPicks[productId] = quantity;
       
-      // Mettre à jour le bouton
       const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
       if (addBtn) {
         const t = TRANSLATIONS[state.currentLanguage];
@@ -5648,7 +5636,6 @@
 
     // ===================== MODAL PRODUIT =====================
     function openProductModal(product) {
-      // Cette fonction est conservée pour compatibilité
       closeCatalogueModal();
       setTimeout(() => {
         if (!product) return;
@@ -6244,7 +6231,6 @@
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
         
-        // Rendre l'adresse cliquable si elle contient GPS
         let addressDisplay = order.address;
         if (order.address && (order.address.includes('GPS:') || order.coords)) {
           addressDisplay = renderAddressWithLink(order.address);
@@ -6292,7 +6278,6 @@
       detailsText += `👤 ${order.clientName}\n`;
       detailsText += `📱 ${order.clientPhone}\n`;
       
-      // Rendre l'adresse cliquable dans les détails
       let addressDisplay = order.address;
       if (order.address && (order.address.includes('GPS:') || order.coords)) {
         addressDisplay = renderAddressWithLink(order.address);
@@ -6534,13 +6519,15 @@
           minute: '2-digit'
         });
 
+        const commandeId = genererNumeroCommande();
+
         const sheetData = {
           'Date': dateStr,
-          'N_Commande': orderData.commandeId,
+          'N_Commande': commandeId,
           'Nom_Client': state.user.name,
           'Telephone': '+216 ' + state.user.phone,
           'Adresse': adresseComplete,
-          'Articles': `COMMANDE: ${orderData.commandeId}\n` + articlesText,
+          'Articles': `COMMANDE: ${commandeId}\n` + articlesText,
           'Total': total.toFixed(2).replace('.', ','),
           'Statut': 'NOUVELLE'
         };
@@ -6591,7 +6578,7 @@
         const t = TRANSLATIONS[state.currentLanguage];
         showToast(`✅ ${t.toastOrderSaved}`);
         
-        return orderData.commandeId;
+        return commandeId;
         
       } catch (error) {
         console.error('Erreur enregistrement Google Sheets:', error);
@@ -6778,10 +6765,9 @@
       showToast(`📝 Commande préparée. Cliquez sur "Valider et envoyer" pour finaliser.`);
     }
 
-    // ===================== BOUTON "VALIDER ET ENVOYER" - MODIFIÉ POUR UN CLIC UNIQUE =====================
+    // ===================== BOUTON "VALIDER ET ENVOYER" =====================
     $('sendOrderBtn').onclick = async () => {
       try {
-        // Empêcher les clics multiples
         if (state.isSendingOrder) {
           showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
           return;
@@ -6792,7 +6778,6 @@
           return;
         }
 
-        // Désactiver le bouton pendant l'envoi
         state.isSendingOrder = true;
         const sendBtn = $('sendOrderBtn');
         sendBtn.disabled = true;
@@ -6801,9 +6786,9 @@
 
         const orderData = state.pendingOrder;
         
-        saveOrderToHistory(orderData);
-        
         const commandeId = await enregistrerCommandeGoogleSheets(orderData);
+        
+        saveOrderToHistory({...orderData, commandeId: commandeId});
         
         state.cart = {};
         updateCartUI();
@@ -6821,7 +6806,6 @@
         console.error('Erreur validation commande:', error);
         showToast('❌ Erreur lors de la validation de la commande', 'error');
       } finally {
-        // Réactiver le bouton après 3 secondes
         setTimeout(() => {
           state.isSendingOrder = false;
           const sendBtn = $('sendOrderBtn');
@@ -6873,7 +6857,6 @@
 
       $('drawerOverlay').onclick = $('closeDrawerBtn').onclick;
 
-      // Gestion du bouton langue dans le header
       const langDropdown = $('langDropdown');
       const langHeaderBtn = $('langHeaderBtn');
       
@@ -6954,7 +6937,6 @@
 
       $('closeCatalogueModalBtn').onclick = closeCatalogueModal;
 
-      // Recherche catalogue
       $('catalogueSearchInput').addEventListener('input', (e) => {
         state.catalogueSearchQuery = e.target.value;
         renderCatalogue();
@@ -7140,7 +7122,7 @@
         user: state.user,
         cart: state.cart,
         orderHistory: state.orderHistory,
-        version: '41.0'
+        version: '42.0'
       };
       localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
