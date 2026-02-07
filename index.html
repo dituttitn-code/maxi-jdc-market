@@ -4397,7 +4397,7 @@
       dashboardUrl: 'tools/tableau-de-bord.html',
       trackingUrl: 'tools/suivi-commandes.html',
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
-      commandeApiUrl: "https://script.google.com/macros/s/AKfycbxMBtZ3fGmhiGuqHx9r6dP9dTTCAx88XX667vsT-kvAhmtfgTL4yMwjjCOozXQ40YAX/exec",
+      commandeApiUrl: "https://script.google.com/macros/s/AKfycbzyxy5Eun1fvrPsNnu6m0zZJm3D4Zc5Y5H89dVO-1fkpRroBHuPlU-NPO98dqDm8T58/exec",
     };
 
     // ===================== TRADUCTIONS =====================
@@ -4644,8 +4644,29 @@
       catalogueSearchQuery: '',
       catalogueQuantityPicks: {},
       isSendingOrder: false,
-      addressLinksEnabled: true
+      addressLinksEnabled: true,
+      allProducts: [],
+      currentOrderNumber: 0 // Nouveau: pour suivre le numéro de commande
     };
+
+    // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
+    function genererNumeroCommande() {
+      const now = new Date();
+      const datePart = now.getFullYear() + 
+                      String(now.getMonth() + 1).padStart(2, '0') + 
+                      String(now.getDate()).padStart(2, '0');
+      
+      const lastOrderKey = `last_order_number_${datePart}`;
+      let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
+      
+      // CORRECTION DU PROBLÈME: Incrémenter d'abord, puis sauvegarder
+      lastOrderNumber++;
+      localStorage.setItem(lastOrderKey, lastOrderNumber);
+      
+      const sequencePart = String(lastOrderNumber).padStart(3, '0');
+      
+      return `CMD-MAXI-${datePart}-${sequencePart}`;
+    }
 
     // ===================== TRADUCTION =====================
     function setLanguage(lang) {
@@ -4962,6 +4983,10 @@
           if (currentStock !== undefined && currentStock < googleStock) {
             finalStock = currentStock;
           }
+          // IMPORTANT: Si le stock est 0 dans Google Sheets, marquer comme rupture
+          if (finalStock <= 0) {
+            finalStock = 0;
+          }
           return {
             ...product,
             stock: finalStock
@@ -4969,6 +4994,8 @@
         });
         state.products.set(catKey, updatedProducts);
       }
+      // Mettre à jour allProducts également
+      state.allProducts = [...state.products.values()].flat();
     }
 
     // ===================== CALCUL DES ÉCONOMIES =====================
@@ -5195,6 +5222,8 @@
         applyPromotions(allProducts, promotions);
         showPromoBanner(promotions);
       }
+      // Stocker tous les produits dans state.allProducts
+      state.allProducts = allProducts;
       renderCategories();
       renderProducts();
       showToast('✅ Produits chargés avec succès');
@@ -5266,18 +5295,24 @@
     function renderCategories() {
       const container = $('categoriesContainer');
       container.innerHTML = '';
+      
+      // Bouton "Tous" avec le nombre total de produits
       const allButton = document.createElement('button');
       allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
-      const allProductsCount = [...state.products.values()].flat().length;
+      const allProductsCount = state.allProducts.length;
       allButton.innerHTML = `🌐 Tous <span class="cat-count">${allProductsCount}</span>`;
       allButton.onclick = () => {
         state.showAllCategories = true;
         state.activeCategory = null;
         state.currentPage = 1;
+        state.filteredProducts = state.allProducts;
         renderProducts();
         updateCategoriesUI();
+        $('activeCategoryLabel').textContent = "Tous";
+        $('activeCategoryMeta').textContent = `${allProductsCount} articles disponibles`;
       };
       container.appendChild(allButton);
+      
       CATEGORIES.forEach(category => {
         const products = state.products.get(category.key) || [];
         const button = document.createElement('button');
@@ -5289,6 +5324,7 @@
           state.showAllCategories = false;
           state.activeCategory = category.key;
           state.currentPage = 1;
+          state.filteredProducts = products;
           renderProducts();
           updateCategoriesUI();
         };
@@ -5299,10 +5335,11 @@
     function updateCategoriesUI() {
       const buttons = $('categoriesContainer').querySelectorAll('.cat-btn');
       buttons.forEach(button => button.classList.remove('active'));
+      
       if (state.showAllCategories) {
         buttons[0].classList.add('active');
-        $('activeCategoryLabel').textContent = TRANSLATIONS[state.currentLanguage].productsTitle;
-        $('activeCategoryMeta').textContent = TRANSLATIONS[state.currentLanguage].selectCategory;
+        $('activeCategoryLabel').textContent = "Tous";
+        $('activeCategoryMeta').textContent = `${state.allProducts.length} articles disponibles`;
       } else {
         const category = CATEGORIES.find(c => c.key === state.activeCategory);
         if (category) {
@@ -5324,7 +5361,7 @@
     function getFilteredProducts() {
       let products = [];
       if (state.showAllCategories) {
-        products = [...state.products.values()].flat();
+        products = state.allProducts;
       } else {
         products = state.products.get(state.activeCategory) || [];
       }
@@ -5431,7 +5468,7 @@
       });
     }
 
-    // ===================== MODAL CATALOGUE =====================
+    // ===================== MODAL CATALOGUE - NOUVEAU =====================
     function openCatalogueForCategory(categoryKey) {
       const category = CATEGORIES.find(c => c.key === categoryKey);
       if (!category) return;
@@ -6188,7 +6225,7 @@
       saveState();
       saveSyncData();
       if (orderDetails.savings && orderDetails.savings > 0) {
-        showToast(`🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(orderDetails.savings)} !`);
+        showToast(`🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(orderDetails.savings)} sur cette commande !`);
       } else {
         showToast('📝 Commande ajoutée à votre historique');
       }
@@ -6461,21 +6498,6 @@
       }
     }
 
-    // ===================== GÉNÉRATION NUMÉRO COMMANDE =====================
-    function genererNumeroCommande() {
-      const now = new Date();
-      const datePart = now.getFullYear() + 
-                      String(now.getMonth() + 1).padStart(2, '0') + 
-                      String(now.getDate()).padStart(2, '0');
-      
-      const lastOrderKey = `last_order_${datePart}`;
-      let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
-      
-      const sequencePart = String(lastOrderNumber + 1).padStart(3, '0');
-      
-      return `CMD-MAXI-${datePart}-${sequencePart}`;
-    }
-
     // ===================== ENREGISTREMENT VERS GOOGLE SHEETS =====================
     async function enregistrerCommandeGoogleSheets(orderData) {
       try {
@@ -6519,15 +6541,13 @@
           minute: '2-digit'
         });
 
-        const commandeId = genererNumeroCommande();
-
         const sheetData = {
           'Date': dateStr,
-          'N_Commande': commandeId,
+          'N_Commande': orderData.commandeId,
           'Nom_Client': state.user.name,
           'Telephone': '+216 ' + state.user.phone,
           'Adresse': adresseComplete,
-          'Articles': `COMMANDE: ${commandeId}\n` + articlesText,
+          'Articles': `COMMANDE: ${orderData.commandeId}\n` + articlesText,
           'Total': total.toFixed(2).replace('.', ','),
           'Statut': 'NOUVELLE'
         };
@@ -6565,20 +6585,13 @@
 
         const result = await response.text();
         console.log('✅ Réponse Google Sheets:', result);
-
-        const datePart = now.getFullYear() + 
-                        String(now.getMonth() + 1).padStart(2, '0') + 
-                        String(now.getDate()).padStart(2, '0');
-        const lastOrderKey = `last_order_${datePart}`;
-        let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
-        localStorage.setItem(lastOrderKey, lastOrderNumber + 1);
         
         playOrderNotificationSound();
         
         const t = TRANSLATIONS[state.currentLanguage];
         showToast(`✅ ${t.toastOrderSaved}`);
         
-        return commandeId;
+        return orderData.commandeId;
         
       } catch (error) {
         console.error('Erreur enregistrement Google Sheets:', error);
@@ -6747,7 +6760,8 @@
 
       orderText += `🕒 Heures: 7h - 1h\n`;
       orderText += `📱 WhatsApp: +216 25 600 978\n`;
-      orderText += `📦 N° Commande: ${commandeId}`;
+     // orderText += `📦 N° Commande: ${commandeId}`;  // ✅ supprimé (on ne l'affiche plus dans les détails)
+
 
       $('orderDetails').textContent = orderText;
       $('orderModal').classList.add('open');
@@ -6786,9 +6800,9 @@
 
         const orderData = state.pendingOrder;
         
-        const commandeId = await enregistrerCommandeGoogleSheets(orderData);
+        saveOrderToHistory(orderData);
         
-        saveOrderToHistory({...orderData, commandeId: commandeId});
+        const commandeId = await enregistrerCommandeGoogleSheets(orderData);
         
         state.cart = {};
         updateCartUI();
@@ -6902,14 +6916,18 @@
         state.showAllCategories = true;
         state.activeCategory = null;
         state.currentPage = 1;
+        state.filteredProducts = state.allProducts;
         renderProducts();
         updateCategoriesUI();
+        $('activeCategoryLabel').textContent = "Tous";
+        $('activeCategoryMeta').textContent = `${state.allProducts.length} articles disponibles`;
       };
 
       $('viewPromosBtn').onclick = () => {
         state.showAllCategories = false;
         state.activeCategory = 'promotions';
         state.currentPage = 1;
+        state.filteredProducts = state.products.get('promotions') || [];
         renderProducts();
         updateCategoriesUI();
         $('closeDrawerBtn').click();
@@ -7137,5 +7155,17 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
