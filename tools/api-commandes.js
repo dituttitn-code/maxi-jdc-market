@@ -4,7 +4,7 @@
 
 // ✅ URL OK (celle qui marche chez toi)
 export const API_URL =
-  "https://script.google.com/macros/s/AKfycbxgSzuH04khFQz0ABy3VUZw8EcmnGycujTFD3Lwm0wrPuo-f-ls_KIsg8utghTsjZDW/exec";
+  "https://script.google.com/macros/s/AKfycbzyxy5Eun1fvrPsNnu6m0zZJm3D4Zc5Y5H89dVO-1fkpRroBHuPlU-NPO98dqDm8T58/exec";
 
 /*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
@@ -62,7 +62,7 @@ export async function envoyerCommande(dataCommande) {
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
 
-  // ✅ Tolérance : si l'API change un peu de clé
+  // ✅ Tolérance : si l’API change un peu de clé
   if (data && data.success && !data.commande_id) {
     data.commande_id = data.commandeId || data.orderId || data.id || "";
   }
