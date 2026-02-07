@@ -83,7 +83,7 @@ export async function suivreCommande(commandeId) {
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Commande non trouvée");
 
-  // format "8 colonnes"
+  // format "8 colonnes" (sans Google Maps)
   return {
     Date: data.date || "",
     Nom: data.nom || "",
