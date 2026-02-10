@@ -4075,7 +4075,7 @@
               <span class="promo-icon-small">💰</span>
               <span id="savingsLabel">ÉCONOMIES TOTALES</span>
             </span>
-            <span class="savings-value" id="totalSavings">0,00 dt</span>
+            <span class="savings-value" id="totalSavings">0,000 dt</span>
           </div>
           <div class="savings-row" style="margin-bottom: 0;">
             <span class="savings-label">
@@ -4093,15 +4093,15 @@
         <div class="cart-totals">
           <div class="total-row">
             <span class="total-label" id="subtotalLabel">Sous-total</span>
-            <span class="total-value" id="cartSubtotal">0,00 dt</span>
+            <span class="total-value" id="cartSubtotal">0,000 dt</span>
           </div>
           <div class="total-row">
             <span class="total-label" id="shippingLabel">Livraison</span>
-            <span class="total-value" id="cartShipping">0,00 dt</span>
+            <span class="total-value" id="cartShipping">0,000 dt</span>
           </div>
           <div class="total-row">
             <span class="total-label" id="totalLabel">Total</span>
-            <span class="total-value grand" id="cartTotal">0,00 dt</span>
+            <span class="total-value grand" id="cartTotal">0,000 dt</span>
           </div>
         </div>
 
@@ -4397,7 +4397,7 @@
       dashboardUrl: 'tools/tableau-de-bord.html',
       trackingUrl: 'tools/suivi-commandes.html',
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
-      commandeApiUrl: "https://script.google.com/macros/s/AKfycbzyxy5Eun1fvrPsNnu6m0zZJm3D4Zc5Y5H89dVO-1fkpRroBHuPlU-NPO98dqDm8T58/exec",
+      commandeApiUrl: "https://script.google.com/macros/s/AKfycbxEFxgaXSH7zlRRHpSq80f30dftpwwe0OlNNXICLaxsMCEqbH-7qdcuF9JrMPtiyfeB/exec",
     };
 
     // ===================== TRADUCTIONS =====================
@@ -4646,7 +4646,7 @@
       isSendingOrder: false,
       addressLinksEnabled: true,
       allProducts: [],
-      currentOrderNumber: 0 // Nouveau: pour suivre le numéro de commande
+      currentOrderNumber: 0
     };
 
     // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
@@ -4659,7 +4659,6 @@
       const lastOrderKey = `last_order_number_${datePart}`;
       let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
       
-      // CORRECTION DU PROBLÈME: Incrémenter d'abord, puis sauvegarder
       lastOrderNumber++;
       localStorage.setItem(lastOrderKey, lastOrderNumber);
       
@@ -4744,10 +4743,11 @@
     // ===================== UTILITAIRES =====================
     function $(id) { return document.getElementById(id); }
 
+    // MODIFICATION ICI : 3 chiffres après la virgule
     function formatPrice(amount) {
       const num = Number(amount);
-      if (isNaN(num)) return '0,00 dt';
-      return num.toFixed(2).replace('.', ',') + ' dt';
+      if (isNaN(num)) return '0,000 dt';
+      return num.toFixed(3).replace('.', ',') + ' dt';
     }
 
     function generateProductId(product) {
@@ -4983,7 +4983,6 @@
           if (currentStock !== undefined && currentStock < googleStock) {
             finalStock = currentStock;
           }
-          // IMPORTANT: Si le stock est 0 dans Google Sheets, marquer comme rupture
           if (finalStock <= 0) {
             finalStock = 0;
           }
@@ -4994,7 +4993,6 @@
         });
         state.products.set(catKey, updatedProducts);
       }
-      // Mettre à jour allProducts également
       state.allProducts = [...state.products.values()].flat();
     }
 
@@ -5222,7 +5220,6 @@
         applyPromotions(allProducts, promotions);
         showPromoBanner(promotions);
       }
-      // Stocker tous les produits dans state.allProducts
       state.allProducts = allProducts;
       renderCategories();
       renderProducts();
@@ -5296,7 +5293,6 @@
       const container = $('categoriesContainer');
       container.innerHTML = '';
       
-      // Bouton "Tous" avec le nombre total de produits
       const allButton = document.createElement('button');
       allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
       const allProductsCount = state.allProducts.length;
@@ -5804,7 +5800,7 @@
       $('cartTopCount').textContent = cartCount;
       $('cartItemsCount').textContent = `${cartCount} ${TRANSLATIONS[state.currentLanguage].items}`;
       
-      let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.00;
+      let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.000;
       let shippingText = formatPrice(shippingFee);
       
       const cartItemsList = $('cartItemsList');
@@ -6529,7 +6525,7 @@
         });
         
         const sousTotal = totalPanier;
-        const livraison = sousTotal >= CONFIG.freeShipping ? 0 : 3.00;
+        const livraison = sousTotal >= CONFIG.freeShipping ? 0 : 3.000;
         const total = sousTotal + livraison;
         
         const now = new Date();
@@ -6541,14 +6537,16 @@
           minute: '2-digit'
         });
 
+        const commandeId = orderData.commandeId;
+
         const sheetData = {
           'Date': dateStr,
-          'N_Commande': orderData.commandeId,
+          'N_Commande': commandeId,
           'Nom_Client': state.user.name,
           'Telephone': '+216 ' + state.user.phone,
           'Adresse': adresseComplete,
-          'Articles': `COMMANDE: ${orderData.commandeId}\n` + articlesText,
-          'Total': total.toFixed(2).replace('.', ','),
+          'Articles': `COMMANDE: ${commandeId}\n` + articlesText,
+          'Total': total.toFixed(3).replace('.', ','),
           'Statut': 'NOUVELLE'
         };
 
@@ -6591,7 +6589,7 @@
         const t = TRANSLATIONS[state.currentLanguage];
         showToast(`✅ ${t.toastOrderSaved}`);
         
-        return orderData.commandeId;
+        return commandeId;
         
       } catch (error) {
         console.error('Erreur enregistrement Google Sheets:', error);
@@ -6703,7 +6701,7 @@
       }
 
       const savings = calculateTotalSavings();
-      let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.00;
+      let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.000;
       const total = subtotal + shippingFee;
 
       const commandeId = genererNumeroCommande();
@@ -6760,8 +6758,6 @@
 
       orderText += `🕒 Heures: 7h - 1h\n`;
       orderText += `📱 WhatsApp: +216 25 600 978\n`;
-     // orderText += `📦 N° Commande: ${commandeId}`;  // ✅ supprimé (on ne l'affiche plus dans les détails)
-
 
       $('orderDetails').textContent = orderText;
       $('orderModal').classList.add('open');
@@ -7155,17 +7151,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
