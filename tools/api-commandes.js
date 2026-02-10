@@ -3,7 +3,7 @@
  *********************************/
 
 // ⚠️ Mets ICI la même URL que ta page suivi (celle qui marche chez toi)
-const API_URL = "https://script.google.com/macros/s/AKfycbwL59yDDEzYXu5heg9Y3g8sFWdU_aEFRw33HiyACrqSoVf2YhC1REGrlNFehzKkjA2q/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxEFxgaXSH7zlRRHpSq80f30dftpwwe0OlNNXICLaxsMCEqbH-7qdcuF9JrMPtiyfeB/exec";
 
 /*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
