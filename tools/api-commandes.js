@@ -3,7 +3,7 @@
  *********************************/
 
 // ⚠️ Mets ICI la même URL que ta page suivi (celle qui marche chez toi)
-const API_URL = "https://script.google.com/macros/s/AKfycbyJ82vxniXn_Ay2TVNcF3CU1C-5SFS_UZIeDCUumrO18KtRFRE6uFXnJUmjdXqUvi_8/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwL59yDDEzYXu5heg9Y3g8sFWdU_aEFRw33HiyACrqSoVf2YhC1REGrlNFehzKkjA2q/exec";
 
 /*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
@@ -83,7 +83,7 @@ export async function suivreCommande(commandeId) {
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Commande non trouvée");
 
-  // format "8 colonnes" (sans Google Maps)
+  // format "8 colonnes"
   return {
     Date: data.date || "",
     Nom: data.nom || "",
