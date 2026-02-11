@@ -1706,7 +1706,7 @@
       box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
     }
 
-    /* MODAL CATALOGUE - NOUVEAU */
+    /* MODAL CATALOGUE - AVEC STYLES POUR RUPTURE DE STOCK */
     .catalogue-modal-overlay {
       position: fixed;
       inset: 0;
@@ -1836,6 +1836,7 @@
       }
     }
 
+    /* STYLES POUR RUPTURE DE STOCK DANS LE CATALOGUE */
     .catalogue-item {
       background: var(--card2);
       border-radius: 10px;
@@ -1845,12 +1846,35 @@
       flex-direction: column;
       gap: 10px;
       transition: all 0.3s ease;
+      position: relative;
     }
 
-    .catalogue-item:hover {
-      border-color: var(--accent2);
+    .catalogue-item.stock-out {
+      background: rgba(255, 107, 107, 0.1);
+      border: 2px solid var(--danger);
+      opacity: 0.85;
+    }
+
+    .catalogue-item.stock-out:hover {
+      border-color: var(--danger);
       transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(0, 212, 255, 0.1);
+      box-shadow: 0 6px 15px rgba(255, 107, 107, 0.3);
+    }
+
+    .stock-out-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: linear-gradient(135deg, #ff6b6b, #ff0000);
+      color: white;
+      font-weight: 900;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 20px;
+      z-index: 10;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 2px 8px rgba(255, 0, 0, 0.4);
+      animation: pulse 2s infinite;
     }
 
     .catalogue-item-header {
@@ -1869,6 +1893,11 @@
       justify-content: center;
       overflow: hidden;
       flex-shrink: 0;
+    }
+
+    .catalogue-item.stock-out .catalogue-item-image {
+      border: 1px solid rgba(255, 107, 107, 0.5);
+      background: linear-gradient(135deg, #2a1a1a 0%, #1a1a2e 100%);
     }
 
     .catalogue-item-image img {
@@ -1890,16 +1919,28 @@
       margin-bottom: 4px;
     }
 
+    .catalogue-item.stock-out .catalogue-item-name {
+      color: #ffaaaa;
+    }
+
     .catalogue-item-code {
       font-size: 11px;
       color: var(--muted);
       margin-bottom: 4px;
     }
 
+    .catalogue-item.stock-out .catalogue-item-code {
+      color: #ff9999;
+    }
+
     .catalogue-item-price {
       font-weight: 900;
       font-size: 16px;
       color: var(--accent);
+    }
+
+    .catalogue-item.stock-out .catalogue-item-price {
+      color: #ff9999;
     }
 
     .catalogue-item-old-price {
@@ -1926,6 +1967,11 @@
       border: 1px solid var(--line);
     }
 
+    .catalogue-item.stock-out .catalogue-qty-controls {
+      opacity: 0.6;
+      border-color: var(--danger);
+    }
+
     .catalogue-qty-btn {
       width: 32px;
       height: 32px;
@@ -1947,6 +1993,11 @@
       background: rgba(255, 255, 255, 0.2);
     }
 
+    .catalogue-qty-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
     .catalogue-qty-input {
       width: 50px;
       height: 32px;
@@ -1958,6 +2009,12 @@
       font-size: 14px;
       font-weight: 900;
       outline: none;
+    }
+
+    .catalogue-item.stock-out .catalogue-qty-input {
+      border-color: var(--danger);
+      background: rgba(255, 107, 107, 0.1);
+      color: var(--danger);
     }
 
     .catalogue-add-btn {
@@ -1991,14 +2048,22 @@
       color: var(--muted);
     }
 
+    .catalogue-item.stock-out .catalogue-add-btn {
+      border-color: var(--danger);
+      background: rgba(255, 107, 107, 0.15);
+      color: var(--danger);
+    }
+
     .catalogue-add-btn.has-qty {
       background: rgba(0, 212, 255, 0.2);
       border-color: var(--accent2);
       color: var(--accent2);
     }
 
-    .catalogue-add-btn.has-qty:hover {
-      background: rgba(0, 212, 255, 0.3);
+    .catalogue-item.stock-out .catalogue-add-btn.has-qty {
+      background: rgba(255, 107, 107, 0.2);
+      border-color: var(--danger);
+      color: var(--danger);
     }
 
     .catalogue-empty {
@@ -2011,6 +2076,19 @@
       font-size: 48px;
       margin-bottom: 15px;
       opacity: 0.5;
+    }
+
+    .catalogue-stock-alert {
+      display: inline-block;
+      background: linear-gradient(135deg, #ff6b6b, #ff0000);
+      color: white;
+      font-weight: 900;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-top: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      animation: pulse 1.5s infinite;
     }
 
     /* PANIER */
@@ -4228,7 +4306,7 @@
     </div>
   </div>
 
-  <!-- MODAL CATALOGUE - NOUVEAU -->
+  <!-- MODAL CATALOGUE - AVEC INDICATION RUPTURE DE STOCK EN ROUGE -->
   <div class="catalogue-modal-overlay" id="catalogueModal">
     <div class="catalogue-modal-container">
       <div class="catalogue-header">
@@ -4399,7 +4477,7 @@
       dashboardUrl: 'tools/tableau-de-bord.html',
       trackingUrl: 'tools/suivi-commandes.html',
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
-      commandeApiUrl: "https://script.google.com/macros/s/AKfycby4ZAnberun2C4xNzRihvrGXkQs-6s39A70HF4um6l1SSuiJoTcvcsqnDAMJvX1ltnM/exec",
+      commandeApiUrl: "https://script.google.com/macros/s/AKfycbygH0QQ7So1MK1kSDAp5xzqctkZhQkOBj80xZH1Mu3AuuRIdYteBaSxSU21lR3P6laZ/exec",
     };
 
     // ===================== TRADUCTIONS =====================
@@ -4648,7 +4726,8 @@
       isSendingOrder: false,
       addressLinksEnabled: true,
       allProducts: [],
-      currentOrderNumber: 0
+      currentOrderNumber: 0,
+      lastGeneratedOrderId: null // Pour suivre le dernier ID généré
     };
 
     // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
@@ -4666,7 +4745,9 @@
       
       const sequencePart = String(lastOrderNumber).padStart(3, '0');
       
-      return `CMD-MAXI-${datePart}-${sequencePart}`;
+      const orderId = `CMD-MAXI-${datePart}-${sequencePart}`;
+      state.lastGeneratedOrderId = orderId; // Stocker le dernier ID généré
+      return orderId;
     }
 
     // ===================== TRADUCTION =====================
@@ -5466,7 +5547,7 @@
       });
     }
 
-    // ===================== MODAL CATALOGUE - NOUVEAU =====================
+    // ===================== MODAL CATALOGUE - AVEC RUPTURE DE STOCK EN ROUGE =====================
     function openCatalogueForCategory(categoryKey) {
       const category = CATEGORIES.find(c => c.key === categoryKey);
       if (!category) return;
@@ -5517,11 +5598,26 @@
         const quantity = state.catalogueQuantityPicks[productId] || 0;
         const availableStock = getAvailableStock(product);
         const stockStatus = getStockStatus(availableStock);
+        const isOutOfStock = availableStock <= 0;
         const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
         
         const item = document.createElement('div');
-        item.className = 'catalogue-item';
+        item.className = `catalogue-item ${isOutOfStock ? 'stock-out' : ''}`;
+        
+        // Badge pour rupture de stock
+        let stockOutBadge = '';
+        if (isOutOfStock) {
+          stockOutBadge = '<div class="stock-out-badge">⚠️ RUPTURE</div>';
+        }
+        
+        // Message pour stock faible
+        let stockAlert = '';
+        if (!isOutOfStock && availableStock <= 3) {
+          stockAlert = `<span class="catalogue-stock-alert">⚠️ Plus que ${availableStock} en stock</span>`;
+        }
+        
         item.innerHTML = `
+          ${stockOutBadge}
           <div class="catalogue-item-header">
             <div class="catalogue-item-image">
               <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
@@ -5535,28 +5631,32 @@
                   : ''}
                 <span>${formatPrice(product.price)}</span>
               </div>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+              <div style="font-size:11px;margin-top:2px;${isOutOfStock ? 'color: var(--danger);' : 'color: var(--muted);'}">
                 Stock: ${stockStatus.text}
+                ${stockAlert}
               </div>
             </div>
           </div>
           <div class="catalogue-item-actions">
             <div class="catalogue-qty-controls">
-              <button class="catalogue-qty-btn" data-action="decrease" data-id="${productId}">−</button>
+              <button class="catalogue-qty-btn" data-action="decrease" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>−</button>
               <input type="number" class="catalogue-qty-input" 
                 data-id="${productId}"
                 value="${quantity}"
                 min="0"
                 max="${availableStock}"
-                step="1">
-              <button class="catalogue-qty-btn" data-action="increase" data-id="${productId}">+</button>
+                step="1"
+                ${isOutOfStock ? 'disabled' : ''}>
+              <button class="catalogue-qty-btn" data-action="increase" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>+</button>
             </div>
             <button class="catalogue-add-btn ${quantity > 0 ? 'has-qty' : ''}" 
                     data-id="${productId}"
                     ${stockStatus.available ? '' : 'disabled'}>
-              ${quantity > 0 
-                ? `📤 ${TRANSLATIONS[state.currentLanguage].sendToCart} ${quantity}` 
-                : `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`}
+              ${isOutOfStock 
+                ? '❌ RUPTURE' 
+                : (quantity > 0 
+                  ? `📤 ${TRANSLATIONS[state.currentLanguage].sendToCart} ${quantity}` 
+                  : `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`)}
             </button>
           </div>
         `;
@@ -5568,11 +5668,13 @@
     }
 
     function setupCatalogueEvents() {
-      document.querySelectorAll('.catalogue-qty-btn').forEach(btn => {
+      document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const action = e.target.dataset.action;
           const productId = e.target.dataset.id;
           const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+          if (!input) return;
+          
           let value = parseInt(input.value) || 0;
           
           if (action === 'increase') {
@@ -5591,7 +5693,7 @@
         });
       });
       
-      document.querySelectorAll('.catalogue-qty-input').forEach(input => {
+      document.querySelectorAll('.catalogue-qty-input:not([disabled])').forEach(input => {
         input.addEventListener('input', (e) => {
           const productId = e.target.dataset.id;
           let value = parseInt(e.target.value) || 0;
@@ -5615,7 +5717,7 @@
         });
       });
       
-      document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
+      document.querySelectorAll('.catalogue-add-btn:not([disabled])').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const productId = e.target.dataset.id;
           const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
@@ -5642,7 +5744,7 @@
       state.catalogueQuantityPicks[productId] = quantity;
       
       const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
-      if (addBtn) {
+      if (addBtn && !addBtn.disabled) {
         const t = TRANSLATIONS[state.currentLanguage];
         if (quantity > 0) {
           addBtn.textContent = `📤 ${t.sendToCart} ${quantity}`;
@@ -6604,10 +6706,11 @@
     }
 
     // ===================== ENVOI MESSAGE AU CLIENT =====================
-    // FONCTION CORRIGÉE : Le numéro de commande affiché est maintenant exactement le même que celui enregistré
+    // FONCTION CORRIGÉE : Le numéro de commande affiché est EXACTEMENT le même que celui enregistré
     function envoyerMessageClient(commandeId) {
-      // S'assurer que le numéro de commande est bien celui qui a été généré et enregistré
-      const commandeIdCorrect = commandeId || state.pendingOrder?.commandeId || genererNumeroCommande();
+      // Utiliser le commandeId passé en paramètre (qui vient de l'enregistrement Google Sheets)
+      // C'est le même que celui généré dans placeOrder() et stocké dans pendingOrder
+      const commandeIdCorrect = commandeId || state.pendingOrder?.commandeId || state.lastGeneratedOrderId || genererNumeroCommande();
       
       const message = `Merci pour votre commande chez MAXI JDC MARKET.
 📦 Votre commande, référence ${commandeIdCorrect}, a bien été enregistrée.
@@ -6814,6 +6917,7 @@
         $('orderModal').classList.remove('open');
         
         // ICI : On passe le même commandeId récupéré de l'enregistrement
+        // C'est garanti d'être le même que celui affiché dans Google Sheets
         envoyerMessageClient(commandeId);
         
         const t = TRANSLATIONS[state.currentLanguage];
@@ -6857,6 +6961,7 @@
 
       state.pendingOrder = null;
       state.isSendingOrder = false;
+      state.lastGeneratedOrderId = null;
 
       $('cartTopBtn').onclick = () => {
         $('drawer').classList.add('open');
