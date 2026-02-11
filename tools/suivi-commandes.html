@@ -779,10 +779,8 @@
   </div>
 
   <script>
-    // URL de l'API Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycby4ZAnberun2C4xNzRihvrGXkQs-6s39A70HF4um6l1SSuiJoTcvcsqnDAMJvX1ltnM/exec";
 
-    // Définition des nouveaux statuts
     const ORDER_STATUSES = {
       "🟡 NOUVELLE": {
         id: "new",
@@ -834,7 +832,6 @@
       }
     };
 
-    // Éléments DOM
     const elements = {
       orderIdInput: document.getElementById('orderIdInput'),
       searchOrderBtn: document.getElementById('searchOrderBtn'),
@@ -868,7 +865,7 @@
       toast: document.getElementById('toast')
     };
 
-    // Fonctions utilitaires
+    // ✅ FONCTIONS UTILITAIRES
     function showToast(message, type = 'success') {
       elements.toast.textContent = message;
       elements.toast.className = `toast show ${type}`;
@@ -877,14 +874,13 @@
       }, 3000);
     }
 
-    function show(el) { el.style.display = 'block'; }
-    function hide(el) { el.style.display = 'none'; }
+    function show(el) { if (el) el.style.display = 'block'; }
+    function hide(el) { if (el) el.style.display = 'none'; }
 
     function formatDate(dateString) {
       try {
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return dateString;
-        
         return date.toLocaleDateString('fr-FR', {
           day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
         });
@@ -897,7 +893,6 @@
       try {
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return '--:--';
-        
         return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
       } catch {
         return '--:--';
@@ -909,45 +904,57 @@
       return num.toFixed(2).replace('.', ',') + ' dt';
     }
 
+    // ✅ FONCTION DE NORMALISATION
+    function normalizeOrderData(data) {
+      return {
+        commande_id: data.commande_id || data.numero || data.order_id || data.id || data.reference || 'CMD-INCONNUE',
+        date: data.date || data.created_at || data.timestamp || data.datetime || new Date().toISOString(),
+        nom: data.nom || data.name || data.client || data.customer || data.nom_client || '—',
+        telephone: data.telephone || data.phone || data.tel || data.mobile || data.telephone_client || '—',
+        adresse: data.adresse || data.address || data.adresse_livraison || data.delivery_address || '—',
+        total: data.total || data.amount || data.montant || data.prix_total || '0',
+        statut: data.statut || data.status || "⏳ EN ATTENTE",
+        articles: data.articles || data.items || data.produits || data.commande || data.details || '',
+        date_validation: data.date_validation || data.updated_at || data.modified_at || data.date
+      };
+    }
+
     function updateStatusDisplay(statusText) {
       const status = ORDER_STATUSES[statusText] || ORDER_STATUSES["⏳ EN ATTENTE"];
       
-      // Mettre à jour le badge
       elements.statusIcon.textContent = status.emoji;
       elements.statusText.textContent = statusText;
       elements.orderStatusBadge.className = `status-badge status-${status.id}`;
       
-      // Mettre à jour la progression
       const progressPercent = (status.progress * 100) + '%';
       elements.progressBar.style.width = progressPercent;
       
-      // Mettre à jour les étapes
       const steps = [elements.stepNew, elements.stepPreparation, elements.stepLivraison, elements.stepLivree];
       steps.forEach((step, index) => {
-        step.className = 'step';
-        if (status.steps[index]) {
-          step.classList.add('completed');
-          if (index === status.steps.findIndex(s => !s) - 1) {
-            step.classList.add('active');
+        if (step) {
+          step.className = 'step';
+          if (status.steps[index]) {
+            step.classList.add('completed');
+            if (index === status.steps.findIndex(s => !s) - 1) {
+              step.classList.add('active');
+            }
           }
         }
       });
     }
 
     function updateStatusTimeline(orderData) {
+      if (!elements.statusTimeline) return;
       elements.statusTimeline.innerHTML = '';
       
-      // Créer une timeline des statuts
       const events = [];
       
-      // Date de création
       events.push({
         time: formatTime(orderData.date),
         status: "🟡 NOUVELLE",
         description: "Commande créée"
       });
       
-      // Statut actuel
       if (orderData.statut && orderData.statut !== "🟡 NOUVELLE") {
         events.push({
           time: formatTime(orderData.date_validation || new Date().toISOString()),
@@ -956,26 +963,8 @@
         });
       }
       
-      // Événements historiques si disponibles
-      try {
-        if (orderData.statut_historique) {
-          const historique = JSON.parse(orderData.statut_historique);
-          historique.forEach(event => {
-            events.push({
-              time: formatTime(event.timestamp),
-              status: event.status,
-              description: event.note || "Changement de statut"
-            });
-          });
-        }
-      } catch (e) {
-        console.warn("Erreur parsing historique:", e);
-      }
-      
-      // Trier par date (plus récent en premier)
       events.sort((a, b) => new Date(b.time) - new Date(a.time));
       
-      // Afficher les événements
       events.forEach(event => {
         const status = ORDER_STATUSES[event.status] || ORDER_STATUSES["⏳ EN ATTENTE"];
         const eventDiv = document.createElement('div');
@@ -992,6 +981,7 @@
     }
 
     function displayArticles(articlesText) {
+      if (!elements.articlesList) return;
       elements.articlesList.innerHTML = '';
       
       if (!articlesText) {
@@ -1000,7 +990,6 @@
       }
 
       try {
-        // Essayer de parser comme JSON
         if (articlesText.trim().startsWith('[')) {
           const articles = JSON.parse(articlesText);
           articles.forEach(item => {
@@ -1014,7 +1003,6 @@
             elements.articlesList.appendChild(div);
           });
         } else {
-          // Afficher comme texte brut
           const lines = articlesText.split('\n');
           lines.forEach(line => {
             if (line.trim()) {
@@ -1034,7 +1022,7 @@
       }
     }
 
-    // Fonction principale de recherche
+    // ✅ FONCTION DE RECHERCHE CORRIGÉE
     async function searchOrder() {
       const orderId = elements.orderIdInput.value.trim().toUpperCase();
       if (!orderId) {
@@ -1043,7 +1031,6 @@
         return;
       }
 
-      // Masquer tout d'abord
       hide(elements.orderCard);
       hide(elements.emptyState);
       hide(elements.errorMessage);
@@ -1051,7 +1038,6 @@
       show(elements.loadingState);
 
       try {
-        // Appeler l'API
         const response = await fetch(
           `${API_URL}?method=getOrderStatus&commande_id=${encodeURIComponent(orderId)}&t=${Date.now()}`
         );
@@ -1066,25 +1052,25 @@
           throw new Error(data.error || 'Commande non trouvée');
         }
 
-        // Afficher les données
-        elements.orderIdDisplay.textContent = data.commande_id || orderId;
-        elements.orderDateDisplay.textContent = formatDate(data.date);
-        elements.clientName.textContent = data.nom || '—';
-        elements.clientPhone.textContent = data.telephone || '—';
-        elements.clientAddress.textContent = data.adresse || '—';
-        elements.orderTotal.textContent = formatPrice(data.total);
-        
-        // Mettre à jour le statut
-        const status = data.statut || "⏳ EN ATTENTE";
-        updateStatusDisplay(status);
-        updateStatusTimeline(data);
-        displayArticles(data.articles);
+        // ✅ NORMALISATION DES DONNÉES
+        const orderData = normalizeOrderData(data);
 
-        // Mettre à jour les boutons d'action
+        elements.orderIdDisplay.textContent = orderData.commande_id;
+        elements.orderDateDisplay.textContent = formatDate(orderData.date);
+        elements.clientName.textContent = orderData.nom;
+        elements.clientPhone.textContent = orderData.telephone;
+        elements.clientAddress.textContent = orderData.adresse;
+        elements.orderTotal.textContent = formatPrice(orderData.total);
+        
+        const status = orderData.statut;
+        updateStatusDisplay(status);
+        updateStatusTimeline(orderData);
+        displayArticles(orderData.articles);
+
         elements.whatsappBtn.onclick = () => {
           const message = encodeURIComponent(
-            `Bonjour MAXI JDC MARKET,\n\nJe suis le client avec le numéro ${data.telephone || ''}.\n` +
-            `Je souhaite des informations sur ma commande ${data.commande_id || orderId}.\n` +
+            `Bonjour MAXI JDC MARKET,\n\nJe suis ${orderData.nom} (${orderData.telephone}).\n` +
+            `Je souhaite des informations sur ma commande ${orderData.commande_id}.\n` +
             `Statut actuel: ${status}\n\nCordialement.`
           );
           window.open(`https://wa.me/21625600978?text=${message}`, '_blank');
@@ -1099,12 +1085,12 @@
         };
 
         elements.shareBtn.onclick = () => {
-          const shareText = `Suivez ma commande MAXI JDC MARKET: ${window.location.origin}${window.location.pathname}?order=${orderId}`;
+          const shareText = `Suivez ma commande MAXI JDC MARKET: ${window.location.origin}${window.location.pathname}?order=${orderData.commande_id}`;
           if (navigator.share) {
             navigator.share({
               title: 'Suivi commande MAXI JDC MARKET',
               text: shareText,
-              url: `${window.location.origin}${window.location.pathname}?order=${orderId}`
+              url: `${window.location.origin}${window.location.pathname}?order=${orderData.commande_id}`
             });
           } else {
             navigator.clipboard.writeText(shareText);
@@ -1112,15 +1098,12 @@
           }
         };
 
-        // Afficher les résultats
         hide(elements.loadingState);
         show(elements.orderCard);
         show(elements.successMessage);
         setTimeout(() => hide(elements.successMessage), 2000);
 
-        // Générer QR code
-        generateQRCode(orderId);
-
+        generateQRCode(orderData.commande_id);
         showToast(`Commande trouvée ! Statut: ${status}`, 'success');
 
       } catch (error) {
@@ -1132,24 +1115,20 @@
       }
     }
 
-    // Générer QR code
     function generateQRCode(orderId) {
+      if (!elements.qrCodeContainer) return;
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
         `${window.location.origin}${window.location.pathname}?order=${orderId}`
       )}`;
-      
       elements.qrCodeContainer.innerHTML = `<img src="${qrUrl}" alt="QR Code Suivi Commande">`;
     }
 
-    // Initialisation
     document.addEventListener('DOMContentLoaded', () => {
-      // Événements
       elements.searchOrderBtn.addEventListener('click', searchOrder);
       elements.orderIdInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') searchOrder();
       });
 
-      // Vérifier si un numéro de commande est dans l'URL
       const urlParams = new URLSearchParams(window.location.search);
       const orderIdFromUrl = urlParams.get('order');
       if (orderIdFromUrl) {
@@ -1159,14 +1138,11 @@
         elements.orderIdInput.focus();
       }
 
-      // Générer QR code par défaut
       generateQRCode('');
     });
 
-    // Exposer pour la console
     window.searchOrder = searchOrder;
     window.showToast = showToast;
-    window.ORDER_STATUSES = ORDER_STATUSES;
   </script>
 </body>
 </html>
