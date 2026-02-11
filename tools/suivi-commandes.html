@@ -687,10 +687,7 @@
         <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
       </div>
 
-      <!-- Timeline des statuts -->
-      <div id="statusTimeline" class="status-timeline">
-        <!-- Les événements seront ajoutés dynamiquement -->
-      </div>
+      <div id="statusTimeline" class="status-timeline"></div>
 
       <div class="order-details">
         <div class="detail-item">
@@ -770,9 +767,7 @@
       <p style="color: var(--muted); font-size: 14px; margin-bottom: 15px;">
         Scannez ce QR code pour accéder directement à cette page de suivi
       </p>
-      <div class="qr-code" id="qrCodeContainer">
-        <!-- QR Code sera généré ici -->
-      </div>
+      <div class="qr-code" id="qrCodeContainer"></div>
     </div>
 
     <div class="toast" id="toast"></div>
@@ -789,6 +784,14 @@
         icon: "fas fa-star",
         progress: 0.25,
         steps: [true, false, false, false]
+      },
+      "⏳ EN ATTENTE": {
+        id: "attente",
+        emoji: "⏳",
+        color: "var(--attente)",
+        icon: "fas fa-clock",
+        progress: 0.15,
+        steps: [false, false, false, false]
       },
       "🔵 EN PRÉPARATION": {
         id: "preparation",
@@ -820,14 +823,6 @@
         color: "var(--annulee)",
         icon: "fas fa-times-circle",
         progress: 0,
-        steps: [false, false, false, false]
-      },
-      "⏳ EN ATTENTE": {
-        id: "attente",
-        emoji: "⏳",
-        color: "var(--attente)",
-        icon: "fas fa-clock",
-        progress: 0.15,
         steps: [false, false, false, false]
       }
     };
@@ -865,7 +860,6 @@
       toast: document.getElementById('toast')
     };
 
-    // ✅ FONCTIONS UTILITAIRES
     function showToast(message, type = 'success') {
       elements.toast.textContent = message;
       elements.toast.className = `toast show ${type}`;
@@ -889,34 +883,46 @@
       }
     }
 
-    function formatTime(dateString) {
-      try {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return '--:--';
-        return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-      } catch {
-        return '--:--';
-      }
-    }
-
     function formatPrice(amount) {
-      const num = parseFloat(amount) || 0;
+      const num = parseFloat(String(amount || '0').replace(',', '.')) || 0;
       return num.toFixed(2).replace('.', ',') + ' dt';
     }
 
-    // ✅ FONCTION DE NORMALISATION
-    function normalizeOrderData(data) {
-      return {
-        commande_id: data.commande_id || data.numero || data.order_id || data.id || data.reference || 'CMD-INCONNUE',
-        date: data.date || data.created_at || data.timestamp || data.datetime || new Date().toISOString(),
-        nom: data.nom || data.name || data.client || data.customer || data.nom_client || '—',
-        telephone: data.telephone || data.phone || data.tel || data.mobile || data.telephone_client || '—',
-        adresse: data.adresse || data.address || data.adresse_livraison || data.delivery_address || '—',
-        total: data.total || data.amount || data.montant || data.prix_total || '0',
-        statut: data.statut || data.status || "⏳ EN ATTENTE",
-        articles: data.articles || data.items || data.produits || data.commande || data.details || '',
-        date_validation: data.date_validation || data.updated_at || data.modified_at || data.date
-      };
+    function formatPhone(phone) {
+      if (!phone) return '—';
+      const num = String(phone).replace(/\D/g, '');
+      if (num.length === 12) {
+        return `+${num.slice(0,3)} ${num.slice(3,5)} ${num.slice(5,8)} ${num.slice(8,10)} ${num.slice(10,12)}`;
+      }
+      if (num.length === 8) {
+        return `${num.slice(0,2)} ${num.slice(2,4)} ${num.slice(4,6)} ${num.slice(6,8)}`;
+      }
+      return String(phone);
+    }
+
+    function parseArticles(articlesText) {
+      if (!articlesText) return [];
+      const text = String(articlesText).replace(/\\n/g, '\n').replace(/<br\s*\/?>/gi, '\n');
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+      const articles = [];
+
+      for (const line of lines) {
+        const match = line.match(/^(\d+)\s*[x×]\s*(.+?)(?:\s*[-–—]\s*([0-9]+(?:[.,][0-9]{1,2})?)\s*dt)?$/i);
+        if (match) {
+          articles.push({
+            name: match[2].trim(),
+            quantity: parseInt(match[1], 10) || 1,
+            price: parseFloat((match[3] || '0').replace(',', '.')) || 0
+          });
+        } else if (line.length > 3 && !/^CMD-MAXI/i.test(line) && !/^TOTAL/i.test(line)) {
+          articles.push({
+            name: line,
+            quantity: 1,
+            price: 0
+          });
+        }
+      }
+      return articles;
     }
 
     function updateStatusDisplay(statusText) {
@@ -935,9 +941,9 @@
           step.className = 'step';
           if (status.steps[index]) {
             step.classList.add('completed');
-            if (index === status.steps.findIndex(s => !s) - 1) {
-              step.classList.add('active');
-            }
+          }
+          if (index === Math.max(status.steps.lastIndexOf(true), 0)) {
+            step.classList.add('active');
           }
         }
       });
@@ -948,18 +954,17 @@
       elements.statusTimeline.innerHTML = '';
       
       const events = [];
-      
       events.push({
-        time: formatTime(orderData.date),
+        time: orderData.date,
         status: "🟡 NOUVELLE",
         description: "Commande créée"
       });
       
       if (orderData.statut && orderData.statut !== "🟡 NOUVELLE") {
         events.push({
-          time: formatTime(orderData.date_validation || new Date().toISOString()),
+          time: orderData.date_validation || new Date().toISOString(),
           status: orderData.statut,
-          description: "Statut mis à jour"
+          description: `Statut mis à jour : ${orderData.statut}`
         });
       }
       
@@ -970,7 +975,7 @@
         const eventDiv = document.createElement('div');
         eventDiv.className = `status-event ${status.id}`;
         eventDiv.innerHTML = `
-          <div class="event-time">${event.time}</div>
+          <div class="event-time">${formatDate(event.time).split('à')[1] || '--:--'}</div>
           <div class="event-description">
             <span class="status-emoji">${status.emoji}</span>
             ${event.description}
@@ -990,41 +995,36 @@
       }
 
       try {
-        if (articlesText.trim().startsWith('[')) {
-          const articles = JSON.parse(articlesText);
-          articles.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'article-item';
-            div.innerHTML = `
-              <div class="article-name">${item.produit || item.nom || 'Article'}</div>
-              <div class="article-qty">${item.quantite || item.qty || 1}x</div>
-              <div class="article-price">${formatPrice(item.prix_total || item.prix || 0)}</div>
-            `;
-            elements.articlesList.appendChild(div);
-          });
-        } else {
-          const lines = articlesText.split('\n');
-          lines.forEach(line => {
-            if (line.trim()) {
-              const div = document.createElement('div');
-              div.className = 'article-item';
-              div.innerHTML = `<div class="article-name">${line}</div>`;
-              elements.articlesList.appendChild(div);
-            }
-          });
+        const articles = parseArticles(articlesText);
+        if (articles.length === 0) {
+          elements.articlesList.innerHTML = '<div style="color: var(--muted); padding: 20px;">' + articlesText.replace(/\n/g, '<br>') + '</div>';
+          return;
+        }
+
+        let total = 0;
+        articles.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'article-item';
+          div.innerHTML = `
+            <div class="article-name">${item.name}</div>
+            <div class="article-qty">${item.quantity}x</div>
+            <div class="article-price">${formatPrice(item.price * item.quantity)}</div>
+          `;
+          elements.articlesList.appendChild(div);
+          total += item.price * item.quantity;
+        });
+
+        if (total > 0 && parseFloat(elements.orderTotal.textContent) === 0) {
+          elements.orderTotal.textContent = formatPrice(total);
         }
       } catch (error) {
         console.error('Erreur affichage articles:', error);
-        const div = document.createElement('div');
-        div.className = 'article-item';
-        div.innerHTML = `<div class="article-name">${articlesText}</div>`;
-        elements.articlesList.appendChild(div);
+        elements.articlesList.innerHTML = '<div style="color: var(--muted); padding: 20px;">' + articlesText.replace(/\n/g, '<br>') + '</div>';
       }
     }
 
-    // ✅ FONCTION DE RECHERCHE CORRIGÉE
     async function searchOrder() {
-      const orderId = elements.orderIdInput.value.trim().toUpperCase();
+      const orderId = elements.orderIdInput.value.trim();
       if (!orderId) {
         elements.orderIdInput.focus();
         showToast('Veuillez entrer un numéro de commande', 'error');
@@ -1038,9 +1038,8 @@
       show(elements.loadingState);
 
       try {
-        const response = await fetch(
-          `${API_URL}?method=getOrderStatus&commande_id=${encodeURIComponent(orderId)}&t=${Date.now()}`
-        );
+        const timestamp = Date.now();
+        const response = await fetch(`${API_URL}?method=getOrderStatus&commande_id=${encodeURIComponent(orderId)}&t=${timestamp}`);
         
         if (!response.ok) {
           throw new Error(`Erreur HTTP: ${response.status}`);
@@ -1052,18 +1051,26 @@
           throw new Error(data.error || 'Commande non trouvée');
         }
 
-        // ✅ NORMALISATION DES DONNÉES
-        const orderData = normalizeOrderData(data);
+        const orderData = {
+          commande_id: data.commande_id || data.numero || data.order_id || data.id || orderId,
+          date: data.date || data.created_at || data.timestamp || new Date().toISOString(),
+          nom: data.nom || data.name || data.client || data.nom_client || '—',
+          telephone: data.telephone || data.phone || data.tel || data.telephone_client || '—',
+          adresse: data.adresse || data.address || data.adresse_livraison || '—',
+          total: data.total || data.amount || data.montant || '0',
+          statut: data.statut || data.status || "🟡 NOUVELLE",
+          articles: data.articles || data.items || data.produits || data.commande || '',
+          date_validation: data.date_validation || data.updated_at || data.modified_at || data.date
+        };
 
         elements.orderIdDisplay.textContent = orderData.commande_id;
         elements.orderDateDisplay.textContent = formatDate(orderData.date);
         elements.clientName.textContent = orderData.nom;
-        elements.clientPhone.textContent = orderData.telephone;
+        elements.clientPhone.textContent = formatPhone(orderData.telephone);
         elements.clientAddress.textContent = orderData.adresse;
         elements.orderTotal.textContent = formatPrice(orderData.total);
         
-        const status = orderData.statut;
-        updateStatusDisplay(status);
+        updateStatusDisplay(orderData.statut);
         updateStatusTimeline(orderData);
         displayArticles(orderData.articles);
 
@@ -1071,13 +1078,14 @@
           const message = encodeURIComponent(
             `Bonjour MAXI JDC MARKET,\n\nJe suis ${orderData.nom} (${orderData.telephone}).\n` +
             `Je souhaite des informations sur ma commande ${orderData.commande_id}.\n` +
-            `Statut actuel: ${status}\n\nCordialement.`
+            `Statut actuel: ${orderData.statut}\n\nCordialement.`
           );
           window.open(`https://wa.me/21625600978?text=${message}`, '_blank');
         };
 
         elements.callBtn.onclick = () => {
-          window.open('tel:21625600978', '_blank');
+          const phone = String(orderData.telephone).replace(/\D/g, '');
+          window.open(`tel:${phone}`, '_blank');
         };
 
         elements.reloadBtn.onclick = () => {
@@ -1085,15 +1093,18 @@
         };
 
         elements.shareBtn.onclick = () => {
-          const shareText = `Suivez ma commande MAXI JDC MARKET: ${window.location.origin}${window.location.pathname}?order=${orderData.commande_id}`;
+          const shareUrl = `${window.location.origin}${window.location.pathname}?order=${encodeURIComponent(orderData.commande_id)}`;
           if (navigator.share) {
             navigator.share({
               title: 'Suivi commande MAXI JDC MARKET',
-              text: shareText,
-              url: `${window.location.origin}${window.location.pathname}?order=${orderData.commande_id}`
+              text: `Suivez ma commande ${orderData.commande_id}`,
+              url: shareUrl
+            }).catch(() => {
+              navigator.clipboard.writeText(shareUrl);
+              showToast('Lien copié dans le presse-papier !', 'success');
             });
           } else {
-            navigator.clipboard.writeText(shareText);
+            navigator.clipboard.writeText(shareUrl);
             showToast('Lien copié dans le presse-papier !', 'success');
           }
         };
@@ -1104,7 +1115,7 @@
         setTimeout(() => hide(elements.successMessage), 2000);
 
         generateQRCode(orderData.commande_id);
-        showToast(`Commande trouvée ! Statut: ${status}`, 'success');
+        showToast(`Commande trouvée ! Statut: ${orderData.statut}`, 'success');
 
       } catch (error) {
         console.error('Erreur recherche commande:', error);
@@ -1117,9 +1128,10 @@
 
     function generateQRCode(orderId) {
       if (!elements.qrCodeContainer) return;
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-        `${window.location.origin}${window.location.pathname}?order=${orderId}`
-      )}`;
+      const url = orderId 
+        ? `${window.location.origin}${window.location.pathname}?order=${encodeURIComponent(orderId)}`
+        : window.location.href;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`;
       elements.qrCodeContainer.innerHTML = `<img src="${qrUrl}" alt="QR Code Suivi Commande">`;
     }
 
@@ -1134,15 +1146,12 @@
       if (orderIdFromUrl) {
         elements.orderIdInput.value = orderIdFromUrl;
         setTimeout(() => searchOrder(), 500);
-      } else {
-        elements.orderIdInput.focus();
       }
 
       generateQRCode('');
     });
 
     window.searchOrder = searchOrder;
-    window.showToast = showToast;
   </script>
 </body>
 </html>
