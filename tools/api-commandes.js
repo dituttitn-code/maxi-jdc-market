@@ -1,13 +1,13 @@
 /*********************************
  * CONFIGURATION API - MAXI JDC MARKET
- * ✅ CORRECTIONS :
- * 1. Prix avec 3 décimales
- * 2. Adresse avec lien Google Maps cliquable
+ * ✅ Objectif :
+ * - Garder la même interface
+ * - Normaliser la réponse pour que l'app utilise TOUJOURS le bon commande_id
  *********************************/
 
 // ✅ URL OK
 export const API_URL =
-  "https://script.google.com/macros/s/AKfycbyHbk0Z_1ZCKGv6RGA4_VJrRHCtE9iGR9uLly8Hc5mLwcPFHDeLl2MzS6Cy3E2bl9bn/exec";
+  "https://script.google.com/macros/s/AKfycbx0KoGqKQFpJJAkrcSvxxZ0_LQdYntzIy9s4BqxpHOZtMJGDxoCpbw2VhUVSrfwNvqg/exec";
 
 /*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
@@ -20,17 +20,16 @@ export async function envoyerCommande(dataCommande) {
   // normaliser articles avec prix à 3 décimales
   let articlesFormat = [];
   if (Array.isArray(dataCommande.articles)) {
-    articlesFormat = dataCommande.articles.map((item) => ({
-      produit: item.produit || item.nom || item.name || "",
-      quantite: parseInt(item.quantite || item.qty || item.quantity || 1, 10),
-      prix_unitaire: parseFloat(item.prix_unitaire || item.prix || item.price || 0),
-      prix_total: parseFloat(
-        (
-          parseInt(item.quantite || item.qty || 1, 10) *
-          parseFloat(item.prix_unitaire || item.prix || 0)
-        ).toFixed(3) // ← 3 DÉCIMALES
-      ),
-    }));
+    articlesFormat = dataCommande.articles.map((item) => {
+      const q = parseInt(item.quantite || item.qty || item.quantity || 1, 10);
+      const pu = parseFloat(item.prix_unitaire || item.prix || item.price || 0);
+      return {
+        produit: item.produit || item.nom || item.name || "",
+        quantite: isNaN(q) ? 1 : q,
+        prix_unitaire: isNaN(pu) ? 0 : pu,
+        prix_total: parseFloat(((isNaN(q) ? 1 : q) * (isNaN(pu) ? 0 : pu)).toFixed(3)),
+      };
+    });
   } else if (typeof dataCommande.articles === "string") {
     try {
       const parsed = JSON.parse(dataCommande.articles);
@@ -40,7 +39,7 @@ export async function envoyerCommande(dataCommande) {
 
   // total avec 3 décimales
   let total = parseFloat(dataCommande.total || 0);
-  if (!total && articlesFormat.length) {
+  if ((!total || isNaN(total)) && articlesFormat.length) {
     total = articlesFormat.reduce((sum, it) => sum + (Number(it.prix_total) || 0), 0);
   }
 
@@ -50,7 +49,7 @@ export async function envoyerCommande(dataCommande) {
     telephone: dataCommande.telephone || dataCommande.Telephone || "",
     adresse: dataCommande.adresse || dataCommande.Adresse || "",
     articles: articlesFormat.length ? JSON.stringify(articlesFormat) : (dataCommande.articles || ""),
-    total: total ? total.toFixed(3) : "", // ← 3 DÉCIMALES
+    total: total ? Number(total).toFixed(3) : "",
   };
 
   const response = await fetch(API_URL, {
@@ -62,8 +61,20 @@ export async function envoyerCommande(dataCommande) {
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
 
-  if (data && data.success && !data.commande_id) {
-    data.commande_id = data.commandeId || data.orderId || data.id || "";
+  // ✅ NORMALISATION FORCÉE : on garantit que commande_id est rempli
+  if (data && data.success) {
+    const cid =
+      data.commande_id ||
+      data.commandeId ||
+      data.orderId ||
+      data.order_id ||
+      data.id ||
+      "";
+
+    data.commande_id = cid;       // champ standard
+    data.commandeId = cid;        // alias (ancienne UI possible)
+    data.orderId = cid;           // alias
+    data.id = cid;                // alias
   }
 
   return data;
@@ -77,14 +88,16 @@ export async function getAllOrders() {
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur getorders");
-  
+
   // Ajouter lien Maps à chaque commande
-  const orders = (data.orders || []).map(order => ({
+  const orders = (data.orders || []).map((order) => ({
     ...order,
-    maps_link: order.maps_link || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.adresse || '')}`,
-    total: order.total ? parseFloat(order.total).toFixed(3) : "0.000"
+    maps_link:
+      order.maps_link ||
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.adresse || "")}`,
+    total: order.total ? parseFloat(order.total).toFixed(3) : "0.000",
   }));
-  
+
   return orders;
 }
 
@@ -99,14 +112,18 @@ export async function suivreCommande(commandeId) {
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Commande non trouvée");
 
+  const cid = data.commande_id || data.commandeId || data.orderId || commandeId || "";
+
   return {
     Date: data.date || "",
     Nom: data.nom || data.nom_client || "",
     Téléphone: data.telephone || "",
     Adresse: data.adresse || "",
     AdresseComplete: data.adresse_complete || "",
-    MapsLink: data.maps_link || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.adresse || '')}`,
-    Commande: data.commande_id || commandeId || "",
+    MapsLink:
+      data.maps_link ||
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.adresse || "")}`,
+    Commande: cid,
     Articles: data.articles || "",
     Total: data.total ? parseFloat(data.total).toFixed(3) : "0.000",
     Statut: data.statut || "⏳ EN ATTENTE",
@@ -124,14 +141,16 @@ export async function recupererHistorique(telephone) {
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur historique");
-  
+
   // Ajouter liens Maps à l'historique
-  const history = (data.history || []).map(item => ({
+  const history = (data.history || []).map((item) => ({
     ...item,
-    maps_link: item.maps_link || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.adresse || '')}`,
-    total: item.total ? parseFloat(item.total).toFixed(3) : "0.000"
+    maps_link:
+      item.maps_link ||
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.adresse || "")}`,
+    total: item.total ? parseFloat(item.total).toFixed(3) : "0.000",
   }));
-  
+
   return history;
 }
 
@@ -182,16 +201,17 @@ export function formaterPrix(prix) {
  *********************************/
 export async function testerConnexionAPI() {
   const response = await fetch(`${API_URL}?method=test&t=${Date.now()}`);
-  if (!response.ok) return { 
-    connecte: false, 
-    erreur: `Erreur HTTP: ${response.status}`, 
-    url: API_URL 
-  };
+  if (!response.ok)
+    return {
+      connecte: false,
+      erreur: `Erreur HTTP: ${response.status}`,
+      url: API_URL,
+    };
   const data = await response.json();
-  return { 
-    connecte: !!data.success, 
-    message: data.message, 
-    version: data.version || "5.0",
-    url: API_URL 
+  return {
+    connecte: !!data.success,
+    message: data.message,
+    version: data.version || "5.1",
+    url: API_URL,
   };
 }
