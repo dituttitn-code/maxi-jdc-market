@@ -3555,10 +3555,6 @@
       box-shadow: none;
     }
 
-    .order-btn.validate:active {
-      transform: translateY(0);
-    }
-
     /* Animation pour éviter les clics multiples */
     .order-btn.validate.sending {
       animation: sendingAnimation 2s ease;
@@ -4567,7 +4563,7 @@
     </div>
   </div>
 
-  <!-- MODAL TABLEAU DE BORD -->
+  <!-- MODAL TABLEAU DE BORD - CORRIGÉ AVEC BONNE URL API -->
   <div class="dashboard-modal-overlay" id="dashboardModal">
     <div class="dashboard-modal-container">
       <div class="dashboard-header">
@@ -4883,33 +4879,34 @@
       addressLinksEnabled: true,
       allProducts: [],
       currentOrderNumber: 0,
-      lastGeneratedOrderId: null,
+      lastGeneratedOrderId: null,  // ✅ AJOUTÉ - Stocke le dernier numéro généré
       dashboardCharts: {}
     };
-// ===================== GESTION DU COMPTEUR DE COMMANDES =====================
-// ✅ FONCTION CORRIGÉE : Génère un numéro unique ET le garde en mémoire
-function genererNumeroCommande() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const datePart = `${year}${month}${day}`;
-  
-  const lastOrderKey = `last_order_number_${datePart}`;
-  let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
-  
-  lastOrderNumber++;
-  localStorage.setItem(lastOrderKey, lastOrderNumber);
-  
-  const sequencePart = String(lastOrderNumber).padStart(3, '0');
-  const orderId = `CMD-MAXI-${datePart}-${sequencePart}`;
-  
-  // ✅ Stocker le dernier ID généré pour l'utiliser partout
-  state.lastGeneratedOrderId = orderId;
-  
-  console.log(`✅ Numéro de commande généré: ${orderId}`);
-  return orderId;
-}
+
+    // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
+    // ✅ FONCTION CORRIGÉE : Génère un numéro unique ET le garde en mémoire
+    function genererNumeroCommande() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const datePart = `${year}${month}${day}`;
+      
+      const lastOrderKey = `last_order_number_${datePart}`;
+      let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
+      
+      lastOrderNumber++;
+      localStorage.setItem(lastOrderKey, lastOrderNumber);
+      
+      const sequencePart = String(lastOrderNumber).padStart(3, '0');
+      const orderId = `CMD-MAXI-${datePart}-${sequencePart}`;
+      
+      // ✅ Stocker le dernier ID généré pour l'utiliser partout
+      state.lastGeneratedOrderId = orderId;
+      
+      console.log(`✅ Numéro de commande généré: ${orderId}`);
+      return orderId;
+    }
 
     // ===================== TRADUCTION =====================
     function setLanguage(lang) {
@@ -6654,194 +6651,15 @@ function genererNumeroCommande() {
     }
 
     // ===================== TABLEAU DE BORD =====================
-    // NOUVEAU : Tableau de bord fonctionnel avec statistiques réelles
+    // ✅ FONCTION CORRIGÉE : Tableau de bord fonctionnel
     function openDashboard() {
       if (!state.isAdmin) {
         showToast('❌ Accès administrateur requis', 'error');
         return;
       }
       
-      renderDashboard();
-      $('dashboardModal').classList.add('open');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function renderDashboard() {
-      const content = $('dashboardContent');
-      
-      // Calculer les statistiques
-      const totalOrders = state.orderHistory.length;
-      const totalRevenue = state.orderHistory.reduce((sum, order) => sum + (order.total || 0), 0);
-      const averageOrder = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-      const pendingOrders = state.orderHistory.filter(o => o.status === 'NOUVELLE').length || 0;
-      
-      // Top produits
-      const productSales = new Map();
-      state.orderHistory.forEach(order => {
-        order.items.forEach(item => {
-          const key = `${item.code}_${item.name}`;
-          const current = productSales.get(key) || { quantity: 0, revenue: 0, name: item.name, code: item.code };
-          current.quantity += item.quantity;
-          current.revenue += item.total;
-          productSales.set(key, current);
-        });
-      });
-      
-      const topProducts = Array.from(productSales.values())
-        .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, 10);
-      
-      // Ventes par jour
-      const salesByDay = new Map();
-      state.orderHistory.forEach(order => {
-        const date = new Date(order.date).toLocaleDateString('fr-FR');
-        const current = salesByDay.get(date) || 0;
-        salesByDay.set(date, current + (order.total || 0));
-      });
-      
-      const dailySales = Array.from(salesByDay.entries())
-        .sort((a, b) => new Date(a[0]) - new Date(b[0]))
-        .slice(-7);
-      
-      // Statuts
-      const statusCount = {
-        'NOUVELLE': 0,
-        'EN_COURS': 0,
-        'LIVREE': 0,
-        'ANNULEE': 0
-      };
-      
-      state.orderHistory.forEach(order => {
-        const status = order.status || 'NOUVELLE';
-        statusCount[status] = (statusCount[status] || 0) + 1;
-      });
-      
-      let html = `
-        <div class="dashboard-stats-grid">
-          <div class="stat-card">
-            <div class="stat-value">${formatPrice(totalRevenue)}</div>
-            <div class="stat-label">Chiffre d'affaires total</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${totalOrders}</div>
-            <div class="stat-label">Commandes totales</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${formatPrice(averageOrder)}</div>
-            <div class="stat-label">Panier moyen</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${pendingOrders}</div>
-            <div class="stat-label">Commandes en attente</div>
-          </div>
-        </div>
-        
-        <div class="dashboard-charts">
-          <div class="chart-container">
-            <h3>📈 Ventes par jour</h3>
-            <canvas id="dailySalesChart"></canvas>
-          </div>
-          <div class="chart-container">
-            <h3>🥧 Répartition par statut</h3>
-            <canvas id="statusChart"></canvas>
-          </div>
-        </div>
-        
-        <div class="dashboard-table-container">
-          <h3 style="color: var(--accent2); margin-bottom: 15px;">🏆 Top 10 produits</h3>
-          <table class="dashboard-table">
-            <thead>
-              <tr>
-                <th>Code</th>
-                <th>Produit</th>
-                <th>Quantité vendue</th>
-                <th>Chiffre d'affaires</th>
-              </tr>
-            </thead>
-            <tbody>
-      `;
-      
-      topProducts.forEach(product => {
-        html += `
-          <tr>
-            <td><strong>${product.code}</strong></td>
-            <td>${product.name}</td>
-            <td>${product.quantity}</td>
-            <td>${formatPrice(product.revenue)}</td>
-          </tr>
-        `;
-      });
-      
-      html += `
-            </tbody>
-          </table>
-        </div>
-      `;
-      
-      content.innerHTML = html;
-      
-      // Créer les graphiques
-      setTimeout(() => {
-        // Détruire les anciens graphiques
-        if (state.dashboardCharts.daily) state.dashboardCharts.daily.destroy();
-        if (state.dashboardCharts.status) state.dashboardCharts.status.destroy();
-        
-        // Graphique des ventes par jour
-        const dailyCtx = document.getElementById('dailySalesChart')?.getContext('2d');
-        if (dailyCtx) {
-          state.dashboardCharts.daily = new Chart(dailyCtx, {
-            type: 'line',
-            data: {
-              labels: dailySales.map(d => d[0]),
-              datasets: [{
-                label: 'Ventes (dt)',
-                data: dailySales.map(d => d[1]),
-                borderColor: '#00ff88',
-                backgroundColor: 'rgba(0, 255, 136, 0.1)',
-                tension: 0.4,
-                fill: true
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false }
-              },
-              scales: {
-                y: { beginAtZero: true }
-              }
-            }
-          });
-        }
-        
-        // Graphique des statuts
-        const statusCtx = document.getElementById('statusChart')?.getContext('2d');
-        if (statusCtx) {
-          state.dashboardCharts.status = new Chart(statusCtx, {
-            type: 'doughnut',
-            data: {
-              labels: Object.keys(statusCount),
-              datasets: [{
-                data: Object.values(statusCount),
-                backgroundColor: [
-                  '#00ff88',
-                  '#00d4ff',
-                  '#ffa726',
-                  '#ff6b6b'
-                ]
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { position: 'bottom' }
-              }
-            }
-          });
-        }
-      }, 100);
+      // Ouvrir le tableau de bord dans un nouvel onglet avec l'URL correcte
+      window.open('tableau-de-bord.html', '_blank');
     }
 
     // ===================== GESTION UTILISATEUR =====================
@@ -6929,6 +6747,7 @@ function genererNumeroCommande() {
     }
 
     // ===================== ENREGISTREMENT VERS GOOGLE SHEETS =====================
+    // ✅ FONCTION CORRIGÉE : Transmet le BON numéro de commande et téléphone propre
     async function enregistrerCommandeGoogleSheets(orderData) {
       try {
         showToast('📤 Enregistrement de la commande...', 'warning');
@@ -6971,13 +6790,25 @@ function genererNumeroCommande() {
           minute: '2-digit'
         });
 
-        const commandeId = orderData.commandeId;
+        // ✅ Utiliser le MÊME numéro de commande
+        const commandeId = orderData.commandeId || state.lastGeneratedOrderId;
+        console.log(`📤 Envoi à Google Sheets avec ID: ${commandeId}`);
+
+        // ✅ Nettoyer le téléphone - plus jamais #ERROR!
+        let telephone = (state.user.phone || '').trim();
+        if (telephone === '' || telephone === '#ERROR!') {
+          telephone = 'Non fourni';
+        }
+        // Ajouter +216 si ce n'est pas déjà fait
+        if (telephone !== 'Non fourni' && !telephone.startsWith('+216')) {
+          telephone = '+216 ' + telephone;
+        }
 
         const sheetData = {
           'Date': dateStr,
           'N_Commande': commandeId,
-          'Nom_Client': state.user.name,
-          'Telephone': '+216 ' + state.user.phone,
+          'Nom_Client': state.user.name || 'Client',
+          'Telephone': telephone,
           'Adresse': adresseComplete,
           'Articles': `COMMANDE: ${commandeId}\n` + articlesText,
           'Total': total.toFixed(3).replace('.', ','),
@@ -7031,14 +6862,14 @@ function genererNumeroCommande() {
         
         saveOrderToHistory(orderData);
         
-        return orderData.commandeId;
+        return orderData.commandeId || state.lastGeneratedOrderId;
       }
     }
 
     // ===================== ENVOI MESSAGE AU CLIENT =====================
-    // FONCTION CORRIGÉE : Utilise TOUJOURS le même numéro de commande
+    // ✅ FONCTION CORRIGÉE : Utilise TOUJOURS le même numéro de commande
     function envoyerMessageClient(commandeId) {
-      // Forcer l'utilisation du même ID qui a été envoyé à Google Sheets
+      // ✅ Forcer l'utilisation du MÊME ID qui a été envoyé à Google Sheets
       const commandeIdCorrect = commandeId || state.pendingOrder?.commandeId || state.lastGeneratedOrderId;
       
       if (!commandeIdCorrect) {
@@ -7127,6 +6958,7 @@ function genererNumeroCommande() {
     }
 
     // ===================== COMMANDES =====================
+    // ✅ FONCTION CORRIGÉE : placeOrder - génère et stocke le numéro
     async function placeOrder() {
       if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
         showToast('❌ Veuillez compléter vos informations personnelles', 'error');
@@ -7149,6 +6981,7 @@ function genererNumeroCommande() {
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.000;
       const total = subtotal + shippingFee;
 
+      // ✅ Générer le numéro de commande UNIQUE
       const commandeId = genererNumeroCommande();
       console.log(`✅ Commande préparée avec ID: ${commandeId}`);
 
@@ -7208,13 +7041,14 @@ function genererNumeroCommande() {
       $('orderDetails').textContent = orderText;
       $('orderModal').classList.add('open');
 
+      // ✅ Stocker les informations de commande avec le MÊME numéro
       state.pendingOrder = {
         subtotal,
         shipping: shippingFee,
         total,
         savings: savings.totalSavings,
         savingsPercentage: savings.percentage,
-        commandeId: commandeId
+        commandeId: commandeId  // ✅ MÊME NUMÉRO
       };
 
       const t = TRANSLATIONS[state.currentLanguage];
@@ -7222,6 +7056,7 @@ function genererNumeroCommande() {
     }
 
     // ===================== BOUTON "VALIDER ET ENVOYER" =====================
+    // ✅ FONCTION CORRIGÉE : Utilise le MÊME numéro de commande
     $('sendOrderBtn').onclick = async () => {
       try {
         if (state.isSendingOrder) {
@@ -7245,6 +7080,7 @@ function genererNumeroCommande() {
         
         saveOrderToHistory(orderData);
         
+        // ✅ Envoyer à Google Sheets avec le MÊME numéro
         const commandeId = await enregistrerCommandeGoogleSheets(orderData);
         console.log(`✅ Commande enregistrée avec ID: ${commandeId}`);
         
@@ -7255,7 +7091,7 @@ function genererNumeroCommande() {
         
         $('orderModal').classList.remove('open');
         
-        // Utiliser le même ID partout
+        // ✅ Envoyer le message client avec le MÊME numéro
         envoyerMessageClient(commandeId);
         
         const t = TRANSLATIONS[state.currentLanguage];
@@ -7606,13 +7442,3 @@ function genererNumeroCommande() {
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
