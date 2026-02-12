@@ -4886,31 +4886,30 @@
       lastGeneratedOrderId: null,
       dashboardCharts: {}
     };
-
-    // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
-    // FONCTION CORRIGÉE : Force l'utilisation de la date actuelle et garantit l'unicité
-    function genererNumeroCommande() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const datePart = `${year}${month}${day}`;
-      
-      const lastOrderKey = `last_order_number_${datePart}`;
-      let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
-      
-      lastOrderNumber++;
-      localStorage.setItem(lastOrderKey, lastOrderNumber);
-      
-      const sequencePart = String(lastOrderNumber).padStart(3, '0');
-      const orderId = `CMD-MAXI-${datePart}-${sequencePart}`;
-      
-      // Stocker le dernier ID généré
-      state.lastGeneratedOrderId = orderId;
-      
-      console.log(`✅ Numéro de commande généré: ${orderId}`);
-      return orderId;
-    }
+// ===================== GESTION DU COMPTEUR DE COMMANDES =====================
+// ✅ FONCTION CORRIGÉE : Génère un numéro unique ET le garde en mémoire
+function genererNumeroCommande() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const datePart = `${year}${month}${day}`;
+  
+  const lastOrderKey = `last_order_number_${datePart}`;
+  let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
+  
+  lastOrderNumber++;
+  localStorage.setItem(lastOrderKey, lastOrderNumber);
+  
+  const sequencePart = String(lastOrderNumber).padStart(3, '0');
+  const orderId = `CMD-MAXI-${datePart}-${sequencePart}`;
+  
+  // ✅ Stocker le dernier ID généré pour l'utiliser partout
+  state.lastGeneratedOrderId = orderId;
+  
+  console.log(`✅ Numéro de commande généré: ${orderId}`);
+  return orderId;
+}
 
     // ===================== TRADUCTION =====================
     function setLanguage(lang) {
@@ -7607,6 +7606,7 @@
   </script>
 </body>
 </html>
+
 
 
 
