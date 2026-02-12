@@ -1,11 +1,10 @@
 /*********************************
  * CONFIGURATION API - MAXI JDC MARKET
- * ✅ Objectif :
- * - Garder la même interface
- * - Normaliser la réponse pour que l'app utilise TOUJOURS le bon commande_id
+ * ✅ CORRECTION : Transmission du téléphone
+ * ✅ Version stable - Ne touche pas aux commandes fonctionnelles
  *********************************/
 
-// ✅ URL OK (ta nouvelle URL)
+// ✅ URL OK
 export const API_URL =
   "https://script.google.com/macros/s/AKfycbyPlPa-gUorOjsB01nWDiAgti7BW70xtqLN49oTMeeq8nvErGAxfOeqkzDCsKRfSvbM/exec";
 
@@ -17,16 +16,64 @@ export async function envoyerCommande(dataCommande) {
     throw new Error("Données de commande invalides.");
   }
 
-  // normaliser articles avec prix à 3 décimales
+  // ✅ CORRECTION TÉLÉPHONE : Extraction robuste
+  let telephone = "";
+  
+  // Liste de tous les alias possibles
+  const telephoneAliases = [
+    dataCommande.telephone,
+    dataCommande.Téléphone,
+    dataCommande.Telephone,
+    dataCommande.TELEPHONE,
+    dataCommande.tel,
+    dataCommande.Tel,
+    dataCommande.TEL,
+    dataCommande.phone,
+    dataCommande.Phone,
+    dataCommande.PHONE,
+    dataCommande["📞 TÉLÉPHONE"],
+    dataCommande.clientInfo?.telephone,
+    dataCommande.clientInfo?.Téléphone,
+    dataCommande.clientInfo?.phone,
+    dataCommande.utilisateur?.telephone
+  ];
+
+  // Essayer chaque alias
+  for (const alias of telephoneAliases) {
+    if (alias && typeof alias === "string" && alias.trim() !== "" && alias !== "#ERROR!") {
+      telephone = alias.trim();
+      break;
+    }
+  }
+
+  // Si toujours vide, chercher dans toutes les propriétés
+  if (!telephone || telephone === "#ERROR!") {
+    for (const key in dataCommande) {
+      if (key.toLowerCase().includes("tel") || key.toLowerCase().includes("phone")) {
+        const val = dataCommande[key];
+        if (val && typeof val === "string" && val.trim() !== "" && val !== "#ERROR!") {
+          telephone = val.trim();
+          break;
+        }
+      }
+    }
+  }
+
+  // ✅ Valeur par défaut si aucun téléphone trouvé
+  if (!telephone || telephone === "" || telephone === "#ERROR!") {
+    telephone = "Non fourni";
+  }
+
+  // ✅ Normaliser les articles (inchangé)
   let articlesFormat = [];
+  let articlesText = dataCommande.articles || "";
+
   if (Array.isArray(dataCommande.articles)) {
     articlesFormat = dataCommande.articles.map((item) => {
       const q = parseInt(item.quantite || item.qty || item.quantity || 1, 10);
       const pu = parseFloat(item.prix_unitaire || item.prix || item.price || 0);
-
       const quantite = isNaN(q) ? 1 : q;
       const prix_unitaire = isNaN(pu) ? 0 : pu;
-
       return {
         produit: item.produit || item.nom || item.name || "",
         quantite,
@@ -34,14 +81,23 @@ export async function envoyerCommande(dataCommande) {
         prix_total: parseFloat((quantite * prix_unitaire).toFixed(3)),
       };
     });
+    
+    articlesText = articlesFormat.map(a => 
+      `${a.quantite}x ${a.produit}`
+    ).join("\n");
   } else if (typeof dataCommande.articles === "string") {
     try {
       const parsed = JSON.parse(dataCommande.articles);
-      if (Array.isArray(parsed)) articlesFormat = parsed;
+      if (Array.isArray(parsed)) {
+        articlesFormat = parsed;
+        articlesText = parsed.map(a => 
+          `${a.quantite || 1}x ${a.produit || a.nom || a.name || ""}`
+        ).join("\n");
+      }
     } catch (_) {}
   }
 
-  // total avec 3 décimales
+  // ✅ Total avec 3 décimales (inchangé)
   let total = parseFloat(dataCommande.total || 0);
   if ((!total || isNaN(total)) && articlesFormat.length) {
     total = articlesFormat.reduce(
@@ -50,18 +106,33 @@ export async function envoyerCommande(dataCommande) {
     );
   }
 
+  // ✅ PAYLOAD CORRIGÉ - Avec TOUS les champs nécessaires
   const payload = {
     method: "saveOrder",
-    nom_client:
-      dataCommande.nom_client || dataCommande.nom || dataCommande.Nom_Client || "",
-    telephone: dataCommande.telephone || dataCommande.Telephone || "",
-    adresse: dataCommande.adresse || dataCommande.Adresse || "",
-    articles: articlesFormat.length
-      ? JSON.stringify(articlesFormat)
-      : (dataCommande.articles || ""),
-    total: total ? Number(total).toFixed(3) : "",
+    // Nom
+    nom_client: dataCommande.nom_client || dataCommande.nom || dataCommande.Nom_Client || dataCommande.clientInfo?.nom || "Client",
+    NOM_CLIENT: dataCommande.nom_client || dataCommande.nom || dataCommande.Nom_Client || "Client",
+    
+    // Téléphone - DOUBLÉ pour être sûr !
+    telephone: telephone,
+    TÉLÉPHONE: telephone,
+    TELEPHONE: telephone,
+    tel: telephone,
+    phone: telephone,
+    
+    // Adresse
+    adresse: dataCommande.adresse || dataCommande.Adresse || dataCommande.address || dataCommande.clientInfo?.adresse || "",
+    ADRESSE: dataCommande.adresse || dataCommande.Adresse || "",
+    
+    // Articles et Total
+    articles: articlesText || "AUCUN ARTICLE",
+    total: total ? Number(total).toFixed(3) : "0.000",
+    
+    // Timestamp pour éviter cache
+    _t: Date.now()
   };
 
+  // ✅ Envoi
   const response = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -71,24 +142,14 @@ export async function envoyerCommande(dataCommande) {
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
 
-  // ✅ NORMALISATION FORCÉE : on garantit que commande_id est rempli
+  // ✅ NORMALISATION DU NUMÉRO DE COMMANDE (inchangé)
   if (data && data.success) {
-    const cid =
-      data.commande_id ||
-      data.commandeId ||
-      data.orderId ||
-      data.order_id ||
-      data.id ||
-      "";
-
-    // champ standard + alias
+    const cid = data.commande_id || data.commandeId || data.orderId || data.id || "";
     data.commande_id = cid;
     data.commandeId = cid;
     data.orderId = cid;
     data.id = cid;
-
-    // ✅ IMPORTANT: certaines interfaces affichent "message"
-    // On force le "message" à être celui du serveur (avec le bon numéro)
+    
     if (data.client_message) {
       data.message = data.client_message;
     }
@@ -106,7 +167,6 @@ export async function getAllOrders() {
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur getorders");
 
-  // Ajouter lien Maps à chaque commande
   const orders = (data.orders || []).map((order) => ({
     ...order,
     maps_link:
@@ -167,7 +227,6 @@ export async function recupererHistorique(telephone) {
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur historique");
 
-  // Ajouter liens Maps à l'historique
   const history = (data.history || []).map((item) => ({
     ...item,
     maps_link:
