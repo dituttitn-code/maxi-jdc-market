@@ -7,7 +7,7 @@
 
 // ✅ URL OK (ta nouvelle URL)
 export const API_URL =
-  "https://script.google.com/macros/s/AKfycbz7SnlINFan7J706C5K4RDaFNqCjh-JywfrLVXhVFrdj-UteFVOPAAUBTV880IQCgyj/exec";
+  "https://script.google.com/macros/s/AKfycbzLLHDvkBOuhjSd3PuCH4deWQ9lrljCpXXTAxrpwWYVuIOhT59n7PRG4iUCM6uSZ9i6/exec";
 
 /*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
