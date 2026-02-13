@@ -1,6 +1,6 @@
 /*********************************
  * CONFIGURATION API - MAXI JDC MARKET
- * ✅ CORRECTION FINALE : Utilisation du numéro retourné par le serveur
+ * ✅ CORRECTION FINALE : Utilisation du numéro GÉNÉRÉ PAR GOOGLE SHEETS
  * ✅ Version stable - Ne touche pas aux commandes fonctionnelles
  *********************************/
 
@@ -9,71 +9,12 @@ export const API_URL =
   "https://script.google.com/macros/s/AKfycbyIXFdMW-yCJ41YUsKLNUboCzBNXqCdFkupaw01whUQwCZSZVzYIHvKK7UsoGUFlptU/exec";
 
 /*********************************
- * FONCTION DE GÉNÉRATION DU NUMÉRO DE COMMANDE
- * Format: CMD-MAXI-AAAAMMJJ-NNN
- * Exemple: CMD-MAXI-20260213-011
- *********************************/
-async function genererNumeroCommande() {
-  // Récupérer la date actuelle
-  const aujourdhui = new Date();
-  const annee = aujourdhui.getFullYear();
-  const mois = (aujourdhui.getMonth() + 1).toString().padStart(2, '0');
-  const jour = aujourdhui.getDate().toString().padStart(2, '0');
-  const dateStr = `${annee}${mois}${jour}`;
-  
-  // Clé pour localStorage (spécifique à la date pour éviter les conflits)
-  const storageKey = `compteur_commande_${dateStr}`;
-  
-  // Récupérer le compteur actuel depuis le localStorage
-  let compteur = localStorage.getItem(storageKey);
-  
-  if (!compteur) {
-    // Si pas de compteur pour aujourd'hui, récupérer depuis le serveur
-    try {
-      // Appel à l'API pour obtenir le dernier numéro du jour
-      const response = await fetch(`${API_URL}?method=getLastOrderNumber&date=${dateStr}&t=${Date.now()}`);
-      if (response.ok) {
-        const data = await response.json();
-        compteur = data.lastNumber ? data.lastNumber + 1 : 1;
-      } else {
-        compteur = 1;
-      }
-    } catch (error) {
-      console.warn("Impossible de récupérer le dernier numéro, départ à 1");
-      compteur = 1;
-    }
-  } else {
-    compteur = parseInt(compteur) + 1;
-  }
-  
-  // Sauvegarder le nouveau compteur
-  localStorage.setItem(storageKey, compteur.toString());
-  
-  // Formater le compteur sur 3 chiffres (001, 002, ...)
-  const compteurFormatte = compteur.toString().padStart(3, '0');
-  
-  // Générer le numéro final
-  const numeroCommande = `CMD-MAXI-${dateStr}-${compteurFormatte}`;
-  
-  console.log(`🔢 Numéro généré côté client: ${numeroCommande} (compteur: ${compteur})`);
-  
-  return {
-    numero: numeroCommande,
-    date: dateStr,
-    compteur: compteur
-  };
-}
-
-/*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
  *********************************/
 export async function envoyerCommande(dataCommande) {
   if (!dataCommande || typeof dataCommande !== "object") {
     throw new Error("Données de commande invalides.");
   }
-
-  // ✅ ÉTAPE 1 : GÉNÉRER LE NUMÉRO DE COMMANDE
-  const { numero: numeroCommande, date: dateStr, compteur } = await genererNumeroCommande();
 
   // ✅ CORRECTION TÉLÉPHONE : Extraction robuste
   let telephone = "";
@@ -165,14 +106,9 @@ export async function envoyerCommande(dataCommande) {
     );
   }
 
-  // ✅ PAYLOAD CORRIGÉ - Avec TOUS les champs nécessaires + NUMÉRO DE COMMANDE
+  // ✅ PAYLOAD - On N'ENVOIE PAS de numéro, on laisse Google Sheets le générer
   const payload = {
     method: "saveOrder",
-    // ✅ AJOUT DU NUMÉRO DE COMMANDE GÉNÉRÉ
-    commande_id: numeroCommande,
-    numero_commande: numeroCommande,
-    order_id: numeroCommande,
-    numero: numeroCommande,
     
     // Nom
     nom_client: dataCommande.nom_client || dataCommande.nom || dataCommande.Nom_Client || dataCommande.clientInfo?.nom || "Client",
@@ -193,15 +129,11 @@ export async function envoyerCommande(dataCommande) {
     articles: articlesText || "AUCUN ARTICLE",
     total: total ? Number(total).toFixed(3) : "0.000",
     
-    // Métadonnées pour le compteur
-    date_commande: dateStr,
-    compteur_journalier: compteur,
-    
     // Timestamp pour éviter cache
     _t: Date.now()
   };
 
-  console.log("📤 Envoi à Google Sheets avec numéro:", numeroCommande);
+  console.log("📤 Envoi à Google Sheets (sans numéro, il sera généré côté serveur)");
 
   // ✅ Envoi
   const response = await fetch(API_URL, {
@@ -213,41 +145,40 @@ export async function envoyerCommande(dataCommande) {
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
 
-  // ✅ CORRECTION CRITIQUE : Utiliser le numéro retourné par le SERVEUR
-  // Le serveur peut avoir modifié le numéro, on utilise le sien
-  let vraiNumeroCommande = "";
+  // ✅ CORRECTION CRITIQUE : Récupérer le numéro GÉNÉRÉ PAR GOOGLE SHEETS
+  let numeroSheets = "";
   
   if (data && data.success) {
-    // Récupérer le numéro depuis la réponse du serveur (tous les formats possibles)
-    vraiNumeroCommande = data.commande_id || data.numero_commande || data.orderId || data.id || data.numero || "";
+    // Le serveur Google Sheets retourne le numéro qu'il a généré
+    // Essayer tous les formats possibles
+    numeroSheets = data.commande_id || data.numero_commande || data.orderId || data.id || data.numero || "";
     
-    console.log("📦 Réponse du serveur - brute:", data);
-    console.log("📦 Numéro retourné par le serveur:", vraiNumeroCommande);
-    console.log("📦 Numéro que nous avons envoyé:", numeroCommande);
+    console.log("📦 Réponse complète du serveur:", data);
+    console.log("📦 Numéro GÉNÉRÉ PAR GOOGLE SHEETS:", numeroSheets);
     
-    // Si le serveur n'a pas retourné de numéro (cas improbable), utiliser le nôtre
-    if (!vraiNumeroCommande || vraiNumeroCommande === "") {
-      console.warn("⚠️ Serveur n'a pas retourné de numéro, utilisation du nôtre");
-      vraiNumeroCommande = numeroCommande;
+    if (!numeroSheets || numeroSheets === "") {
+      console.error("❌ ERREUR CRITIQUE: Google Sheets n'a pas retourné de numéro!");
+      // Fallback - mais c'est anormal
+      numeroSheets = "ERREUR-NUMERO";
     }
     
-    // Normalisation - garder le numéro EXACT retourné par le serveur
-    data.commande_id = vraiNumeroCommande;
-    data.commandeId = vraiNumeroCommande;
-    data.orderId = vraiNumeroCommande;
-    data.id = vraiNumeroCommande;
+    // Normalisation - garder le numéro EXACT de Google Sheets
+    data.commande_id = numeroSheets;
+    data.commandeId = numeroSheets;
+    data.orderId = numeroSheets;
+    data.id = numeroSheets;
     
-    // ✅ CRUCIAL: Ajouter le numéro à la racine de l'objet pour qu'il soit accessible
-    data.numero_commande = vraiNumeroCommande;
-    data.numero = vraiNumeroCommande;
+    // ✅ CRUCIAL: Ajouter le numéro à la racine pour la page de validation
+    data.numero_commande = numeroSheets;
+    data.numero = numeroSheets;
     
-    // Ajouter le message de confirmation avec le BON numéro
+    // Ajouter le message de confirmation avec le BON numéro (celui de Sheets)
     if (!data.client_message) {
-      data.client_message = `✅ Votre commande ${vraiNumeroCommande} a été enregistrée avec succès !`;
+      data.client_message = `✅ Votre commande, référence ${numeroSheets}, a bien été enregistrée.`;
     }
     data.message = data.client_message;
     
-    console.log("✅ Numéro FINAL transmis à la page:", vraiNumeroCommande);
+    console.log("✅ Numéro GOOGLE SHEETS transmis à la page:", numeroSheets);
   } else {
     console.error("❌ Réponse sans succès ou sans données:", data);
   }
