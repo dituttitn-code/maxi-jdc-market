@@ -939,7 +939,9 @@
       const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
       const articles = [];
 
-      for (const line of lines) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
         if (/^COMMANDE/i.test(line)) continue;
         if (/^CMD-MAXI/i.test(line)) continue;
         if (/^TOTAL/i.test(line)) continue;
@@ -948,6 +950,25 @@
         if (/^LIVRAISON/i.test(line)) continue;
         if (/^DATE/i.test(line)) continue;
         if (/^GPS/i.test(line)) continue;
+        if (/^17°C/i.test(line)) continue;
+        if (/^étage/i.test(line)) continue;
+        if (/^FRA/i.test(line)) continue;
+
+        // Format spécifique: "DADDY S CHIPS TRUFFE PARMESAN (3101)" suivi de "4x 0,00 dt" sur la ligne suivante
+        if (line.match(/\([0-9]+\)$/) && i + 1 < lines.length) {
+          const nextLine = lines[i + 1];
+          const matchQty = nextLine.match(/^(\d+)x\s+([0-9]+(?:[.,][0-9]{1,3})?)\s*dt$/i);
+          if (matchQty) {
+            articles.push({
+              name: line.trim(),
+              quantity: parseInt(matchQty[1], 10),
+              price: 0, // Prix unitaire à 0
+              total_price: parseFloat(matchQty[2].replace(',', '.')) || 0
+            });
+            i++; // Sauter la ligne suivante
+            continue;
+          }
+        }
 
         // Format avec deux-points: "VIO SUPERFRESH MINT (4357) : 4x 0,00 dt"
         const matchColon = line.match(/^(.+?)\s*:\s*(\d+)x\s+([0-9]+(?:[.,][0-9]{1,3})?)\s*dt$/i);
@@ -971,7 +992,29 @@
           continue;
         }
 
-        // Format avec tiret: "3x Nescafé Doypack 55G (1102) - 8,500 dt"
+        // Format: "Nescafé Doypack 55G (1102) 8,500 dt × 3 = 25,500 dt"
+        const matchComplex = line.match(/^(.+?)\s+([0-9]+(?:[.,][0-9]{1,3})?)\s*dt\s*×\s*(\d+)\s*=\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt$/i);
+        if (matchComplex) {
+          articles.push({
+            name: matchComplex[1].trim(),
+            quantity: parseInt(matchComplex[3], 10),
+            price: parseFloat(matchComplex[2].replace(',', '.'))
+          });
+          continue;
+        }
+
+        // Format: "8,500 dt × 3 = 25,500 dt" avec nom avant
+        const matchSimpleComplex = line.match(/^(.+?)\s+([0-9]+(?:[.,][0-9]{1,3})?)\s*dt\s*×\s*(\d+)$/i);
+        if (matchSimpleComplex) {
+          articles.push({
+            name: matchSimpleComplex[1].trim(),
+            quantity: parseInt(matchSimpleComplex[3], 10),
+            price: parseFloat(matchSimpleComplex[2].replace(',', '.'))
+          });
+          continue;
+        }
+
+        // Format: "3x Nescafé Doypack 55G (1102) - 8,500 dt"
         const matchX = line.match(/^(\d+)\s*[x×]\s*(.+?)(?:\s*[-–—]\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt)?$/i);
         if (matchX) {
           articles.push({
@@ -982,13 +1025,13 @@
           continue;
         }
 
-        // Format avec multiplication: "Nescafé Doypack 55G (1102) 8,500 dt × 3 = 25,500 dt"
-        const matchComplex = line.match(/^(.+?)\s+([0-9]+(?:[.,][0-9]{1,3})?)\s*dt\s*×\s*(\d+)(?:\s*=\s*[0-9]+(?:[.,][0-9]{1,3})?\s*dt)?$/i);
-        if (matchComplex) {
+        // Format: "4x DADDY S CHIPS TRUFFE PARMESAN (3101)" (quantité en premier)
+        const matchXFirst = line.match(/^(\d+)x\s+(.+)$/i);
+        if (matchXFirst) {
           articles.push({
-            name: matchComplex[1].trim(),
-            quantity: parseInt(matchComplex[3], 10),
-            price: parseFloat(matchComplex[2].replace(',', '.'))
+            name: matchXFirst[2].trim(),
+            quantity: parseInt(matchXFirst[1], 10),
+            price: 0
           });
           continue;
         }
@@ -1015,32 +1058,21 @@
         return;
       }
 
-      // Afficher tous les articles avec leurs prix
-      let totalCalcule = 0;
+      // Afficher tous les articles
       articles.forEach(item => {
         const div = document.createElement('div');
         div.className = 'article-item';
         
-        // Calculer le prix total pour cet article
-        const prixUnitaire = item.price || 0;
-        const quantite = item.quantity || 1;
-        const prixTotal = item.total_price || (prixUnitaire * quantite);
-        
-        totalCalcule += prixTotal;
+        // Utiliser total_price s'il existe, sinon calculer
+        const prixTotal = item.total_price || (item.price * item.quantity);
         
         div.innerHTML = `
           <div class="article-name">${item.name}</div>
-          <div class="article-qty">${quantite}x</div>
+          <div class="article-qty">${item.quantity}x</div>
           <div class="article-price">${formatPrice(prixTotal)}</div>
         `;
         elements.articlesList.appendChild(div);
       });
-
-      // Ne pas écraser le total s'il a été fourni par l'API
-      const totalAPI = parseFloat(String(elements.orderTotal.textContent).replace(',', '.').replace(' dt', '')) || 0;
-      if (totalAPI === 0 && totalCalcule > 0) {
-        elements.orderTotal.textContent = formatPrice(totalCalcule);
-      }
     }
 
     function updateStatusDisplay(statusText) {
