@@ -323,7 +323,6 @@
     .article-item:last-child { border-bottom: none; }
     .article-name { flex: 1; font-size: 14px; }
     .article-qty { font-size: 14px; font-weight: 700; color: var(--new); min-width: 40px; text-align: center; }
-    .article-price { font-size: 14px; font-weight: 700; color: var(--blue); min-width: 80px; text-align: right; }
 
     .order-total {
       margin-top: 20px;
@@ -919,29 +918,18 @@
       return String(phone);
     }
 
-    function parseArticles(articlesText) {
+    // Fonction pour extraire uniquement les noms des articles sans les prix
+    function extractArticleNames(articlesText) {
       if (!articlesText) return [];
       
-      // Essayer JSON d'abord
-      try {
-        if (String(articlesText).trim().startsWith('[')) {
-          const items = JSON.parse(articlesText);
-          return items.map(item => ({
-            name: item.produit || item.nom || item.name || "Article",
-            quantity: parseInt(item.quantite || item.qty || 1, 10),
-            price: parseFloat(item.prix_unitaire || item.prix || 0) || 0,
-            total_price: parseFloat(item.prix_total || 0) || 0
-          }));
-        }
-      } catch (e) {}
-
       const text = String(articlesText).replace(/\\n/g, '\n').replace(/<br\s*\/?>/gi, '\n');
       const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
       const articles = [];
-
+      
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         
+        // Ignorer les métadonnées
         if (/^COMMANDE/i.test(line)) continue;
         if (/^CMD-MAXI/i.test(line)) continue;
         if (/^TOTAL/i.test(line)) continue;
@@ -953,87 +941,43 @@
         if (/^17°C/i.test(line)) continue;
         if (/^étage/i.test(line)) continue;
         if (/^FRA/i.test(line)) continue;
-
-        // Format spécifique: "DADDY S CHIPS TRUFFE PARMESAN (3101)" suivi de "4x 0,00 dt" sur la ligne suivante
-        if (line.match(/\([0-9]+\)$/) && i + 1 < lines.length) {
-          const nextLine = lines[i + 1];
-          const matchQty = nextLine.match(/^(\d+)x\s+([0-9]+(?:[.,][0-9]{1,3})?)\s*dt$/i);
-          if (matchQty) {
+        
+        // Si la ligne contient un code produit entre parenthèses comme "THOMSON (1407)"
+        if (/\([0-9]+\)$/.test(line)) {
+          articles.push({
+            name: line.trim()
+          });
+          continue;
+        }
+        
+        // Si la ligne est comme "3x 0,00 dt" (ligne de quantité/prix), on l'ignore
+        if (/^\d+x\s+[0-9]+[.,][0-9]{1,3}\s*dt$/i.test(line)) {
+          continue;
+        }
+        
+        // Si la ligne contient un produit avec quantité et prix sur la même ligne
+        if (/(\d+\s*x\s*|\(\d+\)|\d+[.,]\d+\s*dt)/i.test(line)) {
+          // Essayer d'extraire juste le nom
+          const match = line.match(/^(.+?)(?:\s+\d+x|\s*\(\d+\)|\s+\d+[.,]\d+\s*dt)/i);
+          if (match) {
             articles.push({
-              name: line.trim(),
-              quantity: parseInt(matchQty[1], 10),
-              price: 0, // Prix unitaire à 0
-              total_price: parseFloat(matchQty[2].replace(',', '.')) || 0
+              name: match[1].trim()
             });
-            i++; // Sauter la ligne suivante
-            continue;
+          } else {
+            articles.push({
+              name: line.replace(/\s*\d+x\s+[0-9]+[.,][0-9]+\s*dt/i, '').trim()
+            });
           }
-        }
-
-        // Format avec deux-points: "VIO SUPERFRESH MINT (4357) : 4x 0,00 dt"
-        const matchColon = line.match(/^(.+?)\s*:\s*(\d+)x\s+([0-9]+(?:[.,][0-9]{1,3})?)\s*dt$/i);
-        if (matchColon) {
-          articles.push({
-            name: matchColon[1].trim(),
-            quantity: parseInt(matchColon[2], 10),
-            price: parseFloat(matchColon[3].replace(',', '.'))
-          });
           continue;
         }
 
-        // Format simple: "VIO SUPERFRESH MINT (4357) 4x 0,00 dt"
-        const matchSimple = line.match(/^(.+?)\s+(\d+)x\s+([0-9]+(?:[.,][0-9]{1,3})?)\s*dt$/i);
-        if (matchSimple) {
-          articles.push({
-            name: matchSimple[1].trim(),
-            quantity: parseInt(matchSimple[2], 10),
-            price: parseFloat(matchSimple[3].replace(',', '.'))
-          });
-          continue;
-        }
-
-        // Format: "Nescafé Doypack 55G (1102) 8,500 dt × 3 = 25,500 dt"
-        const matchComplex = line.match(/^(.+?)\s+([0-9]+(?:[.,][0-9]{1,3})?)\s*dt\s*×\s*(\d+)\s*=\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt$/i);
-        if (matchComplex) {
-          articles.push({
-            name: matchComplex[1].trim(),
-            quantity: parseInt(matchComplex[3], 10),
-            price: parseFloat(matchComplex[2].replace(',', '.'))
-          });
-          continue;
-        }
-
-        // Format: "8,500 dt × 3 = 25,500 dt" avec nom avant
-        const matchSimpleComplex = line.match(/^(.+?)\s+([0-9]+(?:[.,][0-9]{1,3})?)\s*dt\s*×\s*(\d+)$/i);
-        if (matchSimpleComplex) {
-          articles.push({
-            name: matchSimpleComplex[1].trim(),
-            quantity: parseInt(matchSimpleComplex[3], 10),
-            price: parseFloat(matchSimpleComplex[2].replace(',', '.'))
-          });
-          continue;
-        }
-
-        // Format: "3x Nescafé Doypack 55G (1102) - 8,500 dt"
-        const matchX = line.match(/^(\d+)\s*[x×]\s*(.+?)(?:\s*[-–—]\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt)?$/i);
-        if (matchX) {
-          articles.push({
-            name: matchX[2].trim(),
-            quantity: parseInt(matchX[1], 10) || 1,
-            price: parseFloat((matchX[3] || '0').replace(',', '.')) || 0
-          });
-          continue;
-        }
-
-        // Format: "4x DADDY S CHIPS TRUFFE PARMESAN (3101)" (quantité en premier)
-        const matchXFirst = line.match(/^(\d+)x\s+(.+)$/i);
-        if (matchXFirst) {
-          articles.push({
-            name: matchXFirst[2].trim(),
-            quantity: parseInt(matchXFirst[1], 10),
-            price: 0
-          });
-          continue;
+        // Garder les lignes qui semblent être des noms de produits
+        if (line.length >= 3 && !/^\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line) && !/^https?:\/\//i.test(line)) {
+          if (/[a-zA-ZÀ-ÿ]/.test(line)) {
+            articles.push({
+              name: line.trim()
+            });
+          }
         }
       }
       
@@ -1049,27 +993,38 @@
         return;
       }
 
-      const articles = parseArticles(articlesText);
-      console.log('Articles parsés:', articles); // Debug
+      const articles = extractArticleNames(articlesText);
       
       if (articles.length === 0) {
-        // Afficher le texte brut
-        elements.articlesList.innerHTML = '<div style="color: var(--muted); padding: 20px;">' + articlesText.replace(/\n/g, '<br>') + '</div>';
+        // Si aucun article n'a été trouvé, afficher le texte brut mais nettoyé
+        const text = String(articlesText)
+          .replace(/\\n/g, '\n')
+          .replace(/<br\s*\/?>/gi, '\n')
+          .split('\n')
+          .map(l => l.trim())
+          .filter(l => l && 
+            !/^COMMANDE/i.test(l) && 
+            !/^CMD-MAXI/i.test(l) && 
+            !/^TOTAL/i.test(l) && 
+            !/^SOUS[- ]?TOTAL/i.test(l) && 
+            !/^FRAIS/i.test(l) && 
+            !/^LIVRAISON/i.test(l) && 
+            !/^DATE/i.test(l) && 
+            !/^GPS/i.test(l) &&
+            !/^\d+x\s+[0-9]+[.,][0-9]+\s*dt$/i.test(l))
+          .join('<br>');
+        
+        elements.articlesList.innerHTML = '<div style="color: var(--txt); padding: 10px;">' + text + '</div>';
         return;
       }
 
-      // Afficher tous les articles
+      // Afficher uniquement les noms des articles
       articles.forEach(item => {
         const div = document.createElement('div');
         div.className = 'article-item';
         
-        // Utiliser total_price s'il existe, sinon calculer
-        const prixTotal = item.total_price || (item.price * item.quantity);
-        
         div.innerHTML = `
           <div class="article-name">${item.name}</div>
-          <div class="article-qty">${item.quantity}x</div>
-          <div class="article-price">${formatPrice(prixTotal)}</div>
         `;
         elements.articlesList.appendChild(div);
       });
