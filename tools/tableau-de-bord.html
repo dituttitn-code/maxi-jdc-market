@@ -323,13 +323,14 @@
         </div>
       </div>
 
+      <!-- ✅ MODIFICATION : Carte "Commandes en attente" remplacée par "NOUVELLE" -->
       <div class="card">
         <div class="statTop">
           <div>
-            <div class="value" id="pendingOrders">0</div>
-            <div class="label">Commandes en attente</div>
+            <div class="value" id="newOrdersCount">0</div>
+            <div class="label">🚀 NOUVELLES</div>
           </div>
-          <div class="icon"><i class="fas fa-clock"></i></div>
+          <div class="icon"><i class="fas fa-bell"></i></div> <!-- Icône changée pour une cloche -->
         </div>
       </div>
     </section>
@@ -520,7 +521,9 @@
       orders: [],
       topProducts: [],
       analytics: {
-        totalRevenue: 0, totalOrders: 0, avgOrderValue: 0, pendingOrders: 0,
+        totalRevenue: 0, totalOrders: 0, avgOrderValue: 0,
+        // ✅ Renommage pour plus de clarté : newOrdersCount au lieu de pendingOrders
+        newOrdersCount: 0,
         topProduct: null, statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
         ordersByHour: {}, ordersByDay: {},
         conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
@@ -620,7 +623,7 @@
         const articles = parseArticles(order.articles);
         if (articles.length === 0) continue;
 
-        const totalQty = articles.reduce((s,a)=>s + num(a.quantite), 0) || 1;
+        const totalQty = articles.reduce((s,a)=> s + num(a.quantite), 0) || 1;
 
         for (const a of articles) {
           const name = (a.produit || "Produit").trim();
@@ -684,7 +687,8 @@
     function calculateAnalytics() {
       const orders = state.orders || [];
       state.analytics = {
-        totalRevenue: 0, totalOrders: 0, avgOrderValue: 0, pendingOrders: 0,
+        totalRevenue: 0, totalOrders: 0, avgOrderValue: 0,
+        newOrdersCount: 0,
         topProduct: null, statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
         ordersByHour: {}, ordersByDay: {},
         conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
@@ -700,7 +704,11 @@
       for (const order of orders) {
         const statut = order.statut || "🟡 NOUVELLE";
         state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
-        if (statut === "⏳ EN ATTENTE") state.analytics.pendingOrders++;
+        
+        // ✅ On compte les commandes avec le statut "🟡 NOUVELLE" (exactement)
+        if (statut === "🟡 NOUVELLE") {
+          state.analytics.newOrdersCount++;
+        }
 
         const d = parseOrderDate(order.date);
         if (!d) continue;
@@ -733,7 +741,8 @@
       $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
       $("totalOrders").textContent = state.analytics.totalOrders;
       $("avgOrderValue").textContent = formatPrice(state.analytics.avgOrderValue);
-      $("pendingOrders").textContent = state.analytics.pendingOrders;
+      // ✅ Mise à jour de la carte "NOUVELLE"
+      $("newOrdersCount").textContent = state.analytics.newOrdersCount;
 
       if (state.analytics.topProduct) {
         const totalQuantity = state.topProducts.reduce((sum, p) => sum + num(p.quantity), 0);
