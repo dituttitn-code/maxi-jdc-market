@@ -5,7 +5,7 @@
 
 // ✅ URL OK
 export const API_URL =
-  "https://script.google.com/macros/s/AKfycbyIXFdMW-yCJ41YUsKLNUboCzBNXqCdFkupaw01whUQwCZSZVzYIHvKK7UsoGUFlptU/exec";
+  "https://script.google.com/macros/s/AKfycbyIXFdMW-yCJ41YUsKLNUboCzBNXqCdFkupaw01whUQwCZSZVzYIHvKK7UsoGUF1ptU/exec";
 
 /*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
