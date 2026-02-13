@@ -99,6 +99,64 @@
     .value{font-size:30px; font-weight:1000; margin-top:2px}
     .label{font-size:13px; color:var(--muted); font-weight:700}
     
+    /* STATUT SELECTEUR DEROULANT POUR LA CARTE STATS */
+    .status-selector-card {
+      background:var(--card);
+      border:2px solid var(--line);
+      border-radius:var(--r);
+      box-shadow:var(--shadow);
+      padding:18px;
+      transition:.2s;
+    }
+    .status-selector-card:hover{border-color:var(--green); transform:translateY(-3px)}
+    .selector-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .selector-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .statut-dropdown {
+      padding: 8px 12px;
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.08);
+      color: var(--txt);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s;
+    }
+    .statut-dropdown:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+    }
+    .statut-dropdown option {
+      background: var(--card);
+      color: var(--txt);
+      padding: 8px;
+    }
+    .statut-count {
+      font-size: 32px;
+      font-weight: 1000;
+      line-height: 1.2;
+      color: var(--green);
+      text-align: center;
+    }
+    .statut-label {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+    }
+    
     /* TOP PRODUCT */
     .top-product-card {
       background: linear-gradient(135deg, rgba(26, 36, 93, 0.9), rgba(22, 36, 71, 0.9));
@@ -197,6 +255,27 @@
     }
     td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px; vertical-align:top;}
     tr:hover{background:rgba(255,255,255,.05)}
+    
+    /* LIEN ADRESSE VERS GOOGLE MAPS */
+    .address-link {
+      color: var(--blue);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: inline-block;
+      max-width: 250px;
+      word-break: break-word;
+    }
+    .address-link:hover {
+      color: var(--green);
+      text-decoration: underline;
+      transform: translateX(2px);
+    }
+    .address-link i {
+      margin-right: 4px;
+      font-size: 10px;
+      opacity: 0.8;
+    }
     
     /* STATUT SELECT */
     .statut-select {
@@ -323,14 +402,22 @@
         </div>
       </div>
 
-      <!-- ✅ MODIFICATION : Carte "Commandes en attente" remplacée par "NOUVELLE" -->
-      <div class="card">
-        <div class="statTop">
-          <div>
-            <div class="value" id="newOrdersCount">0</div>
-            <div class="label">🚀 NOUVELLES</div>
+      <!-- ✅ NOUVELLE CARTE : SELECTEUR DE STATUT AVEC COMPTEUR -->
+      <div class="status-selector-card">
+        <div class="selector-container">
+          <div class="selector-row">
+            <select class="statut-dropdown" id="statusSelector">
+              <option value="🟡 NOUVELLE">🟡 NOUVELLE</option>
+              <option value="⏳ EN ATTENTE">⏳ EN ATTENTE</option>
+              <option value="🔵 EN PRÉPARATION">🔵 EN PRÉPARATION</option>
+              <option value="🟠 EN LIVRAISON">🟠 EN LIVRAISON</option>
+              <option value="✅ LIVRÉE">✅ LIVRÉE</option>
+              <option value="❌ ANNULÉE">❌ ANNULÉE</option>
+            </select>
+            <div class="icon"><i class="fas fa-filter"></i></div>
           </div>
-          <div class="icon"><i class="fas fa-bell"></i></div> <!-- Icône changée pour une cloche -->
+          <div class="statut-count" id="selectedStatusCount">0</div>
+          <div class="statut-label" id="selectedStatusLabel">Commandes sélectionnées</div>
         </div>
       </div>
     </section>
@@ -522,9 +609,7 @@
       topProducts: [],
       analytics: {
         totalRevenue: 0, totalOrders: 0, avgOrderValue: 0,
-        // ✅ Renommage pour plus de clarté : newOrdersCount au lieu de pendingOrders
-        newOrdersCount: 0,
-        topProduct: null, statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
+        statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
         ordersByHour: {}, ordersByDay: {},
         conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
       },
@@ -688,8 +773,7 @@
       const orders = state.orders || [];
       state.analytics = {
         totalRevenue: 0, totalOrders: 0, avgOrderValue: 0,
-        newOrdersCount: 0,
-        topProduct: null, statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
+        statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
         ordersByHour: {}, ordersByDay: {},
         conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
       };
@@ -704,11 +788,6 @@
       for (const order of orders) {
         const statut = order.statut || "🟡 NOUVELLE";
         state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
-        
-        // ✅ On compte les commandes avec le statut "🟡 NOUVELLE" (exactement)
-        if (statut === "🟡 NOUVELLE") {
-          state.analytics.newOrdersCount++;
-        }
 
         const d = parseOrderDate(order.date);
         if (!d) continue;
@@ -741,8 +820,12 @@
       $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
       $("totalOrders").textContent = state.analytics.totalOrders;
       $("avgOrderValue").textContent = formatPrice(state.analytics.avgOrderValue);
-      // ✅ Mise à jour de la carte "NOUVELLE"
-      $("newOrdersCount").textContent = state.analytics.newOrdersCount;
+
+      // ✅ Mise à jour du compteur de statut sélectionné
+      const selectedStatut = $("statusSelector").value;
+      const count = state.analytics.statusDistribution[selectedStatut] || 0;
+      $("selectedStatusCount").textContent = count;
+      $("selectedStatusLabel").textContent = selectedStatut;
 
       if (state.analytics.topProduct) {
         const totalQuantity = state.topProducts.reduce((sum, p) => sum + num(p.quantity), 0);
@@ -762,7 +845,7 @@
       $("ordersToday").textContent = state.analytics.ordersToday;
       $("revenueToday").textContent = formatPrice(state.analytics.revenueToday);
 
-      // Table commandes
+      // Table commandes avec adresse cliquable
       const allOrdersBody = $("allOrdersBody");
       allOrdersBody.innerHTML = "";
 
@@ -781,12 +864,28 @@
           const d = parseOrderDate(order.date);
           const dateStr = d ? d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : safeText(order.date);
 
+          // ✅ Création du lien Google Maps pour l'adresse
+          const addressText = safeText(order.adresse);
+          let addressLink = addressText;
+          
+          // Si l'adresse contient des coordonnées GPS, les extraire pour un lien plus précis
+          const gpsMatch = addressText.match(/GPS:\s*([0-9.-]+)[,\s]+([0-9.-]+)/i);
+          if (gpsMatch) {
+            const lat = gpsMatch[1];
+            const lng = gpsMatch[2];
+            addressLink = `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="address-link" title="Voir sur Google Maps"><i class="fas fa-map-marker-alt"></i> ${addressText}</a>`;
+          } else if (addressText && addressText.length > 5) {
+            // Sinon, faire une recherche texte sur Google Maps
+            const query = encodeURIComponent(addressText);
+            addressLink = `<a href="https://www.google.com/maps/search/?api=1&query=${query}" target="_blank" class="address-link" title="Voir sur Google Maps"><i class="fas fa-map-marker-alt"></i> ${addressText}</a>`;
+          }
+
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>${dateStr}</td>
             <td><strong>${safeText(order.nom)}</strong></td>
             <td>${safeText(order.telephone)}</td>
-            <td>${safeText(order.adresse)}</td>
+            <td>${addressLink}</td>
             <td><strong>${safeText(order.commande_id)}</strong></td>
             <td class="articles-cell">${articlesText}</td>
             <td><strong>${formatPrice(order.total)}</strong></td>
@@ -985,7 +1084,7 @@
           method: "saveOrder",
           nom_client: "TEST ADMIN",
           telephone: "+216 20000000",
-          adresse: "Adresse test (admin)",
+          adresse: "Adresse test (admin) | GPS: 36.858546, 10.301467",
           articles: "2x PRODUIT TEST A (1001)\n1x PRODUIT TEST B (1002)",
           total: "30.00"
         });
@@ -1033,6 +1132,15 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       initCharts();
+      
+      // ✅ Écouteur pour le changement de statut dans le sélecteur
+      $("statusSelector").addEventListener("change", () => {
+        const selectedStatut = $("statusSelector").value;
+        const count = state.analytics.statusDistribution[selectedStatut] || 0;
+        $("selectedStatusCount").textContent = count;
+        $("selectedStatusLabel").textContent = selectedStatut;
+      });
+      
       $("salesPeriod").addEventListener("change", () => updateCharts());
       $("activityMode").addEventListener("change", () => updateCharts());
       $("btnRefresh").addEventListener("click", () => refreshAll(true));
