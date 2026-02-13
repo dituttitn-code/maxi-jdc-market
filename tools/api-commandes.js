@@ -1,6 +1,6 @@
 /*********************************
  * CONFIGURATION API - MAXI JDC MARKET
- * ✅ CORRECTION FINALE : Utilisation du numéro GÉNÉRÉ PAR GOOGLE SHEETS
+ * ✅ CORRECTION FINALE : Attente de la confirmation Google Sheets
  * ✅ Version stable - Ne touche pas aux commandes fonctionnelles
  *********************************/
 
@@ -64,7 +64,7 @@ export async function envoyerCommande(dataCommande) {
     telephone = "Non fourni";
   }
 
-  // ✅ Normaliser les articles (inchangé)
+  // ✅ Normaliser les articles
   let articlesFormat = [];
   let articlesText = dataCommande.articles || "";
 
@@ -97,7 +97,7 @@ export async function envoyerCommande(dataCommande) {
     } catch (_) {}
   }
 
-  // ✅ Total avec 3 décimales (inchangé)
+  // ✅ Total avec 3 décimales
   let total = parseFloat(dataCommande.total || 0);
   if ((!total || isNaN(total)) && articlesFormat.length) {
     total = articlesFormat.reduce(
@@ -106,7 +106,7 @@ export async function envoyerCommande(dataCommande) {
     );
   }
 
-  // ✅ PAYLOAD - On N'ENVOIE PAS de numéro, on laisse Google Sheets le générer
+  // ✅ PAYLOAD - Sans numéro (Google Sheets le générera)
   const payload = {
     method: "saveOrder",
     
@@ -114,7 +114,7 @@ export async function envoyerCommande(dataCommande) {
     nom_client: dataCommande.nom_client || dataCommande.nom || dataCommande.Nom_Client || dataCommande.clientInfo?.nom || "Client",
     NOM_CLIENT: dataCommande.nom_client || dataCommande.nom || dataCommande.Nom_Client || "Client",
     
-    // Téléphone - DOUBLÉ pour être sûr !
+    // Téléphone
     telephone: telephone,
     TÉLÉPHONE: telephone,
     TELEPHONE: telephone,
@@ -133,9 +133,9 @@ export async function envoyerCommande(dataCommande) {
     _t: Date.now()
   };
 
-  console.log("📤 Envoi à Google Sheets (sans numéro, il sera généré côté serveur)");
+  console.log("📤 ÉTAPE 1: Envoi à Google Sheets...");
 
-  // ✅ Envoi
+  // ✅ ÉTAPE 1: Envoyer à Google Sheets
   const response = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -143,44 +143,44 @@ export async function envoyerCommande(dataCommande) {
   });
 
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+  
+  // ✅ ÉTAPE 2: Attendre et récupérer la réponse
   const data = await response.json();
+  
+  console.log("📦 ÉTAPE 2: Réponse reçue de Google Sheets:", data);
 
-  // ✅ CORRECTION CRITIQUE : Récupérer le numéro GÉNÉRÉ PAR GOOGLE SHEETS
+  // ✅ ÉTAPE 3: Extraire le numéro de commande de la réponse
   let numeroSheets = "";
   
   if (data && data.success) {
-    // Le serveur Google Sheets retourne le numéro qu'il a généré
-    // Essayer tous les formats possibles
+    // Récupérer le numéro généré par Google Sheets
     numeroSheets = data.commande_id || data.numero_commande || data.orderId || data.id || data.numero || "";
-    
-    console.log("📦 Réponse complète du serveur:", data);
-    console.log("📦 Numéro GÉNÉRÉ PAR GOOGLE SHEETS:", numeroSheets);
     
     if (!numeroSheets || numeroSheets === "") {
       console.error("❌ ERREUR CRITIQUE: Google Sheets n'a pas retourné de numéro!");
-      // Fallback - mais c'est anormal
-      numeroSheets = "ERREUR-NUMERO";
+      throw new Error("Le numéro de commande n'a pas été généré par Google Sheets");
     }
     
-    // Normalisation - garder le numéro EXACT de Google Sheets
+    console.log("✅ ÉTAPE 3: Numéro GÉNÉRÉ PAR GOOGLE SHEETS:", numeroSheets);
+    
+    // ✅ ÉTAPE 4: Normaliser la réponse avec le bon numéro
     data.commande_id = numeroSheets;
     data.commandeId = numeroSheets;
     data.orderId = numeroSheets;
     data.id = numeroSheets;
-    
-    // ✅ CRUCIAL: Ajouter le numéro à la racine pour la page de validation
     data.numero_commande = numeroSheets;
     data.numero = numeroSheets;
     
-    // Ajouter le message de confirmation avec le BON numéro (celui de Sheets)
-    if (!data.client_message) {
-      data.client_message = `✅ Votre commande, référence ${numeroSheets}, a bien été enregistrée.`;
-    }
+    // ✅ ÉTAPE 5: Ajouter le message de confirmation avec le BON numéro
+    data.client_message = `✅ Commande Enregistrée\n\nMerci pour votre commande chez MAXI JDC MARKET.\n\n📦 Votre commande, référence ${numeroSheets}, a bien été enregistrée.\n⏳ Elle est actuellement en cours de préparation.\n📞 Nous vous contacterons prochainement pour la livraison.\n\n🔗 Pour suivre l'état de votre commande, utilisez le numéro ${numeroSheets} dans la section « Suivi commande » de votre espace client.\n\n📋 Copier le numéro: ${numeroSheets}`;
+    
     data.message = data.client_message;
     
-    console.log("✅ Numéro GOOGLE SHEETS transmis à la page:", numeroSheets);
+    console.log("✅ ÉTAPE 4: Message client préparé avec le numéro:", numeroSheets);
+    console.log("✅ ÉTAPE 5: Réponse FINALE envoyée à la page");
   } else {
-    console.error("❌ Réponse sans succès ou sans données:", data);
+    console.error("❌ ÉCHEC: Google Sheets n'a pas confirmé l'enregistrement:", data);
+    throw new Error(data.error || "Erreur lors de l'enregistrement dans Google Sheets");
   }
 
   return data;
