@@ -527,7 +527,7 @@ function analyserDonneesCommande(rawData) {
     Object.assign(result, rawData);
   }
 
-  // Générer numéro commande si vide
+  // Générer numéro commande si vide (uniquement pour l'affichage initial)
   if (!result.numero_commande) {
     const now = new Date();
     const dateStr = now.getFullYear().toString() + 
@@ -731,7 +731,7 @@ async function envoyerCommandeAPI(commande) {
       adresse: commande.adresse,
       articles: JSON.stringify(commande.articles),
       total: commande.total.toFixed(3),
-      commande_id: commande.numero_commande
+      // ⚠️ NE PAS ENVOYER DE NUMÉRO - Google Sheets le générera
     };
 
     const response = await fetch(API_URL, {
@@ -750,27 +750,36 @@ async function envoyerCommandeAPI(commande) {
 }
 
 async function validerEtEnvoyerCommande(commande) {
+  // ÉTAPE 1: Envoyer à Google Sheets
   const result = await envoyerCommandeAPI(commande);
   
   if (result.success) {
-    showToast("✅ Commande validée et envoyée au magasin", "ok");
+    // ÉTAPE 2: Récupérer le numéro GÉNÉRÉ PAR GOOGLE SHEETS
+    const numeroSheets = result.commande_id || result.numero_commande || result.orderId || result.id || result.numero || commande.numero_commande;
+    
+    console.log("📦 Numéro de Google Sheets:", numeroSheets);
+    
+    // ÉTAPE 3: Mettre à jour la commande avec le BON numéro
+    commande.numero_commande = numeroSheets;
+    commande.statut = "Validée";
+    
+    // ÉTAPE 4: Mettre à jour l'affichage avec le BON numéro
+    afficherSectionsStructurees(commande);
+    
+    showToast(`✅ Commande ${numeroSheets} validée et envoyée au magasin`, "ok");
     playTabletSound();
     
-    // Ouvrir WhatsApp du magasin
+    // Ouvrir WhatsApp du magasin avec le BON numéro
     const message = `🛒 NOUVELLE COMMANDE VALIDÉE\n\n` +
                    `Client: ${commande.nom}\n` +
                    `Téléphone: ${commande.telephone}\n` +
                    `Adresse: ${commande.adresse}\n` +
-                   `N° Commande: ${commande.numero_commande}\n` +
+                   `N° Commande: ${numeroSheets}\n` +
                    `Total: ${commande.total.toFixed(3)} DT\n\n` +
                    `Statut: ✅ VALIDÉE - À PRÉPARER`;
     
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
-    
-    // Mettre à jour le statut
-    commande.statut = "Validée";
-    afficherSectionsStructurees(commande);
     
   } else {
     showToast("❌ Erreur: " + (result.error || "Inconnue"), "err");
@@ -787,7 +796,7 @@ function ouvrirWhatsAppClient(commande) {
   const tnPhone = phone.length === 8 ? "216" + phone : phone.startsWith("216") ? phone : "216" + phone;
   
   const message = `Bonjour ${commande.nom || ''},\n\n` +
-                 `Votre commande MAXI-${commande.numero_commande} a été reçue.\n` +
+                 `Votre commande ${commande.numero_commande} a été reçue.\n` +
                  `Statut: ${commande.statut}\n` +
                  `Total: ${commande.total.toFixed(3)} DT\n\n` +
                  `Merci pour votre confiance !`;
