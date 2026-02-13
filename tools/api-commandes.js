@@ -1,7 +1,7 @@
 /*********************************
  * CONFIGURATION API - MAXI JDC MARKET
- * ✅ CORRECTION FINALE : Attente de la confirmation Google Sheets
- * ✅ Version stable - Ne touche pas aux commandes fonctionnelles
+ * ✅ VERSION FINALE - ATTENTE CONFIRMATION GOOGLE SHEETS
+ * ✅ Le message client utilise le numéro GÉNÉRÉ PAR GOOGLE SHEETS
  *********************************/
 
 // ✅ URL OK
@@ -12,6 +12,8 @@ export const API_URL =
  * ENVOYER UNE COMMANDE (ECRITURE)
  *********************************/
 export async function envoyerCommande(dataCommande) {
+  console.log("🚀 DÉBUT: Envoi de commande", dataCommande);
+  
   if (!dataCommande || typeof dataCommande !== "object") {
     throw new Error("Données de commande invalides.");
   }
@@ -106,7 +108,7 @@ export async function envoyerCommande(dataCommande) {
     );
   }
 
-  // ✅ PAYLOAD - Sans numéro (Google Sheets le générera)
+  // ✅ PAYLOAD - SANS numéro (Google Sheets le générera)
   const payload = {
     method: "saveOrder",
     
@@ -133,65 +135,86 @@ export async function envoyerCommande(dataCommande) {
     _t: Date.now()
   };
 
-  console.log("📤 ÉTAPE 1: Envoi à Google Sheets...");
+  console.log("📤 ÉTAPE 1: Envoi à Google Sheets...", payload);
 
-  // ✅ ÉTAPE 1: Envoyer à Google Sheets
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams(payload).toString(),
-  });
+  try {
+    // ✅ ÉTAPE 1: Envoyer à Google Sheets
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(payload).toString(),
+    });
 
-  if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
-  
-  // ✅ ÉTAPE 2: Attendre et récupérer la réponse
-  const data = await response.json();
-  
-  console.log("📦 ÉTAPE 2: Réponse reçue de Google Sheets:", data);
-
-  // ✅ ÉTAPE 3: Extraire le numéro de commande de la réponse
-  let numeroSheets = "";
-  
-  if (data && data.success) {
-    // Récupérer le numéro généré par Google Sheets
-    numeroSheets = data.commande_id || data.numero_commande || data.orderId || data.id || data.numero || "";
-    
-    if (!numeroSheets || numeroSheets === "") {
-      console.error("❌ ERREUR CRITIQUE: Google Sheets n'a pas retourné de numéro!");
-      throw new Error("Le numéro de commande n'a pas été généré par Google Sheets");
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status} ${response.statusText}`);
     }
     
-    console.log("✅ ÉTAPE 3: Numéro GÉNÉRÉ PAR GOOGLE SHEETS:", numeroSheets);
+    // ✅ ÉTAPE 2: Attendre et récupérer la réponse
+    const data = await response.json();
     
-    // ✅ ÉTAPE 4: Normaliser la réponse avec le bon numéro
-    data.commande_id = numeroSheets;
-    data.commandeId = numeroSheets;
-    data.orderId = numeroSheets;
-    data.id = numeroSheets;
-    data.numero_commande = numeroSheets;
-    data.numero = numeroSheets;
-    
-    // ✅ ÉTAPE 5: Ajouter le message de confirmation avec le BON numéro
-    data.client_message = `✅ Commande Enregistrée\n\nMerci pour votre commande chez MAXI JDC MARKET.\n\n📦 Votre commande, référence ${numeroSheets}, a bien été enregistrée.\n⏳ Elle est actuellement en cours de préparation.\n📞 Nous vous contacterons prochainement pour la livraison.\n\n🔗 Pour suivre l'état de votre commande, utilisez le numéro ${numeroSheets} dans la section « Suivi commande » de votre espace client.\n\n📋 Copier le numéro: ${numeroSheets}`;
-    
-    data.message = data.client_message;
-    
-    console.log("✅ ÉTAPE 4: Message client préparé avec le numéro:", numeroSheets);
-    console.log("✅ ÉTAPE 5: Réponse FINALE envoyée à la page");
-  } else {
-    console.error("❌ ÉCHEC: Google Sheets n'a pas confirmé l'enregistrement:", data);
-    throw new Error(data.error || "Erreur lors de l'enregistrement dans Google Sheets");
-  }
+    console.log("📦 ÉTAPE 2: Réponse reçue de Google Sheets:", data);
 
-  return data;
+    // ✅ ÉTAPE 3: Extraire le numéro de commande de la réponse
+    let numeroSheets = "";
+    
+    if (data && data.success) {
+      // Essayer tous les formats possibles de numéro
+      numeroSheets = data.commande_id || data.numero_commande || data.orderId || data.id || data.numero || "";
+      
+      if (!numeroSheets || numeroSheets === "") {
+        console.error("❌ ERREUR CRITIQUE: Google Sheets n'a pas retourné de numéro!");
+        console.error("📦 Réponse complète:", data);
+        throw new Error("Le numéro de commande n'a pas été généré par Google Sheets");
+      }
+      
+      console.log("✅ ÉTAPE 3: Numéro GÉNÉRÉ PAR GOOGLE SHEETS:", numeroSheets);
+      
+      // ✅ ÉTAPE 4: Normaliser la réponse avec le bon numéro
+      data.commande_id = numeroSheets;
+      data.commandeId = numeroSheets;
+      data.orderId = numeroSheets;
+      data.id = numeroSheets;
+      data.numero_commande = numeroSheets;
+      data.numero = numeroSheets;
+      
+      // ✅ ÉTAPE 5: Créer le message client avec le BON numéro
+      data.client_message = `✅ Commande Enregistrée
+
+Merci pour votre commande chez MAXI JDC MARKET.
+
+📦 Votre commande, référence ${numeroSheets}, a bien été enregistrée.
+⏳ Elle est actuellement en cours de préparation.
+📞 Nous vous contacterons prochainement pour la livraison.
+
+🔗 Pour suivre l'état de votre commande, utilisez le numéro ${numeroSheets} dans la section « Suivi commande » de votre espace client.
+
+📋 Copier le numéro: ${numeroSheets}`;
+      
+      data.message = data.client_message;
+      
+      console.log("✅ ÉTAPE 4: Message client préparé avec le numéro:", numeroSheets);
+      console.log("✅ ÉTAPE 5: Réponse FINALE envoyée à la page");
+      
+      return data;
+    } else {
+      console.error("❌ ÉCHEC: Google Sheets n'a pas confirmé l'enregistrement:", data);
+      throw new Error(data.error || "Erreur lors de l'enregistrement dans Google Sheets");
+    }
+  } catch (error) {
+    console.error("❌ ERREUR lors de l'envoi à Google Sheets:", error);
+    throw error;
+  }
 }
 
 /*********************************
  * LIRE TOUTES LES COMMANDES (ADMIN)
  *********************************/
 export async function getAllOrders() {
+  console.log("📋 Récupération de toutes les commandes...");
+  
   const response = await fetch(`${API_URL}?method=getorders&t=${Date.now()}`);
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+  
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur getorders");
 
@@ -205,6 +228,7 @@ export async function getAllOrders() {
     total: order.total ? parseFloat(order.total).toFixed(3) : "0.000",
   }));
 
+  console.log(`✅ ${orders.length} commandes récupérées`);
   return orders;
 }
 
@@ -212,12 +236,15 @@ export async function getAllOrders() {
  * SUIVRE UNE COMMANDE (Client)
  *********************************/
 export async function suivreCommande(commandeId) {
+  console.log(`🔍 Suivi de la commande: ${commandeId}`);
+  
   const response = await fetch(
     `${API_URL}?method=getOrderStatus&commande_id=${encodeURIComponent(
       commandeId
     )}&t=${Date.now()}`
   );
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+  
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Commande non trouvée");
 
@@ -246,12 +273,15 @@ export async function suivreCommande(commandeId) {
  * HISTORIQUE PAR TELEPHONE
  *********************************/
 export async function recupererHistorique(telephone) {
+  console.log(`📞 Récupération de l'historique pour: ${telephone}`);
+  
   const response = await fetch(
     `${API_URL}?method=getOrderHistory&telephone=${encodeURIComponent(
       telephone
     )}&t=${Date.now()}`
   );
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+  
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur historique");
 
@@ -265,6 +295,7 @@ export async function recupererHistorique(telephone) {
     total: item.total ? parseFloat(item.total).toFixed(3) : "0.000",
   }));
 
+  console.log(`✅ ${history.length} commandes trouvées pour ${telephone}`);
   return history;
 }
 
@@ -272,14 +303,19 @@ export async function recupererHistorique(telephone) {
  * METTRE A JOUR LE STATUT
  *********************************/
 export async function mettreAJourStatut(commandeId, nouveauStatut) {
+  console.log(`🔄 Mise à jour du statut: ${commandeId} -> ${nouveauStatut}`);
+  
   const response = await fetch(
     `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(
       commandeId
     )}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`
   );
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+  
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur mise à jour statut");
+  
+  console.log(`✅ Statut mis à jour: ${data.new_status}`);
   return data;
 }
 
@@ -287,10 +323,15 @@ export async function mettreAJourStatut(commandeId, nouveauStatut) {
  * TOP PRODUITS
  *********************************/
 export async function recupererTopProduits() {
+  console.log("📊 Récupération du top produits...");
+  
   const response = await fetch(`${API_URL}?method=getTopProducts&t=${Date.now()}`);
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+  
   const data = await response.json();
   if (!data.success) throw new Error(data.error || "Erreur top produits");
+  
+  console.log(`✅ ${data.topProducts?.length || 0} produits récupérés`);
   return data.topProducts || [];
 }
 
@@ -314,6 +355,8 @@ export function formaterPrix(prix) {
  * TEST API
  *********************************/
 export async function testerConnexionAPI() {
+  console.log("🔌 Test de connexion à l'API...");
+  
   const response = await fetch(`${API_URL}?method=test&t=${Date.now()}`);
   if (!response.ok)
     return {
@@ -321,11 +364,15 @@ export async function testerConnexionAPI() {
       erreur: `Erreur HTTP: ${response.status}`,
       url: API_URL,
     };
+  
   const data = await response.json();
-  return {
+  const resultat = {
     connecte: !!data.success,
     message: data.message,
-    version: data.version || "5.1",
+    version: data.version || "7.0",
     url: API_URL,
   };
+  
+  console.log("✅ Test API:", resultat);
+  return resultat;
 }
