@@ -1,6 +1,6 @@
 /*********************************
  * CONFIGURATION API - MAXI JDC MARKET
- * ✅ CORRECTION : Transmission du téléphone
+ * ✅ CORRECTION : Génération du numéro au format CMD-MAXI-AAAAMMJJ-NNN
  * ✅ Version stable - Ne touche pas aux commandes fonctionnelles
  *********************************/
 
@@ -9,12 +9,71 @@ export const API_URL =
   "https://script.google.com/macros/s/AKfycbyuScJWHxNI3vDkYE4iFTiMLK5p4B7mkkQRZKZ81oUQkeLyvq3QnUrnImGtYwh7YPSW/exec";
 
 /*********************************
+ * FONCTION DE GÉNÉRATION DU NUMÉRO DE COMMANDE
+ * Format: CMD-MAXI-AAAAMMJJ-NNN
+ * Exemple: CMD-MAXI-20260213-011
+ *********************************/
+async function genererNumeroCommande() {
+  // Récupérer la date actuelle
+  const aujourdhui = new Date();
+  const annee = aujourdhui.getFullYear();
+  const mois = (aujourdhui.getMonth() + 1).toString().padStart(2, '0');
+  const jour = aujourdhui.getDate().toString().padStart(2, '0');
+  const dateStr = `${annee}${mois}${jour}`;
+  
+  // Clé pour localStorage (spécifique à la date pour éviter les conflits)
+  const storageKey = `compteur_commande_${dateStr}`;
+  
+  // Récupérer le compteur actuel depuis le localStorage
+  let compteur = localStorage.getItem(storageKey);
+  
+  if (!compteur) {
+    // Si pas de compteur pour aujourd'hui, récupérer depuis le serveur
+    try {
+      // Appel à l'API pour obtenir le dernier numéro du jour
+      const response = await fetch(`${API_URL}?method=getLastOrderNumber&date=${dateStr}&t=${Date.now()}`);
+      if (response.ok) {
+        const data = await response.json();
+        compteur = data.lastNumber ? data.lastNumber + 1 : 1;
+      } else {
+        compteur = 1;
+      }
+    } catch (error) {
+      console.warn("Impossible de récupérer le dernier numéro, départ à 1");
+      compteur = 1;
+    }
+  } else {
+    compteur = parseInt(compteur) + 1;
+  }
+  
+  // Sauvegarder le nouveau compteur
+  localStorage.setItem(storageKey, compteur.toString());
+  
+  // Formater le compteur sur 3 chiffres (001, 002, ...)
+  const compteurFormatte = compteur.toString().padStart(3, '0');
+  
+  // Générer le numéro final
+  const numeroCommande = `CMD-MAXI-${dateStr}-${compteurFormatte}`;
+  
+  console.log(`🔢 Numéro généré: ${numeroCommande} (compteur: ${compteur})`);
+  
+  return {
+    numero: numeroCommande,
+    date: dateStr,
+    compteur: compteur
+  };
+}
+
+/*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
  *********************************/
 export async function envoyerCommande(dataCommande) {
   if (!dataCommande || typeof dataCommande !== "object") {
     throw new Error("Données de commande invalides.");
   }
+
+  // ✅ ÉTAPE 1 : GÉNÉRER LE NUMÉRO DE COMMANDE
+  const { numero: numeroCommande, date: dateStr, compteur } = await genererNumeroCommande();
 
   // ✅ CORRECTION TÉLÉPHONE : Extraction robuste
   let telephone = "";
@@ -106,14 +165,19 @@ export async function envoyerCommande(dataCommande) {
     );
   }
 
-  // ✅ PAYLOAD CORRIGÉ - Avec TOUS les champs nécessaires
+  // ✅ PAYLOAD CORRIGÉ - Avec TOUS les champs nécessaires + NUMÉRO DE COMMANDE
   const payload = {
     method: "saveOrder",
+    // ✅ AJOUT DU NUMÉRO DE COMMANDE GÉNÉRÉ
+    commande_id: numeroCommande,
+    numero_commande: numeroCommande,
+    order_id: numeroCommande,
+    
     // Nom
     nom_client: dataCommande.nom_client || dataCommande.nom || dataCommande.Nom_Client || dataCommande.clientInfo?.nom || "Client",
     NOM_CLIENT: dataCommande.nom_client || dataCommande.nom || dataCommande.Nom_Client || "Client",
     
-    // Téléphone - DOUBLÉ pour être sûr !
+    // Téléphone
     telephone: telephone,
     TÉLÉPHONE: telephone,
     TELEPHONE: telephone,
@@ -128,9 +192,15 @@ export async function envoyerCommande(dataCommande) {
     articles: articlesText || "AUCUN ARTICLE",
     total: total ? Number(total).toFixed(3) : "0.000",
     
+    // Métadonnées pour le compteur
+    date_commande: dateStr,
+    compteur_journalier: compteur,
+    
     // Timestamp pour éviter cache
     _t: Date.now()
   };
+
+  console.log("📤 Envoi à Google Sheets avec numéro:", numeroCommande);
 
   // ✅ Envoi
   const response = await fetch(API_URL, {
@@ -142,17 +212,32 @@ export async function envoyerCommande(dataCommande) {
   if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
   const data = await response.json();
 
-  // ✅ NORMALISATION DU NUMÉRO DE COMMANDE (inchangé)
+  // ✅ TRAITEMENT DE LA RÉPONSE
   if (data && data.success) {
-    const cid = data.commande_id || data.commandeId || data.orderId || data.id || "";
-    data.commande_id = cid;
-    data.commandeId = cid;
-    data.orderId = cid;
-    data.id = cid;
+    // On utilise NOTRE numéro généré, pas celui du serveur
+    const vraiNumeroCommande = numeroCommande;
     
-    if (data.client_message) {
-      data.message = data.client_message;
+    console.log("📦 Numéro de commande envoyé à Google Sheets:", vraiNumeroCommande);
+    
+    // Normalisation - garder le numéro EXACT sans modification
+    data.commande_id = vraiNumeroCommande;
+    data.commandeId = vraiNumeroCommande;
+    data.orderId = vraiNumeroCommande;
+    data.id = vraiNumeroCommande;
+    
+    // ✅ CRUCIAL: Ajouter le numéro à la racine de l'objet pour qu'il soit accessible
+    data.numero_commande = vraiNumeroCommande;
+    data.numero = vraiNumeroCommande;
+    
+    // Ajouter le message de confirmation
+    if (!data.client_message) {
+      data.client_message = `✅ Votre commande ${vraiNumeroCommande} a été enregistrée avec succès !`;
     }
+    data.message = data.client_message;
+    
+    console.log("✅ Numéro transmis à la page:", vraiNumeroCommande);
+  } else {
+    console.error("❌ Réponse sans succès ou sans données:", data);
   }
 
   return data;
