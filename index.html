@@ -17,9 +17,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   
-  <!-- Chart.js pour le tableau de bord -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  
   <style>
     /* [TOUT LE CSS RESTE IDENTIQUE - NON MODIFIÉ] */
     :root {
@@ -41,6 +38,7 @@
       --safe-area: env(safe-area-inset-bottom, 0px);
     }
 
+    /* [TOUT LE CSS RESTE IDENTIQUE - NON MODIFIÉ] */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -2093,148 +2091,6 @@
       animation: pulse 1.5s infinite;
     }
 
-    /* MODAL TABLEAU DE BORD */
-    .dashboard-modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.98);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 5000;
-      padding: 20px;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-    }
-
-    .dashboard-modal-overlay.open {
-      display: flex;
-    }
-
-    .dashboard-modal-container {
-      width: 100%;
-      height: 100%;
-      max-width: 1200px;
-      max-height: 90vh;
-      background: linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
-      border-radius: 20px;
-      border: 3px solid var(--accent);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      box-shadow: var(--shadow);
-    }
-
-    .dashboard-header {
-      padding: 20px;
-      background: rgba(0, 255, 136, 0.1);
-      border-bottom: 1px solid var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .dashboard-header h2 {
-      margin: 0;
-      font-size: 24px;
-      color: var(--accent);
-      font-weight: 900;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .dashboard-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-    }
-
-    .dashboard-stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-
-    .stat-card {
-      background: var(--card2);
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      padding: 20px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 32px;
-      font-weight: 900;
-      color: var(--accent);
-      margin-bottom: 5px;
-    }
-
-    .stat-label {
-      font-size: 12px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .dashboard-charts {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-
-    .chart-container {
-      background: var(--card2);
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      padding: 20px;
-    }
-
-    .chart-container h3 {
-      margin: 0 0 15px 0;
-      font-size: 16px;
-      color: var(--accent2);
-    }
-
-    .dashboard-table-container {
-      background: var(--card2);
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      padding: 20px;
-      margin-top: 20px;
-    }
-
-    .dashboard-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .dashboard-table th {
-      text-align: left;
-      padding: 12px;
-      color: var(--accent2);
-      border-bottom: 2px solid var(--accent2);
-      font-size: 12px;
-    }
-
-    .dashboard-table td {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--line);
-      font-size: 12px;
-    }
-
-    @media (max-width: 768px) {
-      .dashboard-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .dashboard-charts {
-        grid-template-columns: 1fr;
-      }
-    }
-
     /* PANIER */
     .drawer-overlay {
       position: fixed;
@@ -3555,6 +3411,10 @@
       box-shadow: none;
     }
 
+    .order-btn.validate:active {
+      transform: translateY(0);
+    }
+
     /* Animation pour éviter les clics multiples */
     .order-btn.validate.sending {
       animation: sendingAnimation 2s ease;
@@ -4563,19 +4423,6 @@
     </div>
   </div>
 
-  <!-- MODAL TABLEAU DE BORD - CORRIGÉ AVEC BONNE URL API -->
-  <div class="dashboard-modal-overlay" id="dashboardModal">
-    <div class="dashboard-modal-container">
-      <div class="dashboard-header">
-        <h2>📊 Tableau de Bord Administratif</h2>
-        <button class="drawer-close" id="closeDashboardModalBtn">×</button>
-      </div>
-      <div class="dashboard-content" id="dashboardContent">
-        <!-- Le contenu sera généré dynamiquement -->
-      </div>
-    </div>
-  </div>
-
   <!-- MODAL COMMANDE - MODIFIÉ AVEC LE NOUVEAU BOUTON -->
   <div class="order-modal-overlay" id="orderModal">
     <div class="order-modal">
@@ -4595,6 +4442,7 @@
         <button class="order-btn download" id="downloadOrderBtn">
           💾 Télécharger
         </button>
+        <!-- NOUVEAU BOUTON VALIDER ET ENVOYER -->
         <button class="order-btn validate" id="sendOrderBtn">
           ✅ Valider et envoyer
         </button>
@@ -4629,7 +4477,7 @@
       dashboardUrl: 'tools/tableau-de-bord.html',
       trackingUrl: 'tools/suivi-commandes.html',
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
-      commandeApiUrl: "https://script.google.com/macros/s/AKfycbyDbnS-ScLIVc2-lJ0wbomUTxUgsWwqpTSFbIbBfD_96DUT74a_qDmGWtH0ZK8ekZ5p/exec",
+      commandeApiUrl: "https://script.google.com/macros/s/AKfycby4ZAnberun2C4xNzRihvrGXkQs-6s39A70HF4um6l1SSuiJoTcvcsqnDAMJvX1ltnM/exec",
     };
 
     // ===================== TRADUCTIONS =====================
@@ -4879,18 +4727,15 @@
       addressLinksEnabled: true,
       allProducts: [],
       currentOrderNumber: 0,
-      lastGeneratedOrderId: null,  // ✅ AJOUTÉ - Stocke le dernier numéro généré
-      dashboardCharts: {}
+      lastGeneratedOrderId: null // Pour suivre le dernier ID généré
     };
 
     // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
-    // ✅ FONCTION CORRIGÉE : Génère un numéro unique ET le garde en mémoire
     function genererNumeroCommande() {
       const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const datePart = `${year}${month}${day}`;
+      const datePart = now.getFullYear() + 
+                      String(now.getMonth() + 1).padStart(2, '0') + 
+                      String(now.getDate()).padStart(2, '0');
       
       const lastOrderKey = `last_order_number_${datePart}`;
       let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
@@ -4899,12 +4744,9 @@
       localStorage.setItem(lastOrderKey, lastOrderNumber);
       
       const sequencePart = String(lastOrderNumber).padStart(3, '0');
+      
       const orderId = `CMD-MAXI-${datePart}-${sequencePart}`;
-      
-      // ✅ Stocker le dernier ID généré pour l'utiliser partout
-      state.lastGeneratedOrderId = orderId;
-      
-      console.log(`✅ Numéro de commande généré: ${orderId}`);
+      state.lastGeneratedOrderId = orderId; // Stocker le dernier ID généré
       return orderId;
     }
 
@@ -4984,6 +4826,7 @@
     // ===================== UTILITAIRES =====================
     function $(id) { return document.getElementById(id); }
 
+    // MODIFICATION ICI : 3 chiffres après la virgule
     function formatPrice(amount) {
       const num = Number(amount);
       if (isNaN(num)) return '0,000 dt';
@@ -5761,11 +5604,13 @@
         const item = document.createElement('div');
         item.className = `catalogue-item ${isOutOfStock ? 'stock-out' : ''}`;
         
+        // Badge pour rupture de stock
         let stockOutBadge = '';
         if (isOutOfStock) {
           stockOutBadge = '<div class="stock-out-badge">⚠️ RUPTURE</div>';
         }
         
+        // Message pour stock faible
         let stockAlert = '';
         if (!isOutOfStock && availableStock <= 3) {
           stockAlert = `<span class="catalogue-stock-alert">⚠️ Plus que ${availableStock} en stock</span>`;
@@ -6650,16 +6495,12 @@
       }
     }
 
-    // ===================== TABLEAU DE BORD =====================
-    // ✅ FONCTION CORRIGÉE : Tableau de bord fonctionnel
     function openDashboard() {
       if (!state.isAdmin) {
         showToast('❌ Accès administrateur requis', 'error');
         return;
       }
-      
-      // Ouvrir le tableau de bord dans un nouvel onglet avec l'URL correcte
-      window.open('tableau-de-bord.html', '_blank');
+      window.open(CONFIG.dashboardUrl, '_blank');
     }
 
     // ===================== GESTION UTILISATEUR =====================
@@ -6743,11 +6584,21 @@
         console.log('🔔 Signal sonore joué pour nouvelle commande (5 bips)');
       } catch (error) {
         console.warn('Impossible de jouer le signal sonore:', error);
+        try {
+          const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
+          for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+              audio.currentTime = 0;
+              audio.play().catch(e => console.log('Audio play failed:', e));
+            }, i * 400);
+          }
+        } catch (e) {
+          console.log('Fallback audio also failed');
+        }
       }
     }
 
     // ===================== ENREGISTREMENT VERS GOOGLE SHEETS =====================
-    // ✅ FONCTION CORRIGÉE : Transmet le BON numéro de commande et téléphone propre
     async function enregistrerCommandeGoogleSheets(orderData) {
       try {
         showToast('📤 Enregistrement de la commande...', 'warning');
@@ -6790,25 +6641,13 @@
           minute: '2-digit'
         });
 
-        // ✅ Utiliser le MÊME numéro de commande
-        const commandeId = orderData.commandeId || state.lastGeneratedOrderId;
-        console.log(`📤 Envoi à Google Sheets avec ID: ${commandeId}`);
-
-        // ✅ Nettoyer le téléphone - plus jamais #ERROR!
-        let telephone = (state.user.phone || '').trim();
-        if (telephone === '' || telephone === '#ERROR!') {
-          telephone = 'Non fourni';
-        }
-        // Ajouter +216 si ce n'est pas déjà fait
-        if (telephone !== 'Non fourni' && !telephone.startsWith('+216')) {
-          telephone = '+216 ' + telephone;
-        }
+        const commandeId = orderData.commandeId;
 
         const sheetData = {
           'Date': dateStr,
           'N_Commande': commandeId,
-          'Nom_Client': state.user.name || 'Client',
-          'Telephone': telephone,
+          'Nom_Client': state.user.name,
+          'Telephone': '+216 ' + state.user.phone,
           'Adresse': adresseComplete,
           'Articles': `COMMANDE: ${commandeId}\n` + articlesText,
           'Total': total.toFixed(3).replace('.', ','),
@@ -6862,22 +6701,16 @@
         
         saveOrderToHistory(orderData);
         
-        return orderData.commandeId || state.lastGeneratedOrderId;
+        return orderData.commandeId;
       }
     }
 
     // ===================== ENVOI MESSAGE AU CLIENT =====================
-    // ✅ FONCTION CORRIGÉE : Utilise TOUJOURS le même numéro de commande
+    // FONCTION CORRIGÉE : Le numéro de commande affiché est EXACTEMENT le même que celui enregistré
     function envoyerMessageClient(commandeId) {
-      // ✅ Forcer l'utilisation du MÊME ID qui a été envoyé à Google Sheets
-      const commandeIdCorrect = commandeId || state.pendingOrder?.commandeId || state.lastGeneratedOrderId;
-      
-      if (!commandeIdCorrect) {
-        console.error('❌ Impossible de déterminer le numéro de commande');
-        return;
-      }
-      
-      console.log(`📨 Envoi message avec numéro de commande: ${commandeIdCorrect}`);
+      // Utiliser le commandeId passé en paramètre (qui vient de l'enregistrement Google Sheets)
+      // C'est le même que celui généré dans placeOrder() et stocké dans pendingOrder
+      const commandeIdCorrect = commandeId || state.pendingOrder?.commandeId || state.lastGeneratedOrderId || genererNumeroCommande();
       
       const message = `Merci pour votre commande chez MAXI JDC MARKET.
 📦 Votre commande, référence ${commandeIdCorrect}, a bien été enregistrée.
@@ -6958,7 +6791,6 @@
     }
 
     // ===================== COMMANDES =====================
-    // ✅ FONCTION CORRIGÉE : placeOrder - génère et stocke le numéro
     async function placeOrder() {
       if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
         showToast('❌ Veuillez compléter vos informations personnelles', 'error');
@@ -6981,9 +6813,7 @@
       let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.000;
       const total = subtotal + shippingFee;
 
-      // ✅ Générer le numéro de commande UNIQUE
       const commandeId = genererNumeroCommande();
-      console.log(`✅ Commande préparée avec ID: ${commandeId}`);
 
       let orderText = `📦 COMMANDE - MAXI JDC MARKET\n`;
       orderText += `📅 ${new Date().toLocaleDateString('fr-FR', {
@@ -7041,14 +6871,13 @@
       $('orderDetails').textContent = orderText;
       $('orderModal').classList.add('open');
 
-      // ✅ Stocker les informations de commande avec le MÊME numéro
       state.pendingOrder = {
         subtotal,
         shipping: shippingFee,
         total,
         savings: savings.totalSavings,
         savingsPercentage: savings.percentage,
-        commandeId: commandeId  // ✅ MÊME NUMÉRO
+        commandeId: commandeId
       };
 
       const t = TRANSLATIONS[state.currentLanguage];
@@ -7056,7 +6885,6 @@
     }
 
     // ===================== BOUTON "VALIDER ET ENVOYER" =====================
-    // ✅ FONCTION CORRIGÉE : Utilise le MÊME numéro de commande
     $('sendOrderBtn').onclick = async () => {
       try {
         if (state.isSendingOrder) {
@@ -7076,13 +6904,10 @@
         sendBtn.innerHTML = '⏳ Envoi en cours...';
 
         const orderData = state.pendingOrder;
-        console.log(`📤 Envoi commande avec ID: ${orderData.commandeId}`);
         
         saveOrderToHistory(orderData);
         
-        // ✅ Envoyer à Google Sheets avec le MÊME numéro
         const commandeId = await enregistrerCommandeGoogleSheets(orderData);
-        console.log(`✅ Commande enregistrée avec ID: ${commandeId}`);
         
         state.cart = {};
         updateCartUI();
@@ -7091,7 +6916,8 @@
         
         $('orderModal').classList.remove('open');
         
-        // ✅ Envoyer le message client avec le MÊME numéro
+        // ICI : On passe le même commandeId récupéré de l'enregistrement
+        // C'est garanti d'être le même que celui affiché dans Google Sheets
         envoyerMessageClient(commandeId);
         
         const t = TRANSLATIONS[state.currentLanguage];
@@ -7368,11 +7194,6 @@
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         showToast('💾 Commande téléchargée');
-      };
-
-      $('closeDashboardModalBtn').onclick = () => {
-        $('dashboardModal').classList.remove('open');
-        document.body.style.overflow = '';
       };
 
       $('closeStockModalBtn').onclick = $('closeStockModalBtn2').onclick = () => {
