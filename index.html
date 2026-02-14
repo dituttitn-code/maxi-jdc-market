@@ -6764,57 +6764,64 @@ function envoyerMessageClient(commandeId) {
       showToast(`📝 Commande préparée. Cliquez sur "Valider et envoyer" pour finaliser.`);
     }
 
-    // ===================== BOUTON "VALIDER ET ENVOYER" =====================
-    $('sendOrderBtn').onclick = async () => {
-      try {
-        if (state.isSendingOrder) {
-          showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
-          return;
-        }
+   // ===================== BOUTON "VALIDER ET ENVOYER" =====================
+$('sendOrderBtn').onclick = async () => {
+  try {
+    if (state.isSendingOrder) {
+      showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
+      return;
+    }
 
-        if (!state.pendingOrder) {
-          showToast('❌ Aucune commande en attente', 'error');
-          return;
-        }
+    if (!state.pendingOrder) {
+      showToast('❌ Aucune commande en attente', 'error');
+      return;
+    }
 
-        state.isSendingOrder = true;
-        const sendBtn = $('sendOrderBtn');
-        sendBtn.disabled = true;
-        sendBtn.classList.add('sending');
-        sendBtn.innerHTML = '⏳ Envoi en cours...';
+    state.isSendingOrder = true;
+    const sendBtn = $('sendOrderBtn');
+    sendBtn.disabled = true;
+    sendBtn.classList.add('sending');
+    sendBtn.innerHTML = '⏳ Envoi en cours...';
 
-        const orderData = state.pendingOrder;
-        
-        saveOrderToHistory(orderData);
-        
-        const commandeId = await enregistrerCommandeGoogleSheets(orderData);
-        
-        state.cart = {};
-        updateCartUI();
-        
-        state.pendingOrder = null;
-        
-        $('orderModal').classList.remove('open');
-        
-        envoyerMessageClient(commandeId);
-        
-        const t = TRANSLATIONS[state.currentLanguage];
-        showToast(`✅ ${t.toastOrderValidated}`);
-        
-      } catch (error) {
-        console.error('Erreur validation commande:', error);
-        showToast('❌ Erreur lors de la validation de la commande', 'error');
-      } finally {
-        setTimeout(() => {
-          state.isSendingOrder = false;
-          const sendBtn = $('sendOrderBtn');
-          sendBtn.disabled = false;
-          sendBtn.classList.remove('sending');
-          sendBtn.innerHTML = '✅ Valider et envoyer';
-        }, 3000);
-      }
-    };
-
+    const orderData = state.pendingOrder;
+    
+    saveOrderToHistory(orderData);
+    
+    // ✅ Récupérer le résultat complet de Google Sheets
+    const result = await enregistrerCommandeGoogleSheets(orderData);
+    
+    // ✅ Extraire le numéro de la réponse (priorité à celui de Google Sheets)
+    const commandeId = result.commande_id || result.numero_commande || result.orderId || result.id || result.numero || orderData.commandeId;
+    
+    console.log("📦 Réponse complète de Google Sheets:", result);
+    console.log("📦 Numéro final utilisé:", commandeId);
+    
+    state.cart = {};
+    updateCartUI();
+    
+    state.pendingOrder = null;
+    
+    $('orderModal').classList.remove('open');
+    
+    // ✅ Passer à la fois le numéro et le résultat complet
+    envoyerMessageClient(commandeId, result);
+    
+    const t = TRANSLATIONS[state.currentLanguage];
+    showToast(`✅ ${t.toastOrderValidated}`);
+    
+  } catch (error) {
+    console.error('❌ Erreur validation commande:', error);
+    showToast('❌ Erreur lors de la validation de la commande', 'error');
+  } finally {
+    setTimeout(() => {
+      state.isSendingOrder = false;
+      const sendBtn = $('sendOrderBtn');
+      sendBtn.disabled = false;
+      sendBtn.classList.remove('sending');
+      sendBtn.innerHTML = '✅ Valider et envoyer';
+    }, 3000);
+  }
+};
     // ===================== INITIALISATION =====================
     function init() {
       try {
@@ -7141,4 +7148,5 @@ function envoyerMessageClient(commandeId) {
   </script>
 </body>
 </html>
+
 
