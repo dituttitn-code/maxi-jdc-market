@@ -6761,7 +6761,7 @@ function envoyerMessageClient(commandeId, result) {
       showToast(`📝 Commande préparée. Cliquez sur "Valider et envoyer" pour finaliser.`);
     }
 
- // ===================== BOUTON "VALIDER ET ENVOYER" =====================
+// ===================== BOUTON "VALIDER ET ENVOYER" =====================
 $('sendOrderBtn').onclick = async () => {
   try {
     if (state.isSendingOrder) {
@@ -6784,29 +6784,32 @@ $('sendOrderBtn').onclick = async () => {
     
     saveOrderToHistory(orderData);
     
-    // ✅ Récupérer le résultat complet de Google Sheets
-    const result = await enregistrerCommandeGoogleSheets(orderData);
-
-    // 🔍 VÉRIFICATION DU RÉSULTAT
+    // ✅ Récupérer le résultat
+    let result = await enregistrerCommandeGoogleSheets(orderData);
+    
+    // ✅ Si c'est une string, la parser
+    if (typeof result === 'string') {
+      try {
+        result = JSON.parse(result);
+      } catch(e) {
+        console.error("Erreur parsing JSON:", e);
+      }
+    }
+    
     console.log("🔍 Type de result:", typeof result);
     console.log("🔍 Contenu de result:", result);
-    console.log("🔍 Valeur de commande_id:", result?.commande_id);
-    console.log("🔍 Valeur de command_id:", result?.command_id);
-
-    // ✅ Prendre le numéro quel que soit son format (UNIVERSEL)
-    const commandeId = result?.commande_id || result?.command_id || result?.numero_commande || result?.orderId || result?.id || result?.numero || orderData?.commandeId || '';
-
+    
+    // ✅ Prendre le numéro (maintenant c'est un objet)
+    const commandeId = result?.command_id || result?.commande_id || result?.numero_commande || orderData?.commandeId;
+    
     console.log("📦 Numéro final utilisé:", commandeId);
     
-    // ✅ VIDER LE PANIER
     state.cart = {};
     updateCartUI();
-    
     state.pendingOrder = null;
-    
     $('orderModal').classList.remove('open');
     
-    // ✅ Passer le résultat complet à la fonction d'envoi
+    // ✅ Passer le résultat
     envoyerMessageClient(commandeId, result);
     
     const t = TRANSLATIONS[state.currentLanguage];
@@ -7151,6 +7154,7 @@ $('sendOrderBtn').onclick = async () => {
   </script>
 </body>
 </html>
+
 
 
 
