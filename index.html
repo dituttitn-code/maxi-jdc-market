@@ -6761,7 +6761,7 @@ function envoyerMessageClient(commandeId, result) {
       showToast(`📝 Commande préparée. Cliquez sur "Valider et envoyer" pour finaliser.`);
     }
 
-  // ===================== BOUTON "VALIDER ET ENVOYER" =====================
+ // ===================== BOUTON "VALIDER ET ENVOYER" =====================
 $('sendOrderBtn').onclick = async () => {
   try {
     if (state.isSendingOrder) {
@@ -6791,8 +6791,8 @@ $('sendOrderBtn').onclick = async () => {
     console.log("🔍 Type de result:", typeof result);
     console.log("🔍 Contenu de result:", result);
     
-    // ✅ Extraire le numéro de la réponse
-    const commandeId = result.commande_id || result.numero_commande || result.orderId || result.id || result.numero || orderData.commandeId;
+    // ✅ FORCER l'utilisation du numéro de Google Sheets
+    const commandeId = result.commande_id; // CMD-MAXI-20260214-035
     
     console.log("📦 Réponse complète de Google Sheets:", result);
     console.log("📦 Numéro final utilisé:", commandeId);
@@ -7149,6 +7149,7 @@ $('sendOrderBtn').onclick = async () => {
   </script>
 </body>
 </html>
+
 
 
 
