@@ -18,7 +18,7 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   
   <style>
-    /* [TOUT LE CSS RESTE IDENTIQUE - NON MODIFIÉ] */
+    /* [TOUT LE CSS RESTE IDENTIQUE] */
     :root {
       --bg0: #0a1929;
       --bg1: #112240;
@@ -38,6 +38,7 @@
       --safe-area: env(safe-area-inset-bottom, 0px);
     }
 
+    /* [TOUT LE CSS RESTE IDENTIQUE] */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -4647,6 +4648,13 @@
       return orderId;
     }
 
+    // ===================== FONCTION DE FORMATAGE DES PRIX (3 DÉCIMALES) =====================
+    function formatPrice(amount) {
+      const num = Number(amount);
+      if (isNaN(num)) return '0,000 dt';
+      return num.toFixed(3).replace('.', ',') + ' dt';
+    }
+
     // ===================== TRADUCTION =====================
     function setLanguage(lang) {
       if (!TRANSLATIONS[lang]) return;
@@ -4721,12 +4729,6 @@
     }
 
     function $(id) { return document.getElementById(id); }
-
-    function formatPrice(amount) {
-      const num = Number(amount);
-      if (isNaN(num)) return '0,000 dt';
-      return num.toFixed(3).replace('.', ',') + ' dt';
-    }
 
     function generateProductId(product) {
       return `${product.categoryKey}_${product.code}_${product.name}`.replace(/[^a-z0-9_]/gi, '_').toLowerCase();
@@ -5328,6 +5330,8 @@
       }).sort((a, b) => a.name.localeCompare(b.name));
     }
 
+    // ===================== FONCTION RENDERPRODUCTS CORRIGÉE =====================
+    // Le catalogue s'ouvre quand on clique sur un article
     function renderProducts() {
       state.filteredProducts = getFilteredProducts();
       const totalPages = Math.ceil(state.filteredProducts.length / CONFIG.itemsPerPage) || 1;
@@ -5343,6 +5347,7 @@
       const productsToShow = state.filteredProducts.slice(start, end);
       const grid = $('productsGrid');
       grid.innerHTML = '';
+      
       if (productsToShow.length === 0) {
         const t = TRANSLATIONS[state.currentLanguage];
         grid.innerHTML = `
@@ -5354,6 +5359,7 @@
         `;
         return;
       }
+      
       productsToShow.forEach(product => {
         const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
         const stockStatus = getStockStatus(product.stock);
@@ -5379,6 +5385,7 @@
           : `<div class="product-price-container">
               <div class="product-price">${formatPrice(product.price)}</div>
             </div>`;
+        
         card.innerHTML = `
           <div class="product-image">
             <img src="${imgSrc}"
@@ -5403,6 +5410,8 @@
             ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
           </div>
         `;
+        
+        // ✅ CORRECTION : Le catalogue s'ouvre quand on clique sur un article
         card.addEventListener('click', () => {
           if (stockStatus.available) {
             openCatalogueForCategory(product.categoryKey);
@@ -5410,6 +5419,7 @@
             showToast('❌ Ce produit est en rupture de stock', 'error');
           }
         });
+        
         grid.appendChild(card);
       });
     }
@@ -5758,6 +5768,11 @@
       });
     }
 
+    function getAvailableStock(product) {
+      const stockKey = `${product.categoryKey}_${product.code}`;
+      return state.productStocks.get(stockKey) || product.stock || 0;
+    }
+
     function updateCartUI() {
       const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
       const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -5860,7 +5875,7 @@
         showToast(`❌ Stock insuffisant. Il ne reste que ${availableStock} unités`, 'error');
         return;
       }
-      const newStock = updateProductStock(product, quantity);
+      updateProductStock(product, quantity);
       if (state.cart[productId]) {
         state.cart[productId].quantity += quantity;
       } else {
@@ -5879,6 +5894,22 @@
       } else {
         showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded}`);
       }
+    }
+
+    function updateProductStock(product, quantity) {
+      const stockKey = `${product.categoryKey}_${product.code}`;
+      const currentStock = state.productStocks.get(stockKey) || product.stock;
+      const newStock = Math.max(0, currentStock - quantity);
+      state.productStocks.set(stockKey, newStock);
+      state.pendingStockUpdates.set(stockKey, newStock);
+      for (const [catKey, products] of state.products.entries()) {
+        const index = products.findIndex(p => p.code === product.code);
+        if (index !== -1) {
+          state.products.get(catKey)[index].stock = newStock;
+        }
+      }
+      saveSyncData();
+      return newStock;
     }
 
     function removeFromCart(productId, quantity = 1) {
@@ -6492,7 +6523,6 @@
           minute: '2-digit'
         });
 
-        // ✅ ICI : Utiliser le commandeId généré qui sera le même que dans Google Sheets
         const commandeId = orderData.commandeId;
 
         const sheetData = {
@@ -6558,10 +6588,7 @@
     }
 
     // ===================== ENVOI MESSAGE AU CLIENT =====================
-    // ✅ FONCTION CORRIGÉE : Le numéro de commande affiché est EXACTEMENT le même que celui enregistré
     function envoyerMessageClient(commandeId) {
-      // Utiliser le commandeId passé en paramètre (qui vient de l'enregistrement Google Sheets)
-      // C'est le même que celui généré dans placeOrder() et stocké dans pendingOrder
       const commandeIdCorrect = commandeId || state.pendingOrder?.commandeId || state.lastGeneratedOrderId || genererNumeroCommande();
       
       const message = `Merci pour votre commande chez MAXI JDC MARKET.
@@ -6759,7 +6786,6 @@
         
         saveOrderToHistory(orderData);
         
-        // ✅ ICI : On récupère le commandeId de l'enregistrement
         const commandeId = await enregistrerCommandeGoogleSheets(orderData);
         
         state.cart = {};
@@ -6769,8 +6795,6 @@
         
         $('orderModal').classList.remove('open');
         
-        // ✅ ICI : On passe le même commandeId récupéré de l'enregistrement
-        // C'est garanti d'être le même que celui affiché dans Google Sheets
         envoyerMessageClient(commandeId);
         
         const t = TRANSLATIONS[state.currentLanguage];
