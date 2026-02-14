@@ -6482,111 +6482,124 @@
     }
 
     async function enregistrerCommandeGoogleSheets(orderData) {
-      try {
-        showToast('📤 Enregistrement de la commande...', 'warning');
+  try {
+    showToast('📤 Enregistrement de la commande...', 'warning');
 
-        let adresseComplete = state.user.address || '';
-        if (state.user.lat && state.user.lng) {
-          adresseComplete += ` | GPS: ${state.user.lat}, ${state.user.lng}`;
-        }
-
-        let articlesText = '';
-        let totalPanier = 0;
-        
-        Object.values(state.cart).forEach(item => {
-          const itemTotal = item.price * item.quantity;
-          totalPanier += itemTotal;
-          
-          articlesText += `${item.quantity}x ${item.name} (${item.code})\n`;
-          articlesText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
-          
-          if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
-            const saving = (item.oldPrice - item.price) * item.quantity;
-            articlesText += `\n 💰 ÉCONOMIE: ${formatPrice(saving)}`;
-            if (item.discountPercent) {
-              articlesText += ` (-${item.discountPercent}%)`;
-            }
-          }
-          articlesText += '\n';
-        });
-        
-        const sousTotal = totalPanier;
-        const livraison = sousTotal >= CONFIG.freeShipping ? 0 : 3.000;
-        const total = sousTotal + livraison;
-        
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('fr-FR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-
-        const commandeId = orderData.commandeId;
-
-        const sheetData = {
-          'Date': dateStr,
-          'N_Commande': commandeId,
-          'Nom_Client': state.user.name,
-          'Telephone': '+216 ' + state.user.phone,
-          'Adresse': adresseComplete,
-          'Articles': `COMMANDE: ${commandeId}\n` + articlesText,
-          'Total': total.toFixed(3).replace('.', ','),
-          'Statut': 'NOUVELLE'
-        };
-
-        console.log('📊 Données envoyées à Google Sheets:', sheetData);
-
-        const postData = {
-          'Date': sheetData.Date,
-          'N_Commande': sheetData.N_Commande,
-          'Nom_Client': sheetData.Nom_Client,
-          'Telephone': sheetData.Telephone,
-          'Adresse': sheetData.Adresse,
-          'Articles': sheetData.Articles,
-          'Total': sheetData.Total,
-          'Statut': sheetData.Statut
-        };
-
-        const params = new URLSearchParams();
-        Object.keys(postData).forEach(key => {
-          params.append(key, postData[key]);
-        });
-
-        const response = await fetch(CONFIG.commandeApiUrl, {
-          method: 'POST',
-          mode: 'cors',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: params.toString()
-        });
-
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-
-        const result = await response.text();
-        console.log('✅ Réponse Google Sheets:', result);
-        
-        playOrderNotificationSound();
-        
-        const t = TRANSLATIONS[state.currentLanguage];
-        showToast(`✅ ${t.toastOrderSaved}`);
-        
-        return commandeId;
-        
-      } catch (error) {
-        console.error('Erreur enregistrement Google Sheets:', error);
-        showToast('⚠️ Commande créée mais erreur d\'enregistrement système', 'warning');
-        
-        saveOrderToHistory(orderData);
-        
-        return orderData.commandeId;
-      }
+    let adresseComplete = state.user.address || '';
+    if (state.user.lat && state.user.lng) {
+      adresseComplete += ` | GPS: ${state.user.lat}, ${state.user.lng}`;
     }
 
+    let articlesText = '';
+    let totalPanier = 0;
+    
+    Object.values(state.cart).forEach(item => {
+      const itemTotal = item.price * item.quantity;
+      totalPanier += itemTotal;
+      
+      articlesText += `${item.quantity}x ${item.name} (${item.code})\n`;
+      articlesText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
+      
+      if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
+        const saving = (item.oldPrice - item.price) * item.quantity;
+        articlesText += `\n 💰 ÉCONOMIE: ${formatPrice(saving)}`;
+        if (item.discountPercent) {
+          articlesText += ` (-${item.discountPercent}%)`;
+        }
+      }
+      articlesText += '\n';
+    });
+    
+    const sousTotal = totalPanier;
+    const livraison = sousTotal >= CONFIG.freeShipping ? 0 : 3.000;
+    const total = sousTotal + livraison;
+    
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const commandeId = orderData.commandeId;
+
+    const sheetData = {
+      'Date': dateStr,
+      'N_Commande': commandeId,
+      'Nom_Client': state.user.name,
+      'Telephone': '+216 ' + state.user.phone,
+      'Adresse': adresseComplete,
+      'Articles': `COMMANDE: ${commandeId}\n` + articlesText,
+      'Total': total.toFixed(3).replace('.', ','),
+      'Statut': 'NOUVELLE'
+    };
+
+    console.log('📊 Données envoyées à Google Sheets:', sheetData);
+
+    const postData = {
+      'Date': sheetData.Date,
+      'N_Commande': sheetData.N_Commande,
+      'Nom_Client': sheetData.Nom_Client,
+      'Telephone': sheetData.Telephone,
+      'Adresse': sheetData.Adresse,
+      'Articles': sheetData.Articles,
+      'Total': sheetData.Total,
+      'Statut': sheetData.Statut
+    };
+
+    const params = new URLSearchParams();
+    Object.keys(postData).forEach(key => {
+      params.append(key, postData[key]);
+    });
+
+    const response = await fetch(CONFIG.commandeApiUrl, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+
+    // ✅ Récupérer la réponse JSON
+    const responseText = await response.text();
+    console.log('✅ Réponse Google Sheets (texte):', responseText);
+    
+    // ✅ Parser le JSON
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (e) {
+      console.error('❌ Erreur parsing JSON:', e);
+      result = { success: true, commande_id: commandeId };
+    }
+    
+    console.log('✅ Réponse Google Sheets (objet):', result);
+    
+    playOrderNotificationSound();
+    
+    const t = TRANSLATIONS[state.currentLanguage];
+    showToast(`✅ ${t.toastOrderSaved}`);
+    
+    // ✅ Retourner l'OBJET complet avec le nouveau numéro
+    return result;
+    
+  } catch (error) {
+    console.error('Erreur enregistrement Google Sheets:', error);
+    showToast('⚠️ Commande créée mais erreur d\'enregistrement système', 'warning');
+    
+    saveOrderToHistory(orderData);
+    
+    // ✅ En cas d'erreur, retourner l'ancien numéro
+    return { success: true, commande_id: orderData.commandeId };
+  }
+}
   // ===================== ENVOI MESSAGE AU CLIENT =====================
 function envoyerMessageClient(commandeId, result) {
   // ✅ Utiliser le message de Google Sheets s'il existe (priorité absolue)
@@ -7154,6 +7167,7 @@ $('sendOrderBtn').onclick = async () => {
   </script>
 </body>
 </html>
+
 
 
 
