@@ -6587,16 +6587,14 @@
       }
     }
 
-    // ===================== ENVOI MESSAGE AU CLIENT =====================
-function envoyerMessageClient(commandeId) {
-  // ✅ FORCER l'utilisation du commandeId passé en paramètre (celui de Google Sheets)
-  const commandeIdCorrect = commandeId;
-  
-  const message = `Merci pour votre commande chez MAXI JDC MARKET.
-📦 Votre commande, référence ${commandeIdCorrect}, a bien été enregistrée.
+  // ===================== ENVOI MESSAGE AU CLIENT =====================
+function envoyerMessageClient(commandeId, result) {
+  // ✅ Utiliser le message de Google Sheets s'il existe (priorité absolue)
+  const message = result?.client_message || `Merci pour votre commande chez MAXI JDC MARKET.
+📦 Votre commande, référence ${commandeId}, a bien été enregistrée.
 ⏳ Elle est actuellement en cours de préparation.
 📞 Nous vous contacterons prochainement pour la livraison.
-🔗 Pour suivre l'état de votre commande, utilisez le numéro ${commandeIdCorrect} dans la section « Suivi commande » de votre espace client.`;
+🔗 Pour suivre l'état de votre commande, utilisez le numéro ${commandeId} dans la section « Suivi commande » de votre espace client.`;
   
   const modal = document.createElement('div');
   modal.style.cssText = `
@@ -6669,7 +6667,6 @@ function envoyerMessageClient(commandeId) {
   modal.querySelector('#closeMsgBtn').onclick = closeModal;
   overlay.onclick = closeModal;
 }
-
     // ===================== COMMANDES =====================
     async function placeOrder() {
       if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
@@ -7148,5 +7145,6 @@ $('sendOrderBtn').onclick = async () => {
   </script>
 </body>
 </html>
+
 
 
