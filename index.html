@@ -6785,18 +6785,20 @@ $('sendOrderBtn').onclick = async () => {
     saveOrderToHistory(orderData);
     
     // ✅ Récupérer le résultat complet de Google Sheets
-const result = await enregistrerCommandeGoogleSheets(orderData);
+    const result = await enregistrerCommandeGoogleSheets(orderData);
 
-// 🔍 AJOUTE CES DEUX LIGNES ICI
-console.log("🔍 Type de result:", typeof result);
-console.log("🔍 Contenu de result:", result);
+    // 🔍 VÉRIFICATION DU RÉSULTAT
+    console.log("🔍 Type de result:", typeof result);
+    console.log("🔍 Contenu de result:", result);
+    console.log("🔍 Valeur de commande_id:", result?.commande_id);
+    console.log("🔍 Valeur de command_id:", result?.command_id);
 
-// ✅ Prendre le numéro quel que soit son format
-const commandeId = result.commande_id || result.command_id || result.numero_commande || result.orderId || result.id || result.numero || orderData.commandeId;
+    // ✅ Prendre le numéro quel que soit son format (UNIVERSEL)
+    const commandeId = result?.commande_id || result?.command_id || result?.numero_commande || result?.orderId || result?.id || result?.numero || orderData?.commandeId || '';
 
-console.log("📦 Réponse complète de Google Sheets:", result);
-console.log("📦 Numéro final utilisé:", commandeId);
+    console.log("📦 Numéro final utilisé:", commandeId);
     
+    // ✅ VIDER LE PANIER
     state.cart = {};
     updateCartUI();
     
@@ -6804,7 +6806,7 @@ console.log("📦 Numéro final utilisé:", commandeId);
     
     $('orderModal').classList.remove('open');
     
-    // ✅ Passer le résultat complet
+    // ✅ Passer le résultat complet à la fonction d'envoi
     envoyerMessageClient(commandeId, result);
     
     const t = TRANSLATIONS[state.currentLanguage];
@@ -7149,6 +7151,7 @@ console.log("📦 Numéro final utilisé:", commandeId);
   </script>
 </body>
 </html>
+
 
 
 
