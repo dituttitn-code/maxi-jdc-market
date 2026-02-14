@@ -6785,17 +6785,17 @@ $('sendOrderBtn').onclick = async () => {
     saveOrderToHistory(orderData);
     
     // ✅ Récupérer le résultat complet de Google Sheets
-    const result = await enregistrerCommandeGoogleSheets(orderData);
-    
-    // 🔍 AJOUTE CES DEUX LIGNES ICI
-    console.log("🔍 Type de result:", typeof result);
-    console.log("🔍 Contenu de result:", result);
-    
-    // ✅ FORCER l'utilisation du numéro de Google Sheets
-    const commandeId = result.command_id; // ← sans 'e' !!!
-    
-    console.log("📦 Réponse complète de Google Sheets:", result);
-    console.log("📦 Numéro final utilisé:", commandeId);
+const result = await enregistrerCommandeGoogleSheets(orderData);
+
+// 🔍 AJOUTE CES DEUX LIGNES ICI
+console.log("🔍 Type de result:", typeof result);
+console.log("🔍 Contenu de result:", result);
+
+// ✅ Prendre le numéro quel que soit son format
+const commandeId = result.commande_id || result.command_id || result.numero_commande || result.orderId || result.id || result.numero || orderData.commandeId;
+
+console.log("📦 Réponse complète de Google Sheets:", result);
+console.log("📦 Numéro final utilisé:", commandeId);
     
     state.cart = {};
     updateCartUI();
@@ -7149,6 +7149,7 @@ $('sendOrderBtn').onclick = async () => {
   </script>
 </body>
 </html>
+
 
 
 
