@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
-    /* [Le CSS reste identique - pas de changement nécessaire] */
     :root{
       --bg:#05070a;
       --panel:#0e1622;
@@ -451,7 +450,7 @@ function analyserDonneesCommande(rawData) {
     adresse: "",
     articles: [],
     total: 0,
-    numero_commande: "",
+    numero_commande: "TEMP-" + Date.now(), // Numéro temporaire pour l'affichage initial
     date: new Date().toISOString(),
     statut: "En attente"
   };
@@ -476,7 +475,6 @@ function analyserDonneesCommande(rawData) {
           /^\d+x\s/.test(ligne)) {
         section = "articles";
         if (!ligne.includes("Articles commandés") && !ligne.includes("🛒")) {
-          // C'est déjà un article, l'ajouter
           parserArticle(ligne, result.articles);
         }
         return;
@@ -490,7 +488,6 @@ function analyserDonneesCommande(rawData) {
         section = "total";
       }
 
-      // Extraction selon la section
       switch(section) {
         case "details":
           if (ligne.includes("Nom:") || ligne.includes("👤")) {
@@ -509,11 +506,9 @@ function analyserDonneesCommande(rawData) {
           break;
           
         case "total":
-          // Numéro commande
           if (ligne.includes("MAXI-") || ligne.includes("Commande #")) {
             result.numero_commande = ligne.replace(/Commande #/g, "").trim();
           }
-          // Total
           else if (ligne.includes("TOTAL") || ligne.includes("💰") || ligne.includes("Total:")) {
             const totalMatch = ligne.match(/(\d+\.?\d*)\s*(DT|dt|TND|tnd)/i);
             if (totalMatch) {
@@ -527,24 +522,12 @@ function analyserDonneesCommande(rawData) {
     Object.assign(result, rawData);
   }
 
-  // Générer numéro temporaire pour l'affichage initial
-  if (!result.numero_commande) {
-    const now = new Date();
-    const dateStr = now.getFullYear().toString() + 
-                   (now.getMonth() + 1).toString().padStart(2, '0') + 
-                   now.getDate().toString().padStart(2, '0');
-    const timeStr = now.getHours().toString().padStart(2, '0') + 
-                   now.getMinutes().toString().padStart(2, '0');
-    result.numero_commande = `TEMP-${dateStr}-${timeStr}`;
-  }
-
   return result;
 }
 
 function parserArticle(ligne, articlesArray) {
   ligne = ligne.trim();
   
-  // Format: "2x Produit - 15.500 DT"
   const match1 = ligne.match(/(\d+)\s*x\s*([^-]+)-\s*(\d+\.?\d*)\s*(DT|dt|TND|tnd)?/i);
   if (match1) {
     articlesArray.push({
@@ -556,7 +539,6 @@ function parserArticle(ligne, articlesArray) {
     return;
   }
   
-  // Format: "Produit: 15.500 DT x2"
   const match2 = ligne.match(/(.+):\s*(\d+\.?\d*)\s*(DT|dt|TND|tnd)?\s*x\s*(\d+)/i);
   if (match2) {
     articlesArray.push({
@@ -568,7 +550,6 @@ function parserArticle(ligne, articlesArray) {
     return;
   }
   
-  // Format simple: "2x Produit"
   const match3 = ligne.match(/(\d+)\s*x\s*(.+)/i);
   if (match3) {
     articlesArray.push({
@@ -588,7 +569,6 @@ function parserArticle(ligne, articlesArray) {
 function afficherSectionsStructurees(commande) {
   const container = document.getElementById("sectionsContainer");
   
-  // Section 1: Détails client
   let html = `
     <div class="section details">
       <div class="section-header">
@@ -612,7 +592,6 @@ function afficherSectionsStructurees(commande) {
     </div>
   `;
   
-  // Section 2: Articles
   html += `
     <div class="section articles">
       <div class="section-header">
@@ -623,7 +602,7 @@ function afficherSectionsStructurees(commande) {
   `;
   
   if (commande.articles && commande.articles.length > 0) {
-    commande.articles.forEach((article, index) => {
+    commande.articles.forEach((article) => {
       html += `
         <div class="article-item">
           <div class="article-name">${article.produit}</div>
@@ -638,7 +617,6 @@ function afficherSectionsStructurees(commande) {
   
   html += `</div></div>`;
   
-  // Section 3: Total et récapitulatif
   html += `
     <div class="section total">
       <div class="section-header">
@@ -671,12 +649,9 @@ function afficherSectionsStructurees(commande) {
   `;
   
   container.innerHTML = html;
-  
-  // Mettre à jour les éléments d'info
   document.getElementById("orderIdText").textContent = commande.numero_commande || "—";
   document.getElementById("statusText").textContent = commande.statut || "En attente";
   
-  // Mettre à jour la classe du statut
   const statusPill = document.getElementById("statusPill");
   statusPill.className = "pill " + (commande.statut ? commande.statut.toLowerCase().replace(/ /g, '-') : 'pending');
 }
@@ -731,7 +706,6 @@ async function envoyerCommandeAPI(commande) {
       adresse: commande.adresse,
       articles: JSON.stringify(commande.articles),
       total: commande.total.toFixed(3)
-      // ⚠️ NE PAS ENVOYER DE NUMÉRO - Google Sheets le générera
     };
 
     const response = await fetch(API_URL, {
@@ -741,6 +715,8 @@ async function envoyerCommandeAPI(commande) {
     });
     
     const result = await response.json();
+    console.log("📊 Données envoyées à Google Sheets:", payload);
+    console.log("✅ Réponse Google Sheets:", result);
     return result;
     
   } catch (error) {
@@ -751,37 +727,32 @@ async function envoyerCommandeAPI(commande) {
 
 /**
  * ==========================
- *  VALIDER ET ENVOYER - VERSION CORRIGÉE
+ *  VALIDER ET ENVOYER - VERSION FINALE CORRIGÉE
  * ==========================
  */
 async function validerEtEnvoyerCommande(commande) {
   console.log("🟢 Validation de la commande:", commande);
   
-  // ÉTAPE 1: Envoyer à Google Sheets
   const result = await envoyerCommandeAPI(commande);
   
   if (result.success) {
-    // ✅ ÉTAPE 2: Récupérer le numéro GÉNÉRÉ PAR GOOGLE SHEETS
+    // ✅ Utiliser le numéro de Google Sheets (IGNORER l'ancien)
     const numeroSheets = result.commande_id || result.numero_commande || result.orderId || result.id || result.numero;
     
     console.log("✅ Numéro de Google Sheets:", numeroSheets);
     
-    // ✅ ÉTAPE 3: METTRE À JOUR LA COMMANDE avec le BON numéro
-    commande.numero_commande = numeroSheets;
-    commande.statut = "Validée";
+    // ✅ METTRE À JOUR TOUS LES AFFICHAGES
     
-    // ✅ ÉTAPE 4: METTRE À JOUR TOUS LES AFFICHAGES avec le BON numéro
-    
-    // 4.1 Mettre à jour le petit badge
+    // 1. Petit badge
     document.getElementById("orderIdText").textContent = numeroSheets;
     
-    // 4.2 Mettre à jour l'affichage dans la section récapitulative
+    // 2. Section récapitulative
     const numeroDisplay = document.getElementById("numeroCommandeDisplay");
     if (numeroDisplay) {
       numeroDisplay.textContent = numeroSheets;
     }
     
-    // 4.3 Mettre à jour le message toast avec le BON numéro
+    // 3. Message toast
     const toast = document.getElementById("toast");
     toast.innerHTML = `✅ Commande Enregistrée
 
@@ -796,20 +767,17 @@ Merci pour votre commande chez MAXI JDC MARKET.
 📋 Copier le numéro: ${numeroSheets}`;
     toast.className = "toast show ok";
     
-    // 4.4 Rejouer le son
     playTabletSound();
     
-    // ✅ ÉTAPE 5: Ouvrir WhatsApp du magasin avec le BON numéro
+    // 4. WhatsApp
     const message = `🛒 NOUVELLE COMMANDE VALIDÉE\n\n` +
                    `Client: ${commande.nom}\n` +
                    `Téléphone: ${commande.telephone}\n` +
                    `Adresse: ${commande.adresse}\n` +
                    `N° Commande: ${numeroSheets}\n` +
-                   `Total: ${commande.total.toFixed(3)} DT\n\n` +
-                   `Statut: ✅ VALIDÉE - À PRÉPARER`;
+                   `Total: ${result.total || commande.total.toFixed(3)} DT`;
     
-    const encoded = encodeURIComponent(message);
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, "_blank");
     
     console.log("✅ Affichage mis à jour avec le numéro:", numeroSheets);
     
@@ -842,7 +810,6 @@ function ouvrirWhatsAppClient(commande) {
  * ==========================
  */
 function getDonneesCommande() {
-  // Essayer depuis l'URL
   const params = new URLSearchParams(location.search);
   const rawData = params.get("data") || params.get("commande") || "";
   
@@ -850,7 +817,6 @@ function getDonneesCommande() {
     return analyserDonneesCommande(rawData);
   }
   
-  // Essayer localStorage
   try {
     const saved = localStorage.getItem("maxi_commande_en_cours");
     if (saved) {
@@ -860,18 +826,13 @@ function getDonneesCommande() {
     console.warn("Erreur lecture localStorage:", e);
   }
   
-  // Données par défaut
   return analyserDonneesCommande("");
 }
 
-// Initialiser la page
 document.addEventListener("DOMContentLoaded", () => {
   const commande = getDonneesCommande();
-  
-  // Afficher les données structurées
   afficherSectionsStructurees(commande);
   
-  // Vérifier si nouvelle commande
   const isNew = new URLSearchParams(location.search).get("new") === "true";
   if (isNew) {
     setTimeout(() => {
@@ -921,7 +882,6 @@ document.getElementById("closeBtn").addEventListener("click", () => {
   window.close();
 });
 
-// Raccourcis clavier
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") document.getElementById("closeBtn").click();
   if (e.ctrlKey && e.key === "s") {
