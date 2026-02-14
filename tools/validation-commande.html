@@ -527,7 +527,7 @@ function analyserDonneesCommande(rawData) {
     Object.assign(result, rawData);
   }
 
-  // Générer numéro commande si vide (uniquement pour l'affichage initial)
+  // Générer numéro temporaire pour l'affichage initial
   if (!result.numero_commande) {
     const now = new Date();
     const dateStr = now.getFullYear().toString() + 
@@ -535,7 +535,7 @@ function analyserDonneesCommande(rawData) {
                    now.getDate().toString().padStart(2, '0');
     const timeStr = now.getHours().toString().padStart(2, '0') + 
                    now.getMinutes().toString().padStart(2, '0');
-    result.numero_commande = `MAXI-${dateStr}-${timeStr}`;
+    result.numero_commande = `TEMP-${dateStr}-${timeStr}`;
   }
 
   return result;
@@ -648,7 +648,7 @@ function afficherSectionsStructurees(commande) {
       <div class="section-content">
         <div class="info-row">
           <div class="info-label">🆔 N° Commande:</div>
-          <div class="info-value" style="font-family: monospace;">${commande.numero_commande}</div>
+          <div class="info-value" style="font-family: monospace;" id="numeroCommandeDisplay">${commande.numero_commande}</div>
         </div>
         <div class="info-row">
           <div class="info-label">💰 Total:</div>
@@ -730,7 +730,7 @@ async function envoyerCommandeAPI(commande) {
       telephone: commande.telephone,
       adresse: commande.adresse,
       articles: JSON.stringify(commande.articles),
-      total: commande.total.toFixed(3),
+      total: commande.total.toFixed(3)
       // ⚠️ NE PAS ENVOYER DE NUMÉRO - Google Sheets le générera
     };
 
@@ -749,27 +749,57 @@ async function envoyerCommandeAPI(commande) {
   }
 }
 
+/**
+ * ==========================
+ *  VALIDER ET ENVOYER - VERSION CORRIGÉE
+ * ==========================
+ */
 async function validerEtEnvoyerCommande(commande) {
+  console.log("🟢 Validation de la commande:", commande);
+  
   // ÉTAPE 1: Envoyer à Google Sheets
   const result = await envoyerCommandeAPI(commande);
   
   if (result.success) {
-    // ÉTAPE 2: Récupérer le numéro GÉNÉRÉ PAR GOOGLE SHEETS
-    const numeroSheets = result.commande_id || result.numero_commande || result.orderId || result.id || result.numero || commande.numero_commande;
+    // ✅ ÉTAPE 2: Récupérer le numéro GÉNÉRÉ PAR GOOGLE SHEETS
+    const numeroSheets = result.commande_id || result.numero_commande || result.orderId || result.id || result.numero;
     
-    console.log("📦 Numéro de Google Sheets:", numeroSheets);
+    console.log("✅ Numéro de Google Sheets:", numeroSheets);
     
-    // ÉTAPE 3: Mettre à jour la commande avec le BON numéro
+    // ✅ ÉTAPE 3: METTRE À JOUR LA COMMANDE avec le BON numéro
     commande.numero_commande = numeroSheets;
     commande.statut = "Validée";
     
-    // ÉTAPE 4: Mettre à jour l'affichage avec le BON numéro
-    afficherSectionsStructurees(commande);
+    // ✅ ÉTAPE 4: METTRE À JOUR TOUS LES AFFICHAGES avec le BON numéro
     
-    showToast(`✅ Commande ${numeroSheets} validée et envoyée au magasin`, "ok");
+    // 4.1 Mettre à jour le petit badge
+    document.getElementById("orderIdText").textContent = numeroSheets;
+    
+    // 4.2 Mettre à jour l'affichage dans la section récapitulative
+    const numeroDisplay = document.getElementById("numeroCommandeDisplay");
+    if (numeroDisplay) {
+      numeroDisplay.textContent = numeroSheets;
+    }
+    
+    // 4.3 Mettre à jour le message toast avec le BON numéro
+    const toast = document.getElementById("toast");
+    toast.innerHTML = `✅ Commande Enregistrée
+
+Merci pour votre commande chez MAXI JDC MARKET.
+
+📦 Votre commande, référence ${numeroSheets}, a bien été enregistrée.
+⏳ Elle est actuellement en cours de préparation.
+📞 Nous vous contacterons prochainement pour la livraison.
+
+🔗 Pour suivre l'état de votre commande, utilisez le numéro ${numeroSheets} dans la section « Suivi commande » de votre espace client.
+
+📋 Copier le numéro: ${numeroSheets}`;
+    toast.className = "toast show ok";
+    
+    // 4.4 Rejouer le son
     playTabletSound();
     
-    // Ouvrir WhatsApp du magasin avec le BON numéro
+    // ✅ ÉTAPE 5: Ouvrir WhatsApp du magasin avec le BON numéro
     const message = `🛒 NOUVELLE COMMANDE VALIDÉE\n\n` +
                    `Client: ${commande.nom}\n` +
                    `Téléphone: ${commande.telephone}\n` +
@@ -780,6 +810,8 @@ async function validerEtEnvoyerCommande(commande) {
     
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
+    
+    console.log("✅ Affichage mis à jour avec le numéro:", numeroSheets);
     
   } else {
     showToast("❌ Erreur: " + (result.error || "Inconnue"), "err");
