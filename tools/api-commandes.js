@@ -93,7 +93,7 @@ export async function envoyerCommande(dataCommande) {
     } catch (_) {}
   }
 
-  // ✅ Total
+  // ✅ Total avec 3 décimales
   let total = parseFloat(dataCommande.total || 0);
   if ((!total || isNaN(total)) && articlesFormat.length) {
     total = articlesFormat.reduce(
@@ -151,18 +151,21 @@ export async function envoyerCommande(dataCommande) {
       
       console.log("✅ ÉTAPE 3: Numéro GÉNÉRÉ PAR GOOGLE SHEETS:", numeroSheets);
       
-      // ✅ ÉTAPE 4: Maintenant que la commande est dans Sheets, on peut créer le message
+      // ✅ ÉTAPE 4: Message client simplifié - supprimé "✅ Commande Enregistrée" en double
       data.client_message = `✅ Commande Enregistrée
 
 Merci pour votre commande chez MAXI JDC MARKET.
 
-📦 Votre commande, référence ${numeroSheets}, a bien été enregistrée.
+📦 Votre commande, référencée sous le numéro ${numeroSheets}, a bien été enregistrée.
+
 ⏳ Elle est actuellement en cours de préparation.
 📞 Nous vous contacterons prochainement pour la livraison.
 
-🔗 Pour suivre l'état de votre commande, utilisez le numéro ${numeroSheets} dans la section « Suivi commande » de votre espace client.
+Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de commande, puis saisissez le numéro ${numeroSheets} et votre numéro de téléphone.
 
-📋 Copier le numéro: ${numeroSheets}`;
+⚠️ CONSERVEZ CE NUMÉRO : ${numeroSheets}
+📋 Copier
+✅ OK`;
       
       data.message = data.client_message;
       data.commande_id = numeroSheets;
@@ -181,5 +184,3 @@ Merci pour votre commande chez MAXI JDC MARKET.
     throw error;
   }
 }
-
-// ... (le reste des fonctions getAllOrders, suivreCommande, etc. reste identique)
