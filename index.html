@@ -1785,9 +1785,6 @@
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       padding: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
     }
 
     .catalogue-grid {
@@ -3340,6 +3337,10 @@
       color: #25D366;
     }
 
+    .order-btn.whatsapp:hover {
+      background: rgba(37, 211, 102, 0.2);
+    }
+
     .order-btn.validate {
       background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
       border-color: transparent;
@@ -3790,61 +3791,6 @@
     .lang-btn {
       display: none;
     }
-
-    /* Styles pour la pagination du catalogue */
-    .catalogue-pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 15px;
-      padding: 15px 0;
-      margin-top: 10px;
-      border-top: 1px solid var(--line);
-    }
-
-    .catalogue-page-btn {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: 3px solid var(--accent);
-      background: rgba(0, 255, 136, 0.15);
-      color: var(--accent);
-      cursor: pointer;
-      font-weight: 900;
-      font-size: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      box-shadow: 0 5px 15px rgba(0, 255, 136, 0.2);
-    }
-
-    .catalogue-page-btn:hover {
-      background: rgba(0, 255, 136, 0.25);
-      border-color: var(--accent2);
-      transform: translateY(-2px) scale(1.1);
-      box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
-    }
-
-    .catalogue-page-btn:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-      border-color: var(--muted);
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--muted);
-      transform: none;
-      box-shadow: none;
-    }
-
-    .catalogue-page-info {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-      background: rgba(255, 255, 255, 0.05);
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-    }
   </style>
 </head>
 
@@ -4290,13 +4236,6 @@
           <h4>Aucun produit trouvé</h4>
           <p>Essayez de modifier votre recherche</p>
         </div>
-        
-        <!-- Pagination du catalogue avec flèches -->
-        <div class="catalogue-pagination" id="cataloguePagination" style="display: none;">
-          <button class="catalogue-page-btn" id="cataloguePrevPageBtn" disabled>‹</button>
-          <span class="catalogue-page-info" id="cataloguePageInfo">Page 1/1</span>
-          <button class="catalogue-page-btn" id="catalogueNextPageBtn" disabled>›</button>
-        </div>
       </div>
     </div>
   </div>
@@ -4682,8 +4621,6 @@
       catalogueProducts: [],
       catalogueSearchQuery: '',
       catalogueQuantityPicks: {},
-      catalogueCurrentPage: 1,
-      catalogueItemsPerPage: 12,
       isSendingOrder: false,
       addressLinksEnabled: true,
       allProducts: [],
@@ -5393,6 +5330,8 @@
       }).sort((a, b) => a.name.localeCompare(b.name));
     }
 
+    // ===================== FONCTION RENDERPRODUCTS CORRIGÉE =====================
+    // Le catalogue s'ouvre quand on clique sur un article
     function renderProducts() {
       state.filteredProducts = getFilteredProducts();
       const totalPages = Math.ceil(state.filteredProducts.length / CONFIG.itemsPerPage) || 1;
@@ -5472,6 +5411,7 @@
           </div>
         `;
         
+        // ✅ CORRECTION : Le catalogue s'ouvre quand on clique sur un article
         card.addEventListener('click', () => {
           if (stockStatus.available) {
             openCatalogueForCategory(product.categoryKey);
@@ -5496,7 +5436,6 @@
       
       state.catalogueProducts = products;
       state.catalogueSearchQuery = '';
-      state.catalogueCurrentPage = 1;
       $('catalogueTitle').textContent = category.label;
       $('catalogueSearchInput').value = '';
       
@@ -5510,7 +5449,6 @@
     function renderCatalogue() {
       const grid = $('catalogueGrid');
       const empty = $('catalogueEmpty');
-      const pagination = $('cataloguePagination');
       
       let filteredProducts = state.catalogueProducts;
       if (state.catalogueSearchQuery) {
@@ -5524,22 +5462,14 @@
       if (filteredProducts.length === 0) {
         grid.style.display = 'none';
         empty.style.display = 'block';
-        pagination.style.display = 'none';
         return;
       }
-      
-      const totalPages = Math.ceil(filteredProducts.length / state.catalogueItemsPerPage);
-      if (state.catalogueCurrentPage > totalPages) state.catalogueCurrentPage = totalPages || 1;
-      
-      const start = (state.catalogueCurrentPage - 1) * state.catalogueItemsPerPage;
-      const end = start + state.catalogueItemsPerPage;
-      const productsToShow = filteredProducts.slice(start, end);
       
       grid.style.display = 'grid';
       empty.style.display = 'none';
       grid.innerHTML = '';
       
-      productsToShow.forEach(product => {
+      filteredProducts.forEach(product => {
         const productId = generateProductId(product);
         const quantity = state.catalogueQuantityPicks[productId] || 0;
         const availableStock = getAvailableStock(product);
@@ -5607,34 +5537,6 @@
         
         grid.appendChild(item);
       });
-      
-      // Mise à jour de la pagination
-      if (totalPages > 1) {
-        pagination.style.display = 'flex';
-        const prevBtn = $('cataloguePrevPageBtn');
-        const nextBtn = $('catalogueNextPageBtn');
-        const pageInfo = $('cataloguePageInfo');
-        
-        prevBtn.disabled = state.catalogueCurrentPage === 1;
-        nextBtn.disabled = state.catalogueCurrentPage === totalPages;
-        pageInfo.textContent = `Page ${state.catalogueCurrentPage}/${totalPages}`;
-        
-        prevBtn.onclick = () => {
-          if (state.catalogueCurrentPage > 1) {
-            state.catalogueCurrentPage--;
-            renderCatalogue();
-          }
-        };
-        
-        nextBtn.onclick = () => {
-          if (state.catalogueCurrentPage < totalPages) {
-            state.catalogueCurrentPage++;
-            renderCatalogue();
-          }
-        };
-      } else {
-        pagination.style.display = 'none';
-      }
       
       setupCatalogueEvents();
     }
@@ -7067,7 +6969,6 @@ $('sendOrderBtn').onclick = async () => {
 
       $('catalogueSearchInput').addEventListener('input', (e) => {
         state.catalogueSearchQuery = e.target.value;
-        state.catalogueCurrentPage = 1;
         renderCatalogue();
       });
 
@@ -7266,3 +7167,15 @@ $('sendOrderBtn').onclick = async () => {
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
