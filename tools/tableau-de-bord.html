@@ -375,7 +375,8 @@
       <div class="card">
         <div class="statTop">
           <div>
-            <div class="value" id="totalRevenue">0,00 dt</div>
+            <!-- MODIFICATION: 3 chiffres après la virgule -->
+            <div class="value" id="totalRevenue">152.900 dt</div>
             <div class="label">Chiffre d'affaires total</div>
           </div>
           <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
@@ -395,7 +396,8 @@
       <div class="card">
         <div class="statTop">
           <div>
-            <div class="value" id="avgOrderValue">0,00 dt</div>
+            <!-- MODIFICATION: 3 chiffres après la virgule -->
+            <div class="value" id="avgOrderValue">152.900 dt</div>
             <div class="label">Panier moyen</div>
           </div>
           <div class="icon"><i class="fas fa-shopping-cart"></i></div>
@@ -438,7 +440,8 @@
               <div class="stat-label">Quantité vendue</div>
             </div>
             <div class="product-stat">
-              <div class="stat-value" id="topProductRevenue">0,00 dt</div>
+              <!-- MODIFICATION: 3 chiffres après la virgule -->
+              <div class="stat-value" id="topProductRevenue">152.900 dt</div>
               <div class="stat-label">Revenu généré</div>
             </div>
             <div class="product-stat">
@@ -578,7 +581,8 @@
         </div>
         <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
           <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">Valeur client moyenne</div>
-          <div style="font-size: 20px; font-weight: 900; color: var(--blue);" id="avgCustomerValue">0,00 dt</div>
+          <!-- MODIFICATION: 3 chiffres après la virgule -->
+          <div style="font-size: 20px; font-weight: 900; color: var(--blue);" id="avgCustomerValue">152.900 dt</div>
         </div>
         <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
           <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">Commandes aujourd'hui</div>
@@ -586,7 +590,8 @@
         </div>
         <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
           <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">Revenu aujourd'hui</div>
-          <div style="font-size: 20px; font-weight: 900; color: var(--purple);" id="revenueToday">0,00 dt</div>
+          <!-- MODIFICATION: 3 chiffres après la virgule -->
+          <div style="font-size: 20px; font-weight: 900; color: var(--purple);" id="revenueToday">152.900 dt</div>
         </div>
       </div>
     </div>
@@ -633,9 +638,10 @@
       showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
     }
 
+    // ✅ MODIFICATION: Format prix avec 3 chiffres après la virgule (ex: 152.900 dt)
     function formatPrice(amount) {
       const n = Number(amount || 0);
-      return n.toFixed(2).replace(".", ",") + " dt";
+      return n.toFixed(3).replace('.', '.') + " dt";
     }
 
     function safeText(x) {
@@ -729,7 +735,7 @@
       return Array.from(map.values())
         .sort((a,b)=> b.quantity - a.quantity)
         .slice(0,10)
-        .map(p => ({ name: p.name, quantity: Math.round(p.quantity), revenue: Number(p.revenue.toFixed(2)) }));
+        .map(p => ({ name: p.name, quantity: Math.round(p.quantity), revenue: Number(p.revenue.toFixed(3)) }));
     }
 
     async function loadData() {
@@ -1086,7 +1092,7 @@
           telephone: "+216 20000000",
           adresse: "Adresse test (admin) | GPS: 36.858546, 10.301467",
           articles: "2x PRODUIT TEST A (1001)\n1x PRODUIT TEST B (1002)",
-          total: "30.00"
+          total: "30.000"
         });
 
         const resp = await fetch(API_URL, {
