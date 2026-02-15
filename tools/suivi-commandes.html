@@ -109,14 +109,33 @@
 
     .search-section {
       display: flex;
+      flex-direction: column;
       gap: 12px;
       margin-bottom: 20px;
-      flex-wrap: wrap;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--txt);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .input-label i {
+      color: var(--new);
+      width: 20px;
     }
 
     .search-input {
-      flex: 1;
-      min-width: 250px;
+      width: 100%;
       padding: 14px 18px;
       border-radius: 10px;
       border: 2px solid var(--line);
@@ -124,12 +143,22 @@
       color: var(--txt);
       font-size: 16px;
       outline: none;
+      transition: all 0.3s;
     }
 
-    .search-input:focus { border-color: var(--new); }
+    .search-input:focus { 
+      border-color: var(--new);
+      background: rgba(255, 255, 255, .12);
+    }
+
+    .search-input::placeholder {
+      color: var(--muted);
+      opacity: 0.7;
+    }
 
     .search-btn {
-      padding: 14px 24px;
+      width: 100%;
+      padding: 16px 24px;
       border-radius: 10px;
       border: 2px solid var(--new);
       background: rgba(255, 215, 0, .15);
@@ -138,11 +167,21 @@
       font-size: 16px;
       cursor: pointer;
       transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
     }
 
     .search-btn:hover {
       background: rgba(255, 215, 0, .25);
       transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2);
+    }
+
+    .search-btn i {
+      font-size: 18px;
     }
 
     .order-card {
@@ -540,6 +579,22 @@
       flex: 1;
     }
 
+    .verification-hint {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .verification-hint i {
+      color: var(--new);
+    }
+
     @media (max-width: 768px) {
       .header {
         flex-direction: column;
@@ -550,10 +605,6 @@
       .left {
         justify-content: center;
         margin-bottom: 15px;
-      }
-      
-      .search-section {
-        flex-direction: column;
       }
       
       .action-buttons {
@@ -609,38 +660,58 @@
 
     <div class="card">
       <h2 style="margin-bottom: 20px; color: var(--new);">
-        <i class="fas fa-search"></i> 🔍 Suivre une commande
+        <i class="fas fa-lock"></i> 🔐 Accès sécurisé
       </h2>
       <div class="search-section">
-        <input type="text" id="orderIdInput" class="search-input"
-               placeholder="Entrez votre numéro de commande (ex: CMD-MAXI-20260212-004)">
+        <div class="input-group">
+          <label class="input-label">
+            <i class="fas fa-hashtag"></i>
+            Numéro de commande
+          </label>
+          <input type="text" id="orderIdInput" class="search-input"
+                 placeholder="Ex: CMD-MAXI-20260212-004">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">
+            <i class="fas fa-phone-alt"></i>
+            Numéro de téléphone
+          </label>
+          <input type="tel" id="phoneInput" class="search-input"
+                 placeholder="Ex: 25 600 978 ou +216 25 600 978">
+        </div>
+
         <button class="search-btn" id="searchOrderBtn">
-          <i class="fas fa-search"></i> <span>Rechercher</span>
+          <i class="fas fa-search"></i> 
+          <span>Vérifier et accéder au suivi</span>
         </button>
-      </div>
-      <div style="font-size: 12px; color: var(--muted); margin-top: 10px;">
-        <i class="fas fa-lightbulb"></i> 💡 Le numéro de commande vous a été fourni lors de la confirmation
+
+        <div class="verification-hint">
+          <i class="fas fa-shield-alt"></i>
+          La vérification par téléphone garantit la confidentialité de vos informations
+        </div>
       </div>
     </div>
 
     <div id="errorMessage" class="error-message" style="display: none;">
-      <i class="fas fa-exclamation-triangle"></i> ❌ Aucune commande trouvée avec cet identifiant
+      <i class="fas fa-exclamation-triangle"></i> ❌ Numéro de commande ou téléphone incorrect
     </div>
 
     <div id="successMessage" class="success-message" style="display: none;">
-      <i class="fas fa-check-circle"></i> ✅ Commande trouvée ! Affichage des détails...
+      <i class="fas fa-check-circle"></i> ✅ Vérification réussie ! Chargement des informations...
     </div>
 
     <div id="loadingState" class="loading" style="display: none;">
       <div class="loading-spinner"></div>
-      <div>Chargement des informations de commande...</div>
+      <div>Vérification en cours...</div>
     </div>
 
     <div id="emptyState" class="empty-state" style="display: none;">
-      <div class="empty-icon">📭</div>
-      <div class="empty-title">Aucune commande trouvée</div>
+      <div class="empty-icon">🔒</div>
+      <div class="empty-title">Accès non autorisé</div>
       <div class="empty-description">
-        Vérifiez votre numéro de commande ou contactez-nous au +216 25 600 978
+        Les informations fournies ne correspondent à aucune commande.<br>
+        Vérifiez vos identifiants ou contactez-nous au +216 25 600 978
       </div>
       <div style="margin-top: 20px;">
         <button class="btn" onclick="window.open('tel:21625600978')">
@@ -829,6 +900,7 @@
 
     const elements = {
       orderIdInput: document.getElementById('orderIdInput'),
+      phoneInput: document.getElementById('phoneInput'),
       searchOrderBtn: document.getElementById('searchOrderBtn'),
       orderCard: document.getElementById('orderCard'),
       loadingState: document.getElementById('loadingState'),
@@ -916,6 +988,24 @@
         return `${num.slice(0,2)} ${num.slice(2,4)} ${num.slice(4,6)} ${num.slice(6,8)}`;
       }
       return String(phone);
+    }
+
+    function normalizePhoneNumber(phone) {
+      if (!phone) return '';
+      // Supprimer tous les caractères non numériques
+      return String(phone).replace(/\D/g, '');
+    }
+
+    function comparePhones(phone1, phone2) {
+      if (!phone1 || !phone2) return false;
+      const normalized1 = normalizePhoneNumber(phone1);
+      const normalized2 = normalizePhoneNumber(phone2);
+      
+      // Vérifier les 8 derniers chiffres (numéro tunisien sans indicatif)
+      const last8_1 = normalized1.slice(-8);
+      const last8_2 = normalized2.slice(-8);
+      
+      return last8_1 === last8_2;
     }
 
     // Fonction pour extraire uniquement les noms des articles sans les prix
@@ -1092,9 +1182,17 @@
 
     async function searchOrder() {
       const orderId = elements.orderIdInput.value.trim();
+      const phone = elements.phoneInput.value.trim();
+
       if (!orderId) {
         elements.orderIdInput.focus();
-        showToast('Veuillez entrer un numéro de commande', 'error');
+        showToast('Veuillez entrer le numéro de commande', 'error');
+        return;
+      }
+
+      if (!phone) {
+        elements.phoneInput.focus();
+        showToast('Veuillez entrer votre numéro de téléphone', 'error');
         return;
       }
 
@@ -1120,6 +1218,17 @@
           throw new Error(data.error || 'Commande non trouvée');
         }
 
+        // ✅ Vérification du téléphone
+        const phoneFromData = data.telephone || data.phone || data.tel || '';
+        
+        if (!comparePhones(phone, phoneFromData)) {
+          console.log('Phone mismatch:', { 
+            input: normalizePhoneNumber(phone), 
+            data: normalizePhoneNumber(phoneFromData) 
+          });
+          throw new Error('Le numéro de téléphone ne correspond pas à cette commande');
+        }
+
         // ✅ Normalisation complète
         const cid = data.commande_id || data.commandeId || data.orderId || data.order_id || data.id || orderId;
         
@@ -1127,7 +1236,7 @@
           commande_id: cid,
           date: data.date || data.created_at || data.timestamp || new Date().toISOString(),
           nom: data.nom || data.nom_client || data.client || data.name || '—',
-          telephone: data.telephone || data.phone || data.tel || '—',
+          telephone: phoneFromData,
           adresse: data.adresse || data.address || '—',
           total: data.total || data.montant || '0',
           statut: data.statut || data.status || "🟡 NOUVELLE",
@@ -1186,14 +1295,14 @@
         setTimeout(() => hide(elements.successMessage), 2000);
 
         generateQRCode(orderData.commande_id);
-        showToast(`✅ Commande trouvée ! Statut: ${orderData.statut}`, 'success');
+        showToast(`✅ Accès autorisé ! Statut: ${orderData.statut}`, 'success');
 
       } catch (error) {
         console.error('Erreur recherche commande:', error);
         hide(elements.loadingState);
         show(elements.emptyState);
         show(elements.errorMessage);
-        showToast('❌ Commande non trouvée', 'error');
+        showToast('❌ ' + error.message, 'error');
       }
     }
 
@@ -1208,7 +1317,13 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       elements.searchOrderBtn.addEventListener('click', searchOrder);
+      
+      // Ajouter l'événement Enter pour les deux champs
       elements.orderIdInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchOrder();
+      });
+      
+      elements.phoneInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') searchOrder();
       });
 
@@ -1216,7 +1331,7 @@
       const orderIdFromUrl = urlParams.get('order');
       if (orderIdFromUrl) {
         elements.orderIdInput.value = orderIdFromUrl;
-        setTimeout(() => searchOrder(), 500);
+        // Ne pas lancer automatiquement la recherche car le téléphone est requis
       }
 
       generateQRCode('');
