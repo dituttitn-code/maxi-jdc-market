@@ -787,7 +787,8 @@
 
       <div class="order-total">
         <div class="total-label">Total à payer</div>
-        <div class="total-value" id="orderTotal">0,00 dt</div>
+        <!-- MODIFICATION: 3 chiffres après la virgule -->
+        <div class="total-value" id="orderTotal">152.900 dt</div>
       </div>
 
       <div class="action-buttons">
@@ -973,9 +974,11 @@
       }
     }
 
+    // ✅ MODIFICATION: Format prix avec 3 chiffres après la virgule (ex: 152.900 dt)
     function formatPrice(amount) {
       const num = parseFloat(String(amount || '0').replace(',', '.')) || 0;
-      return num.toFixed(2).replace('.', ',') + ' dt';
+      // Format avec 3 décimales, point comme séparateur décimal
+      return num.toFixed(3).replace('.', '.') + ' dt';
     }
 
     function formatPhone(phone) {
@@ -1249,6 +1252,8 @@
         elements.clientName.textContent = orderData.nom;
         elements.clientPhone.textContent = formatPhone(orderData.telephone);
         elements.clientAddress.textContent = orderData.adresse.replace(/🗺️$/, '').trim();
+        
+        // ✅ MODIFICATION: Prix formaté avec 3 décimales
         elements.orderTotal.textContent = formatPrice(orderData.total);
         
         updateStatusDisplay(orderData.statut);
