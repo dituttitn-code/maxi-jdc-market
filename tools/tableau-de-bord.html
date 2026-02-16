@@ -258,40 +258,42 @@
     .sectionTitle h3{font-size:15px; font-weight:1000; color:var(--green)}
     .chartBox{height:250px; position:relative}
     
-    /* ✅ TABLES - SANS DÉFILEMENT HORIZONTAL, CURSEUR EN BAS */
+    /* ✅ TABLES - AVEC DÉFILEMENT HORIZONTAL ET CURSEUR EN BAS */
     .tableWrap{
       border:1px solid var(--line);
       border-radius:12px;
-      overflow-x: auto;    /* Défilement horizontal si nécessaire */
+      overflow-x: auto;    /* ✅ DÉFILEMENT HORIZONTAL ACTIVÉ */
       overflow-y: auto;    /* Défilement vertical */
       max-height:400px;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: thin;
       scrollbar-color: var(--green) var(--line);
-      margin-bottom: 15px; /* Espace pour le curseur */
+      margin-bottom: 10px;
     }
     
-    /* ✅ CURSEUR EN BAS (visible sur mobile) */
+    /* ✅ CURSEUR HORIZONTAL PERSONNALISÉ EN BAS */
     .tableWrap::-webkit-scrollbar {
-      height: 8px;
+      height: 10px;        /* Hauteur du curseur horizontal */
       width: 8px;
     }
     .tableWrap::-webkit-scrollbar-track {
       background: var(--line);
-      border-radius: 4px;
+      border-radius: 5px;
     }
     .tableWrap::-webkit-scrollbar-thumb {
       background: var(--green);
-      border-radius: 4px;
+      border-radius: 5px;
     }
     .tableWrap::-webkit-scrollbar-thumb:hover {
       background: var(--blue);
     }
     
+    /* ✅ FORCER LE DÉFILEMENT HORIZONTAL AVEC MIN-WIDTH */
     table{ 
       width: 100%; 
       border-collapse: collapse;
-      /* ✅ PLUS DE min-width forcée - s'adapte à l'écran */
+      min-width: 1200px;   /* ✅ Force l'apparition du curseur horizontal */
+      table-layout: auto;
     }
     
     th{
@@ -308,10 +310,10 @@
     td{padding:10px; border-bottom:1px solid var(--line); font-size:12px; vertical-align:top;}
     tr:hover{background:rgba(255,255,255,.05)}
     
-    /* ✅ COLONNES AJUSTÉES POUR LISIBILITÉ */
-    td:nth-child(4) { min-width: 200px; } /* Adresse */
-    td:nth-child(5) { min-width: 140px; } /* Commande */
-    td:nth-child(6) { min-width: 280px; } /* Articles */
+    /* ✅ COLONNES LARGES POUR MEILLEURE LISIBILITÉ */
+    td:nth-child(4) { min-width: 250px; } /* Adresse */
+    td:nth-child(5) { min-width: 180px; } /* Commande */
+    td:nth-child(6) { min-width: 350px; } /* Articles - TRÈS LARGE */
     
     /* LIEN ADRESSE VERS GOOGLE MAPS */
     .address-link {
@@ -320,7 +322,7 @@
       font-weight: 600;
       transition: all 0.2s;
       display: inline-block;
-      max-width: 200px;
+      max-width: 240px;
       word-break: break-word;
     }
     .address-link:hover {
@@ -343,7 +345,7 @@
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      width: 120px;
+      width: 130px;
       transition: all 0.2s;
     }
     
@@ -363,8 +365,15 @@
       font-size: 11px;
       line-height: 1.3;
       word-wrap: break-word;
-      max-width: 280px;
+      max-width: 340px;
     }
+    
+    /* ✅ TABLEAU TOP 10 PRODUITS */
+    #topProductsTable {
+      min-width: 700px;    /* ✅ Force le défilement horizontal */
+    }
+    #topProductsTable th:nth-child(2) { min-width: 350px; } /* Colonne Produit */
+    #topProductsTable td:nth-child(2) { min-width: 350px; }
     
     /* FOOTER */
     .footer{
@@ -391,17 +400,17 @@
       .product-stats { flex-direction: column; gap: 6px; }
       .tableWrap { max-height: 420px; }
       
-      /* ✅ Ajustements colonnes sur mobile */
-      td:nth-child(4) { min-width: 160px; }
-      td:nth-child(5) { min-width: 120px; }
-      td:nth-child(6) { min-width: 220px; }
-      .articles-cell { max-width: 220px; }
-      .statut-select { width: 100px; }
-      
-      /* ✅ Curseur visible en bas */
+      /* ✅ Curseur horizontal visible sur mobile */
       .tableWrap::-webkit-scrollbar {
-        height: 6px;
+        height: 8px;
       }
+      
+      /* ✅ Ajustements colonnes */
+      td:nth-child(4) { min-width: 200px; }
+      td:nth-child(5) { min-width: 150px; }
+      td:nth-child(6) { min-width: 280px; }
+      .articles-cell { max-width: 270px; }
+      .statut-select { width: 120px; }
     }
     
     /* ✅ Support iPhone X+ */
