@@ -2,7 +2,8 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- ✅ PLEIN ÉCRAN MOBILE -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Tableau de Bord - MAXI JDC MARKET</title>
 
   <!-- Chart.js -->
@@ -16,55 +17,80 @@
       --txt:#f0f6fc; --muted:#8b949e; --green:#00ff88; --blue:#00d4ff; --orange:#ffa726; --red:#ff6b6b;
       --purple:#9c27b0; --yellow:#FFC107; --shadow:0 10px 40px rgba(0,0,0,.45); --r:14px;
     }
+    
     *{box-sizing:border-box;margin:0;padding:0}
+    
+    /* ✅ PLEIN ÉCRAN MOBILE */
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      position: fixed;
+    }
+    
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
       background:linear-gradient(135deg,var(--bg1),var(--bg2));
-      color:var(--txt); min-height:100vh; padding:18px;
+      color:var(--txt); 
+      height: 100vh;
+      height: -webkit-fill-available;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
     }
-    .container{max-width:1400px;margin:0 auto}
+    
+    .container{
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
     .header{
       background:rgba(10,25,47,.95);
       border:2px solid var(--green);
       border-radius:var(--r);
-      padding:18px 22px;
-      display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      padding:12px 16px;
+      display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;
       box-shadow:var(--shadow);
     }
-    .left{display:flex; align-items:center; gap:14px}
+    .left{display:flex; align-items:center; gap:10px}
     .logo{
-      width:56px;height:56px;border-radius:12px;
-      border:3px solid var(--green);
+      width:44px;height:44px;border-radius:10px;
+      border:2px solid var(--green);
       display:flex;align-items:center;justify-content:center;
-      background:rgba(0,255,136,.12); font-size:22px; font-weight:900;
+      background:rgba(0,255,136,.12); font-size:18px; font-weight:900;
     }
     h1{
-      font-size:22px;font-weight:900;
+      font-size:16px;font-weight:900;
       background:linear-gradient(90deg,var(--green),var(--blue));
       -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-      margin-bottom:4px;
+      margin-bottom:2px;
     }
-    .sub{color:var(--muted);font-size:13px}
+    .sub{color:var(--muted);font-size:11px}
     .btn{
-      background:rgba(255,255,255,.10); border:2px solid var(--line);
-      color:var(--txt); padding:10px 14px; border-radius:10px; font-weight:800;
+      background:rgba(255,255,255,.10); border:1px solid var(--line);
+      color:var(--txt); padding:8px 12px; border-radius:8px; font-weight:700;
       cursor:pointer; transition:.2s;
-      display:flex; gap:8px; align-items:center;
+      display:flex; gap:6px; align-items:center; font-size:12px;
     }
-    .btn:hover{transform:translateY(-2px); border-color:var(--blue); background:rgba(255,255,255,.15)}
+    .btn:hover{transform:translateY(-1px); border-color:var(--blue); background:rgba(255,255,255,.15)}
     .badge{
-      background:rgba(255,167,38,.18); border:2px solid var(--orange);
-      color:var(--orange); padding:8px 12px; border-radius:999px; font-weight:900; font-size:13px;
-      display:flex; gap:8px; align-items:center;
+      background:rgba(255,167,38,.18); border:1px solid var(--orange);
+      color:var(--orange); padding:6px 10px; border-radius:999px; font-weight:700; font-size:12px;
+      display:flex; gap:6px; align-items:center;
     }
     .api-status {
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
     }
     .api-online {
       background: rgba(0, 255, 136, 0.15);
@@ -79,55 +105,55 @@
 
     /* GRID STATS */
     .grid{
-      display:grid; gap:16px; margin-top:18px;
-      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      display:grid; gap:12px; margin-top:12px;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
     }
     .card{
       background:var(--card);
-      border:2px solid var(--line);
+      border:1px solid var(--line);
       border-radius:var(--r);
       box-shadow:var(--shadow);
-      padding:18px;
+      padding:14px;
       transition:.2s;
     }
-    .card:hover{border-color:var(--green); transform:translateY(-3px)}
-    .statTop{display:flex; justify-content:space-between; align-items:center; gap:10px}
+    .card:hover{border-color:var(--green); transform:translateY(-2px)}
+    .statTop{display:flex; justify-content:space-between; align-items:center; gap:8px}
     .icon{
-      width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center;
-      font-size:22px; background:rgba(255,255,255,.06); border:1px solid var(--line);
+      width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+      font-size:18px; background:rgba(255,255,255,.06); border:1px solid var(--line);
     }
-    .value{font-size:30px; font-weight:1000; margin-top:2px}
-    .label{font-size:13px; color:var(--muted); font-weight:700}
+    .value{font-size:24px; font-weight:1000; margin-top:2px}
+    .label{font-size:12px; color:var(--muted); font-weight:600}
     
-    /* STATUT SELECTEUR DEROULANT POUR LA CARTE STATS */
+    /* STATUT SELECTEUR DEROULANT */
     .status-selector-card {
       background:var(--card);
-      border:2px solid var(--line);
+      border:1px solid var(--line);
       border-radius:var(--r);
       box-shadow:var(--shadow);
-      padding:18px;
+      padding:14px;
       transition:.2s;
     }
-    .status-selector-card:hover{border-color:var(--green); transform:translateY(-3px)}
+    .status-selector-card:hover{border-color:var(--green); transform:translateY(-2px)}
     .selector-container {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
     .selector-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
     .statut-dropdown {
-      padding: 8px 12px;
-      border: 2px solid var(--line);
-      border-radius: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
       background: rgba(255,255,255,.08);
       color: var(--txt);
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
       width: 100%;
       transition: all 0.2s;
@@ -135,24 +161,23 @@
     .statut-dropdown:focus {
       outline: none;
       border-color: var(--green);
-      box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
     }
     .statut-dropdown option {
       background: var(--card);
       color: var(--txt);
-      padding: 8px;
+      padding: 6px;
     }
     .statut-count {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: 1000;
       line-height: 1.2;
       color: var(--green);
       text-align: center;
     }
     .statut-label {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--muted);
-      font-weight: 700;
+      font-weight: 600;
       text-align: center;
       white-space: nowrap;
     }
@@ -162,47 +187,48 @@
       background: linear-gradient(135deg, rgba(26, 36, 93, 0.9), rgba(22, 36, 71, 0.9));
       border: 2px solid var(--yellow);
       border-radius: var(--r);
-      padding: 18px;
-      margin-top: 18px;
+      padding: 14px;
+      margin-top: 12px;
     }
     .top-product-header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 15px;
+      gap: 8px;
+      margin-bottom: 12px;
     }
     .top-product-header h3 {
       color: var(--yellow);
-      font-size: 16px;
+      font-size: 14px;
       margin: 0;
     }
     .top-product-content {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 12px;
     }
     .product-trophy {
-      font-size: 40px;
+      font-size: 32px;
       color: var(--yellow);
     }
     .product-details {
       flex: 1;
     }
     .product-name {
-      font-size: 18px;
+      font-size: 15px;
       font-weight: 900;
       color: var(--txt);
-      margin-bottom: 5px;
+      margin-bottom: 4px;
     }
     .product-stats {
       display: flex;
-      gap: 15px;
-      font-size: 13px;
+      gap: 12px;
+      font-size: 12px;
+      flex-wrap: wrap;
     }
     .product-stat {
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 2px;
     }
     .stat-value {
       font-weight: 900;
@@ -210,41 +236,42 @@
     }
     .stat-label {
       color: var(--muted);
-      font-size: 11px;
+      font-size: 10px;
     }
 
     /* CHART CONTAINER */
     .chart-container {
       display: flex;
       flex-wrap: wrap;
-      gap: 20px;
-      margin-top: 20px;
+      gap: 16px;
+      margin-top: 16px;
     }
     
     .chart-card {
-      flex: 1 1 calc(50% - 20px);
-      min-width: 300px;
+      flex: 1 1 calc(50% - 16px);
+      min-width: 280px;
     }
     
     .sectionTitle{
-      display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px
+      display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px
     }
-    .sectionTitle h3{font-size:16px; font-weight:1000; color:var(--green)}
-    .chartBox{height:300px; position:relative}
+    .sectionTitle h3{font-size:15px; font-weight:1000; color:var(--green)}
+    .chartBox{height:250px; position:relative}
     
-    /* ✅ TABLES - AVEC DÉFILEMENT HORIZONTAL AMÉLIORÉ */
+    /* ✅ TABLES - SANS DÉFILEMENT HORIZONTAL, CURSEUR EN BAS */
     .tableWrap{
       border:1px solid var(--line);
       border-radius:12px;
-      overflow-x: auto;    /* Défilement horizontal ACTIVÉ */
+      overflow-x: auto;    /* Défilement horizontal si nécessaire */
       overflow-y: auto;    /* Défilement vertical */
-      max-height:520px;
-      -webkit-overflow-scrolling: touch; /* Défilement fluide sur mobile */
-      scrollbar-width: thin; /* Barre de défilement fine */
+      max-height:400px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
       scrollbar-color: var(--green) var(--line);
+      margin-bottom: 15px; /* Espace pour le curseur */
     }
     
-    /* Personnalisation de la barre de défilement */
+    /* ✅ CURSEUR EN BAS (visible sur mobile) */
     .tableWrap::-webkit-scrollbar {
       height: 8px;
       width: 8px;
@@ -264,8 +291,7 @@
     table{ 
       width: 100%; 
       border-collapse: collapse;
-      min-width: 1400px; /* Largeur minimale pour forcer le défilement horizontal */
-      table-layout: fixed; /* Fixe la largeur des colonnes */
+      /* ✅ PLUS DE min-width forcée - s'adapte à l'écran */
     }
     
     th{
@@ -273,30 +299,19 @@
       background:rgba(0,212,255,.10);
       color:var(--blue);
       text-align:left;
-      padding:14px 12px;
+      padding:12px 10px;
       border-bottom:2px solid var(--blue);
-      font-size:13px; font-weight:1000;
+      font-size:12px; font-weight:1000;
       white-space:nowrap;
     }
     
-    td{padding:12px 12px; border-bottom:1px solid var(--line); font-size:13px; vertical-align:top;}
+    td{padding:10px; border-bottom:1px solid var(--line); font-size:12px; vertical-align:top;}
     tr:hover{background:rgba(255,255,255,.05)}
     
-    /* ✅ COLONNES PLUS LARGES */
-    th:nth-child(4) { min-width: 280px; } /* Adresse */
-    th:nth-child(5) { min-width: 200px; } /* Commande */
-    th:nth-child(6) { min-width: 450px; } /* Articles - TRÈS LARGE */
-    
-    td:nth-child(4) { min-width: 280px; } /* Adresse */
-    td:nth-child(5) { min-width: 200px; } /* Commande */
-    td:nth-child(6) { min-width: 450px; } /* Articles - TRÈS LARGE */
-    
-    /* Tableau Top 10 produits - colonnes larges */
-    #topProductsTable {
-      min-width: 600px;
-    }
-    #topProductsTable th:nth-child(2) { min-width: 350px; } /* Produit */
-    #topProductsTable td:nth-child(2) { min-width: 350px; } /* Produit */
+    /* ✅ COLONNES AJUSTÉES POUR LISIBILITÉ */
+    td:nth-child(4) { min-width: 200px; } /* Adresse */
+    td:nth-child(5) { min-width: 140px; } /* Commande */
+    td:nth-child(6) { min-width: 280px; } /* Articles */
     
     /* LIEN ADRESSE VERS GOOGLE MAPS */
     .address-link {
@@ -305,13 +320,12 @@
       font-weight: 600;
       transition: all 0.2s;
       display: inline-block;
-      max-width: 260px;
+      max-width: 200px;
       word-break: break-word;
     }
     .address-link:hover {
       color: var(--green);
       text-decoration: underline;
-      transform: translateX(2px);
     }
     .address-link i {
       margin-right: 4px;
@@ -321,77 +335,81 @@
     
     /* STATUT SELECT */
     .statut-select {
-      padding: 8px 10px;
+      padding: 6px 8px;
       border: 1px solid var(--line);
       border-radius: 6px;
       background: rgba(255,255,255,.08);
       color: var(--txt);
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 600;
       cursor: pointer;
-      width: 140px;
-      box-sizing: border-box;
+      width: 120px;
       transition: all 0.2s;
-      white-space:nowrap;
     }
     
     .statut-select:focus {
       outline: none;
       border-color: var(--green);
-      box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
     }
     
     .statut-select option {
       background: var(--card);
       color: var(--txt);
-      padding: 8px;
     }
     
-    /* ✅ ARTICLES - largeur adaptative avec défilement */
+    /* ✅ ARTICLES */
     .articles-cell {
       white-space: pre-line;
-      font-size: 12px;
-      line-height: 1.35;
+      font-size: 11px;
+      line-height: 1.3;
       word-wrap: break-word;
-      max-width: 430px;
+      max-width: 280px;
     }
     
     /* FOOTER */
     .footer{
-      margin-top:18px; padding:14px; text-align:center; color:var(--muted);
+      margin-top:16px; padding:12px; text-align:center; color:var(--muted);
       border-top:1px solid var(--line);
-      font-size:13px;
+      font-size:12px;
     }
 
     /* TOAST */
     .toast{
-      position:fixed; top:18px; right:18px; z-index:99999;
-      padding:12px 16px; border-radius:12px; font-weight:900; color:#0a1929;
+      position:fixed; top:10px; right:10px; z-index:99999;
+      padding:10px 14px; border-radius:10px; font-weight:700; color:#0a1929;
       box-shadow:0 10px 30px rgba(0,0,0,.35);
-      display:none;
+      display:none; font-size:13px;
     }
     .toast.show{display:block; animation:pop .2s ease}
     @keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
     
-    /* RESPONSIVE */
+    /* ✅ RESPONSIVE MOBILE */
     @media (max-width: 768px) {
       .chart-card { flex: 1 1 100%; }
       .header { flex-direction: column; align-items: stretch; text-align: center; }
-      .left { justify-content: center; margin-bottom: 15px; }
-      .product-stats { flex-direction: column; gap: 8px; }
-      .tableWrap { max-height: 520px; }
+      .left { justify-content: center; margin-bottom: 10px; }
+      .product-stats { flex-direction: column; gap: 6px; }
+      .tableWrap { max-height: 420px; }
       
-      /* Ajustements pour mobile */
-      th, td { padding: 10px 8px; }
-      th:nth-child(4) { min-width: 220px; }
-      th:nth-child(5) { min-width: 160px; }
-      th:nth-child(6) { min-width: 350px; }
-      td:nth-child(4) { min-width: 220px; }
-      td:nth-child(5) { min-width: 160px; }
-      td:nth-child(6) { min-width: 350px; }
-      #topProductsTable { min-width: 500px; }
-      #topProductsTable th:nth-child(2) { min-width: 280px; }
-      #topProductsTable td:nth-child(2) { min-width: 280px; }
+      /* ✅ Ajustements colonnes sur mobile */
+      td:nth-child(4) { min-width: 160px; }
+      td:nth-child(5) { min-width: 120px; }
+      td:nth-child(6) { min-width: 220px; }
+      .articles-cell { max-width: 220px; }
+      .statut-select { width: 100px; }
+      
+      /* ✅ Curseur visible en bas */
+      .tableWrap::-webkit-scrollbar {
+        height: 6px;
+      }
+    }
+    
+    /* ✅ Support iPhone X+ */
+    @supports (padding-top: env(safe-area-inset-top)) {
+      body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+      }
     }
   </style>
 </head>
@@ -402,21 +420,21 @@
       <div class="left">
         <div class="logo"><i class="fas fa-chart-line"></i></div>
         <div>
-          <h1>Tableau de Bord Administratif</h1>
-          <div class="sub">MAXI JDC MARKET — Suivi des commandes en temps réel</div>
+          <h1>Tableau de Bord</h1>
+          <div class="sub">MAXI JDC MARKET — Suivi temps réel</div>
         </div>
       </div>
 
-      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-        <div class="badge"><span><i class="fas fa-tools"></i></span><span>MODE ADMIN</span></div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <div class="badge"><span><i class="fas fa-tools"></i></span><span>ADMIN</span></div>
         <div id="apiStatus" class="api-status api-online">
-          <span><i class="fas fa-circle"></i></span><span>API Connectée</span>
+          <span><i class="fas fa-circle"></i></span><span>API</span>
         </div>
         <button class="btn" id="btnRefresh">
-          <span><i class="fas fa-sync-alt"></i></span><span>Actualiser</span>
+          <span><i class="fas fa-sync-alt"></i></span><span>Refresh</span>
         </button>
         <button class="btn" id="btnCreateTest">
-          <span><i class="fas fa-plus"></i></span><span>Créer test</span>
+          <span><i class="fas fa-plus"></i></span><span>Test</span>
         </button>
         <a class="btn" href="/maxi-jdc-market/">
           <span><i class="fas fa-home"></i></span><span>Accueil</span>
@@ -430,7 +448,7 @@
         <div class="statTop">
           <div>
             <div class="value" id="totalRevenue">152.900 dt</div>
-            <div class="label">Chiffre d'affaires total</div>
+            <div class="label">CA total</div>
           </div>
           <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
         </div>
@@ -440,7 +458,7 @@
         <div class="statTop">
           <div>
             <div class="value" id="totalOrders">0</div>
-            <div class="label">Commandes totales</div>
+            <div class="label">Commandes</div>
           </div>
           <div class="icon"><i class="fas fa-box"></i></div>
         </div>
@@ -456,7 +474,7 @@
         </div>
       </div>
 
-      <!-- CARTE : SELECTEUR DE STATUT AVEC COMPTEUR -->
+      <!-- CARTE : SELECTEUR DE STATUT -->
       <div class="status-selector-card">
         <div class="selector-container">
           <div class="selector-row">
@@ -471,7 +489,7 @@
             <div class="icon"><i class="fas fa-filter"></i></div>
           </div>
           <div class="statut-count" id="selectedStatusCount">0</div>
-          <div class="statut-label" id="selectedStatusLabel">Commandes sélectionnées</div>
+          <div class="statut-label" id="selectedStatusLabel">Commandes</div>
         </div>
       </div>
     </section>
@@ -479,8 +497,8 @@
     <!-- PRODUIT LE PLUS VENDU -->
     <div class="top-product-card" id="topProductCard" style="display: none;">
       <div class="top-product-header">
-        <h3><i class="fas fa-trophy"></i> PRODUIT LE PLUS VENDU</h3>
-        <span class="badge"><i class="fas fa-crown"></i> TOP 1</span>
+        <h3><i class="fas fa-trophy"></i> TOP 1</h3>
+        <span class="badge"><i class="fas fa-crown"></i> Meilleure vente</span>
       </div>
       <div class="top-product-content">
         <div class="product-trophy"><i class="fas fa-trophy"></i></div>
@@ -489,15 +507,15 @@
           <div class="product-stats">
             <div class="product-stat">
               <div class="stat-value" id="topProductQty">0</div>
-              <div class="stat-label">Quantité vendue</div>
+              <div class="stat-label">Quantité</div>
             </div>
             <div class="product-stat">
               <div class="stat-value" id="topProductRevenue">152.900 dt</div>
-              <div class="stat-label">Revenu généré</div>
+              <div class="stat-label">Revenu</div>
             </div>
             <div class="product-stat">
               <div class="stat-value" id="topProductPercentage">0%</div>
-              <div class="stat-label">Part du marché</div>
+              <div class="stat-label">Part</div>
             </div>
           </div>
         </div>
@@ -509,11 +527,11 @@
       <!-- Ventes par jour -->
       <div class="card chart-card">
         <div class="sectionTitle">
-          <h3><i class="fas fa-chart-line"></i> Ventes par jour</h3>
+          <h3>Ventes par jour</h3>
           <select class="statut-select" id="salesPeriod" style="width: auto;">
-            <option value="7">7 jours</option>
-            <option value="30" selected>30 jours</option>
-            <option value="90">90 jours</option>
+            <option value="7">7j</option>
+            <option value="30" selected>30j</option>
+            <option value="90">90j</option>
           </select>
         </div>
         <div class="chartBox">
@@ -524,8 +542,8 @@
       <!-- Répartition par statut -->
       <div class="card chart-card">
         <div class="sectionTitle">
-          <h3><i class="fas fa-chart-pie"></i> Répartition par statut</h3>
-          <span class="sub">Statut des commandes</span>
+          <h3>Répartition</h3>
+          <span class="sub">Statut</span>
         </div>
         <div class="chartBox">
           <canvas id="statusChart"></canvas>
@@ -535,21 +553,21 @@
       <!-- Top 10 produits -->
       <div class="card chart-card">
         <div class="sectionTitle">
-          <h3><i class="fas fa-star"></i> Top 10 produits</h3>
-          <span class="sub">Quantités vendues</span>
+          <h3>Top 10 produits</h3>
+          <span class="sub">Quantités</span>
         </div>
         <div class="chartBox">
           <canvas id="productsChart"></canvas>
         </div>
       </div>
 
-      <!-- Commandes par heure/jour -->
+      <!-- Activité commandes -->
       <div class="card chart-card">
         <div class="sectionTitle">
-          <h3><i class="fas fa-clock"></i> Activité commandes</h3>
+          <h3>Activité</h3>
           <select class="statut-select" id="activityMode" style="width:auto;">
-            <option value="hour" selected>Commandes par heure</option>
-            <option value="day">Commandes par jour</option>
+            <option value="hour" selected>Par heure</option>
+            <option value="day">Par jour</option>
           </select>
         </div>
         <div class="chartBox">
@@ -559,12 +577,12 @@
     </div>
 
     <!-- TABLES -->
-    <div class="chart-container" style="margin-top: 20px;">
+    <div class="chart-container" style="margin-top: 16px;">
       <!-- Toutes les commandes -->
       <div class="card" style="flex: 2;">
         <div class="sectionTitle">
-          <h3><i class="fas fa-list"></i> Toutes les commandes</h3>
-          <span class="sub">Gestion complète</span>
+          <h3>Toutes les commandes</h3>
+          <span class="sub">Gestion</span>
         </div>
         <div class="tableWrap">
           <table id="allOrdersTable">
@@ -572,7 +590,7 @@
               <tr>
                 <th>Date</th>
                 <th>Nom</th>
-                <th>Téléphone</th>
+                <th>Tél</th>
                 <th>Adresse</th>
                 <th>Commande</th>
                 <th>Articles</th>
@@ -582,8 +600,8 @@
             </thead>
             <tbody id="allOrdersBody">
               <tr>
-                <td colspan="8" style="text-align:center; padding:30px; color:var(--muted)">
-                  <div>Chargement des commandes...</div>
+                <td colspan="8" style="text-align:center; padding:20px; color:var(--muted)">
+                  Chargement...
                 </td>
               </tr>
             </tbody>
@@ -594,22 +612,22 @@
       <!-- Top 10 produits table -->
       <div class="card">
         <div class="sectionTitle">
-          <h3><i class="fas fa-trophy"></i> Top 10 produits</h3>
-          <span class="sub">Quantité vendue</span>
+          <h3>Top 10 produits</h3>
+          <span class="sub">Quantité</span>
         </div>
         <div class="tableWrap">
           <table id="topProductsTable">
             <thead>
               <tr>
-                <th style="width:50px;">#</th>
+                <th style="width:40px;">#</th>
                 <th>Produit</th>
-                <th style="width:100px;">Quantité</th>
-                <th style="width:120px;">Revenu</th>
+                <th style="width:80px;">Qté</th>
+                <th style="width:100px;">Revenu</th>
               </tr>
             </thead>
             <tbody id="topProductsBody">
               <tr>
-                <td colspan="4" style="text-align:center; padding:20px; color:var(--muted)">
+                <td colspan="4" style="text-align:center; padding:16px; color:var(--muted)">
                   Chargement...
                 </td>
               </tr>
@@ -620,35 +638,35 @@
     </div>
 
     <!-- SECTION ANALYTIQUE -->
-    <div class="card" style="margin-top: 20px;">
+    <div class="card" style="margin-top: 16px;">
       <div class="sectionTitle">
-        <h3><i class="fas fa-chart-bar"></i> Analyse des données</h3>
-        <span class="sub">Statistiques avancées</span>
+        <h3>Analyse</h3>
+        <span class="sub">Statistiques</span>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
-        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
-          <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">Taux de conversion</div>
-          <div style="font-size: 20px; font-weight: 900; color: var(--green);" id="conversionRate">0%</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 10px;">
+        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+          <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">Taux conversion</div>
+          <div style="font-size: 18px; font-weight: 900; color: var(--green);" id="conversionRate">0%</div>
         </div>
-        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
-          <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">Valeur client moyenne</div>
-          <div style="font-size: 20px; font-weight: 900; color: var(--blue);" id="avgCustomerValue">152.900 dt</div>
+        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+          <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">Client moyen</div>
+          <div style="font-size: 18px; font-weight: 900; color: var(--blue);" id="avgCustomerValue">152 dt</div>
         </div>
-        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
-          <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">Commandes aujourd'hui</div>
-          <div style="font-size: 20px; font-weight: 900; color: var(--orange);" id="ordersToday">0</div>
+        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+          <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">Aujourd'hui</div>
+          <div style="font-size: 18px; font-weight: 900; color: var(--orange);" id="ordersToday">0</div>
         </div>
-        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
-          <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">Revenu aujourd'hui</div>
-          <div style="font-size: 20px; font-weight: 900; color: var(--purple);" id="revenueToday">152.900 dt</div>
+        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+          <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">CA aujourd'hui</div>
+          <div style="font-size: 18px; font-weight: 900; color: var(--purple);" id="revenueToday">0 dt</div>
         </div>
       </div>
     </div>
 
     <footer class="footer">
-      <div>© 2024 MAXI JDC MARKET — Tableau de bord administratif</div>
-      <div style="margin-top:6px; font-size:12px;">Dernière mise à jour : <span id="lastUpdate">—</span></div>
-      <div style="margin-top:6px; font-size:11px; color:var(--orange);" id="dataSourceInfo"></div>
+      <div>© 2024 MAXI JDC MARKET</div>
+      <div style="margin-top:4px; font-size:11px;">Màj : <span id="lastUpdate">—</span></div>
+      <div style="margin-top:4px; font-size:10px; color:var(--orange);" id="dataSourceInfo"></div>
     </footer>
   </div>
 
@@ -799,8 +817,8 @@
 
         state.apiStatus = 'online';
         $("apiStatus").className = "api-status api-online";
-        $("apiStatus").innerHTML = '<span><i class="fas fa-circle"></i></span><span>API Connectée</span>';
-        $("dataSourceInfo").textContent = "Source des données : API Google Sheets";
+        $("apiStatus").innerHTML = '<span><i class="fas fa-circle"></i></span><span>API</span>';
+        $("dataSourceInfo").textContent = "Source : API Sheets";
 
         state.topProducts = computeTopProductsFromOrders(state.orders);
         return true;
@@ -809,9 +827,9 @@
         console.error("Erreur chargement:", error);
         state.apiStatus = 'demo';
         $("apiStatus").className = "api-status api-offline";
-        $("apiStatus").innerHTML = '<span><i class="fas fa-circle"></i></span><span>Mode Démo</span>';
-        $("dataSourceInfo").textContent = "Source des données : Démonstration";
-        showToast("📊 Mode démonstration activé", "warning");
+        $("apiStatus").innerHTML = '<span><i class="fas fa-circle"></i></span><span>Démo</span>';
+        $("dataSourceInfo").textContent = "Mode Démo";
+        showToast("📊 Mode démo", "warning");
         return false;
       }
     }
@@ -896,7 +914,7 @@
       });
 
       if (sortedOrders.length === 0) {
-        allOrdersBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--muted)">Aucune commande</td></tr>`;
+        allOrdersBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted)">Aucune commande</td></tr>`;
       } else {
         sortedOrders.forEach(order => {
           const statut = order.statut || "🟡 NOUVELLE";
@@ -939,13 +957,13 @@
       const topProductsBody = $("topProductsBody");
       topProductsBody.innerHTML = "";
       if (state.topProducts.length === 0) {
-        topProductsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--muted)">Aucune donnée</td></tr>`;
+        topProductsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:16px; color:var(--muted)">Aucune donnée</td></tr>`;
       } else {
         state.topProducts.forEach((product, index) => {
           const tr = document.createElement("tr");
           const name = safeText(product.name);
           tr.innerHTML = `
-            <td style="text-align:center; font-weight:900; color:var(--txt)">${index + 1}</td>
+            <td style="text-align:center; font-weight:900;">${index + 1}</td>
             <td><div style="font-weight:900">${name}</div></td>
             <td style="font-weight:900; color:var(--blue); text-align:center">${num(product.quantity)}</td>
             <td style="font-weight:900; color:var(--green)">${formatPrice(product.revenue)}</td>
@@ -961,32 +979,32 @@
       const salesCtx = $("salesChart").getContext("2d");
       state.charts.sales = new Chart(salesCtx, {
         type: "line",
-        data: { labels: [], datasets: [{ label: "Chiffre d'affaires (dt)", data: [], borderWidth: 3, fill: true, tension: 0.4 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#f0f6fc" }}}}
+        data: { labels: [], datasets: [{ label: "CA (dt)", data: [], borderWidth: 2, fill: true, tension: 0.4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#f0f6fc", font: { size: 11 } } } } }
       });
 
       const statusCtx = $("statusChart").getContext("2d");
       state.charts.status = new Chart(statusCtx, {
         type: "doughnut",
-        data: { labels: [], datasets: [{ data: [], borderWidth: 2, backgroundColor: [
+        data: { labels: [], datasets: [{ data: [], borderWidth: 1, backgroundColor: [
           "rgba(255, 204, 0, 0.8)","rgba(255, 153, 0, 0.8)","rgba(0, 102, 204, 0.8)",
           "rgba(255, 102, 0, 0.8)","rgba(0, 170, 0, 0.8)","rgba(204, 0, 0, 0.8)"
         ]}]},
-        options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: "right", labels: { color: "#f0f6fc" }}}}
+        options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: "right", labels: { color: "#f0f6fc", font: { size: 11 } } } } }
       });
 
       const productsCtx = $("productsChart").getContext("2d");
       state.charts.products = new Chart(productsCtx, {
         type: "bar",
-        data: { labels: [], datasets: [{ label: "Quantité vendue", data: [] }] },
-        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+        data: { labels: [], datasets: [{ label: "Quantité", data: [] }] },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 11 } } } } }
       });
 
       const hourlyCtx = $("hourlyChart").getContext("2d");
       state.charts.hourly = new Chart(hourlyCtx, {
         type: "bar",
         data: { labels: [], datasets: [{ label: "Commandes", data: [] }] },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 11 } } } } }
       });
     }
 
@@ -1033,7 +1051,7 @@
 
     function updateProductsChart() {
       const top10 = state.topProducts.slice(0, 10);
-      const labels = top10.map(p => p.name.length > 18 ? p.name.substring(0, 18) + '...' : p.name);
+      const labels = top10.map(p => p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name);
       const data = top10.map(p => num(p.quantity));
 
       state.charts.products.data.labels = labels;
@@ -1052,7 +1070,6 @@
           data.push(num(state.analytics.ordersByHour[h] || 0));
         }
         state.charts.hourly.data.labels = labels;
-        state.charts.hourly.data.datasets[0].label = "Commandes";
         state.charts.hourly.data.datasets[0].data = data;
         state.charts.hourly.update();
         return;
@@ -1072,14 +1089,13 @@
       }
 
       state.charts.hourly.data.labels = labels;
-      state.charts.hourly.data.datasets[0].label = "Commandes";
       state.charts.hourly.data.datasets[0].data = data;
       state.charts.hourly.update();
     }
 
     async function updateOrderStatus(commandeId, nouveauStatut) {
       try {
-        showToast(`⏳ Mise à jour ${commandeId}...`, "info");
+        showToast(`⏳ Mise à jour...`, "info");
         state.statusUpdateInProgress = true;
         state.statusUpdateForId = commandeId;
 
@@ -1112,13 +1128,13 @@
 
     async function createTestOrder() {
       try {
-        showToast("⏳ Création commande test...", "info");
+        showToast("⏳ Création test...", "info");
 
         const payload = new URLSearchParams({
           method: "saveOrder",
           nom_client: "TEST ADMIN",
           telephone: "+216 20000000",
-          adresse: "Adresse test (admin) | GPS: 36.858546, 10.301467",
+          adresse: "Adresse test | GPS: 36.858546, 10.301467",
           articles: "2x PRODUIT TEST A (1001)\n1x PRODUIT TEST B (1002)",
           total: "30.000"
         });
@@ -1132,7 +1148,7 @@
         const data = await resp.json();
         if (!data.success) throw new Error(data.error || "Erreur API");
 
-        showToast(`✅ Test créé: ${data.commande_id}`, "success");
+        showToast(`✅ Test créé`, "success");
         setTimeout(() => refreshAll(true), 900);
 
       } catch (e) {
@@ -1146,7 +1162,7 @@
 
       try {
         $("btnRefresh").disabled = true;
-        $("btnRefresh").innerHTML = '<span><i class="fas fa-spinner fa-spin"></i></span><span>Chargement...</span>';
+        $("btnRefresh").innerHTML = '<span><i class="fas fa-spinner fa-spin"></i></span><span>...</span>';
 
         await loadData();
         calculateAnalytics();
@@ -1160,7 +1176,7 @@
         showToast("❌ Erreur chargement", "error");
       } finally {
         $("btnRefresh").disabled = false;
-        $("btnRefresh").innerHTML = '<span><i class="fas fa-sync-alt"></i></span><span>Actualiser</span>';
+        $("btnRefresh").innerHTML = '<span><i class="fas fa-sync-alt"></i></span><span>Refresh</span>';
       }
     }
 
