@@ -232,21 +232,40 @@
     .sectionTitle h3{font-size:16px; font-weight:1000; color:var(--green)}
     .chartBox{height:300px; position:relative}
     
-    /* ✅ TABLES - SANS DÉFILEMENT HORIZONTAL */
+    /* ✅ TABLES - AVEC DÉFILEMENT HORIZONTAL AMÉLIORÉ */
     .tableWrap{
       border:1px solid var(--line);
       border-radius:12px;
-      overflow-x: auto;  /* UNIQUEMENT défilement horizontal si nécessaire */
-      overflow-y: auto;  /* défilement vertical */
-      max-height:420px;
-      -webkit-overflow-scrolling: touch;
+      overflow-x: auto;    /* Défilement horizontal ACTIVÉ */
+      overflow-y: auto;    /* Défilement vertical */
+      max-height:520px;
+      -webkit-overflow-scrolling: touch; /* Défilement fluide sur mobile */
+      scrollbar-width: thin; /* Barre de défilement fine */
+      scrollbar-color: var(--green) var(--line);
+    }
+    
+    /* Personnalisation de la barre de défilement */
+    .tableWrap::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+    .tableWrap::-webkit-scrollbar-track {
+      background: var(--line);
+      border-radius: 4px;
+    }
+    .tableWrap::-webkit-scrollbar-thumb {
+      background: var(--green);
+      border-radius: 4px;
+    }
+    .tableWrap::-webkit-scrollbar-thumb:hover {
+      background: var(--blue);
     }
     
     table{ 
       width: 100%; 
       border-collapse: collapse;
-      min-width: 100%;  /* Évite le défilement horizontal forcé */
-      table-layout: auto; /* Ajustement automatique des colonnes */
+      min-width: 1400px; /* Largeur minimale pour forcer le défilement horizontal */
+      table-layout: fixed; /* Fixe la largeur des colonnes */
     }
     
     th{
@@ -254,14 +273,30 @@
       background:rgba(0,212,255,.10);
       color:var(--blue);
       text-align:left;
-      padding:12px;
+      padding:14px 12px;
       border-bottom:2px solid var(--blue);
       font-size:13px; font-weight:1000;
       white-space:nowrap;
     }
     
-    td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px; vertical-align:top;}
+    td{padding:12px 12px; border-bottom:1px solid var(--line); font-size:13px; vertical-align:top;}
     tr:hover{background:rgba(255,255,255,.05)}
+    
+    /* ✅ COLONNES PLUS LARGES */
+    th:nth-child(4) { min-width: 280px; } /* Adresse */
+    th:nth-child(5) { min-width: 200px; } /* Commande */
+    th:nth-child(6) { min-width: 450px; } /* Articles - TRÈS LARGE */
+    
+    td:nth-child(4) { min-width: 280px; } /* Adresse */
+    td:nth-child(5) { min-width: 200px; } /* Commande */
+    td:nth-child(6) { min-width: 450px; } /* Articles - TRÈS LARGE */
+    
+    /* Tableau Top 10 produits - colonnes larges */
+    #topProductsTable {
+      min-width: 600px;
+    }
+    #topProductsTable th:nth-child(2) { min-width: 350px; } /* Produit */
+    #topProductsTable td:nth-child(2) { min-width: 350px; } /* Produit */
     
     /* LIEN ADRESSE VERS GOOGLE MAPS */
     .address-link {
@@ -270,7 +305,7 @@
       font-weight: 600;
       transition: all 0.2s;
       display: inline-block;
-      max-width: 250px;
+      max-width: 260px;
       word-break: break-word;
     }
     .address-link:hover {
@@ -286,7 +321,7 @@
     
     /* STATUT SELECT */
     .statut-select {
-      padding: 6px 10px;
+      padding: 8px 10px;
       border: 1px solid var(--line);
       border-radius: 6px;
       background: rgba(255,255,255,.08);
@@ -294,7 +329,7 @@
       font-size: 12px;
       font-weight: 700;
       cursor: pointer;
-      width: 100%;
+      width: 140px;
       box-sizing: border-box;
       transition: all 0.2s;
       white-space:nowrap;
@@ -312,13 +347,13 @@
       padding: 8px;
     }
     
-    /* ✅ ARTICLES - largeur adaptative */
+    /* ✅ ARTICLES - largeur adaptative avec défilement */
     .articles-cell {
-      max-width: 360px;
       white-space: pre-line;
       font-size: 12px;
       line-height: 1.35;
       word-wrap: break-word;
+      max-width: 430px;
     }
     
     /* FOOTER */
@@ -346,16 +381,17 @@
       .product-stats { flex-direction: column; gap: 8px; }
       .tableWrap { max-height: 520px; }
       
-      /* ✅ Ajustements pour mobile */
-      table { 
-        font-size: 12px; 
-        table-layout: fixed; /* Force l'adaptation sur mobile */
-      }
-      th, td { 
-        padding: 8px 6px; 
-        word-wrap: break-word;
-      }
-      .articles-cell { max-width: 200px; }
+      /* Ajustements pour mobile */
+      th, td { padding: 10px 8px; }
+      th:nth-child(4) { min-width: 220px; }
+      th:nth-child(5) { min-width: 160px; }
+      th:nth-child(6) { min-width: 350px; }
+      td:nth-child(4) { min-width: 220px; }
+      td:nth-child(5) { min-width: 160px; }
+      td:nth-child(6) { min-width: 350px; }
+      #topProductsTable { min-width: 500px; }
+      #topProductsTable th:nth-child(2) { min-width: 280px; }
+      #topProductsTable td:nth-child(2) { min-width: 280px; }
     }
   </style>
 </head>
@@ -539,7 +575,7 @@
                 <th>Téléphone</th>
                 <th>Adresse</th>
                 <th>Commande</th>
-                <th style="min-width:360px;">Articles</th>
+                <th>Articles</th>
                 <th>Total</th>
                 <th>Statut</th>
               </tr>
@@ -565,10 +601,10 @@
           <table id="topProductsTable">
             <thead>
               <tr>
-                <th>#</th>
+                <th style="width:50px;">#</th>
                 <th>Produit</th>
-                <th>Quantité</th>
-                <th>Revenu</th>
+                <th style="width:100px;">Quantité</th>
+                <th style="width:120px;">Revenu</th>
               </tr>
             </thead>
             <tbody id="topProductsBody">
@@ -910,8 +946,8 @@
           const name = safeText(product.name);
           tr.innerHTML = `
             <td style="text-align:center; font-weight:900; color:var(--txt)">${index + 1}</td>
-            <td><div style="font-weight:900">${name.substring(0, 30)}${name.length > 30 ? '...' : ''}</div></td>
-            <td style="font-weight:900; color:var(--blue)">${num(product.quantity)}</td>
+            <td><div style="font-weight:900">${name}</div></td>
+            <td style="font-weight:900; color:var(--blue); text-align:center">${num(product.quantity)}</td>
             <td style="font-weight:900; color:var(--green)">${formatPrice(product.revenue)}</td>
           `;
           topProductsBody.appendChild(tr);
