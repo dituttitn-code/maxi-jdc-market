@@ -947,16 +947,22 @@
         const ordersData = await ordersResponse.json();
         if (!ordersData.success || !ordersData.orders) throw new Error("Aucune donnée valide");
 
-        state.orders = ordersData.orders.map(order => ({
-          date: order.date,
-          nom: order.nom || order.name || "",
-          telephone: order.telephone || order.phone || "",
-          adresse: order.adresse || order.address || "",
-          commande_id: order.commande_id || order.numero || order.order_id || "",
-          articles: order.articles || order.items || "",
-          total: order.total || order.amount || "0",
-          statut: order.statut || "🟡 NOUVELLE"
-        }));
+        state.orders = ordersData.orders.map(order => {
+          // 🟢 CORRECTION : Récupération du numéro de commande complet depuis plusieurs sources possibles
+          let commandeId = order.commande_id || order.numero || order.order_id || order.n_commande || order.reference || "";
+          if (!commandeId && order.numero_commande) commandeId = order.numero_commande;
+          
+          return {
+            date: order.date,
+            nom: order.nom || order.name || "",
+            telephone: order.telephone || order.phone || "",
+            adresse: order.adresse || order.address || "",
+            commande_id: commandeId,  // ← maintenant correct
+            articles: order.articles || order.items || "",
+            total: order.total || order.amount || "0",
+            statut: order.statut || "🟡 NOUVELLE"
+          };
+        });
 
         state.apiStatus = 'online';
         $("apiStatus").className = "api-status api-online";
@@ -1084,7 +1090,7 @@
             <td><strong>${safeText(order.nom).substring(0,15)}</strong></td>
             <td>${safeText(order.telephone)}</td>
             <td>${addressLink}</td>
-            <td><strong>${safeText(order.commande_id).substring(0,12)}</strong></td>
+            <td><strong>${safeText(order.commande_id) || 'N/A'}</strong></td>
             <td class="articles-cell">${articlesText.length > 50 ? articlesText.substring(0,50)+'...' : articlesText}</td>
             <td><strong>${formatPrice(order.total)}</strong></td>
             <td>
