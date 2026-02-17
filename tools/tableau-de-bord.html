@@ -467,12 +467,12 @@
       padding: 6px;
     }
     
-    /* ✅ ARTICLES CELL */
+    /* ✅ ARTICLES CELL - AFFICHAGE COMPLET SANS TRONCATURE */
     .articles-cell {
       white-space: pre-line;
       font-size: 10px;
-      line-height: 1.3;
-      max-width: 270px;
+      line-height: 1.4;
+      max-width: 320px;
       word-wrap: break-word;
     }
     
@@ -948,16 +948,14 @@
         if (!ordersData.success || !ordersData.orders) throw new Error("Aucune donnée valide");
 
         state.orders = ordersData.orders.map(order => {
-          // 🟢 CORRECTION : Récupération du numéro de commande complet depuis plusieurs sources possibles
           let commandeId = order.commande_id || order.numero || order.order_id || order.n_commande || order.reference || "";
-          if (!commandeId && order.numero_commande) commandeId = order.numero_commande;
           
           return {
             date: order.date,
             nom: order.nom || order.name || "",
             telephone: order.telephone || order.phone || "",
             adresse: order.adresse || order.address || "",
-            commande_id: commandeId,  // ← maintenant correct
+            commande_id: commandeId,
             articles: order.articles || order.items || "",
             total: order.total || order.amount || "0",
             statut: order.statut || "🟡 NOUVELLE"
@@ -1067,7 +1065,10 @@
       } else {
         sortedOrders.slice(0, 50).forEach(order => {
           const statut = order.statut || "🟡 NOUVELLE";
+          
+          // ✅ Correction : affichage complet des articles sans troncature
           const articlesText = order.articles ? safeText(order.articles).replace(/\n/g, '<br>') : '';
+          
           const d = parseOrderDate(order.date);
           const dateStr = d ? d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : safeText(order.date);
 
@@ -1091,7 +1092,7 @@
             <td>${safeText(order.telephone)}</td>
             <td>${addressLink}</td>
             <td><strong>${safeText(order.commande_id) || 'N/A'}</strong></td>
-            <td class="articles-cell">${articlesText.length > 50 ? articlesText.substring(0,50)+'...' : articlesText}</td>
+            <td class="articles-cell">${articlesText}</td>  <!-- ✅ plus de limite, tout l'article -->
             <td><strong>${formatPrice(order.total)}</strong></td>
             <td>
               <select class="statut-select" onchange="updateOrderStatus('${order.commande_id}', this.value)">
