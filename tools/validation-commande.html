@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Validation commande - MAXI JDC MARKET</title>
   
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
@@ -386,10 +385,7 @@
     </div>
 
     <div class="content">
-      <!-- Affichage structuré en sections -->
-      <div class="sections" id="sectionsContainer">
-        <!-- Les sections seront générées dynamiquement -->
-      </div>
+      <div class="sections" id="sectionsContainer"></div>
 
       <div class="row">
         <div class="pill" id="statusPill">
@@ -430,19 +426,9 @@
   <div class="toast" id="toast"></div>
 
 <script>
-/**
- * ==========================
- *  CONFIGURATION
- * ==========================
- */
 const API_URL = "https://script.google.com/macros/s/AKfycbzS84SbAg80R2GcYortCdl5dgvxbneAqnsrs6kMxp30whjAN6tadiIWF7x6MK3jmizf/exec";
 const WHATSAPP_NUMBER = "0021625600978";
 
-/**
- * ==========================
- *  ANALYSER LES DONNÉES COMMANDE
- * ==========================
- */
 function analyserDonneesCommande(rawData) {
   const result = {
     nom: "",
@@ -450,7 +436,7 @@ function analyserDonneesCommande(rawData) {
     adresse: "",
     articles: [],
     total: 0,
-    numero_commande: "TEMP-" + Date.now(), // Numéro temporaire pour l'affichage initial
+    numero_commande: "TEMP-" + Date.now(),
     date: new Date().toISOString(),
     statut: "En attente"
   };
@@ -461,7 +447,6 @@ function analyserDonneesCommande(rawData) {
     let section = "none";
     
     lignes.forEach(ligne => {
-      // Détection des sections
       if (ligne.includes("Détails de votre commande") || 
           ligne.includes("Informations client") ||
           ligne.includes("👤") || ligne.includes("📞") || ligne.includes("📍")) {
@@ -561,11 +546,11 @@ function parserArticle(ligne, articlesArray) {
   }
 }
 
-/**
- * ==========================
- *  AFFICHAGE STRUCTURÉ
- * ==========================
- */
+function formatPrice(amount) {
+  const num = parseFloat(String(amount || '0').replace(',', '.')) || 0;
+  return num.toFixed(3).replace('.', ',') + ' DT';
+}
+
 function afficherSectionsStructurees(commande) {
   const container = document.getElementById("sectionsContainer");
   
@@ -607,7 +592,7 @@ function afficherSectionsStructurees(commande) {
         <div class="article-item">
           <div class="article-name">${article.produit}</div>
           <div class="article-qty">${article.quantite}x</div>
-          <div class="article-price">${article.prix_unitaire ? article.prix_unitaire.toFixed(3) + ' DT' : '—'}</div>
+          <div class="article-price">${article.prix_unitaire ? formatPrice(article.prix_unitaire) : '—'}</div>
         </div>
       `;
     });
@@ -631,7 +616,7 @@ function afficherSectionsStructurees(commande) {
         <div class="info-row">
           <div class="info-label">💰 Total:</div>
           <div class="info-value" style="font-weight: bold; color: #a8ffe8;">
-            ${commande.total ? commande.total.toFixed(3) + ' DT' : '0.000 DT'}
+            ${formatPrice(commande.total)}
           </div>
         </div>
         <div class="info-row">
@@ -656,11 +641,6 @@ function afficherSectionsStructurees(commande) {
   statusPill.className = "pill " + (commande.statut ? commande.statut.toLowerCase().replace(/ /g, '-') : 'pending');
 }
 
-/**
- * ==========================
- *  FONCTIONS UTILITAIRES
- * ==========================
- */
 function showToast(text, type = "ok") {
   const el = document.getElementById("toast");
   el.textContent = text;
@@ -692,11 +672,6 @@ function playTabletSound() {
   }
 }
 
-/**
- * ==========================
- *  GESTION DES COMMANDES
- * ==========================
- */
 async function envoyerCommandeAPI(commande) {
   try {
     const payload = {
@@ -725,34 +700,23 @@ async function envoyerCommandeAPI(commande) {
   }
 }
 
-/**
- * ==========================
- *  VALIDER ET ENVOYER - VERSION FINALE CORRIGÉE
- * ==========================
- */
 async function validerEtEnvoyerCommande(commande) {
   console.log("🟢 Validation de la commande:", commande);
   
   const result = await envoyerCommandeAPI(commande);
   
   if (result.success) {
-    // ✅ Utiliser le numéro de Google Sheets (IGNORER l'ancien)
     const numeroSheets = result.commande_id || result.numero_commande || result.orderId || result.id || result.numero;
     
     console.log("✅ Numéro de Google Sheets:", numeroSheets);
     
-    // ✅ METTRE À JOUR TOUS LES AFFICHAGES
-    
-    // 1. Petit badge
     document.getElementById("orderIdText").textContent = numeroSheets;
     
-    // 2. Section récapitulative
     const numeroDisplay = document.getElementById("numeroCommandeDisplay");
     if (numeroDisplay) {
       numeroDisplay.textContent = numeroSheets;
     }
     
-    // 3. Message toast
     const toast = document.getElementById("toast");
     toast.innerHTML = `✅ Commande Enregistrée
 
@@ -769,13 +733,12 @@ Merci pour votre commande chez MAXI JDC MARKET.
     
     playTabletSound();
     
-    // 4. WhatsApp
     const message = `🛒 NOUVELLE COMMANDE VALIDÉE\n\n` +
                    `Client: ${commande.nom}\n` +
                    `Téléphone: ${commande.telephone}\n` +
                    `Adresse: ${commande.adresse}\n` +
                    `N° Commande: ${numeroSheets}\n` +
-                   `Total: ${result.total || commande.total.toFixed(3)} DT`;
+                   `Total: ${formatPrice(commande.total)}`;
     
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, "_blank");
     
@@ -798,17 +761,12 @@ function ouvrirWhatsAppClient(commande) {
   const message = `Bonjour ${commande.nom || ''},\n\n` +
                  `Votre commande ${commande.numero_commande} a été reçue.\n` +
                  `Statut: ${commande.statut}\n` +
-                 `Total: ${commande.total.toFixed(3)} DT\n\n` +
+                 `Total: ${formatPrice(commande.total)}\n\n` +
                  `Merci pour votre confiance !`;
   
   window.open(`https://wa.me/${tnPhone}?text=${encodeURIComponent(message)}`, "_blank");
 }
 
-/**
- * ==========================
- *  INITIALISATION
- * ==========================
- */
 function getDonneesCommande() {
   const params = new URLSearchParams(location.search);
   const rawData = params.get("data") || params.get("commande") || "";
@@ -842,7 +800,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Événements des boutons
 document.getElementById("validateSendBtn").addEventListener("click", () => {
   const commande = getDonneesCommande();
   validerEtEnvoyerCommande(commande);
@@ -856,9 +813,9 @@ document.getElementById("downloadBtn").addEventListener("click", () => {
               `Client: ${commande.nom}\n` +
               `Téléphone: ${commande.telephone}\n` +
               `Adresse: ${commande.adresse}\n` +
-              `Total: ${commande.total.toFixed(3)} DT\n` +
+              `Total: ${formatPrice(commande.total)}\n` +
               `Statut: ${commande.statut}\n\n` +
-              `Articles:\n${commande.articles.map(a => `${a.quantite}x ${a.produit} - ${a.prix_unitaire.toFixed(3)} DT`).join('\n')}`;
+              `Articles:\n${commande.articles.map(a => `${a.quantite}x ${a.produit} - ${formatPrice(a.prix_unitaire)}`).join('\n')}`;
   
   downloadText(`commande-maxi-${commande.numero_commande}.txt`, text);
   showToast("📥 Commande téléchargée", "ok");
