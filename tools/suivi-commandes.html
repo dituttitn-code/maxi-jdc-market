@@ -665,15 +665,6 @@
       <div class="search-section">
         <div class="input-group">
           <label class="input-label">
-            <i class="fas fa-hashtag"></i>
-            Numéro de commande
-          </label>
-          <input type="text" id="orderIdInput" class="search-input"
-                 placeholder="Ex: CMD-MAXI-20260212-004">
-        </div>
-
-        <div class="input-group">
-          <label class="input-label">
             <i class="fas fa-phone-alt"></i>
             Numéro de téléphone
           </label>
@@ -683,39 +674,39 @@
 
         <button class="search-btn" id="searchOrderBtn">
           <i class="fas fa-search"></i> 
-          <span>Vérifier et accéder au suivi</span>
+          <span>Rechercher mes commandes</span>
         </button>
 
         <div class="verification-hint">
           <i class="fas fa-shield-alt"></i>
-          La vérification par téléphone garantit la confidentialité de vos informations
+          Entrez votre numéro de téléphone pour voir vos commandes en cours
         </div>
       </div>
     </div>
 
     <div id="errorMessage" class="error-message" style="display: none;">
-      <i class="fas fa-exclamation-triangle"></i> ❌ Numéro de commande ou téléphone incorrect
+      <i class="fas fa-exclamation-triangle"></i> ❌ Aucune commande trouvée pour ce numéro
     </div>
 
     <div id="successMessage" class="success-message" style="display: none;">
-      <i class="fas fa-check-circle"></i> ✅ Vérification réussie ! Chargement des informations...
+      <i class="fas fa-check-circle"></i> ✅ Commande(s) trouvée(s) ! Chargement...
     </div>
 
     <div id="loadingState" class="loading" style="display: none;">
       <div class="loading-spinner"></div>
-      <div>Vérification en cours...</div>
+      <div>Recherche en cours...</div>
     </div>
 
     <div id="emptyState" class="empty-state" style="display: none;">
-      <div class="empty-icon">🔒</div>
-      <div class="empty-title">Accès non autorisé</div>
+      <div class="empty-icon">📦</div>
+      <div class="empty-title">Aucune commande active</div>
       <div class="empty-description">
-        Les informations fournies ne correspondent à aucune commande.<br>
-        Vérifiez vos identifiants ou contactez-nous au +216 25 600 978
+        Vous n'avez pas de commande en cours actuellement.<br>
+        Toutes vos commandes livrées sont dans l'historique.
       </div>
       <div style="margin-top: 20px;">
         <button class="btn" onclick="window.open('tel:21625600978')">
-          <i class="fas fa-phone"></i> Appeler le magasin
+          <i class="fas fa-phone"></i> Contacter le magasin
         </button>
       </div>
     </div>
@@ -787,7 +778,6 @@
 
       <div class="order-total">
         <div class="total-label">Total à payer</div>
-        <!-- MODIFICATION: 3 chiffres après la virgule -->
         <div class="total-value" id="orderTotal">152.900 dt</div>
       </div>
 
@@ -845,7 +835,6 @@
   </div>
 
   <script>
-    // ✅ BONNE URL API - Identique à api-commande.js
     const API_URL = "https://script.google.com/macros/s/AKfycbzS84SbAg80R2GcYortCdl5dgvxbneAqnsrs6kMxp30whjAN6tadiIWF7x6MK3jmizf/exec";
 
     const ORDER_STATUSES = {
@@ -900,7 +889,6 @@
     };
 
     const elements = {
-      orderIdInput: document.getElementById('orderIdInput'),
       phoneInput: document.getElementById('phoneInput'),
       searchOrderBtn: document.getElementById('searchOrderBtn'),
       orderCard: document.getElementById('orderCard'),
@@ -974,10 +962,8 @@
       }
     }
 
-    // ✅ MODIFICATION: Format prix avec 3 chiffres après la virgule (ex: 152.900 dt)
     function formatPrice(amount) {
       const num = parseFloat(String(amount || '0').replace(',', '.')) || 0;
-      // Format avec 3 décimales, point comme séparateur décimal
       return num.toFixed(3).replace('.', '.') + ' dt';
     }
 
@@ -995,86 +981,7 @@
 
     function normalizePhoneNumber(phone) {
       if (!phone) return '';
-      // Supprimer tous les caractères non numériques
       return String(phone).replace(/\D/g, '');
-    }
-
-    function comparePhones(phone1, phone2) {
-      if (!phone1 || !phone2) return false;
-      const normalized1 = normalizePhoneNumber(phone1);
-      const normalized2 = normalizePhoneNumber(phone2);
-      
-      // Vérifier les 8 derniers chiffres (numéro tunisien sans indicatif)
-      const last8_1 = normalized1.slice(-8);
-      const last8_2 = normalized2.slice(-8);
-      
-      return last8_1 === last8_2;
-    }
-
-    // Fonction pour extraire uniquement les noms des articles sans les prix
-    function extractArticleNames(articlesText) {
-      if (!articlesText) return [];
-      
-      const text = String(articlesText).replace(/\\n/g, '\n').replace(/<br\s*\/?>/gi, '\n');
-      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      const articles = [];
-      
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        
-        // Ignorer les métadonnées
-        if (/^COMMANDE/i.test(line)) continue;
-        if (/^CMD-MAXI/i.test(line)) continue;
-        if (/^TOTAL/i.test(line)) continue;
-        if (/^SOUS[- ]?TOTAL/i.test(line)) continue;
-        if (/^FRAIS/i.test(line)) continue;
-        if (/^LIVRAISON/i.test(line)) continue;
-        if (/^DATE/i.test(line)) continue;
-        if (/^GPS/i.test(line)) continue;
-        if (/^17°C/i.test(line)) continue;
-        if (/^étage/i.test(line)) continue;
-        if (/^FRA/i.test(line)) continue;
-        
-        // Si la ligne contient un code produit entre parenthèses comme "THOMSON (1407)"
-        if (/\([0-9]+\)$/.test(line)) {
-          articles.push({
-            name: line.trim()
-          });
-          continue;
-        }
-        
-        // Si la ligne est comme "3x 0,00 dt" (ligne de quantité/prix), on l'ignore
-        if (/^\d+x\s+[0-9]+[.,][0-9]{1,3}\s*dt$/i.test(line)) {
-          continue;
-        }
-        
-        // Si la ligne contient un produit avec quantité et prix sur la même ligne
-        if (/(\d+\s*x\s*|\(\d+\)|\d+[.,]\d+\s*dt)/i.test(line)) {
-          // Essayer d'extraire juste le nom
-          const match = line.match(/^(.+?)(?:\s+\d+x|\s*\(\d+\)|\s+\d+[.,]\d+\s*dt)/i);
-          if (match) {
-            articles.push({
-              name: match[1].trim()
-            });
-          } else {
-            articles.push({
-              name: line.replace(/\s*\d+x\s+[0-9]+[.,][0-9]+\s*dt/i, '').trim()
-            });
-          }
-          continue;
-        }
-
-        // Garder les lignes qui semblent être des noms de produits
-        if (line.length >= 3 && !/^\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line) && !/^https?:\/\//i.test(line)) {
-          if (/[a-zA-ZÀ-ÿ]/.test(line)) {
-            articles.push({
-              name: line.trim()
-            });
-          }
-        }
-      }
-      
-      return articles;
     }
 
     function displayArticles(articlesText) {
@@ -1086,41 +993,23 @@
         return;
       }
 
-      const articles = extractArticleNames(articlesText);
+      const text = String(articlesText)
+        .replace(/\\n/g, '\n')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l && 
+          !/^COMMANDE/i.test(l) && 
+          !/^CMD-MAXI/i.test(l) && 
+          !/^TOTAL/i.test(l) && 
+          !/^SOUS[- ]?TOTAL/i.test(l) && 
+          !/^FRAIS/i.test(l) && 
+          !/^LIVRAISON/i.test(l) && 
+          !/^DATE/i.test(l) && 
+          !/^GPS/i.test(l))
+        .join('<br>');
       
-      if (articles.length === 0) {
-        // Si aucun article n'a été trouvé, afficher le texte brut mais nettoyé
-        const text = String(articlesText)
-          .replace(/\\n/g, '\n')
-          .replace(/<br\s*\/?>/gi, '\n')
-          .split('\n')
-          .map(l => l.trim())
-          .filter(l => l && 
-            !/^COMMANDE/i.test(l) && 
-            !/^CMD-MAXI/i.test(l) && 
-            !/^TOTAL/i.test(l) && 
-            !/^SOUS[- ]?TOTAL/i.test(l) && 
-            !/^FRAIS/i.test(l) && 
-            !/^LIVRAISON/i.test(l) && 
-            !/^DATE/i.test(l) && 
-            !/^GPS/i.test(l) &&
-            !/^\d+x\s+[0-9]+[.,][0-9]+\s*dt$/i.test(l))
-          .join('<br>');
-        
-        elements.articlesList.innerHTML = '<div style="color: var(--txt); padding: 10px;">' + text + '</div>';
-        return;
-      }
-
-      // Afficher uniquement les noms des articles
-      articles.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'article-item';
-        
-        div.innerHTML = `
-          <div class="article-name">${item.name}</div>
-        `;
-        elements.articlesList.appendChild(div);
-      });
+      elements.articlesList.innerHTML = '<div style="color: var(--txt); padding: 10px;">' + text + '</div>';
     }
 
     function updateStatusDisplay(statusText) {
@@ -1183,15 +1072,42 @@
       });
     }
 
-    async function searchOrder() {
-      const orderId = elements.orderIdInput.value.trim();
-      const phone = elements.phoneInput.value.trim();
+    function displayOrder(order) {
+      elements.orderIdDisplay.textContent = order.commande_id;
+      elements.orderDateDisplay.textContent = formatDate(order.date);
+      elements.clientName.textContent = order.nom;
+      elements.clientPhone.textContent = formatPhone(order.telephone);
+      elements.clientAddress.textContent = order.adresse.replace(/🗺️$/, '').trim();
+      elements.orderTotal.textContent = formatPrice(order.total);
+      
+      updateStatusDisplay(order.statut);
+      updateStatusTimeline(order);
+      displayArticles(order.articles);
+      
+      hide(elements.loadingState);
+      show(elements.orderCard);
+      show(elements.successMessage);
+      setTimeout(() => hide(elements.successMessage), 2000);
+      
+      generateQRCode(order.commande_id);
+    }
 
-      if (!orderId) {
-        elements.orderIdInput.focus();
-        showToast('Veuillez entrer le numéro de commande', 'error');
-        return;
+    function saveToHistory(orders) {
+      try {
+        const history = JSON.parse(localStorage.getItem('order_history') || '[]');
+        const newHistory = [...orders, ...history]
+          .filter((order, index, self) => 
+            index === self.findIndex(o => o.commande_id === order.commande_id)
+          );
+        localStorage.setItem('order_history', JSON.stringify(newHistory));
+        console.log('📚 Commandes sauvegardées dans l\'historique:', newHistory.length);
+      } catch (e) {
+        console.warn('Erreur sauvegarde historique:', e);
       }
+    }
+
+    async function searchOrder() {
+      const phone = elements.phoneInput.value.trim();
 
       if (!phone) {
         elements.phoneInput.focus();
@@ -1207,106 +1123,44 @@
 
       try {
         const timestamp = Date.now();
-        const url = `${API_URL}?method=getOrderStatus&commande_id=${encodeURIComponent(orderId)}&t=${timestamp}`;
+        const url = `${API_URL}?method=getOrderHistory&telephone=${encodeURIComponent(phone)}&t=${timestamp}`;
         
         const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        
         const data = await response.json();
         
         if (!data.success) {
-          throw new Error(data.error || 'Commande non trouvée');
+          throw new Error(data.error || 'Aucune commande trouvée');
         }
 
-        // ✅ Vérification du téléphone
-        const phoneFromData = data.telephone || data.phone || data.tel || '';
-        
-        if (!comparePhones(phone, phoneFromData)) {
-          console.log('Phone mismatch:', { 
-            input: normalizePhoneNumber(phone), 
-            data: normalizePhoneNumber(phoneFromData) 
-          });
-          throw new Error('Le numéro de téléphone ne correspond pas à cette commande');
-        }
-
-        // ✅ Normalisation complète
-        const cid = data.commande_id || data.commandeId || data.orderId || data.order_id || data.id || orderId;
-        
-        const orderData = {
-          commande_id: cid,
-          date: data.date || data.created_at || data.timestamp || new Date().toISOString(),
-          nom: data.nom || data.nom_client || data.client || data.name || '—',
-          telephone: phoneFromData,
-          adresse: data.adresse || data.address || '—',
-          total: data.total || data.montant || '0',
-          statut: data.statut || data.status || "🟡 NOUVELLE",
-          articles: data.articles || data.items || data.produits || '',
-          date_validation: data.date_validation || data.updated_at || data.modified_at || data.date
-        };
-
-        elements.orderIdDisplay.textContent = orderData.commande_id;
-        elements.orderDateDisplay.textContent = formatDate(orderData.date);
-        elements.clientName.textContent = orderData.nom;
-        elements.clientPhone.textContent = formatPhone(orderData.telephone);
-        elements.clientAddress.textContent = orderData.adresse.replace(/🗺️$/, '').trim();
-        
-        // ✅ MODIFICATION: Prix formaté avec 3 décimales
-        elements.orderTotal.textContent = formatPrice(orderData.total);
-        
-        updateStatusDisplay(orderData.statut);
-        updateStatusTimeline(orderData);
-        displayArticles(orderData.articles);
-
-        elements.whatsappBtn.onclick = () => {
-          const message = encodeURIComponent(
-            `Bonjour MAXI JDC MARKET,\n\nJe suis ${orderData.nom} (${orderData.telephone}).\n` +
-            `Je souhaite des informations sur ma commande ${orderData.commande_id}.\n` +
-            `Statut actuel: ${orderData.statut}\n\nCordialement.`
+        if (data.history && data.history.length > 0) {
+          const activeOrders = data.history.filter(order => 
+            order.statut !== '✅ LIVRÉE' && order.statut !== '❌ ANNULÉE'
           );
-          window.open(`https://wa.me/21625600978?text=${message}`, '_blank');
-        };
-
-        elements.callBtn.onclick = () => {
-          window.open('tel:+21625600978', '_blank');
-        };
-
-        elements.reloadBtn.onclick = () => {
-          searchOrder();
-        };
-
-        elements.shareBtn.onclick = () => {
-          const shareUrl = `${window.location.origin}${window.location.pathname}?order=${encodeURIComponent(orderData.commande_id)}`;
-          if (navigator.share) {
-            navigator.share({
-              title: 'Suivi commande MAXI JDC MARKET',
-              text: `Suivez ma commande ${orderData.commande_id}`,
-              url: shareUrl
-            }).catch(() => {
-              navigator.clipboard.writeText(shareUrl);
-              showToast('Lien copié dans le presse-papier !', 'success');
-            });
+          
+          const deliveredOrders = data.history.filter(order => 
+            order.statut === '✅ LIVRÉE'
+          );
+          
+          if (activeOrders.length > 0) {
+            displayOrder(activeOrders[0]);
+            showToast(`${activeOrders.length} commande(s) active(s) trouvée(s)`, 'success');
+            
+            if (deliveredOrders.length > 0) {
+              saveToHistory(deliveredOrders);
+            }
           } else {
-            navigator.clipboard.writeText(shareUrl);
-            showToast('Lien copié dans le presse-papier !', 'success');
+            hide(elements.loadingState);
+            show(elements.emptyState);
+            showToast('📦 Toutes vos commandes sont livrées', 'info');
           }
-        };
-
-        hide(elements.loadingState);
-        show(elements.orderCard);
-        show(elements.successMessage);
-        setTimeout(() => hide(elements.successMessage), 2000);
-
-        generateQRCode(orderData.commande_id);
-        showToast(`✅ Accès autorisé ! Statut: ${orderData.statut}`, 'success');
+        } else {
+          throw new Error('Aucune commande trouvée');
+        }
 
       } catch (error) {
-        console.error('Erreur recherche commande:', error);
+        console.error('Erreur recherche:', error);
         hide(elements.loadingState);
         show(elements.emptyState);
-        show(elements.errorMessage);
         showToast('❌ ' + error.message, 'error');
       }
     }
@@ -1323,11 +1177,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       elements.searchOrderBtn.addEventListener('click', searchOrder);
       
-      // Ajouter l'événement Enter pour les deux champs
-      elements.orderIdInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') searchOrder();
-      });
-      
       elements.phoneInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') searchOrder();
       });
@@ -1335,8 +1184,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       const orderIdFromUrl = urlParams.get('order');
       if (orderIdFromUrl) {
-        elements.orderIdInput.value = orderIdFromUrl;
-        // Ne pas lancer automatiquement la recherche car le téléphone est requis
+        elements.phoneInput.value = orderIdFromUrl;
       }
 
       generateQRCode('');
