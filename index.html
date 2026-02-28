@@ -5330,8 +5330,7 @@
       }).sort((a, b) => a.name.localeCompare(b.name));
     }
 
-    // ===================== FONCTION RENDERPRODUCTS CORRIGÉE =====================
-    // Le catalogue s'ouvre quand on clique sur un article
+    // ===================== FONCTION RENDERPRODUCTS (avec ouverture du catalogue sur l'article cliqué) =====================
     function renderProducts() {
       state.filteredProducts = getFilteredProducts();
       const totalPages = Math.ceil(state.filteredProducts.length / CONFIG.itemsPerPage) || 1;
@@ -5411,10 +5410,10 @@
           </div>
         `;
         
-        // ✅ CORRECTION : Le catalogue s'ouvre quand on clique sur un article
+        // ✅ Correction : Le catalogue s'ouvre sur l'article cliqué
         card.addEventListener('click', () => {
           if (stockStatus.available) {
-            openCatalogueForCategory(product.categoryKey);
+            openCatalogueForProduct(product);
           } else {
             showToast('❌ Ce produit est en rupture de stock', 'error');
           }
@@ -5424,17 +5423,22 @@
       });
     }
 
-    function openCatalogueForCategory(categoryKey) {
-      const category = CATEGORIES.find(c => c.key === categoryKey);
+    // ✅ Nouvelle fonction : Ouvre le catalogue et affiche le produit spécifique en tête de liste
+    function openCatalogueForProduct(targetProduct) {
+      const category = CATEGORIES.find(c => c.key === targetProduct.categoryKey);
       if (!category) return;
       
-      const products = state.products.get(categoryKey) || [];
+      const products = state.products.get(targetProduct.categoryKey) || [];
       if (products.length === 0) {
         showToast('⚠️ Aucun produit dans cette catégorie', 'warning');
         return;
       }
       
-      state.catalogueProducts = products;
+      // Placer le produit ciblé en tête de liste, suivi des autres triés par nom
+      const otherProducts = products.filter(p => p.code !== targetProduct.code || p.name !== targetProduct.name);
+      otherProducts.sort((a, b) => a.name.localeCompare(b.name));
+      
+      state.catalogueProducts = [targetProduct, ...otherProducts];
       state.catalogueSearchQuery = '';
       $('catalogueTitle').textContent = category.label;
       $('catalogueSearchInput').value = '';
@@ -5528,9 +5532,7 @@
                     ${stockStatus.available ? '' : 'disabled'}>
               ${isOutOfStock 
                 ? '❌ RUPTURE' 
-                : (quantity > 0 
-                  ? `📤 ${TRANSLATIONS[state.currentLanguage].sendToCart} ${quantity}` 
-                  : `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`)}
+                : `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`}
             </button>
           </div>
         `;
@@ -5595,10 +5597,11 @@
         btn.addEventListener('click', (e) => {
           const productId = e.target.dataset.id;
           const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
-          const quantity = state.catalogueQuantityPicks[productId] || 0;
+          const quantity = parseInt(document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`).value) || 0;
           
           if (product && quantity > 0) {
             addToCart(productId, product, quantity);
+            // Réinitialiser la quantité pour cet article après ajout
             state.catalogueQuantityPicks[productId] = 0;
             const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
             const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
@@ -5607,8 +5610,20 @@
               addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
               addBtn.classList.remove('has-qty');
             }
+          } else if (product && quantity === 0) {
+            // Si la quantité est 0, on ajoute quand même 1 par défaut
+            addToCart(productId, product, 1);
+            // Mettre à jour l'input pour afficher 0 après ajout (car on a ajouté 1)
+            const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+            if (input) input.value = 0;
+            state.catalogueQuantityPicks[productId] = 0;
+            const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
+            if (addBtn) {
+              addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
+              addBtn.classList.remove('has-qty');
+            }
           } else {
-            showToast('❌ Quantité invalide', 'error');
+            showToast('❌ Produit invalide', 'error');
           }
         });
       });
@@ -5621,7 +5636,7 @@
       if (addBtn && !addBtn.disabled) {
         const t = TRANSLATIONS[state.currentLanguage];
         if (quantity > 0) {
-          addBtn.textContent = `📤 ${t.sendToCart} ${quantity}`;
+          addBtn.textContent = `🛒 ${t.addToCart}`;
           addBtn.classList.add('has-qty');
         } else {
           addBtn.textContent = `🛒 ${t.addToCart}`;
@@ -5683,9 +5698,9 @@
         quantityInput.value = quantity;
         quantityInput.max = Math.min(999, availableStock);
         const addBtn = $('modalAddToCartBtn');
-        addBtn.disabled = quantity === 0 || !stockStatus.available;
+        addBtn.disabled = !stockStatus.available;
         const t = TRANSLATIONS[state.currentLanguage];
-        addBtn.textContent = quantity > 0 ? `🛒 ${t.addToCart} ${quantity}` : `🛒 ${t.addToCart}`;
+        addBtn.textContent = `🛒 ${t.addToCart}`;
         const img = $('modalProductImage');
         const noPhoto = $('modalNoPhoto');
         const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
@@ -5965,8 +5980,60 @@
           $('clientAccountBtn').click();
           return;
         }
-        const trackingUrl = `${CONFIG.trackingUrl}?phone=${encodeURIComponent(state.user.phone)}`;
-        window.open(trackingUrl, '_blank');
+        // Utiliser le numéro pour récupérer les commandes en cours
+        const currentOrders = state.orderHistory.filter(order => 
+          order.clientPhone.replace(/\D/g, '') === state.user.phone.replace(/\D/g, '') &&
+          order.statut !== 'Livré' && order.statut !== 'Annulé'
+        );
+        if (currentOrders.length === 0) {
+          showToast('📭 Aucune commande en cours', 'warning');
+        } else {
+          showToast(`📦 ${currentOrders.length} commande(s) en cours`);
+          // Afficher les commandes en cours
+          const historyItemsList = $('historyItemsList');
+          historyItemsList.innerHTML = '';
+          currentOrders.forEach(order => {
+            const orderDate = new Date(order.date);
+            const formattedDate = orderDate.toLocaleDateString('fr-FR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+            const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.innerHTML = `
+              <div class="history-date">📅 ${formattedDate}</div>
+              <div class="history-summary">
+                <span class="history-items-count">${itemCount} article(s)</span>
+                <span class="history-total">${formatPrice(order.total)}</span>
+              </div>
+              <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
+                📦 Statut: ${order.statut || 'En cours'}
+              </div>
+              ${orderSavings > 0 ? `
+                <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
+                  💰 Économies: ${formatPrice(orderSavings)}
+                </div>
+              ` : ''}
+              ${order.orderId ? `
+                <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
+                  📦 N°: ${order.orderId}
+                </div>
+              ` : ''}
+            `;
+            historyItem.addEventListener('click', () => {
+              showOrderDetails(order);
+            });
+            historyItemsList.appendChild(historyItem);
+          });
+          $('orderHistorySection').classList.add('visible');
+          $('historyCount').textContent = `${currentOrders.length} commande(s) en cours`;
+          $('historyEmptyMessage').style.display = 'none';
+        }
       };
 
       $('clientHistoryBtn').onclick = () => {
@@ -6201,7 +6268,8 @@
           lat: state.user.lat,
           lng: state.user.lng
         } : null,
-        orderId: orderDetails.commandeId
+        orderId: orderDetails.commandeId,
+        statut: 'En cours'
       };
       state.orderHistory.unshift(historyEntry);
       const twoYearsAgo = new Date();
@@ -6220,8 +6288,10 @@
 
     function loadHistoryForPhone(phone) {
       const cleanPhone = phone.replace(/\D/g, '');
+      // Filtrer uniquement les commandes livrées ou annulées pour l'historique
       const userHistory = state.orderHistory.filter(order =>
-        order.clientPhone && order.clientPhone.replace(/\D/g, '') === cleanPhone
+        order.clientPhone && order.clientPhone.replace(/\D/g, '') === cleanPhone &&
+        (order.statut === 'Livré' || order.statut === 'Annulé')
       );
       return userHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
@@ -6276,6 +6346,11 @@
               📦 N°: ${order.orderId}
             </div>
           ` : ''}
+          ${order.statut ? `
+            <div style="font-size:10px;color:${order.statut === 'Livré' ? '#00ff88' : '#ff6b6b'};margin-top:4px;font-weight:700;">
+              📌 Statut: ${order.statut}
+            </div>
+          ` : ''}
           ${addressDisplay.includes('href=') ? `
             <div style="font-size:10px;color:var(--accent2);margin-top:4px;">
               📍 ${addressDisplay}
@@ -6315,6 +6390,7 @@
         detailsText += `🗺️ GPS: ${order.coords.lat}, ${order.coords.lng}\n`;
         detailsText += `🔗 Maps: ${googleMapsUrl}\n`;
       }
+      detailsText += `📌 Statut: ${order.statut || 'En cours'}\n`;
       detailsText += `\n🛒 ARTICLES :\n`;
       detailsText += '─'.repeat(50) + '\n';
       let totalSavingsInOrder = 0;
@@ -6482,204 +6558,200 @@
     }
 
     async function enregistrerCommandeGoogleSheets(orderData) {
-  try {
-    showToast('📤 Enregistrement de la commande...', 'warning');
+      try {
+        showToast('📤 Enregistrement de la commande...', 'warning');
 
-    let adresseComplete = state.user.address || '';
-    if (state.user.lat && state.user.lng) {
-      adresseComplete += ` | GPS: ${state.user.lat}, ${state.user.lng}`;
-    }
-
-    let articlesText = '';
-    let totalPanier = 0;
-    
-    Object.values(state.cart).forEach(item => {
-      const itemTotal = item.price * item.quantity;
-      totalPanier += itemTotal;
-      
-      articlesText += `${item.quantity}x ${item.name} (${item.code})\n`;
-      articlesText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
-      
-      if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
-        const saving = (item.oldPrice - item.price) * item.quantity;
-        articlesText += `\n 💰 ÉCONOMIE: ${formatPrice(saving)}`;
-        if (item.discountPercent) {
-          articlesText += ` (-${item.discountPercent}%)`;
+        let adresseComplete = state.user.address || '';
+        if (state.user.lat && state.user.lng) {
+          adresseComplete += ` | GPS: ${state.user.lat}, ${state.user.lng}`;
         }
+
+        let articlesText = '';
+        let totalPanier = 0;
+        
+        Object.values(state.cart).forEach(item => {
+          const itemTotal = item.price * item.quantity;
+          totalPanier += itemTotal;
+          
+          articlesText += `${item.quantity}x ${item.name} (${item.code})\n`;
+          articlesText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
+          
+          if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
+            const saving = (item.oldPrice - item.price) * item.quantity;
+            articlesText += `\n 💰 ÉCONOMIE: ${formatPrice(saving)}`;
+            if (item.discountPercent) {
+              articlesText += ` (-${item.discountPercent}%)`;
+            }
+          }
+          articlesText += '\n';
+        });
+        
+        const sousTotal = totalPanier;
+        const livraison = sousTotal >= CONFIG.freeShipping ? 0 : 3.000;
+        const total = sousTotal + livraison;
+        
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        const commandeId = orderData.commandeId;
+
+        const sheetData = {
+          'Date': dateStr,
+          'N_Commande': commandeId,
+          'Nom_Client': state.user.name,
+          'Telephone': '+216 ' + state.user.phone,
+          'Adresse': adresseComplete,
+          'Articles': `COMMANDE: ${commandeId}\n` + articlesText,
+          'Total': total.toFixed(3).replace('.', ','),
+          'Statut': 'NOUVELLE'
+        };
+
+        console.log('📊 Données envoyées à Google Sheets:', sheetData);
+
+        const postData = {
+          'Date': sheetData.Date,
+          'N_Commande': sheetData.N_Commande,
+          'Nom_Client': sheetData.Nom_Client,
+          'Telephone': sheetData.Telephone,
+          'Adresse': sheetData.Adresse,
+          'Articles': sheetData.Articles,
+          'Total': sheetData.Total,
+          'Statut': sheetData.Statut
+        };
+
+        const params = new URLSearchParams();
+        Object.keys(postData).forEach(key => {
+          params.append(key, postData[key]);
+        });
+
+        const response = await fetch(CONFIG.commandeApiUrl, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: params.toString()
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+
+        const responseText = await response.text();
+        console.log('✅ Réponse Google Sheets (texte):', responseText);
+        
+        let result;
+        try {
+          result = JSON.parse(responseText);
+        } catch (e) {
+          console.error('❌ Erreur parsing JSON:', e);
+          result = { success: true, commande_id: commandeId };
+        }
+        
+        console.log('✅ Réponse Google Sheets (objet):', result);
+        
+        playOrderNotificationSound();
+        
+        const t = TRANSLATIONS[state.currentLanguage];
+        showToast(`✅ ${t.toastOrderSaved}`);
+        
+        return result;
+        
+      } catch (error) {
+        console.error('Erreur enregistrement Google Sheets:', error);
+        showToast('⚠️ Commande créée mais erreur d\'enregistrement système', 'warning');
+        
+        saveOrderToHistory(orderData);
+        
+        return { success: true, commande_id: orderData.commandeId };
       }
-      articlesText += '\n';
-    });
-    
-    const sousTotal = totalPanier;
-    const livraison = sousTotal >= CONFIG.freeShipping ? 0 : 3.000;
-    const total = sousTotal + livraison;
-    
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-
-    const commandeId = orderData.commandeId;
-
-    const sheetData = {
-      'Date': dateStr,
-      'N_Commande': commandeId,
-      'Nom_Client': state.user.name,
-      'Telephone': '+216 ' + state.user.phone,
-      'Adresse': adresseComplete,
-      'Articles': `COMMANDE: ${commandeId}\n` + articlesText,
-      'Total': total.toFixed(3).replace('.', ','),
-      'Statut': 'NOUVELLE'
-    };
-
-    console.log('📊 Données envoyées à Google Sheets:', sheetData);
-
-    const postData = {
-      'Date': sheetData.Date,
-      'N_Commande': sheetData.N_Commande,
-      'Nom_Client': sheetData.Nom_Client,
-      'Telephone': sheetData.Telephone,
-      'Adresse': sheetData.Adresse,
-      'Articles': sheetData.Articles,
-      'Total': sheetData.Total,
-      'Statut': sheetData.Statut
-    };
-
-    const params = new URLSearchParams();
-    Object.keys(postData).forEach(key => {
-      params.append(key, postData[key]);
-    });
-
-    const response = await fetch(CONFIG.commandeApiUrl, {
-      method: 'POST',
-      mode: 'cors',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: params.toString()
-    });
-
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
     }
 
-    // ✅ Récupérer la réponse JSON
-    const responseText = await response.text();
-    console.log('✅ Réponse Google Sheets (texte):', responseText);
-    
-    // ✅ Parser le JSON
-    let result;
-    try {
-      result = JSON.parse(responseText);
-    } catch (e) {
-      console.error('❌ Erreur parsing JSON:', e);
-      result = { success: true, commande_id: commandeId };
-    }
-    
-    console.log('✅ Réponse Google Sheets (objet):', result);
-    
-    playOrderNotificationSound();
-    
-    const t = TRANSLATIONS[state.currentLanguage];
-    showToast(`✅ ${t.toastOrderSaved}`);
-    
-    // ✅ Retourner l'OBJET complet avec le nouveau numéro
-    return result;
-    
-  } catch (error) {
-    console.error('Erreur enregistrement Google Sheets:', error);
-    showToast('⚠️ Commande créée mais erreur d\'enregistrement système', 'warning');
-    
-    saveOrderToHistory(orderData);
-    
-    // ✅ En cas d'erreur, retourner l'ancien numéro
-    return { success: true, commande_id: orderData.commandeId };
-  }
-}
-  // ===================== ENVOI MESSAGE AU CLIENT =====================
-function envoyerMessageClient(commandeId, result) {
-  // ✅ Utiliser le message de Google Sheets s'il existe (priorité absolue)
-  const message = result?.client_message || `Merci pour votre commande chez MAXI JDC MARKET.
+    function envoyerMessageClient(commandeId, result) {
+      const message = result?.client_message || `Merci pour votre commande chez MAXI JDC MARKET.
 📦 Votre commande, référence ${commandeId}, a bien été enregistrée.
 ⏳ Elle est actuellement en cours de préparation.
 📞 Nous vous contacterons prochainement pour la livraison.
 🔗 Pour suivre l'état de votre commande, utilisez le numéro ${commandeId} dans la section « Suivi commande » de votre espace client.`;
-  
-  const modal = document.createElement('div');
-  modal.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, #0a1929 0%, #112240 100%);
-    border: 3px solid var(--accent);
-    border-radius: 20px;
-    padding: 30px;
-    z-index: 9999;
-    max-width: 90%;
-    width: 400px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-    color: var(--text);
-    font-family: inherit;
-  `;
-  
-  modal.innerHTML = `
-    <h3 style="color: var(--accent); margin-top: 0; text-align: center;">✅ Commande Enregistrée</h3>
-    <div style="white-space: pre-line; margin: 20px 0; font-size: 14px; line-height: 1.5;">${message}</div>
-    <div style="display: flex; gap: 10px; justify-content: center;">
-      <button id="copyMsgBtn" style="
-        padding: 10px 20px;
-        border-radius: 10px;
-        border: 2px solid var(--accent2);
-        background: rgba(0, 212, 255, 0.1);
-        color: var(--accent2);
-        cursor: pointer;
-        font-weight: 700;
-      ">📋 Copier</button>
-      <button id="closeMsgBtn" style="
-        padding: 10px 20px;
-        border-radius: 10px;
-        border: 2px solid var(--accent);
-        background: rgba(0, 255, 136, 0.1);
-        color: var(--accent);
-        cursor: pointer;
-        font-weight: 700;
-      ">✅ OK</button>
-    </div>
-  `;
-  
-  document.body.appendChild(modal);
-  
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.9);
-    z-index: 9998;
-  `;
-  document.body.appendChild(overlay);
-  
-  modal.querySelector('#copyMsgBtn').onclick = () => {
-    navigator.clipboard.writeText(message).then(() => {
-      showToast('📋 Message copié dans le presse-papier');
-    });
-  };
-  
-  const closeModal = () => {
-    document.body.removeChild(modal);
-    document.body.removeChild(overlay);
-  };
-  
-  modal.querySelector('#closeMsgBtn').onclick = closeModal;
-  overlay.onclick = closeModal;
-}
+      
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #0a1929 0%, #112240 100%);
+        border: 3px solid var(--accent);
+        border-radius: 20px;
+        padding: 30px;
+        z-index: 9999;
+        max-width: 90%;
+        width: 400px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+        color: var(--text);
+        font-family: inherit;
+      `;
+      
+      modal.innerHTML = `
+        <h3 style="color: var(--accent); margin-top: 0; text-align: center;">✅ Commande Enregistrée</h3>
+        <div style="white-space: pre-line; margin: 20px 0; font-size: 14px; line-height: 1.5;">${message}</div>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          <button id="copyMsgBtn" style="
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid var(--accent2);
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent2);
+            cursor: pointer;
+            font-weight: 700;
+          ">📋 Copier</button>
+          <button id="closeMsgBtn" style="
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent);
+            cursor: pointer;
+            font-weight: 700;
+          ">✅ OK</button>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.9);
+        z-index: 9998;
+      `;
+      document.body.appendChild(overlay);
+      
+      modal.querySelector('#copyMsgBtn').onclick = () => {
+        navigator.clipboard.writeText(message).then(() => {
+          showToast('📋 Message copié dans le presse-papier');
+        });
+      };
+      
+      const closeModal = () => {
+        document.body.removeChild(modal);
+        document.body.removeChild(overlay);
+      };
+      
+      modal.querySelector('#closeMsgBtn').onclick = closeModal;
+      overlay.onclick = closeModal;
+    }
+
     // ===================== COMMANDES =====================
     async function placeOrder() {
       if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
@@ -6774,73 +6846,70 @@ function envoyerMessageClient(commandeId, result) {
       showToast(`📝 Commande préparée. Cliquez sur "Valider et envoyer" pour finaliser.`);
     }
 
-// ===================== BOUTON "VALIDER ET ENVOYER" =====================
-$('sendOrderBtn').onclick = async () => {
-  try {
-    if (state.isSendingOrder) {
-      showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
-      return;
-    }
-
-    if (!state.pendingOrder) {
-      showToast('❌ Aucune commande en attente', 'error');
-      return;
-    }
-
-    state.isSendingOrder = true;
-    const sendBtn = $('sendOrderBtn');
-    sendBtn.disabled = true;
-    sendBtn.classList.add('sending');
-    sendBtn.innerHTML = '⏳ Envoi en cours...';
-
-    const orderData = state.pendingOrder;
-    
-    saveOrderToHistory(orderData);
-    
-    // ✅ Récupérer le résultat
-    let result = await enregistrerCommandeGoogleSheets(orderData);
-    
-    // ✅ Si c'est une string, la parser
-    if (typeof result === 'string') {
+    // ===================== BOUTON "VALIDER ET ENVOYER" =====================
+    $('sendOrderBtn').onclick = async () => {
       try {
-        result = JSON.parse(result);
-      } catch(e) {
-        console.error("Erreur parsing JSON:", e);
+        if (state.isSendingOrder) {
+          showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
+          return;
+        }
+
+        if (!state.pendingOrder) {
+          showToast('❌ Aucune commande en attente', 'error');
+          return;
+        }
+
+        state.isSendingOrder = true;
+        const sendBtn = $('sendOrderBtn');
+        sendBtn.disabled = true;
+        sendBtn.classList.add('sending');
+        sendBtn.innerHTML = '⏳ Envoi en cours...';
+
+        const orderData = state.pendingOrder;
+        
+        saveOrderToHistory(orderData);
+        
+        let result = await enregistrerCommandeGoogleSheets(orderData);
+        
+        if (typeof result === 'string') {
+          try {
+            result = JSON.parse(result);
+          } catch(e) {
+            console.error("Erreur parsing JSON:", e);
+          }
+        }
+        
+        console.log("🔍 Type de result:", typeof result);
+        console.log("🔍 Contenu de result:", result);
+        
+        const commandeId = result?.command_id || result?.commande_id || result?.numero_commande || orderData?.commandeId;
+        
+        console.log("📦 Numéro final utilisé:", commandeId);
+        
+        state.cart = {};
+        updateCartUI();
+        state.pendingOrder = null;
+        $('orderModal').classList.remove('open');
+        
+        envoyerMessageClient(commandeId, result);
+        
+        const t = TRANSLATIONS[state.currentLanguage];
+        showToast(`✅ ${t.toastOrderValidated}`);
+        
+      } catch (error) {
+        console.error('❌ Erreur validation commande:', error);
+        showToast('❌ Erreur lors de la validation de la commande', 'error');
+      } finally {
+        setTimeout(() => {
+          state.isSendingOrder = false;
+          const sendBtn = $('sendOrderBtn');
+          sendBtn.disabled = false;
+          sendBtn.classList.remove('sending');
+          sendBtn.innerHTML = '✅ Valider et envoyer';
+        }, 3000);
       }
-    }
-    
-    console.log("🔍 Type de result:", typeof result);
-    console.log("🔍 Contenu de result:", result);
-    
-    // ✅ Prendre le numéro (maintenant c'est un objet)
-    const commandeId = result?.command_id || result?.commande_id || result?.numero_commande || orderData?.commandeId;
-    
-    console.log("📦 Numéro final utilisé:", commandeId);
-    
-    state.cart = {};
-    updateCartUI();
-    state.pendingOrder = null;
-    $('orderModal').classList.remove('open');
-    
-    // ✅ Passer le résultat
-    envoyerMessageClient(commandeId, result);
-    
-    const t = TRANSLATIONS[state.currentLanguage];
-    showToast(`✅ ${t.toastOrderValidated}`);
-    
-  } catch (error) {
-    console.error('❌ Erreur validation commande:', error);
-    showToast('❌ Erreur lors de la validation de la commande', 'error');
-  } finally {
-    setTimeout(() => {
-      state.isSendingOrder = false;
-      const sendBtn = $('sendOrderBtn');
-      sendBtn.disabled = false;
-      sendBtn.classList.remove('sending');
-      sendBtn.innerHTML = '✅ Valider et envoyer';
-    }, 3000);
-  }
-};
+    };
+
     // ===================== INITIALISATION =====================
     function init() {
       try {
@@ -7167,15 +7236,3 @@ $('sendOrderBtn').onclick = async () => {
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
