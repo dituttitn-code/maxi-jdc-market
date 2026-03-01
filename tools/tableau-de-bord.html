@@ -813,10 +813,46 @@
       showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
     }
 
-    // ✅ CORRECTION: Format prix avec 3 chiffres après la virgule
+    // ✅ CORRECTION: Format prix avec 3 chiffres après la virgule et gestion correcte des virgules
     function formatPrice(amount) {
-      const num = parseFloat(String(amount || '0').replace(',', '.')) || 0;
+      // Si c'est une chaîne avec virgule et "dt"
+      if (typeof amount === 'string') {
+        // Nettoyer la chaîne : "1,500 dt" → "1.5"
+        let cleanAmount = amount
+          .replace(' dt', '')
+          .replace('dt', '')
+          .replace(',', '.')
+          .replace(/\s+/g, '')
+          .trim();
+        
+        const num = parseFloat(cleanAmount) || 0;
+        return num.toFixed(3).replace('.', ',') + ' dt';
+      }
+      
+      // Si c'est déjà un nombre
+      const num = parseFloat(amount) || 0;
       return num.toFixed(3).replace('.', ',') + ' dt';
+    }
+
+    // ✅ CORRECTION: Fonction pour nettoyer et convertir un montant en nombre
+    function parsePrice(priceStr) {
+      if (!priceStr) return 0;
+      
+      if (typeof priceStr === 'string') {
+        // Nettoie la chaîne : "1,500 dt" → 1.5
+        let cleanStr = priceStr
+          .replace(' dt', '')
+          .replace('dt', '')
+          .replace(',', '.')
+          .replace(/\s+/g, '')
+          .trim();
+        
+        const num = parseFloat(cleanStr);
+        return isNaN(num) ? 0 : num;
+      }
+      
+      const num = parseFloat(priceStr);
+      return isNaN(num) ? 0 : num;
     }
 
     function safeText(x) {
@@ -825,8 +861,7 @@
     }
 
     function num(x) {
-      const n = Number(String(x ?? "0").replace(",", "."));
-      return Number.isFinite(n) ? n : 0;
+      return parsePrice(x);
     }
 
     function parseOrderDate(dateStr) {
@@ -865,7 +900,7 @@
           let rest = (m[2] || "").trim();
           let unit = 0;
           const p = rest.match(/-\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt\b/i);
-          if (p && p[1]) unit = num(p[1]);
+          if (p && p[1]) unit = parsePrice(p[1]);
           rest = rest.replace(/\s*-\s*[0-9]+(?:[.,][0-9]{1,3})?\s*dt\b/i, "").trim();
 
           out.push({ produit: rest || "Produit", quantite: q, prix_unitaire: unit, prix_total: unit * q });
