@@ -3950,13 +3950,9 @@
             <span class="admin-icon">👤</span>
             <span class="admin-label">Mon Compte</span>
           </button>
-          <button class="admin-btn stats" id="clientTrackingBtn">
-            <span class="admin-icon">📍</span>
-            <span class="admin-label">Suivi Commande</span>
-          </button>
-          <button class="admin-btn settings" id="clientHistoryBtn">
-            <span class="admin-icon">📜</span>
-            <span class="admin-label">Historique</span>
+          <button class="admin-btn stats" id="clientCombinedBtn" title="Suivi et historique des commandes">
+            <span class="admin-icon">📋</span>
+            <span class="admin-label">Suivi & Historique</span>
           </button>
         </div>
       </section>
@@ -4403,8 +4399,7 @@
         closeClientSpace: "✕ Fermer",
         clientSpaceTitle: "👤 Espace Client",
         clientAccountBtn: "Mon Compte",
-        clientTrackingBtn: "Suivi Commande",
-        clientHistoryBtn: "Historique",
+        clientCombinedBtn: "Suivi & Historique",
         accountTitle: "👤 Mon Compte",
         nameLabel: "Nom complet *",
         phoneLabel: "Téléphone *",
@@ -4418,7 +4413,7 @@
         editAccountBtn: "✏️ Modifier",
         historyTitle: "📋 Historique des commandes",
         historySearchLabel: "🔍 Entrez votre numéro pour voir votre historique",
-        historySearchBtn: "🔎 Voir mon historique",
+        searchHistoryBtn: "🔎 Voir mon historique",
         ordersTitle: "📜 Vos commandes",
         noOrdersText: "Aucune commande passée dans les 2 dernières années",
         productsTitle: "Produits",
@@ -4464,8 +4459,7 @@
         closeClientSpace: "✕ Close",
         clientSpaceTitle: "👤 Client Space",
         clientAccountBtn: "My Account",
-        clientTrackingBtn: "Order Tracking",
-        clientHistoryBtn: "History",
+        clientCombinedBtn: "Tracking & History",
         accountTitle: "👤 My Account",
         nameLabel: "Full name *",
         phoneLabel: "Phone *",
@@ -4479,7 +4473,7 @@
         editAccountBtn: "✏️ Edit",
         historyTitle: "📋 Order History",
         historySearchLabel: "🔍 Enter your number to see your history",
-        historySearchBtn: "🔎 View my history",
+        searchHistoryBtn: "🔎 View my history",
         ordersTitle: "📜 Your Orders",
         noOrdersText: "No orders in the last 2 years",
         productsTitle: "Products",
@@ -4525,8 +4519,7 @@
         closeClientSpace: "✕ إغلاق",
         clientSpaceTitle: "👤 مساحة الزبون",
         clientAccountBtn: "حسابي",
-        clientTrackingBtn: "تتبع الطلب",
-        clientHistoryBtn: "التاريخ",
+        clientCombinedBtn: "التتبع والتاريخ",
         accountTitle: "👤 حسابي",
         nameLabel: "الاسم الكامل *",
         phoneLabel: "الهاتف *",
@@ -4540,7 +4533,7 @@
         editAccountBtn: "✏️ تعديل",
         historyTitle: "📋 تاريخ الطلبات",
         historySearchLabel: "🔍 أدخل رقمك لرؤية تاريخك",
-        historySearchBtn: "🔎 عرض تاريخي",
+        searchHistoryBtn: "🔎 عرض تاريخي",
         ordersTitle: "📜 طلباتك",
         noOrdersText: "لا توجد طلبات في السنتين الماضيتين",
         productsTitle: "المنتجات",
@@ -4624,7 +4617,7 @@
       addressLinksEnabled: true,
       allProducts: [],
       currentOrderNumber: 0,
-      lastGeneratedOrderId: null // Pour suivre le dernier ID généré
+      lastGeneratedOrderId: null
     };
 
     // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
@@ -4687,8 +4680,7 @@
       $('closeClientSpaceBtn').textContent = t.closeClientSpace;
       $('clientSpaceSection h4').textContent = t.clientSpaceTitle;
       $('clientAccountBtn .admin-label').textContent = t.clientAccountBtn;
-      $('clientTrackingBtn .admin-label').textContent = t.clientTrackingBtn;
-      $('clientHistoryBtn .admin-label').textContent = t.clientHistoryBtn;
+      $('clientCombinedBtn .admin-label').textContent = t.clientCombinedBtn;
       $('accountDetailsSection h4').textContent = t.accountTitle;
       $('clientName').previousElementSibling.textContent = t.nameLabel;
       $('clientPhone').parentElement.previousElementSibling.textContent = t.phoneLabel;
@@ -6140,12 +6132,65 @@
         showToast('👤 Accès à votre compte');
       };
 
-      $('clientTrackingBtn').onclick = () => {
-        afficherCommandesEnCours();
-      };
-
-      $('clientHistoryBtn').onclick = () => {
-        afficherHistoriqueCommandes();
+      $('clientCombinedBtn').onclick = () => {
+        if (!state.user || !state.user.phone) {
+          showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
+          $('clientAccountBtn').click();
+          return;
+        }
+        // Afficher directement toutes les commandes pour cet utilisateur (suivi + historique)
+        const allUserOrders = loadHistoryForPhone(state.user.phone);
+        if (allUserOrders.length === 0) {
+          showToast('📭 Aucune commande trouvée', 'warning');
+          return;
+        }
+        
+        const historyItemsList = $('historyItemsList');
+        historyItemsList.innerHTML = '';
+        
+        allUserOrders.forEach(order => {
+          const orderDate = new Date(order.date);
+          const formattedDate = orderDate.toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+          const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
+          
+          const historyItem = document.createElement('div');
+          historyItem.className = 'history-item';
+          historyItem.innerHTML = `
+            <div class="history-date">📅 ${formattedDate}</div>
+            <div class="history-summary">
+              <span class="history-items-count">${itemCount} article(s)</span>
+              <span class="history-total">${formatPrice(order.total)}</span>
+            </div>
+            <div style="font-size:10px;color:${order.statut === 'Livré' ? '#00ff88' : (order.statut === 'Annulé' ? '#ff6b6b' : '#00d4ff')};margin-top:4px;font-weight:700;">
+              📌 Statut: ${order.statut || 'En cours'}
+            </div>
+            ${orderSavings > 0 ? `
+              <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
+                💰 Économies: ${formatPrice(orderSavings)}
+              </div>
+            ` : ''}
+            ${order.orderId ? `
+              <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
+                📦 N°: ${order.orderId}
+              </div>
+            ` : ''}
+          `;
+          historyItem.addEventListener('click', () => {
+            showOrderDetails(order, true);
+          });
+          historyItemsList.appendChild(historyItem);
+        });
+        
+        $('orderHistorySection').classList.add('visible');
+        $('historyCount').textContent = `${allUserOrders.length} commande(s)`;
+        $('historyEmptyMessage').style.display = 'none';
       };
     }
 
