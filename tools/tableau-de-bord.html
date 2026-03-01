@@ -608,24 +608,34 @@
         </div>
       </div>
 
-      <div class="status-selector-card">
-        <div class="selector-container">
-          <div class="selector-row">
-            <select class="statut-dropdown" id="statusSelector">
-              <option value="🟡 NOUVELLE">🟡 NOUVELLE</option>
-              <option value="⏳ EN ATTENTE">⏳ EN ATTENTE</option>
-              <option value="🔵 EN PRÉPARATION">🔵 EN PRÉPARATION</option>
-              <option value="🟠 EN LIVRAISON">🟠 EN LIVRAISON</option>
-              <option value="✅ LIVRÉE">✅ LIVRÉE</option>
-              <option value="❌ ANNULÉE">❌ ANNULÉE</option>
-            </select>
-            <div class="icon"><i class="fas fa-filter"></i></div>
+      <div class="card">
+        <div class="statTop">
+          <div>
+            <div class="value" id="shippingRevenue">0,000 dt</div>
+            <div class="label">CA livraisons</div>
           </div>
-          <div class="statut-count" id="selectedStatusCount">0</div>
-          <div class="statut-label" id="selectedStatusLabel">Commandes sélectionnées</div>
+          <div class="icon"><i class="fas fa-truck"></i></div>
         </div>
       </div>
     </section>
+
+    <div class="status-selector-card">
+      <div class="selector-container">
+        <div class="selector-row">
+          <select class="statut-dropdown" id="statusSelector">
+            <option value="🟡 NOUVELLE">🟡 NOUVELLE</option>
+            <option value="⏳ EN ATTENTE">⏳ EN ATTENTE</option>
+            <option value="🔵 EN PRÉPARATION" selected>🔵 EN PRÉPARATION</option>
+            <option value="🟠 EN LIVRAISON">🟠 EN LIVRAISON</option>
+            <option value="✅ LIVRÉE">✅ LIVRÉE</option>
+            <option value="❌ ANNULÉE">❌ ANNULÉE</option>
+          </select>
+          <div class="icon"><i class="fas fa-filter"></i></div>
+        </div>
+        <div class="statut-count" id="selectedStatusCount">0</div>
+        <div class="statut-label" id="selectedStatusLabel">🔵 EN PRÉPARATION</div>
+      </div>
+    </div>
 
     <div class="top-product-card" id="topProductCard" style="display: none;">
       <div class="top-product-header">
@@ -787,7 +797,7 @@
         </div>
         <div class="analytics-item">
           <div class="analytics-label">CA livraisons</div>
-          <div class="analytics-value" id="shippingRevenue">0,000 dt</div>
+          <div class="analytics-value" id="shippingRevenueAnalytics">0,000 dt</div>
         </div>
         <div class="analytics-item">
           <div class="analytics-label">Commandes livraison</div>
@@ -810,7 +820,6 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbxEJ85cUAD03yDXY7PexjWhQaQD4uUPAeTwUANP5d6na39amSHyvUM-2RSwiSnGdBug/exec";
     const STATUTS = ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
     
-    // Configuration des frais de livraison
     const SHIPPING_FEE = 3.000;
     const FREE_SHIPPING_THRESHOLD = 100.000;
 
@@ -844,7 +853,6 @@
       showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
     }
 
-    // ✅ Format prix avec 3 chiffres après la virgule
     function formatPrice(amount) {
       if (typeof amount === 'string') {
         let cleanAmount = amount
@@ -862,7 +870,6 @@
       return num.toFixed(3).replace('.', ',') + ' dt';
     }
 
-    // ✅ Calcul du sous-total à partir des articles (sans livraison)
     function calculateSubtotalFromArticles(articlesText) {
       if (!articlesText) return 0;
       
@@ -876,14 +883,12 @@
       let subtotal = 0;
       
       for (const line of lines) {
-        // Ignorer les lignes qui ne sont pas des articles
         if (/^COMMANDE/i.test(line)) continue;
         if (/^CMD[-_ ]?MAXI/i.test(line)) continue;
         if (/^TOTAL/i.test(line)) continue;
         if (/^GPS/i.test(line)) continue;
         if (/^ÉCONOMIE/i.test(line)) continue;
         
-        // Format: "4,500 dt × 4 = 18,000 dt"
         const match = line.match(/(\d+(?:[.,]\d+)?)\s*dt\s*[×x]\s*(\d+)\s*=\s*(\d+(?:[.,]\d+)?)\s*dt/);
         if (match) {
           let montant = match[3].replace(',', '.').replace(/\s+/g, '');
@@ -891,7 +896,6 @@
           continue;
         }
         
-        // Format: "4,500 dt × 4"
         const simpleMatch = line.match(/(\d+(?:[.,]\d+)?)\s*dt\s*[×x]\s*(\d+)/);
         if (simpleMatch) {
           let prixUnitaire = parseFloat(simpleMatch[1].replace(',', '.'));
@@ -903,13 +907,11 @@
       return subtotal;
     }
 
-    // ✅ Calcul du total TTC (sous-total + frais de livraison si applicable)
     function calculateTotalWithShipping(subtotal) {
       const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
       return subtotal + shipping;
     }
 
-    // ✅ Parse un prix
     function parsePrice(priceStr) {
       if (!priceStr) return 0;
       
@@ -1059,7 +1061,6 @@
     function calculateAnalytics() {
       const orders = state.orders || [];
       
-      // Réinitialiser les analytics
       state.analytics = {
         totalRevenue: 0, 
         totalOrders: orders.length,
@@ -1092,21 +1093,17 @@
         const dayKey = d.toISOString().slice(0,10);
         const hour = d.getHours();
         
-        // ✅ Calcul du sous-total et du total avec livraison
         const subtotal = calculateSubtotalFromArticles(order.articles) || parsePrice(order.total);
         const totalWithShipping = calculateTotalWithShipping(subtotal);
         const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
 
-        // Statistiques par jour/heure (utiliser le total TTC)
         state.analytics.salesByDay[dayKey] = (state.analytics.salesByDay[dayKey] || 0) + totalWithShipping;
         state.analytics.salesByHourRevenue[hour] = (state.analytics.salesByHourRevenue[hour] || 0) + totalWithShipping;
         state.analytics.ordersByHour[hour] = (state.analytics.ordersByHour[hour] || 0) + 1;
         state.analytics.ordersByDay[dayKey] = (state.analytics.ordersByDay[dayKey] || 0) + 1;
 
-        // Revenu total TTC
         totalRevenueWithShipping += totalWithShipping;
 
-        // Statistiques de livraison
         if (shippingFee > 0) {
           state.analytics.shippingRevenue += shippingFee;
           state.analytics.paidShippingCount++;
@@ -1155,6 +1152,7 @@
       $("avgCustomerValue").textContent = formatPrice(state.analytics.avgCustomerValue);
       $("ordersToday").textContent = state.analytics.ordersToday;
       $("revenueToday").textContent = formatPrice(state.analytics.revenueToday);
+      $("shippingRevenueAnalytics").textContent = formatPrice(state.analytics.shippingRevenue);
 
       const allOrdersBody = $("allOrdersBody");
       allOrdersBody.innerHTML = "";
@@ -1189,7 +1187,6 @@
             addressLink = `<a href="https://www.google.com/maps/search/?api=1&query=${query}" target="_blank" class="address-link" title="Voir sur Google Maps"><i class="fas fa-map-marker-alt"></i> ${addressText.substring(0,30)}...</a>`;
           }
 
-          // ✅ Calculer le sous-total et le total avec livraison
           const subtotal = calculateSubtotalFromArticles(order.articles) || parsePrice(order.total);
           const totalWithShipping = calculateTotalWithShipping(subtotal);
           const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
@@ -1357,7 +1354,6 @@
       state.charts.hourly.update();
     }
 
-    // ✅ Mise à jour du statut avec synchronisation
     async function updateOrderStatus(commandeId, nouveauStatut) {
       try {
         showToast(`⏳ Mise à jour du statut...`, "info");
