@@ -2,15 +2,10 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <!-- ✅ OPTIMISATION MOBILE - PLEIN ÉCRAN -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Tableau de Bord - MAXI JDC MARKET</title>
-
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <style>
     :root{
       --bg1:#0a1929; --bg2:#112240; --card:#162447; --line:rgba(255,255,255,.15);
@@ -20,7 +15,6 @@
     
     *{box-sizing:border-box;margin:0;padding:0}
     
-    /* ✅ PLEIN ÉCRAN MOBILE */
     html, body {
       height: 100%;
       width: 100%;
@@ -49,7 +43,6 @@
       width: 100%;
     }
     
-    /* ✅ HEADER MOBILE - MÊME INTERFACE ADAPTÉE */
     .header{
       background:rgba(10,25,47,.95);
       border:2px solid var(--green);
@@ -148,7 +141,6 @@
       border: 1px solid var(--red);
     }
 
-    /* ✅ GRID STATS - 2 COLONNES SUR MOBILE */
     .grid{
       display:grid; 
       gap:10px; 
@@ -192,7 +184,6 @@
       font-weight:600
     }
     
-    /* ✅ STATUT SELECTEUR - COMPACT */
     .status-selector-card {
       background:var(--card);
       border:1px solid var(--line);
@@ -256,7 +247,6 @@
       white-space: nowrap;
     }
     
-    /* ✅ TOP PRODUCT - MOBILE */
     .top-product-card {
       background: linear-gradient(135deg, rgba(26, 36, 93, 0.9), rgba(22, 36, 71, 0.9));
       border: 2px solid var(--yellow);
@@ -323,7 +313,6 @@
       font-size: 10px;
     }
 
-    /* ✅ GRAPHIQUES - 100% SUR MOBILE */
     .chart-container {
       display: flex;
       flex-direction: column;
@@ -354,7 +343,6 @@
       position:relative
     }
     
-    /* ✅ TABLES AVEC SCROLL HORIZONTAL */
     .tableWrap{
       border:1px solid var(--line);
       border-radius:10px;
@@ -367,7 +355,6 @@
       margin-top: 8px;
     }
     
-    /* ✅ CURSEUR HORIZONTAL PERSONNALISÉ */
     .tableWrap::-webkit-scrollbar {
       height: 8px;
       width: 8px;
@@ -390,7 +377,7 @@
     table{ 
       width: 100%;
       border-collapse: collapse;
-      min-width: 1100px; /* Force le scroll horizontal */
+      min-width: 1100px;
     }
     
     th{
@@ -414,12 +401,10 @@
     
     tr:hover{background:rgba(255,255,255,.05)}
     
-    /* ✅ COLONNES LARGES POUR MEILLEURE LECTURE */
-    td:nth-child(4) { min-width: 200px; } /* Adresse */
-    td:nth-child(5) { min-width: 140px; } /* Commande */
-    td:nth-child(6) { min-width: 280px; } /* Articles */
+    td:nth-child(4) { min-width: 200px; }
+    td:nth-child(5) { min-width: 140px; }
+    td:nth-child(6) { min-width: 280px; }
     
-    /* LIEN ADRESSE VERS GOOGLE MAPS */
     .address-link {
       color: var(--blue);
       text-decoration: none;
@@ -442,7 +427,6 @@
       opacity: 0.8;
     }
     
-    /* STATUT SELECT */
     .statut-select {
       padding: 5px 6px;
       border: 1px solid var(--line);
@@ -467,7 +451,6 @@
       padding: 6px;
     }
     
-    /* ✅ ARTICLES CELL - AFFICHAGE COMPLET SANS TRONCATURE */
     .articles-cell {
       white-space: pre-line;
       font-size: 10px;
@@ -476,15 +459,13 @@
       word-wrap: break-word;
     }
     
-    /* ✅ TABLEAU TOP 10 PRODUITS */
     #topProductsTable {
       min-width: 500px;
     }
     
-    #topProductsTable th:nth-child(2) { min-width: 250px; } /* Colonne Produit */
+    #topProductsTable th:nth-child(2) { min-width: 250px; }
     #topProductsTable td:nth-child(2) { min-width: 250px; }
     
-    /* ✅ SECTION ANALYTIQUE - GRILLE 2 COLONNES */
     .analytics-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -509,7 +490,6 @@
       font-weight: 900;
     }
     
-    /* FOOTER */
     .footer{
       margin-top:12px; 
       padding:10px; 
@@ -519,7 +499,6 @@
       font-size:11px;
     }
 
-    /* TOAST */
     .toast{
       position:fixed; 
       top:10px; 
@@ -544,7 +523,6 @@
       to{transform:translateY(0);opacity:1}
     }
     
-    /* ✅ SAFE AREA POUR IPHONE */
     @supports (padding-top: env(safe-area-inset-top)) {
       body {
         padding-top: env(safe-area-inset-top);
@@ -556,7 +534,6 @@
 
 <body>
   <div class="container">
-    <!-- HEADER VERSION MOBILE -->
     <header class="header">
       <div class="header-top">
         <div class="left">
@@ -585,12 +562,11 @@
       </div>
     </header>
 
-    <!-- STATISTIQUES PRINCIPALES - 2 COLONNES -->
     <section class="grid">
       <div class="card">
         <div class="statTop">
           <div>
-            <div class="value" id="totalRevenue">0,00 dt</div>
+            <div class="value" id="totalRevenue">0,000 dt</div>
             <div class="label">CA total</div>
           </div>
           <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
@@ -610,14 +586,13 @@
       <div class="card">
         <div class="statTop">
           <div>
-            <div class="value" id="avgOrderValue">0,00 dt</div>
+            <div class="value" id="avgOrderValue">0,000 dt</div>
             <div class="label">Panier moyen</div>
           </div>
           <div class="icon"><i class="fas fa-shopping-cart"></i></div>
         </div>
       </div>
 
-      <!-- CARTE SELECTEUR DE STATUT - SUR 2 COLONNES -->
       <div class="status-selector-card">
         <div class="selector-container">
           <div class="selector-row">
@@ -637,7 +612,6 @@
       </div>
     </section>
 
-    <!-- PRODUIT LE PLUS VENDU -->
     <div class="top-product-card" id="topProductCard" style="display: none;">
       <div class="top-product-header">
         <h3><i class="fas fa-trophy"></i> PRODUIT LE PLUS VENDU</h3>
@@ -653,7 +627,7 @@
               <div class="stat-label">Quantité</div>
             </div>
             <div class="product-stat">
-              <div class="stat-value" id="topProductRevenue">0,00 dt</div>
+              <div class="stat-value" id="topProductRevenue">0,000 dt</div>
               <div class="stat-label">Revenu</div>
             </div>
             <div class="product-stat">
@@ -665,9 +639,7 @@
       </div>
     </div>
 
-    <!-- GRAPHIQUES - EMPILÉS VERTICALEMENT -->
     <div class="chart-container">
-      <!-- Ventes par jour -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-chart-line"></i> Ventes par jour</h3>
@@ -682,7 +654,6 @@
         </div>
       </div>
 
-      <!-- Répartition par statut -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-chart-pie"></i> Répartition</h3>
@@ -693,7 +664,6 @@
         </div>
       </div>
 
-      <!-- Top 10 produits -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-star"></i> Top 10 produits</h3>
@@ -704,7 +674,6 @@
         </div>
       </div>
 
-      <!-- Activité commandes -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-clock"></i> Activité</h3>
@@ -719,9 +688,7 @@
       </div>
     </div>
 
-    <!-- TABLEAUX AVEC SCROLL HORIZONTAL -->
     <div style="margin-top: 12px;">
-      <!-- Toutes les commandes -->
       <div class="card">
         <div class="sectionTitle">
           <h3><i class="fas fa-list"></i> Toutes les commandes</h3>
@@ -752,7 +719,6 @@
         </div>
       </div>
 
-      <!-- Top 10 produits table -->
       <div class="card" style="margin-top: 12px;">
         <div class="sectionTitle">
           <h3><i class="fas fa-trophy"></i> Top 10 produits</h3>
@@ -780,7 +746,6 @@
       </div>
     </div>
 
-    <!-- SECTION ANALYTIQUE - GRILLE 2 COLONNES -->
     <div class="card" style="margin-top: 12px;">
       <div class="sectionTitle">
         <h3><i class="fas fa-chart-bar"></i> Analyse</h3>
@@ -793,7 +758,7 @@
         </div>
         <div class="analytics-item">
           <div class="analytics-label">Client moyen</div>
-          <div class="analytics-value" id="avgCustomerValue">0,00 dt</div>
+          <div class="analytics-value" id="avgCustomerValue">0,000 dt</div>
         </div>
         <div class="analytics-item">
           <div class="analytics-label">Aujourd'hui</div>
@@ -801,7 +766,7 @@
         </div>
         <div class="analytics-item">
           <div class="analytics-label">CA aujourd'hui</div>
-          <div class="analytics-value" id="revenueToday">0,00 dt</div>
+          <div class="analytics-value" id="revenueToday">0,000 dt</div>
         </div>
       </div>
     </div>
@@ -848,9 +813,10 @@
       showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
     }
 
+    // ✅ CORRECTION: Format prix avec 3 chiffres après la virgule
     function formatPrice(amount) {
-      const n = Number(amount || 0);
-      return n.toFixed(2).replace(".", ",") + " dt";
+      const num = parseFloat(String(amount || '0').replace(',', '.')) || 0;
+      return num.toFixed(3).replace('.', ',') + ' dt';
     }
 
     function safeText(x) {
@@ -898,9 +864,9 @@
           const q = parseInt(m[1], 10) || 0;
           let rest = (m[2] || "").trim();
           let unit = 0;
-          const p = rest.match(/-\s*([0-9]+(?:[.,][0-9]{1,2})?)\s*dt\b/i);
+          const p = rest.match(/-\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt\b/i);
           if (p && p[1]) unit = num(p[1]);
-          rest = rest.replace(/\s*-\s*[0-9]+(?:[.,][0-9]{1,2})?\s*dt\b/i, "").trim();
+          rest = rest.replace(/\s*-\s*[0-9]+(?:[.,][0-9]{1,3})?\s*dt\b/i, "").trim();
 
           out.push({ produit: rest || "Produit", quantite: q, prix_unitaire: unit, prix_total: unit * q });
           continue;
@@ -937,7 +903,7 @@
       return Array.from(map.values())
         .sort((a,b)=> b.quantity - a.quantity)
         .slice(0,10)
-        .map(p => ({ name: p.name, quantity: Math.round(p.quantity), revenue: Number(p.revenue.toFixed(2)) }));
+        .map(p => ({ name: p.name, quantity: Math.round(p.quantity), revenue: Number(p.revenue.toFixed(3)) }));
     }
 
     async function loadData() {
@@ -1066,7 +1032,6 @@
         sortedOrders.slice(0, 50).forEach(order => {
           const statut = order.statut || "🟡 NOUVELLE";
           
-          // ✅ Correction : affichage complet des articles sans troncature
           const articlesText = order.articles ? safeText(order.articles).replace(/\n/g, '<br>') : '';
           
           const d = parseOrderDate(order.date);
@@ -1092,7 +1057,7 @@
             <td>${safeText(order.telephone)}</td>
             <td>${addressLink}</td>
             <td><strong>${safeText(order.commande_id) || 'N/A'}</strong></td>
-            <td class="articles-cell">${articlesText}</td>  <!-- ✅ plus de limite, tout l'article -->
+            <td class="articles-cell">${articlesText}</td>
             <td><strong>${formatPrice(order.total)}</strong></td>
             <td>
               <select class="statut-select" onchange="updateOrderStatus('${order.commande_id}', this.value)">
@@ -1286,7 +1251,7 @@
           telephone: "+216 20000000",
           adresse: "Adresse test | GPS: 36.858546, 10.301467",
           articles: "2x PRODUIT TEST A\n1x PRODUIT TEST B",
-          total: "30.00"
+          total: "30.000"
         });
 
         const resp = await fetch(API_URL, {
