@@ -2,10 +2,15 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
+  <!-- ✅ OPTIMISATION MOBILE - PLEIN ÉCRAN -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Tableau de Bord - MAXI JDC MARKET</title>
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
     :root{
       --bg1:#0a1929; --bg2:#112240; --card:#162447; --line:rgba(255,255,255,.15);
@@ -15,6 +20,7 @@
     
     *{box-sizing:border-box;margin:0;padding:0}
     
+    /* ✅ PLEIN ÉCRAN MOBILE */
     html, body {
       height: 100%;
       width: 100%;
@@ -43,6 +49,7 @@
       width: 100%;
     }
     
+    /* ✅ HEADER MOBILE - MÊME INTERFACE ADAPTÉE */
     .header{
       background:rgba(10,25,47,.95);
       border:2px solid var(--green);
@@ -141,6 +148,7 @@
       border: 1px solid var(--red);
     }
 
+    /* ✅ GRID STATS - 2 COLONNES SUR MOBILE */
     .grid{
       display:grid; 
       gap:10px; 
@@ -184,6 +192,7 @@
       font-weight:600
     }
     
+    /* ✅ STATUT SELECTEUR - COMPACT */
     .status-selector-card {
       background:var(--card);
       border:1px solid var(--line);
@@ -247,6 +256,7 @@
       white-space: nowrap;
     }
     
+    /* ✅ TOP PRODUCT - MOBILE */
     .top-product-card {
       background: linear-gradient(135deg, rgba(26, 36, 93, 0.9), rgba(22, 36, 71, 0.9));
       border: 2px solid var(--yellow);
@@ -313,6 +323,7 @@
       font-size: 10px;
     }
 
+    /* ✅ GRAPHIQUES - 100% SUR MOBILE */
     .chart-container {
       display: flex;
       flex-direction: column;
@@ -343,6 +354,7 @@
       position:relative
     }
     
+    /* ✅ TABLES AVEC SCROLL HORIZONTAL */
     .tableWrap{
       border:1px solid var(--line);
       border-radius:10px;
@@ -355,6 +367,7 @@
       margin-top: 8px;
     }
     
+    /* ✅ CURSEUR HORIZONTAL PERSONNALISÉ */
     .tableWrap::-webkit-scrollbar {
       height: 8px;
       width: 8px;
@@ -377,7 +390,7 @@
     table{ 
       width: 100%;
       border-collapse: collapse;
-      min-width: 1100px;
+      min-width: 1100px; /* Force le scroll horizontal */
     }
     
     th{
@@ -401,10 +414,12 @@
     
     tr:hover{background:rgba(255,255,255,.05)}
     
-    td:nth-child(4) { min-width: 200px; }
-    td:nth-child(5) { min-width: 140px; }
-    td:nth-child(6) { min-width: 280px; }
+    /* ✅ COLONNES LARGES POUR MEILLEURE LECTURE */
+    td:nth-child(4) { min-width: 200px; } /* Adresse */
+    td:nth-child(5) { min-width: 140px; } /* Commande */
+    td:nth-child(6) { min-width: 280px; } /* Articles */
     
+    /* LIEN ADRESSE VERS GOOGLE MAPS */
     .address-link {
       color: var(--blue);
       text-decoration: none;
@@ -427,6 +442,7 @@
       opacity: 0.8;
     }
     
+    /* STATUT SELECT */
     .statut-select {
       padding: 5px 6px;
       border: 1px solid var(--line);
@@ -451,6 +467,7 @@
       padding: 6px;
     }
     
+    /* ✅ ARTICLES CELL - AFFICHAGE COMPLET SANS TRONCATURE */
     .articles-cell {
       white-space: pre-line;
       font-size: 10px;
@@ -459,13 +476,15 @@
       word-wrap: break-word;
     }
     
+    /* ✅ TABLEAU TOP 10 PRODUITS */
     #topProductsTable {
       min-width: 500px;
     }
     
-    #topProductsTable th:nth-child(2) { min-width: 250px; }
+    #topProductsTable th:nth-child(2) { min-width: 250px; } /* Colonne Produit */
     #topProductsTable td:nth-child(2) { min-width: 250px; }
     
+    /* ✅ SECTION ANALYTIQUE - GRILLE 2 COLONNES */
     .analytics-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -489,7 +508,8 @@
       font-size: 16px;
       font-weight: 900;
     }
-    
+
+    /* FOOTER */
     .footer{
       margin-top:12px; 
       padding:10px; 
@@ -499,6 +519,7 @@
       font-size:11px;
     }
 
+    /* TOAST */
     .toast{
       position:fixed; 
       top:10px; 
@@ -523,6 +544,7 @@
       to{transform:translateY(0);opacity:1}
     }
     
+    /* ✅ SAFE AREA POUR IPHONE */
     @supports (padding-top: env(safe-area-inset-top)) {
       body {
         padding-top: env(safe-area-inset-top);
@@ -534,6 +556,7 @@
 
 <body>
   <div class="container">
+    <!-- HEADER VERSION MOBILE -->
     <header class="header">
       <div class="header-top">
         <div class="left">
@@ -548,7 +571,7 @@
       
       <div class="header-actions">
         <div id="apiStatus" class="api-status api-online">
-          <i class="fas fa-circle"></i> API Connectée
+          <i class="fas fa-circle"></i> Vérification...
         </div>
         <button class="btn" id="btnRefresh">
           <i class="fas fa-sync-alt"></i> Actualiser
@@ -562,11 +585,12 @@
       </div>
     </header>
 
+    <!-- STATISTIQUES PRINCIPALES - 2 COLONNES -->
     <section class="grid">
       <div class="card">
         <div class="statTop">
           <div>
-            <div class="value" id="totalRevenue">0,000 dt</div>
+            <div class="value" id="totalRevenue">0,00 dt</div>
             <div class="label">CA total</div>
           </div>
           <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
@@ -586,13 +610,14 @@
       <div class="card">
         <div class="statTop">
           <div>
-            <div class="value" id="avgOrderValue">0,000 dt</div>
+            <div class="value" id="avgOrderValue">0,00 dt</div>
             <div class="label">Panier moyen</div>
           </div>
           <div class="icon"><i class="fas fa-shopping-cart"></i></div>
         </div>
       </div>
 
+      <!-- CARTE SELECTEUR DE STATUT - SUR 2 COLONNES -->
       <div class="status-selector-card">
         <div class="selector-container">
           <div class="selector-row">
@@ -612,6 +637,7 @@
       </div>
     </section>
 
+    <!-- PRODUIT LE PLUS VENDU -->
     <div class="top-product-card" id="topProductCard" style="display: none;">
       <div class="top-product-header">
         <h3><i class="fas fa-trophy"></i> PRODUIT LE PLUS VENDU</h3>
@@ -627,7 +653,7 @@
               <div class="stat-label">Quantité</div>
             </div>
             <div class="product-stat">
-              <div class="stat-value" id="topProductRevenue">0,000 dt</div>
+              <div class="stat-value" id="topProductRevenue">0,00 dt</div>
               <div class="stat-label">Revenu</div>
             </div>
             <div class="product-stat">
@@ -639,7 +665,9 @@
       </div>
     </div>
 
+    <!-- GRAPHIQUES - EMPILÉS VERTICALEMENT -->
     <div class="chart-container">
+      <!-- Ventes par jour -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-chart-line"></i> Ventes par jour</h3>
@@ -654,6 +682,7 @@
         </div>
       </div>
 
+      <!-- Répartition par statut -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-chart-pie"></i> Répartition</h3>
@@ -664,6 +693,7 @@
         </div>
       </div>
 
+      <!-- Top 10 produits -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-star"></i> Top 10 produits</h3>
@@ -674,6 +704,7 @@
         </div>
       </div>
 
+      <!-- Activité commandes -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-clock"></i> Activité</h3>
@@ -688,7 +719,9 @@
       </div>
     </div>
 
+    <!-- TABLEAUX AVEC SCROLL HORIZONTAL -->
     <div style="margin-top: 12px;">
+      <!-- Toutes les commandes -->
       <div class="card">
         <div class="sectionTitle">
           <h3><i class="fas fa-list"></i> Toutes les commandes</h3>
@@ -719,6 +752,7 @@
         </div>
       </div>
 
+      <!-- Top 10 produits table -->
       <div class="card" style="margin-top: 12px;">
         <div class="sectionTitle">
           <h3><i class="fas fa-trophy"></i> Top 10 produits</h3>
@@ -746,6 +780,7 @@
       </div>
     </div>
 
+    <!-- SECTION ANALYTIQUE - GRILLE 2 COLONNES -->
     <div class="card" style="margin-top: 12px;">
       <div class="sectionTitle">
         <h3><i class="fas fa-chart-bar"></i> Analyse</h3>
@@ -758,7 +793,7 @@
         </div>
         <div class="analytics-item">
           <div class="analytics-label">Client moyen</div>
-          <div class="analytics-value" id="avgCustomerValue">0,000 dt</div>
+          <div class="analytics-value" id="avgCustomerValue">0,00 dt</div>
         </div>
         <div class="analytics-item">
           <div class="analytics-label">Aujourd'hui</div>
@@ -766,7 +801,7 @@
         </div>
         <div class="analytics-item">
           <div class="analytics-label">CA aujourd'hui</div>
-          <div class="analytics-value" id="revenueToday">0,000 dt</div>
+          <div class="analytics-value" id="revenueToday">0,00 dt</div>
         </div>
       </div>
     </div>
@@ -781,9 +816,11 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    // Configuration
     const API_URL = "https://script.google.com/macros/s/AKfycbxwI535QU_-3XSxLZ5pqOuBPSnlmf_-7us3gemY3TpcPoZe6XMqEcSihtCsRSnl17sq/exec";
     const STATUTS = ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
 
+    // État global
     const state = {
       orders: [],
       topProducts: [],
@@ -799,8 +836,10 @@
       statusUpdateForId: null
     };
 
+    // Sélecteurs
     const $ = (id) => document.getElementById(id);
 
+    // Toast notification
     function showToast(msg, type = "info") {
       const el = $("toast");
       const bg = type === "success" ? "#00ff88" : 
@@ -813,37 +852,47 @@
       showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
     }
 
-    // ✅ CORRECTION: Format prix avec 3 chiffres après la virgule
+    // Formatage prix
     function formatPrice(amount) {
-      const num = parseFloat(String(amount || '0').replace(',', '.')) || 0;
-      return num.toFixed(3).replace('.', ',') + ' dt';
+      const n = Number(amount || 0);
+      return n.toFixed(3).replace(".", ",") + " dt";
     }
 
+    // Texte sécurisé
     function safeText(x) {
       if (x === null || x === undefined) return "";
       return String(x);
     }
 
+    // Conversion nombre
     function num(x) {
-      const n = Number(String(x ?? "0").replace(",", "."));
+      if (x === null || x === undefined) return 0;
+      const n = Number(String(x).replace(",", ".").replace(/[^0-9.-]/g, ""));
       return Number.isFinite(n) ? n : 0;
     }
 
+    // Parsing date
     function parseOrderDate(dateStr) {
       if (!dateStr) return null;
-      const d1 = new Date(dateStr);
-      if (!isNaN(d1.getTime())) return d1;
-
+      
+      // Format: "dd/MM/yyyy HH:mm:ss"
       const m = String(dateStr).match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
       if (m) {
-        const dd = parseInt(m[1],10), mm = parseInt(m[2],10), yy = parseInt(m[3],10);
-        const hh = parseInt(m[4],10), mi = parseInt(m[5],10), ss = parseInt(m[6]||"0",10);
-        const d = new Date(yy, mm-1, dd, hh, mi, ss);
-        return isNaN(d.getTime()) ? null : d;
+        const dd = parseInt(m[1],10);
+        const mm = parseInt(m[2],10) - 1;
+        const yy = parseInt(m[3],10);
+        const hh = parseInt(m[4],10);
+        const mi = parseInt(m[5],10);
+        const ss = parseInt(m[6] || "0",10);
+        return new Date(yy, mm, dd, hh, mi, ss);
       }
-      return null;
+      
+      // Format ISO
+      const d = new Date(dateStr);
+      return !isNaN(d.getTime()) ? d : null;
     }
 
+    // Parsing articles
     function parseArticles(articlesText) {
       const t = String(articlesText || "")
         .replace(/\\n/g, "\n")
@@ -854,119 +903,200 @@
       const out = [];
 
       for (const line of lines) {
-        if (/^COMMANDE\s*[:=]/i.test(line)) continue;
-        if (/^CMD[-_ ]?MAXI/i.test(line)) continue;
-        if (/^TOTAL/i.test(line)) continue;
-        if (/^GPS/i.test(line)) continue;
+        // Ignorer les lignes de métadonnées
+        if (/^(COMMANDE|CMD-|TOTAL|SOUS-TOTAL|FRAIS|DATE|GPS)/i.test(line)) continue;
 
-        const m = line.match(/^(\d+)\s*(?:x|×)\s*(.+)$/i);
+        // Format: "2x PRODUIT - 45.000 dt"
+        const m = line.match(/^(\d+)\s*(?:x|×)\s*(.+?)(?:\s*-\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt)?$/i);
         if (m) {
-          const q = parseInt(m[1], 10) || 0;
-          let rest = (m[2] || "").trim();
-          let unit = 0;
-          const p = rest.match(/-\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt\b/i);
-          if (p && p[1]) unit = num(p[1]);
-          rest = rest.replace(/\s*-\s*[0-9]+(?:[.,][0-9]{1,3})?\s*dt\b/i, "").trim();
-
-          out.push({ produit: rest || "Produit", quantite: q, prix_unitaire: unit, prix_total: unit * q });
+          const q = parseInt(m[1], 10) || 1;
+          let nom = m[2].trim();
+          const prix = m[3] ? num(m[3]) : 0;
+          
+          // Nettoyer le nom
+          nom = nom.replace(/\s*-\s*[0-9]+(?:[.,][0-9]{1,3})?\s*dt\b/i, "").trim();
+          
+          out.push({ 
+            produit: nom || "Produit", 
+            quantite: q, 
+            prix_unitaire: prix,
+            prix_total: prix * q 
+          });
           continue;
         }
 
-        if (line.length >= 3) out.push({ produit: line, quantite: 1, prix_unitaire: 0, prix_total: 0 });
+        // Format simple: "Produit"
+        if (line.length >= 3 && !line.includes("dt")) {
+          out.push({ produit: line, quantite: 1, prix_unitaire: 0, prix_total: 0 });
+        }
       }
+      
       return out;
     }
 
+    // Calcul top produits
     function computeTopProductsFromOrders(orders) {
       const map = new Map();
 
       for (const order of orders) {
         const orderTotal = num(order.total);
         const articles = parseArticles(order.articles);
+        
         if (articles.length === 0) continue;
 
-        const totalQty = articles.reduce((s,a)=> s + num(a.quantite), 0) || 1;
+        // Répartition proportionnelle du total
+        const totalQty = articles.reduce((s, a) => s + num(a.quantite), 0) || 1;
 
         for (const a of articles) {
           const name = (a.produit || "Produit").trim();
+          if (!name) continue;
+          
           const q = num(a.quantite);
-
+          // Si pas de prix unitaire, répartir le total de la commande
           const lineRevenue = a.prix_total > 0 ? num(a.prix_total) : (orderTotal * (q / totalQty));
 
-          if (!map.has(name)) map.set(name, { name, quantity: 0, revenue: 0 });
+          if (!map.has(name)) {
+            map.set(name, { name, quantity: 0, revenue: 0, orders: 0 });
+          }
+          
           const it = map.get(name);
           it.quantity += q;
           it.revenue += lineRevenue;
+          it.orders += 1;
         }
       }
 
       return Array.from(map.values())
-        .sort((a,b)=> b.quantity - a.quantity)
-        .slice(0,10)
-        .map(p => ({ name: p.name, quantity: Math.round(p.quantity), revenue: Number(p.revenue.toFixed(3)) }));
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 10)
+        .map(p => ({ 
+          name: p.name, 
+          quantity: Math.round(p.quantity), 
+          revenue: Number(p.revenue.toFixed(3)),
+          orders: p.orders 
+        }));
     }
 
+    // Chargement des données depuis Google Sheets
     async function loadData() {
       try {
-        const ordersResponse = await fetch(`${API_URL}?method=getorders&t=${Date.now()}`, { cache: "no-store" });
-        if (!ordersResponse.ok) throw new Error("API commandes non disponible");
+        // Test de connexion d'abord
+        const testResponse = await fetch(`${API_URL}?method=test&t=${Date.now()}`, { 
+          method: 'GET',
+          cache: "no-store",
+          mode: 'cors'
+        });
+        
+        if (!testResponse.ok) {
+          throw new Error(`Erreur HTTP: ${testResponse.status}`);
+        }
+        
+        const testData = await testResponse.json();
+        console.log("Test API:", testData);
+        
+        // Chargement des commandes
+        const ordersResponse = await fetch(`${API_URL}?method=getorders&t=${Date.now()}`, { 
+          method: 'GET',
+          cache: "no-store",
+          mode: 'cors'
+        });
+        
+        if (!ordersResponse.ok) {
+          throw new Error(`Erreur HTTP: ${ordersResponse.status}`);
+        }
+        
         const ordersData = await ordersResponse.json();
-        if (!ordersData.success || !ordersData.orders) throw new Error("Aucune donnée valide");
+        console.log("Réponse API commandes:", ordersData);
 
-        state.orders = ordersData.orders.map(order => {
-          let commandeId = order.commande_id || order.numero || order.order_id || order.n_commande || order.reference || "";
-          
-          return {
-            date: order.date,
+        // Adapter selon la structure de réponse
+        if (ordersData.success && ordersData.commandes) {
+          state.orders = ordersData.commandes.map(order => {
+            // Nettoyer les données
+            return {
+              date: order.date || order["📅 DATE"] || "",
+              nom: order.nom || order["👤 NOM CLIENT"] || order.name || "",
+              telephone: String(order.telephone || order["📞 TÉLÉPHONE"] || order.phone || "").replace(/^'/, ""),
+              adresse: order.adresse || order["📍 ADRESSE"] || order.address || "",
+              commande_id: order.commande_id || order["🆔 N° COMMANDE"] || order.numero || "",
+              articles: order.articles || order["🛒 ARTICLES"] || order.items || "",
+              total: order.total || order["💰 TOTAL (DT)"] || "0",
+              statut: order.statut || order["📊 STATUT"] || "🟡 NOUVELLE"
+            };
+          });
+        } else if (Array.isArray(ordersData)) {
+          state.orders = ordersData.map(order => ({
+            date: order.date || "",
             nom: order.nom || order.name || "",
-            telephone: order.telephone || order.phone || "",
+            telephone: String(order.telephone || order.phone || "").replace(/^'/, ""),
             adresse: order.adresse || order.address || "",
-            commande_id: commandeId,
+            commande_id: order.commande_id || order.numero || order.order_id || "",
             articles: order.articles || order.items || "",
             total: order.total || order.amount || "0",
             statut: order.statut || "🟡 NOUVELLE"
-          };
-        });
+          }));
+        } else {
+          throw new Error("Format de données inattendu");
+        }
 
         state.apiStatus = 'online';
         $("apiStatus").className = "api-status api-online";
         $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> API Connectée';
-        $("dataSourceInfo").textContent = "Source : API Google Sheets";
-
+        $("dataSourceInfo").textContent = "Source : Google Sheets (temps réel)";
+        
+        // Calculer les top produits
         state.topProducts = computeTopProductsFromOrders(state.orders);
+        
         return true;
 
       } catch (error) {
         console.error("Erreur chargement:", error);
-        state.apiStatus = 'demo';
+        state.apiStatus = 'offline';
         $("apiStatus").className = "api-status api-offline";
-        $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> Mode Démo';
-        $("dataSourceInfo").textContent = "Mode Démonstration";
-        showToast("📊 Mode démonstration activé", "warning");
+        $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> API Hors ligne';
+        $("dataSourceInfo").textContent = "⚠️ Erreur de connexion à Google Sheets";
+        showToast(`❌ Erreur: ${error.message}`, "error");
         return false;
       }
     }
 
+    // Calcul des analytics
     function calculateAnalytics() {
       const orders = state.orders || [];
+      
+      // Réinitialisation
       state.analytics = {
-        totalRevenue: 0, totalOrders: 0, avgOrderValue: 0,
-        statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
-        ordersByHour: {}, ordersByDay: {},
-        conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
+        totalRevenue: 0, 
+        totalOrders: 0, 
+        avgOrderValue: 0,
+        statusDistribution: {}, 
+        salesByDay: {}, 
+        salesByHourRevenue: {},
+        ordersByHour: {}, 
+        ordersByDay: {},
+        conversionRate: 0, 
+        avgCustomerValue: 0, 
+        ordersToday: 0, 
+        revenueToday: 0
       };
 
+      if (orders.length === 0) return;
+
+      // Calculs de base
       state.analytics.totalRevenue = orders.reduce((sum, order) => sum + num(order.total), 0);
       state.analytics.totalOrders = orders.length;
-      state.analytics.avgOrderValue = state.analytics.totalOrders > 0 ? state.analytics.totalRevenue / state.analytics.totalOrders : 0;
+      state.analytics.avgOrderValue = state.analytics.totalRevenue / state.analytics.totalOrders;
 
       const now = new Date();
       const todayKey = now.toISOString().slice(0,10);
-
+      
+      // Distribution par statut
       for (const order of orders) {
         const statut = order.statut || "🟡 NOUVELLE";
         state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
+      }
 
+      // Analyses temporelles
+      for (const order of orders) {
         const d = parseOrderDate(order.date);
         if (!d) continue;
 
@@ -984,21 +1114,30 @@
         }
       }
 
-      if (state.topProducts.length > 0) state.analytics.topProduct = state.topProducts[0];
-      state.analytics.conversionRate = Math.min(100, Math.round((orders.length / 100) * 100));
-      state.analytics.avgCustomerValue = state.analytics.totalOrders > 0 ? state.analytics.totalRevenue / (state.analytics.totalOrders * 0.7) : 0;
+      // Métriques avancées
+      if (state.topProducts.length > 0) {
+        state.analytics.topProduct = state.topProducts[0];
+      }
+      
+      state.analytics.conversionRate = Math.min(100, Math.round((orders.length / Math.max(orders.length * 1.5, 1)) * 100));
+      state.analytics.avgCustomerValue = state.analytics.totalOrders > 0 ? 
+        state.analytics.totalRevenue / (new Set(orders.map(o => o.telephone)).size || 1) : 0;
     }
 
+    // Mise à jour de l'interface
     function updateUI() {
+      // Stats principales
       $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
       $("totalOrders").textContent = state.analytics.totalOrders;
       $("avgOrderValue").textContent = formatPrice(state.analytics.avgOrderValue);
 
+      // Sélecteur de statut
       const selectedStatut = $("statusSelector").value;
       const count = state.analytics.statusDistribution[selectedStatut] || 0;
       $("selectedStatusCount").textContent = count;
       $("selectedStatusLabel").textContent = selectedStatut;
 
+      // Top produit
       if (state.analytics.topProduct) {
         const totalQuantity = state.topProducts.reduce((sum, p) => sum + num(p.quantity), 0);
         const percentage = totalQuantity > 0 ? Math.round((num(state.analytics.topProduct.quantity) / totalQuantity) * 100) : 0;
@@ -1012,11 +1151,13 @@
         $("topProductCard").style.display = "none";
       }
 
+      // Analytics
       $("conversionRate").textContent = state.analytics.conversionRate + "%";
       $("avgCustomerValue").textContent = formatPrice(state.analytics.avgCustomerValue);
       $("ordersToday").textContent = state.analytics.ordersToday;
       $("revenueToday").textContent = formatPrice(state.analytics.revenueToday);
 
+      // Tableau des commandes
       const allOrdersBody = $("allOrdersBody");
       allOrdersBody.innerHTML = "";
 
@@ -1027,16 +1168,25 @@
       });
 
       if (sortedOrders.length === 0) {
-        allOrdersBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted)">Aucune commande</td></tr>`;
+        allOrdersBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted)">Aucune commande trouvée</td></tr>`;
       } else {
         sortedOrders.slice(0, 50).forEach(order => {
           const statut = order.statut || "🟡 NOUVELLE";
           
+          // Formatage des articles
           const articlesText = order.articles ? safeText(order.articles).replace(/\n/g, '<br>') : '';
           
+          // Formatage date
           const d = parseOrderDate(order.date);
-          const dateStr = d ? d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : safeText(order.date);
+          const dateStr = d ? d.toLocaleDateString('fr-FR', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }) : safeText(order.date);
 
+          // Lien Google Maps
           const addressText = safeText(order.adresse);
           let addressLink = addressText;
           
@@ -1053,15 +1203,15 @@
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>${dateStr}</td>
-            <td><strong>${safeText(order.nom).substring(0,15)}</strong></td>
+            <td><strong>${safeText(order.nom).substring(0,20)}</strong></td>
             <td>${safeText(order.telephone)}</td>
             <td>${addressLink}</td>
             <td><strong>${safeText(order.commande_id) || 'N/A'}</strong></td>
             <td class="articles-cell">${articlesText}</td>
             <td><strong>${formatPrice(order.total)}</strong></td>
             <td>
-              <select class="statut-select" onchange="updateOrderStatus('${order.commande_id}', this.value)">
-                ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${s.substring(0,8)}</option>`).join("")}
+              <select class="statut-select" onchange="updateOrderStatus('${safeText(order.commande_id)}', this.value)">
+                ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${s}</option>`).join("")}
               </select>
             </td>
           `;
@@ -1069,17 +1219,19 @@
         });
       }
 
+      // Tableau top produits
       const topProductsBody = $("topProductsBody");
       topProductsBody.innerHTML = "";
+      
       if (state.topProducts.length === 0) {
-        topProductsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:var(--muted)">Aucune donnée</td></tr>`;
+        topProductsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:var(--muted)">Aucune donnée produit</td></tr>`;
       } else {
         state.topProducts.forEach((product, index) => {
           const tr = document.createElement("tr");
           const name = safeText(product.name);
           tr.innerHTML = `
             <td style="text-align:center; font-weight:900;">${index + 1}</td>
-            <td><div style="font-weight:900">${name.substring(0, 25)}${name.length > 25 ? '...' : ''}</div></td>
+            <td><div style="font-weight:900">${name.length > 30 ? name.substring(0,30) + '...' : name}</div></td>
             <td style="font-weight:900; color:var(--blue); text-align:center">${num(product.quantity)}</td>
             <td style="font-weight:900; color:var(--green)">${formatPrice(product.revenue)}</td>
           `;
@@ -1087,42 +1239,128 @@
         });
       }
 
+      // Mise à jour timestamp
       $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
     }
 
+    // Initialisation des graphiques
     function initCharts() {
       const salesCtx = $("salesChart").getContext("2d");
       state.charts.sales = new Chart(salesCtx, {
         type: "line",
-        data: { labels: [], datasets: [{ label: "CA (dt)", data: [], borderWidth: 2, fill: true, tension: 0.4 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#f0f6fc", font: { size: 11 } } } } }
+        data: { 
+          labels: [], 
+          datasets: [{ 
+            label: "CA (dt)", 
+            data: [], 
+            borderColor: "#00ff88",
+            backgroundColor: "rgba(0,255,136,0.1)",
+            borderWidth: 2, 
+            fill: true, 
+            tension: 0.4 
+          }] 
+        },
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false, 
+          plugins: { 
+            legend: { 
+              labels: { color: "#f0f6fc", font: { size: 11 } } 
+            } 
+          },
+          scales: {
+            x: { ticks: { color: "#8b949e" } },
+            y: { ticks: { color: "#8b949e" } }
+          }
+        }
       });
 
       const statusCtx = $("statusChart").getContext("2d");
       state.charts.status = new Chart(statusCtx, {
         type: "doughnut",
-        data: { labels: [], datasets: [{ data: [], borderWidth: 1, backgroundColor: [
-          "rgba(255, 204, 0, 0.8)","rgba(255, 153, 0, 0.8)","rgba(0, 102, 204, 0.8)",
-          "rgba(255, 102, 0, 0.8)","rgba(0, 170, 0, 0.8)","rgba(204, 0, 0, 0.8)"
-        ]}]},
-        options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: "right", labels: { color: "#f0f6fc", font: { size: 11 } } } } }
+        data: { 
+          labels: [], 
+          datasets: [{ 
+            data: [], 
+            borderWidth: 1, 
+            backgroundColor: [
+              "rgba(255, 204, 0, 0.8)",
+              "rgba(255, 153, 0, 0.8)",
+              "rgba(0, 102, 204, 0.8)",
+              "rgba(255, 102, 0, 0.8)",
+              "rgba(0, 170, 0, 0.8)",
+              "rgba(204, 0, 0, 0.8)"
+            ]
+          }]
+        },
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false, 
+          cutout: '60%', 
+          plugins: { 
+            legend: { 
+              position: "right", 
+              labels: { color: "#f0f6fc", font: { size: 11 } } 
+            } 
+          } 
+        }
       });
 
       const productsCtx = $("productsChart").getContext("2d");
       state.charts.products = new Chart(productsCtx, {
         type: "bar",
-        data: { labels: [], datasets: [{ label: "Quantité", data: [] }] },
-        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 11 } } } } }
+        data: { 
+          labels: [], 
+          datasets: [{ 
+            label: "Quantité", 
+            data: [],
+            backgroundColor: "#00d4ff"
+          }] 
+        },
+        options: { 
+          indexAxis: 'y', 
+          responsive: true, 
+          maintainAspectRatio: false, 
+          plugins: { 
+            legend: { 
+              labels: { font: { size: 11 }, color: "#f0f6fc" } 
+            } 
+          },
+          scales: {
+            x: { ticks: { color: "#8b949e" } },
+            y: { ticks: { color: "#8b949e" } }
+          }
+        }
       });
 
       const hourlyCtx = $("hourlyChart").getContext("2d");
       state.charts.hourly = new Chart(hourlyCtx, {
         type: "bar",
-        data: { labels: [], datasets: [{ label: "Commandes", data: [] }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 11 } } } } }
+        data: { 
+          labels: [], 
+          datasets: [{ 
+            label: "Commandes", 
+            data: [],
+            backgroundColor: "#ffa726"
+          }] 
+        },
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false, 
+          plugins: { 
+            legend: { 
+              labels: { font: { size: 11 }, color: "#f0f6fc" } 
+            } 
+          },
+          scales: {
+            x: { ticks: { color: "#8b949e" } },
+            y: { ticks: { color: "#8b949e" } }
+          }
+        }
       });
     }
 
+    // Mise à jour des graphiques
     function updateCharts() {
       const period = parseInt($("salesPeriod").value || 30, 10);
       updateSalesChart(period);
@@ -1144,9 +1382,11 @@
         data.push(num(state.analytics.salesByDay[dateKey] || 0));
       }
 
-      state.charts.sales.data.labels = labels;
-      state.charts.sales.data.datasets[0].data = data;
-      state.charts.sales.update();
+      if (state.charts.sales) {
+        state.charts.sales.data.labels = labels;
+        state.charts.sales.data.datasets[0].data = data;
+        state.charts.sales.update();
+      }
     }
 
     function updateStatusChart() {
@@ -1156,148 +1396,255 @@
 
       for (const s of order) {
         const c = state.analytics.statusDistribution[s] || 0;
-        if (c > 0) { labels.push(s.substring(0,10)); data.push(c); }
+        if (c > 0) { 
+          labels.push(s); 
+          data.push(c); 
+        }
       }
 
-      state.charts.status.data.labels = labels;
-      state.charts.status.data.datasets[0].data = data;
-      state.charts.status.update();
+      if (state.charts.status) {
+        state.charts.status.data.labels = labels;
+        state.charts.status.data.datasets[0].data = data;
+        state.charts.status.update();
+      }
     }
 
     function updateProductsChart() {
       const top10 = state.topProducts.slice(0, 10);
-      const labels = top10.map(p => p.name.length > 12 ? p.name.substring(0, 12) + '...' : p.name);
+      const labels = top10.map(p => p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name);
       const data = top10.map(p => num(p.quantity));
 
-      state.charts.products.data.labels = labels;
-      state.charts.products.data.datasets[0].data = data;
-      state.charts.products.update();
+      if (state.charts.products) {
+        state.charts.products.data.labels = labels;
+        state.charts.products.data.datasets[0].data = data;
+        state.charts.products.update();
+      }
     }
 
     function updateActivityChart() {
       const mode = $("activityMode").value;
 
-      if (mode === "hour") {
-        const labels = [];
-        const data = [];
-        for (let h = 0; h < 24; h++) {
-          labels.push(`${h}h`);
-          data.push(num(state.analytics.ordersByHour[h] || 0));
+      if (state.charts.hourly) {
+        if (mode === "hour") {
+          const labels = [];
+          const data = [];
+          for (let h = 0; h < 24; h++) {
+            labels.push(`${h}h`);
+            data.push(num(state.analytics.ordersByHour[h] || 0));
+          }
+          state.charts.hourly.data.labels = labels;
+          state.charts.hourly.data.datasets[0].data = data;
+          state.charts.hourly.data.datasets[0].label = "Commandes par heure";
+        } else {
+          const labels = [];
+          const data = [];
+          const today = new Date();
+          const period = 30;
+
+          for (let i = period - 1; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(date.getDate() - i);
+            const key = date.toISOString().slice(0,10);
+            labels.push(date.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit" }));
+            data.push(num(state.analytics.ordersByDay[key] || 0));
+          }
+          state.charts.hourly.data.labels = labels;
+          state.charts.hourly.data.datasets[0].data = data;
+          state.charts.hourly.data.datasets[0].label = "Commandes par jour";
         }
-        state.charts.hourly.data.labels = labels;
-        state.charts.hourly.data.datasets[0].data = data;
         state.charts.hourly.update();
+      }
+    }
+
+    // Mise à jour statut commande
+    async function updateOrderStatus(commandeId, nouveauStatut) {
+      if (!commandeId || commandeId === 'N/A' || commandeId === '') {
+        showToast(`⚠️ ID commande invalide`, "warning");
         return;
       }
 
-      const labels = [];
-      const data = [];
-      const today = new Date();
-      const period = 30;
-
-      for (let i = period - 1; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const key = date.toISOString().slice(0,10);
-        labels.push(date.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit" }));
-        data.push(num(state.analytics.ordersByDay[key] || 0));
-      }
-
-      state.charts.hourly.data.labels = labels;
-      state.charts.hourly.data.datasets[0].data = data;
-      state.charts.hourly.update();
-    }
-
-    async function updateOrderStatus(commandeId, nouveauStatut) {
       try {
         showToast(`⏳ Mise à jour...`, "info");
-        state.statusUpdateInProgress = true;
-        state.statusUpdateForId = commandeId;
-
-        if (state.apiStatus === 'demo') return;
-
+        
         const url = `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`;
-        const response = await fetch(url, { cache:"no-store" });
+        const response = await fetch(url, { 
+          method: 'GET',
+          cache: "no-store",
+          mode: 'cors'
+        });
+        
         const result = await response.json();
+        console.log("Update response:", result);
 
-        if (!result.success) throw new Error(result.error || "Erreur API");
+        if (result.success) {
+          // Mise à jour locale
+          const order = state.orders.find(o => o.commande_id === commandeId);
+          if (order) {
+            order.statut = nouveauStatut;
+          }
 
-        const i = state.orders.findIndex(o => o.commande_id === commandeId);
-        if (i !== -1) state.orders[i].statut = nouveauStatut;
-
-        calculateAnalytics();
-        updateUI();
-        updateCharts();
-        showToast(`✅ Statut mis à jour`, "success");
+          // Recalculer les analytics
+          calculateAnalytics();
+          updateUI();
+          updateCharts();
+          
+          showToast(`✅ Statut mis à jour avec succès`, "success");
+        } else {
+          throw new Error(result.error || "Erreur API");
+        }
 
       } catch (e) {
-        console.error(e);
+        console.error("Erreur update:", e);
         showToast(`❌ ${e.message}`, "error");
-      } finally {
-        setTimeout(() => {
-          state.statusUpdateInProgress = false;
-          state.statusUpdateForId = null;
-        }, 1200);
+        
+        // Recharger les données pour resynchroniser
+        setTimeout(() => refreshAll(true), 1500);
       }
     }
 
+    // Création commande test
     async function createTestOrder() {
       try {
-        showToast("⏳ Création test...", "info");
+        showToast("⏳ Création commande test...", "info");
 
-        const payload = new URLSearchParams({
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        }).replace(/(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})/, '$1/$2/$3 $4:$5:$6');
+
+        const testData = new URLSearchParams({
           method: "saveOrder",
-          nom_client: "TEST ADMIN",
-          telephone: "+216 20000000",
-          adresse: "Adresse test | GPS: 36.858546, 10.301467",
-          articles: "2x PRODUIT TEST A\n1x PRODUIT TEST B",
-          total: "30.000"
+          nom_client: `TEST ${now.toLocaleTimeString()}`,
+          telephone: `'502${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`,
+          adresse: `${Math.floor(Math.random() * 100)} Rue de Test, Tunis | GPS: 36.${Math.floor(Math.random() * 100000)}, 10.${Math.floor(Math.random() * 100000)}`,
+          articles: `2x COCA COLA 1.5L - 3.500 dt
+1x EAU ZOUITINA 1.5L - 1.200 dt
+3x PATES TUNISIA 500G - 2.100 dt
+1x HUILE D'OLIVE 1L - 15.000 dt`,
+          total: (Math.random() * 50 + 20).toFixed(3)
         });
 
-        const resp = await fetch(API_URL, {
+        const response = await fetch(API_URL, {
           method: "POST",
-          headers: { "Content-Type":"application/x-www-form-urlencoded" },
-          body: payload.toString()
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: testData.toString(),
+          mode: 'cors'
         });
 
-        const data = await resp.json();
-        if (!data.success) throw new Error(data.error || "Erreur API");
+        const data = await response.json();
+        console.log("Test order response:", data);
 
-        showToast(`✅ Test créé`, "success");
-        setTimeout(() => refreshAll(true), 900);
+        if (data.success) {
+          showToast(`✅ Commande test créée: ${data.commande_id}`, "success");
+          setTimeout(() => refreshAll(true), 1000);
+        } else {
+          throw new Error(data.error || "Erreur création");
+        }
 
       } catch (e) {
-        console.error(e);
+        console.error("Erreur test:", e);
         showToast(`❌ ${e.message}`, "error");
       }
     }
 
+    // Rafraîchissement complet
     async function refreshAll(force = false) {
-      if (!force && state.statusUpdateInProgress) return;
+      if (!force && state.statusUpdateInProgress) {
+        showToast("⏳ Mise à jour en cours...", "info");
+        return;
+      }
 
       try {
         $("btnRefresh").disabled = true;
         $("btnRefresh").innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
 
-        await loadData();
-        calculateAnalytics();
-        updateUI();
-        updateCharts();
-
-        showToast("✅ Données actualisées", "success");
+        const success = await loadData();
+        
+        if (success) {
+          calculateAnalytics();
+          updateUI();
+          updateCharts();
+          showToast("✅ Données synchronisées avec Google Sheets", "success");
+        } else {
+          showToast("⚠️ Mode démonstration - données locales", "warning");
+          // Données de démonstration si échec
+          generateDemoData();
+          calculateAnalytics();
+          updateUI();
+          updateCharts();
+        }
 
       } catch (e) {
-        console.error(e);
-        showToast("❌ Erreur chargement", "error");
+        console.error("Erreur refresh:", e);
+        showToast("❌ Erreur de synchronisation", "error");
       } finally {
         $("btnRefresh").disabled = false;
         $("btnRefresh").innerHTML = '<i class="fas fa-sync-alt"></i> Actualiser';
       }
     }
 
+    // Données de démonstration (fallback)
+    function generateDemoData() {
+      state.orders = [];
+      const produits = [
+        "COCA COLA 1.5L", "EAU ZOUITINA 1.5L", "PATES TUNISIA 500G", 
+        "HUILE D'OLIVE 1L", "LAIT UHT 1L", "CAFE MOKA 250G", 
+        "SUCRE 1KG", "FARINE 1KG", "RIZ 1KG", "LENTILLES 500G"
+      ];
+
+      for (let i = 0; i < 25; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+        date.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60), 0);
+        
+        const dateStr = date.toLocaleDateString('fr-FR', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+        }).replace(/(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})/, '$1/$2/$3 $4:$5:$6');
+
+        const nbArticles = Math.floor(Math.random() * 5) + 1;
+        let articles = [];
+        let total = 0;
+
+        for (let j = 0; j < nbArticles; j++) {
+          const qte = Math.floor(Math.random() * 3) + 1;
+          const produit = produits[Math.floor(Math.random() * produits.length)];
+          const prix = Math.random() * 10 + 2;
+          articles.push(`${qte}x ${produit} - ${prix.toFixed(3)} dt`);
+          total += qte * prix;
+        }
+
+        state.orders.push({
+          date: dateStr,
+          nom: `Client ${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`,
+          telephone: `'50${Math.floor(Math.random() * 10000000).toString().padStart(7, '0')}`,
+          adresse: `${Math.floor(Math.random() * 100)} Rue Example, Tunis`,
+          commande_id: `CMD-MAXI-${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}-${String(i).padStart(3,'0')}`,
+          articles: articles.join("\n"),
+          total: total.toFixed(3),
+          statut: STATUTS[Math.floor(Math.random() * STATUTS.length)]
+        });
+      }
+
+      state.topProducts = computeTopProductsFromOrders(state.orders);
+      state.apiStatus = 'demo';
+      $("apiStatus").className = "api-status api-offline";
+      $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> Mode Démo';
+      $("dataSourceInfo").textContent = "Données de démonstration (fallback)";
+    }
+
+    // Initialisation
     document.addEventListener("DOMContentLoaded", () => {
+      console.log("Initialisation du tableau de bord...");
+      
       initCharts();
       
+      // Écouteurs d'événements
       $("statusSelector").addEventListener("change", () => {
         const selectedStatut = $("statusSelector").value;
         const count = state.analytics.statusDistribution[selectedStatut] || 0;
@@ -1309,11 +1656,26 @@
       $("activityMode").addEventListener("change", () => updateCharts());
       $("btnRefresh").addEventListener("click", () => refreshAll(true));
       $("btnCreateTest").addEventListener("click", () => createTestOrder());
+      
+      // Rendre la fonction disponible globalement
       window.updateOrderStatus = updateOrderStatus;
 
+      // Premier chargement
       refreshAll(true);
-      setInterval(() => refreshAll(false), 30000);
-      document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshAll(true); });
+      
+      // Rafraîchissement automatique toutes les 30 secondes
+      setInterval(() => {
+        if (!document.hidden) {
+          refreshAll(false);
+        }
+      }, 30000);
+      
+      // Rafraîchir au retour sur l'onglet
+      document.addEventListener("visibilitychange", () => { 
+        if (!document.hidden) {
+          refreshAll(true); 
+        }
+      });
     });
   </script>
 </body>
