@@ -1,7 +1,6 @@
 /*********************************
  * CONFIGURATION API - MAXI JDC MARKET
  * ✅ CORRECTION FINALE: Envoi du message APRÈS confirmation Google Sheets
- * ✅ CORRECTION: Gestion correcte du total au format "1,500 dt"
  *********************************/
 
 // ✅ URL OK
@@ -94,41 +93,14 @@ export async function envoyerCommande(dataCommande) {
     } catch (_) {}
   }
 
-  // ✅ CORRECTION TOTAL - Gestion du format "1,500 dt"
-  let total = 0;
-
-  // Nettoyer et convertir le total s'il existe
-  if (dataCommande.total) {
-    if (typeof dataCommande.total === 'string') {
-      // Nettoie la chaîne : "1,500 dt" → "1.5" → 1.5
-      let totalPropre = dataCommande.total
-        .replace(' dt', '')
-        .replace('dt', '')
-        .replace(',', '.')
-        .replace(/\s+/g, '')
-        .trim();
-      
-      total = parseFloat(totalPropre) || 0;
-      console.log("💰 Total après nettoyage (string):", totalPropre, "→", total);
-    } else {
-      total = parseFloat(dataCommande.total) || 0;
-      console.log("💰 Total après conversion (number):", total);
-    }
+  // ✅ Total avec 3 décimales
+  let total = parseFloat(dataCommande.total || 0);
+  if ((!total || isNaN(total)) && articlesFormat.length) {
+    total = articlesFormat.reduce(
+      (sum, it) => sum + (Number(it.prix_total) || 0),
+      0
+    );
   }
-
-  // Si le total est toujours invalide ou nul, le recalculer depuis les articles
-  if ((!total || isNaN(total) || total === 0) && articlesFormat.length) {
-    total = articlesFormat.reduce((sum, it) => {
-      const prixTotal = parseFloat(it.prix_total) || 
-                       (parseFloat(it.quantite || 1) * parseFloat(it.prix_unitaire || 0));
-      return sum + (isNaN(prixTotal) ? 0 : prixTotal);
-    }, 0);
-    console.log("💰 Total recalculé depuis articles:", total);
-  }
-
-  // Formater avec 3 décimales pour l'envoi (Google Sheets attend un nombre)
-  const totalFormate = Number(total).toFixed(3);
-  console.log("💰 Total final formaté (3 décimales):", totalFormate);
 
   // ✅ PAYLOAD - SANS numéro (Google Sheets le générera)
   const payload = {
@@ -143,7 +115,7 @@ export async function envoyerCommande(dataCommande) {
     adresse: dataCommande.adresse || dataCommande.Adresse || dataCommande.address || dataCommande.clientInfo?.adresse || "",
     ADRESSE: dataCommande.adresse || dataCommande.Adresse || "",
     articles: articlesText || "AUCUN ARTICLE",
-    total: totalFormate, // Maintenant c'est "44.950" au lieu de "44,950 dt"
+    total: total ? Number(total).toFixed(3) : "0.000",
     _t: Date.now()
   };
 
