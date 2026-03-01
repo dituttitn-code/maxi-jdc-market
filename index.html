@@ -38,6 +38,7 @@
       --safe-area: env(safe-area-inset-bottom, 0px);
     }
 
+    /* [TOUT LE CSS RESTE IDENTIQUE] */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -3950,9 +3951,13 @@
             <span class="admin-icon">👤</span>
             <span class="admin-label">Mon Compte</span>
           </button>
-          <button class="admin-btn stats" id="clientCombinedBtn" title="Suivi et historique des commandes">
-            <span class="admin-icon">📋</span>
-            <span class="admin-label">Suivi & Historique</span>
+          <button class="admin-btn stats" id="clientTrackingBtn">
+            <span class="admin-icon">📍</span>
+            <span class="admin-label">Suivi Commande</span>
+          </button>
+          <button class="admin-btn settings" id="clientHistoryBtn">
+            <span class="admin-icon">📜</span>
+            <span class="admin-label">Historique</span>
           </button>
         </div>
       </section>
@@ -4399,7 +4404,8 @@
         closeClientSpace: "✕ Fermer",
         clientSpaceTitle: "👤 Espace Client",
         clientAccountBtn: "Mon Compte",
-        clientCombinedBtn: "Suivi & Historique",
+        clientTrackingBtn: "Suivi Commande",
+        clientHistoryBtn: "Historique",
         accountTitle: "👤 Mon Compte",
         nameLabel: "Nom complet *",
         phoneLabel: "Téléphone *",
@@ -4413,7 +4419,7 @@
         editAccountBtn: "✏️ Modifier",
         historyTitle: "📋 Historique des commandes",
         historySearchLabel: "🔍 Entrez votre numéro pour voir votre historique",
-        searchHistoryBtn: "🔎 Voir mon historique",
+        historySearchBtn: "🔎 Voir mon historique",
         ordersTitle: "📜 Vos commandes",
         noOrdersText: "Aucune commande passée dans les 2 dernières années",
         productsTitle: "Produits",
@@ -4459,7 +4465,8 @@
         closeClientSpace: "✕ Close",
         clientSpaceTitle: "👤 Client Space",
         clientAccountBtn: "My Account",
-        clientCombinedBtn: "Tracking & History",
+        clientTrackingBtn: "Order Tracking",
+        clientHistoryBtn: "History",
         accountTitle: "👤 My Account",
         nameLabel: "Full name *",
         phoneLabel: "Phone *",
@@ -4473,7 +4480,7 @@
         editAccountBtn: "✏️ Edit",
         historyTitle: "📋 Order History",
         historySearchLabel: "🔍 Enter your number to see your history",
-        searchHistoryBtn: "🔎 View my history",
+        historySearchBtn: "🔎 View my history",
         ordersTitle: "📜 Your Orders",
         noOrdersText: "No orders in the last 2 years",
         productsTitle: "Products",
@@ -4519,7 +4526,8 @@
         closeClientSpace: "✕ إغلاق",
         clientSpaceTitle: "👤 مساحة الزبون",
         clientAccountBtn: "حسابي",
-        clientCombinedBtn: "التتبع والتاريخ",
+        clientTrackingBtn: "تتبع الطلب",
+        clientHistoryBtn: "التاريخ",
         accountTitle: "👤 حسابي",
         nameLabel: "الاسم الكامل *",
         phoneLabel: "الهاتف *",
@@ -4533,7 +4541,7 @@
         editAccountBtn: "✏️ تعديل",
         historyTitle: "📋 تاريخ الطلبات",
         historySearchLabel: "🔍 أدخل رقمك لرؤية تاريخك",
-        searchHistoryBtn: "🔎 عرض تاريخي",
+        historySearchBtn: "🔎 عرض تاريخي",
         ordersTitle: "📜 طلباتك",
         noOrdersText: "لا توجد طلبات في السنتين الماضيتين",
         productsTitle: "المنتجات",
@@ -4617,7 +4625,7 @@
       addressLinksEnabled: true,
       allProducts: [],
       currentOrderNumber: 0,
-      lastGeneratedOrderId: null
+      lastGeneratedOrderId: null // Pour suivre le dernier ID généré
     };
 
     // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
@@ -4680,7 +4688,8 @@
       $('closeClientSpaceBtn').textContent = t.closeClientSpace;
       $('clientSpaceSection h4').textContent = t.clientSpaceTitle;
       $('clientAccountBtn .admin-label').textContent = t.clientAccountBtn;
-      $('clientCombinedBtn .admin-label').textContent = t.clientCombinedBtn;
+      $('clientTrackingBtn .admin-label').textContent = t.clientTrackingBtn;
+      $('clientHistoryBtn .admin-label').textContent = t.clientHistoryBtn;
       $('accountDetailsSection h4').textContent = t.accountTitle;
       $('clientName').previousElementSibling.textContent = t.nameLabel;
       $('clientPhone').parentElement.previousElementSibling.textContent = t.phoneLabel;
@@ -4694,7 +4703,7 @@
       $('editAccountBtn').textContent = t.editAccountBtn;
       $('historySearchSection h4').textContent = t.historyTitle;
       $('searchHistoryPhone').parentElement.previousElementSibling.textContent = t.historySearchLabel;
-      $('searchHistoryBtn').textContent = t.searchHistoryBtn;
+      $('searchHistoryBtn').textContent = t.historySearchBtn;
       $('orderHistorySection h4').textContent = t.ordersTitle;
       $('historyEmptyMessage').textContent = t.noOrdersText;
       $('activeCategoryLabel').textContent = t.productsTitle;
@@ -5321,7 +5330,8 @@
       }).sort((a, b) => a.name.localeCompare(b.name));
     }
 
-    // ===================== FONCTION RENDERPRODUCTS (avec ouverture du catalogue sur l'article cliqué) =====================
+    // ===================== FONCTION RENDERPRODUCTS CORRIGÉE =====================
+    // Le catalogue s'ouvre quand on clique sur un article
     function renderProducts() {
       state.filteredProducts = getFilteredProducts();
       const totalPages = Math.ceil(state.filteredProducts.length / CONFIG.itemsPerPage) || 1;
@@ -5401,10 +5411,10 @@
           </div>
         `;
         
-        // ✅ Le catalogue s'ouvre sur l'article cliqué
+        // ✅ CORRECTION : Le catalogue s'ouvre quand on clique sur un article
         card.addEventListener('click', () => {
           if (stockStatus.available) {
-            openCatalogueForProduct(product);
+            openCatalogueForCategory(product.categoryKey);
           } else {
             showToast('❌ Ce produit est en rupture de stock', 'error');
           }
@@ -5414,22 +5424,17 @@
       });
     }
 
-    // ✅ Nouvelle fonction : Ouvre le catalogue et affiche le produit spécifique en tête de liste
-    function openCatalogueForProduct(targetProduct) {
-      const category = CATEGORIES.find(c => c.key === targetProduct.categoryKey);
+    function openCatalogueForCategory(categoryKey) {
+      const category = CATEGORIES.find(c => c.key === categoryKey);
       if (!category) return;
       
-      const products = state.products.get(targetProduct.categoryKey) || [];
+      const products = state.products.get(categoryKey) || [];
       if (products.length === 0) {
         showToast('⚠️ Aucun produit dans cette catégorie', 'warning');
         return;
       }
       
-      // Placer le produit ciblé en tête de liste, suivi des autres triés par nom
-      const otherProducts = products.filter(p => p.code !== targetProduct.code || p.name !== targetProduct.name);
-      otherProducts.sort((a, b) => a.name.localeCompare(b.name));
-      
-      state.catalogueProducts = [targetProduct, ...otherProducts];
+      state.catalogueProducts = products;
       state.catalogueSearchQuery = '';
       $('catalogueTitle').textContent = category.label;
       $('catalogueSearchInput').value = '';
@@ -5523,7 +5528,9 @@
                     ${stockStatus.available ? '' : 'disabled'}>
               ${isOutOfStock 
                 ? '❌ RUPTURE' 
-                : `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`}
+                : (quantity > 0 
+                  ? `📤 ${TRANSLATIONS[state.currentLanguage].sendToCart} ${quantity}` 
+                  : `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`)}
             </button>
           </div>
         `;
@@ -5588,33 +5595,20 @@
         btn.addEventListener('click', (e) => {
           const productId = e.target.dataset.id;
           const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
-          const quantity = parseInt(document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`).value) || 0;
+          const quantity = state.catalogueQuantityPicks[productId] || 0;
           
           if (product && quantity > 0) {
             addToCart(productId, product, quantity);
-            // Réinitialiser la quantité pour cet article après ajout
             state.catalogueQuantityPicks[productId] = 0;
             const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
             const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
             if (input) input.value = 0;
-            if (addBtn) {
-              addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
-              addBtn.classList.remove('has-qty');
-            }
-          } else if (product && quantity === 0) {
-            // Si la quantité est 0, on ajoute quand même 1 par défaut
-            addToCart(productId, product, 1);
-            // Mettre à jour l'input pour afficher 0 après ajout (car on a ajouté 1)
-            const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
-            if (input) input.value = 0;
-            state.catalogueQuantityPicks[productId] = 0;
-            const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
             if (addBtn) {
               addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
               addBtn.classList.remove('has-qty');
             }
           } else {
-            showToast('❌ Produit invalide', 'error');
+            showToast('❌ Quantité invalide', 'error');
           }
         });
       });
@@ -5627,7 +5621,7 @@
       if (addBtn && !addBtn.disabled) {
         const t = TRANSLATIONS[state.currentLanguage];
         if (quantity > 0) {
-          addBtn.textContent = `🛒 ${t.addToCart}`;
+          addBtn.textContent = `📤 ${t.sendToCart} ${quantity}`;
           addBtn.classList.add('has-qty');
         } else {
           addBtn.textContent = `🛒 ${t.addToCart}`;
@@ -5689,9 +5683,9 @@
         quantityInput.value = quantity;
         quantityInput.max = Math.min(999, availableStock);
         const addBtn = $('modalAddToCartBtn');
-        addBtn.disabled = !stockStatus.available;
+        addBtn.disabled = quantity === 0 || !stockStatus.available;
         const t = TRANSLATIONS[state.currentLanguage];
-        addBtn.textContent = `🛒 ${t.addToCart}`;
+        addBtn.textContent = quantity > 0 ? `🛒 ${t.addToCart} ${quantity}` : `🛒 ${t.addToCart}`;
         const img = $('modalProductImage');
         const noPhoto = $('modalNoPhoto');
         const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
@@ -5957,173 +5951,6 @@
       $('orderHistorySection').classList.remove('visible');
     }
 
-    // ✅ Fonction pour afficher les commandes en cours
-    function afficherCommandesEnCours() {
-      if (!state.user || !state.user.phone) {
-        showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
-        $('clientAccountBtn').click();
-        return;
-      }
-      
-      // Nettoyer le numéro de téléphone (enlever les espaces)
-      const phoneClient = state.user.phone.replace(/\s+/g, '');
-      
-      // Filtrer les commandes en cours (statut différent de "Livré" et "Annulé")
-      const commandesEnCours = state.orderHistory.filter(order => 
-        order.clientPhone && 
-        order.clientPhone.replace(/\s+/g, '').includes(phoneClient) && 
-        order.statut !== 'Livré' && order.statut !== 'Annulé'
-      );
-      
-      // Trier par date (plus récent d'abord)
-      commandesEnCours.sort((a, b) => new Date(b.date) - new Date(a.date));
-      
-      if (commandesEnCours.length === 0) {
-        showToast('📭 Aucune commande en cours', 'warning');
-        return;
-      }
-      
-      // Afficher les commandes en cours
-      const historyItemsList = $('historyItemsList');
-      historyItemsList.innerHTML = '';
-      
-      commandesEnCours.forEach(order => {
-        const orderDate = new Date(order.date);
-        const formattedDate = orderDate.toLocaleDateString('fr-FR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-        const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
-        const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
-        
-        const historyItem = document.createElement('div');
-        historyItem.className = 'history-item';
-        historyItem.innerHTML = `
-          <div class="history-date">📅 ${formattedDate}</div>
-          <div class="history-summary">
-            <span class="history-items-count">${itemCount} article(s)</span>
-            <span class="history-total">${formatPrice(order.total)}</span>
-          </div>
-          <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
-            📦 Statut: ${order.statut || 'En cours de préparation'}
-          </div>
-          ${orderSavings > 0 ? `
-            <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
-              💰 Économies: ${formatPrice(orderSavings)}
-            </div>
-          ` : ''}
-          ${order.orderId ? `
-            <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
-              📦 N°: ${order.orderId}
-            </div>
-          ` : ''}
-        `;
-        historyItem.addEventListener('click', () => {
-          showOrderDetails(order, true);
-        });
-        historyItemsList.appendChild(historyItem);
-      });
-      
-      $('orderHistorySection').classList.add('visible');
-      $('historyCount').textContent = `${commandesEnCours.length} commande(s) en cours`;
-      $('historyEmptyMessage').style.display = 'none';
-      
-      showToast(`📦 ${commandesEnCours.length} commande(s) en cours`);
-    }
-
-    // ✅ Fonction pour afficher l'historique des commandes (terminées)
-    function afficherHistoriqueCommandes() {
-      if (!state.user || !state.user.phone) {
-        showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
-        $('clientAccountBtn').click();
-        return;
-      }
-      
-      // Nettoyer le numéro de téléphone
-      const phoneClient = state.user.phone.replace(/\s+/g, '');
-      
-      // Filtrer les commandes terminées (statut "Livré" ou "Annulé")
-      const historique = state.orderHistory.filter(order => 
-        order.clientPhone && 
-        order.clientPhone.replace(/\s+/g, '').includes(phoneClient) && 
-        (order.statut === 'Livré' || order.statut === 'Annulé')
-      );
-      
-      // Trier par date (plus récent d'abord)
-      historique.sort((a, b) => new Date(b.date) - new Date(a.date));
-      
-      if (historique.length === 0) {
-        showToast('📭 Aucun historique trouvé', 'warning');
-        return;
-      }
-      
-      // Afficher l'historique
-      const historyItemsList = $('historyItemsList');
-      historyItemsList.innerHTML = '';
-      
-      historique.forEach(order => {
-        const orderDate = new Date(order.date);
-        const formattedDate = orderDate.toLocaleDateString('fr-FR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-        const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
-        const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
-        
-        const historyItem = document.createElement('div');
-        historyItem.className = 'history-item';
-        historyItem.innerHTML = `
-          <div class="history-date">📅 ${formattedDate}</div>
-          <div class="history-summary">
-            <span class="history-items-count">${itemCount} article(s)</span>
-            <span class="history-total">${formatPrice(order.total)}</span>
-          </div>
-          <div style="font-size:10px;color:${order.statut === 'Livré' ? '#00ff88' : '#ff6b6b'};margin-top:4px;font-weight:700;">
-            📌 Statut: ${order.statut}
-          </div>
-          ${orderSavings > 0 ? `
-            <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
-              💰 Économies: ${formatPrice(orderSavings)}
-            </div>
-          ` : ''}
-          ${order.orderId ? `
-            <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
-              📦 N°: ${order.orderId}
-            </div>
-          ` : ''}
-        `;
-        historyItem.addEventListener('click', () => {
-          showOrderDetails(order, true);
-        });
-        historyItemsList.appendChild(historyItem);
-      });
-      
-      $('orderHistorySection').classList.add('visible');
-      $('historyCount').textContent = `${historique.length} commande(s) dans l'historique`;
-      $('historyEmptyMessage').style.display = 'none';
-      
-      showToast(`📜 ${historique.length} commande(s) dans l'historique`);
-    }
-
-    // ✅ Fonction pour charger l'historique par numéro de téléphone
-    function loadHistoryForPhone(phone) {
-      const cleanPhone = phone.replace(/\s+/g, '');
-      
-      // Filtrer toutes les commandes pour ce numéro
-      const userHistory = state.orderHistory.filter(order =>
-        order.clientPhone && 
-        order.clientPhone.replace(/\s+/g, '').includes(cleanPhone)
-      );
-      
-      return userHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-    }
-
     function initClientSpace() {
       $('clientAccountBtn').onclick = () => {
         $('accountDetailsSection').classList.add('visible');
@@ -6132,65 +5959,29 @@
         showToast('👤 Accès à votre compte');
       };
 
-      $('clientCombinedBtn').onclick = () => {
+      $('clientTrackingBtn').onclick = () => {
         if (!state.user || !state.user.phone) {
           showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
           $('clientAccountBtn').click();
           return;
         }
-        // Afficher directement toutes les commandes pour cet utilisateur (suivi + historique)
-        const allUserOrders = loadHistoryForPhone(state.user.phone);
-        if (allUserOrders.length === 0) {
-          showToast('📭 Aucune commande trouvée', 'warning');
+        const trackingUrl = `${CONFIG.trackingUrl}?phone=${encodeURIComponent(state.user.phone)}`;
+        window.open(trackingUrl, '_blank');
+      };
+
+      $('clientHistoryBtn').onclick = () => {
+        if (!state.user || !state.user.phone) {
+          showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
+          $('clientAccountBtn').click();
           return;
         }
-        
-        const historyItemsList = $('historyItemsList');
-        historyItemsList.innerHTML = '';
-        
-        allUserOrders.forEach(order => {
-          const orderDate = new Date(order.date);
-          const formattedDate = orderDate.toLocaleDateString('fr-FR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          });
-          const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
-          const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
-          
-          const historyItem = document.createElement('div');
-          historyItem.className = 'history-item';
-          historyItem.innerHTML = `
-            <div class="history-date">📅 ${formattedDate}</div>
-            <div class="history-summary">
-              <span class="history-items-count">${itemCount} article(s)</span>
-              <span class="history-total">${formatPrice(order.total)}</span>
-            </div>
-            <div style="font-size:10px;color:${order.statut === 'Livré' ? '#00ff88' : (order.statut === 'Annulé' ? '#ff6b6b' : '#00d4ff')};margin-top:4px;font-weight:700;">
-              📌 Statut: ${order.statut || 'En cours'}
-            </div>
-            ${orderSavings > 0 ? `
-              <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
-                💰 Économies: ${formatPrice(orderSavings)}
-              </div>
-            ` : ''}
-            ${order.orderId ? `
-              <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
-                📦 N°: ${order.orderId}
-              </div>
-            ` : ''}
-          `;
-          historyItem.addEventListener('click', () => {
-            showOrderDetails(order, true);
-          });
-          historyItemsList.appendChild(historyItem);
-        });
-        
+        $('accountDetailsSection').classList.remove('visible');
+        $('historySearchSection').classList.add('visible');
         $('orderHistorySection').classList.add('visible');
-        $('historyCount').textContent = `${allUserOrders.length} commande(s)`;
-        $('historyEmptyMessage').style.display = 'none';
+        $('searchHistoryPhone').value = state.user.phone;
+        const history = loadHistoryForPhone(state.user.phone);
+        renderHistory(history);
+        showToast('📜 Accès à votre historique');
       };
     }
 
@@ -6394,21 +6185,15 @@
           discountPercent: item.discountPercent || 0
         };
       });
-      
-      // Calculer le total correctement
-      const subtotal = orderDetails.subtotal;
-      const shipping = orderDetails.shipping;
-      const total = subtotal + shipping;
-      
       const historyEntry = {
         id: Date.now(),
         date: new Date().toISOString(),
         clientPhone: state.user.phone,
         clientName: state.user.name,
         items: itemsWithSavings,
-        subtotal: subtotal,
-        shipping: shipping,
-        total: total, // ✅ Correction : utiliser le total calculé correctement
+        subtotal: orderDetails.subtotal,
+        shipping: orderDetails.shipping,
+        total: orderDetails.total,
         savings: orderDetails.savings || 0,
         savingsPercentage: orderDetails.savingsPercentage || 0,
         address: state.user.address,
@@ -6416,8 +6201,7 @@
           lat: state.user.lat,
           lng: state.user.lng
         } : null,
-        orderId: orderDetails.commandeId,
-        statut: 'En cours de préparation' // Statut initial
+        orderId: orderDetails.commandeId
       };
       state.orderHistory.unshift(historyEntry);
       const twoYearsAgo = new Date();
@@ -6434,24 +6218,29 @@
       }
     }
 
+    function loadHistoryForPhone(phone) {
+      const cleanPhone = phone.replace(/\D/g, '');
+      const userHistory = state.orderHistory.filter(order =>
+        order.clientPhone && order.clientPhone.replace(/\D/g, '') === cleanPhone
+      );
+      return userHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
     function renderHistory(history) {
       const historyItemsList = $('historyItemsList');
       const historyEmptyMessage = $('historyEmptyMessage');
       const historyCount = $('historyCount');
       const orderHistorySection = $('orderHistorySection');
-      
       if (!history || history.length === 0) {
         historyItemsList.innerHTML = '';
         historyEmptyMessage.style.display = 'block';
         historyCount.textContent = '0 commande(s)';
         return;
       }
-      
       historyEmptyMessage.style.display = 'none';
       orderHistorySection.classList.add('visible');
       historyCount.textContent = `${history.length} commande(s)`;
       historyItemsList.innerHTML = '';
-      
       history.forEach(order => {
         const orderDate = new Date(order.date);
         const formattedDate = orderDate.toLocaleDateString('fr-FR', {
@@ -6463,7 +6252,6 @@
         });
         const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
         const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
-        
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
         
@@ -6488,28 +6276,20 @@
               📦 N°: ${order.orderId}
             </div>
           ` : ''}
-          ${order.statut ? `
-            <div style="font-size:10px;color:${order.statut === 'Livré' ? '#00ff88' : '#ff6b6b'};margin-top:4px;font-weight:700;">
-              📌 Statut: ${order.statut}
-            </div>
-          ` : ''}
           ${addressDisplay.includes('href=') ? `
             <div style="font-size:10px;color:var(--accent2);margin-top:4px;">
               📍 ${addressDisplay}
             </div>
           ` : ''}
         `;
-        
         historyItem.addEventListener('click', () => {
-          showOrderDetails(order, true);
+          showOrderDetails(order);
         });
-        
         historyItemsList.appendChild(historyItem);
       });
     }
 
-    // ✅ Modification pour masquer le bouton "Valider et envoyer" quand on consulte une commande depuis l'historique
-    function showOrderDetails(order, fromHistory = false) {
+    function showOrderDetails(order) {
       const orderDetails = $('orderDetails');
       let detailsText = `📦 COMMANDE #${order.orderId || order.id}\n`;
       detailsText += `📅 ${new Date(order.date).toLocaleDateString('fr-FR', {
@@ -6535,7 +6315,6 @@
         detailsText += `🗺️ GPS: ${order.coords.lat}, ${order.coords.lng}\n`;
         detailsText += `🔗 Maps: ${googleMapsUrl}\n`;
       }
-      detailsText += `📌 Statut: ${order.statut || 'En cours'}\n`;
       detailsText += `\n🛒 ARTICLES :\n`;
       detailsText += '─'.repeat(50) + '\n';
       let totalSavingsInOrder = 0;
@@ -6571,15 +6350,6 @@
         detailsText += `\n🎉 Vous avez économisé ${formatPrice(totalSavingsInOrder)} sur cette commande !`;
       }
       orderDetails.textContent = detailsText;
-      
-      // ✅ Cacher le bouton "Valider et envoyer" si on consulte depuis l'historique
-      const sendOrderBtn = $('sendOrderBtn');
-      if (fromHistory) {
-        sendOrderBtn.style.display = 'none';
-      } else {
-        sendOrderBtn.style.display = 'block';
-      }
-      
       $('orderModal').classList.add('open');
     }
 
@@ -6712,207 +6482,204 @@
     }
 
     async function enregistrerCommandeGoogleSheets(orderData) {
-      try {
-        showToast('📤 Enregistrement de la commande...', 'warning');
+  try {
+    showToast('📤 Enregistrement de la commande...', 'warning');
 
-        let adresseComplete = state.user.address || '';
-        if (state.user.lat && state.user.lng) {
-          adresseComplete += ` | GPS: ${state.user.lat}, ${state.user.lng}`;
-        }
-
-        let articlesText = '';
-        let totalPanier = 0;
-        
-        Object.values(state.cart).forEach(item => {
-          const itemTotal = item.price * item.quantity;
-          totalPanier += itemTotal;
-          
-          articlesText += `${item.quantity}x ${item.name} (${item.code})\n`;
-          articlesText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
-          
-          if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
-            const saving = (item.oldPrice - item.price) * item.quantity;
-            articlesText += `\n 💰 ÉCONOMIE: ${formatPrice(saving)}`;
-            if (item.discountPercent) {
-              articlesText += ` (-${item.discountPercent}%)`;
-            }
-          }
-          articlesText += '\n';
-        });
-        
-        const sousTotal = totalPanier;
-        const livraison = sousTotal >= CONFIG.freeShipping ? 0 : 3.000;
-        const total = sousTotal + livraison;
-        
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('fr-FR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-
-        const commandeId = orderData.commandeId;
-
-        const sheetData = {
-          'Date': dateStr,
-          'N_Commande': commandeId,
-          'Nom_Client': state.user.name,
-          'Telephone': '+216 ' + state.user.phone,
-          'Adresse': adresseComplete,
-          'Articles': `COMMANDE: ${commandeId}\n` + articlesText,
-          'Total': total.toFixed(3).replace('.', ','),
-          'Statut': 'NOUVELLE'
-        };
-
-        console.log('📊 Données envoyées à Google Sheets:', sheetData);
-
-        const postData = {
-          'Date': sheetData.Date,
-          'N_Commande': sheetData.N_Commande,
-          'Nom_Client': sheetData.Nom_Client,
-          'Telephone': sheetData.Telephone,
-          'Adresse': sheetData.Adresse,
-          'Articles': sheetData.Articles,
-          'Total': sheetData.Total,
-          'Statut': sheetData.Statut
-        };
-
-        const params = new URLSearchParams();
-        Object.keys(postData).forEach(key => {
-          params.append(key, postData[key]);
-        });
-
-        const response = await fetch(CONFIG.commandeApiUrl, {
-          method: 'POST',
-          mode: 'cors',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: params.toString()
-        });
-
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-
-        const responseText = await response.text();
-        console.log('✅ Réponse Google Sheets (texte):', responseText);
-        
-        let result;
-        try {
-          result = JSON.parse(responseText);
-        } catch (e) {
-          console.error('❌ Erreur parsing JSON:', e);
-          result = { success: true, commande_id: commandeId };
-        }
-        
-        console.log('✅ Réponse Google Sheets (objet):', result);
-        
-        playOrderNotificationSound();
-        
-        const t = TRANSLATIONS[state.currentLanguage];
-        showToast(`✅ ${t.toastOrderSaved}`);
-        
-        return result;
-        
-      } catch (error) {
-        console.error('Erreur enregistrement Google Sheets:', error);
-        showToast('⚠️ Commande créée mais erreur d\'enregistrement système', 'warning');
-        
-        saveOrderToHistory(orderData);
-        
-        return { success: true, commande_id: orderData.commandeId };
-      }
+    let adresseComplete = state.user.address || '';
+    if (state.user.lat && state.user.lng) {
+      adresseComplete += ` | GPS: ${state.user.lat}, ${state.user.lng}`;
     }
 
-    // ✅ Nouveau message de confirmation simplifié
-    function envoyerMessageClient(commandeId, result) {
-      const message = `✅ Commande Enregistrée
+    let articlesText = '';
+    let totalPanier = 0;
+    
+    Object.values(state.cart).forEach(item => {
+      const itemTotal = item.price * item.quantity;
+      totalPanier += itemTotal;
       
-Merci pour votre commande chez MAXI JDC MARKET.
+      articlesText += `${item.quantity}x ${item.name} (${item.code})\n`;
+      articlesText += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}`;
+      
+      if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
+        const saving = (item.oldPrice - item.price) * item.quantity;
+        articlesText += `\n 💰 ÉCONOMIE: ${formatPrice(saving)}`;
+        if (item.discountPercent) {
+          articlesText += ` (-${item.discountPercent}%)`;
+        }
+      }
+      articlesText += '\n';
+    });
+    
+    const sousTotal = totalPanier;
+    const livraison = sousTotal >= CONFIG.freeShipping ? 0 : 3.000;
+    const total = sousTotal + livraison;
+    
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
 
-📦 Votre commande, référencée sous le numéro ${commandeId}, a bien été enregistrée.
+    const commandeId = orderData.commandeId;
+
+    const sheetData = {
+      'Date': dateStr,
+      'N_Commande': commandeId,
+      'Nom_Client': state.user.name,
+      'Telephone': '+216 ' + state.user.phone,
+      'Adresse': adresseComplete,
+      'Articles': `COMMANDE: ${commandeId}\n` + articlesText,
+      'Total': total.toFixed(3).replace('.', ','),
+      'Statut': 'NOUVELLE'
+    };
+
+    console.log('📊 Données envoyées à Google Sheets:', sheetData);
+
+    const postData = {
+      'Date': sheetData.Date,
+      'N_Commande': sheetData.N_Commande,
+      'Nom_Client': sheetData.Nom_Client,
+      'Telephone': sheetData.Telephone,
+      'Adresse': sheetData.Adresse,
+      'Articles': sheetData.Articles,
+      'Total': sheetData.Total,
+      'Statut': sheetData.Statut
+    };
+
+    const params = new URLSearchParams();
+    Object.keys(postData).forEach(key => {
+      params.append(key, postData[key]);
+    });
+
+    const response = await fetch(CONFIG.commandeApiUrl, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+
+    // ✅ Récupérer la réponse JSON
+    const responseText = await response.text();
+    console.log('✅ Réponse Google Sheets (texte):', responseText);
+    
+    // ✅ Parser le JSON
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (e) {
+      console.error('❌ Erreur parsing JSON:', e);
+      result = { success: true, commande_id: commandeId };
+    }
+    
+    console.log('✅ Réponse Google Sheets (objet):', result);
+    
+    playOrderNotificationSound();
+    
+    const t = TRANSLATIONS[state.currentLanguage];
+    showToast(`✅ ${t.toastOrderSaved}`);
+    
+    // ✅ Retourner l'OBJET complet avec le nouveau numéro
+    return result;
+    
+  } catch (error) {
+    console.error('Erreur enregistrement Google Sheets:', error);
+    showToast('⚠️ Commande créée mais erreur d\'enregistrement système', 'warning');
+    
+    saveOrderToHistory(orderData);
+    
+    // ✅ En cas d'erreur, retourner l'ancien numéro
+    return { success: true, commande_id: orderData.commandeId };
+  }
+}
+  // ===================== ENVOI MESSAGE AU CLIENT =====================
+function envoyerMessageClient(commandeId, result) {
+  // ✅ Utiliser le message de Google Sheets s'il existe (priorité absolue)
+  const message = result?.client_message || `Merci pour votre commande chez MAXI JDC MARKET.
+📦 Votre commande, référence ${commandeId}, a bien été enregistrée.
 ⏳ Elle est actuellement en cours de préparation.
 📞 Nous vous contacterons prochainement pour la livraison.
-
-Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de commande, puis saisissez votre numéro de téléphone.
-
-⚠️ CONSERVEZ CE NUMÉRO : ${commandeId}`;
-      
-      const modal = document.createElement('div');
-      modal.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, #0a1929 0%, #112240 100%);
-        border: 3px solid var(--accent);
-        border-radius: 20px;
-        padding: 30px;
-        z-index: 9999;
-        max-width: 90%;
-        width: 400px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-        color: var(--text);
-        font-family: inherit;
-      `;
-      
-      modal.innerHTML = `
-        <h3 style="color: var(--accent); margin-top: 0; text-align: center;">✅ Commande Enregistrée</h3>
-        <div style="white-space: pre-line; margin: 20px 0; font-size: 14px; line-height: 1.5;">${message}</div>
-        <div style="display: flex; gap: 10px; justify-content: center;">
-          <button id="copyMsgBtn" style="
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: 2px solid var(--accent2);
-            background: rgba(0, 212, 255, 0.1);
-            color: var(--accent2);
-            cursor: pointer;
-            font-weight: 700;
-          ">📋 Copier</button>
-          <button id="closeMsgBtn" style="
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: 2px solid var(--accent);
-            background: rgba(0, 255, 136, 0.1);
-            color: var(--accent);
-            cursor: pointer;
-            font-weight: 700;
-          ">✅ OK</button>
-        </div>
-      `;
-      
-      document.body.appendChild(modal);
-      
-      const overlay = document.createElement('div');
-      overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.9);
-        z-index: 9998;
-      `;
-      document.body.appendChild(overlay);
-      
-      modal.querySelector('#copyMsgBtn').onclick = () => {
-        navigator.clipboard.writeText(message).then(() => {
-          showToast('📋 Message copié dans le presse-papier');
-        });
-      };
-      
-      const closeModal = () => {
-        document.body.removeChild(modal);
-        document.body.removeChild(overlay);
-      };
-      
-      modal.querySelector('#closeMsgBtn').onclick = closeModal;
-      overlay.onclick = closeModal;
-    }
-
+🔗 Pour suivre l'état de votre commande, utilisez le numéro ${commandeId} dans la section « Suivi commande » de votre espace client.`;
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #0a1929 0%, #112240 100%);
+    border: 3px solid var(--accent);
+    border-radius: 20px;
+    padding: 30px;
+    z-index: 9999;
+    max-width: 90%;
+    width: 400px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    color: var(--text);
+    font-family: inherit;
+  `;
+  
+  modal.innerHTML = `
+    <h3 style="color: var(--accent); margin-top: 0; text-align: center;">✅ Commande Enregistrée</h3>
+    <div style="white-space: pre-line; margin: 20px 0; font-size: 14px; line-height: 1.5;">${message}</div>
+    <div style="display: flex; gap: 10px; justify-content: center;">
+      <button id="copyMsgBtn" style="
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: 2px solid var(--accent2);
+        background: rgba(0, 212, 255, 0.1);
+        color: var(--accent2);
+        cursor: pointer;
+        font-weight: 700;
+      ">📋 Copier</button>
+      <button id="closeMsgBtn" style="
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: 2px solid var(--accent);
+        background: rgba(0, 255, 136, 0.1);
+        color: var(--accent);
+        cursor: pointer;
+        font-weight: 700;
+      ">✅ OK</button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 9998;
+  `;
+  document.body.appendChild(overlay);
+  
+  modal.querySelector('#copyMsgBtn').onclick = () => {
+    navigator.clipboard.writeText(message).then(() => {
+      showToast('📋 Message copié dans le presse-papier');
+    });
+  };
+  
+  const closeModal = () => {
+    document.body.removeChild(modal);
+    document.body.removeChild(overlay);
+  };
+  
+  modal.querySelector('#closeMsgBtn').onclick = closeModal;
+  overlay.onclick = closeModal;
+}
     // ===================== COMMANDES =====================
     async function placeOrder() {
       if (!state.user || !state.user.name || !state.user.phone || !state.user.address) {
@@ -7007,70 +6774,73 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
       showToast(`📝 Commande préparée. Cliquez sur "Valider et envoyer" pour finaliser.`);
     }
 
-    // ===================== BOUTON "VALIDER ET ENVOYER" =====================
-    $('sendOrderBtn').onclick = async () => {
+// ===================== BOUTON "VALIDER ET ENVOYER" =====================
+$('sendOrderBtn').onclick = async () => {
+  try {
+    if (state.isSendingOrder) {
+      showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
+      return;
+    }
+
+    if (!state.pendingOrder) {
+      showToast('❌ Aucune commande en attente', 'error');
+      return;
+    }
+
+    state.isSendingOrder = true;
+    const sendBtn = $('sendOrderBtn');
+    sendBtn.disabled = true;
+    sendBtn.classList.add('sending');
+    sendBtn.innerHTML = '⏳ Envoi en cours...';
+
+    const orderData = state.pendingOrder;
+    
+    saveOrderToHistory(orderData);
+    
+    // ✅ Récupérer le résultat
+    let result = await enregistrerCommandeGoogleSheets(orderData);
+    
+    // ✅ Si c'est une string, la parser
+    if (typeof result === 'string') {
       try {
-        if (state.isSendingOrder) {
-          showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
-          return;
-        }
-
-        if (!state.pendingOrder) {
-          showToast('❌ Aucune commande en attente', 'error');
-          return;
-        }
-
-        state.isSendingOrder = true;
-        const sendBtn = $('sendOrderBtn');
-        sendBtn.disabled = true;
-        sendBtn.classList.add('sending');
-        sendBtn.innerHTML = '⏳ Envoi en cours...';
-
-        const orderData = state.pendingOrder;
-        
-        saveOrderToHistory(orderData);
-        
-        let result = await enregistrerCommandeGoogleSheets(orderData);
-        
-        if (typeof result === 'string') {
-          try {
-            result = JSON.parse(result);
-          } catch(e) {
-            console.error("Erreur parsing JSON:", e);
-          }
-        }
-        
-        console.log("🔍 Type de result:", typeof result);
-        console.log("🔍 Contenu de result:", result);
-        
-                const commandeId = result?.command_id || result?.commande_id || result?.numero_commande || orderData?.commandeId;
-        
-        console.log("📦 Numéro final utilisé:", commandeId);
-        
-        state.cart = {};
-        updateCartUI();
-        state.pendingOrder = null;
-        $('orderModal').classList.remove('open');
-        
-        envoyerMessageClient(commandeId, result);
-        
-        const t = TRANSLATIONS[state.currentLanguage];
-        showToast(`✅ ${t.toastOrderValidated}`);
-        
-      } catch (error) {
-        console.error('❌ Erreur validation commande:', error);
-        showToast('❌ Erreur lors de la validation de la commande', 'error');
-      } finally {
-        setTimeout(() => {
-          state.isSendingOrder = false;
-          const sendBtn = $('sendOrderBtn');
-          sendBtn.disabled = false;
-          sendBtn.classList.remove('sending');
-          sendBtn.innerHTML = '✅ Valider et envoyer';
-        }, 3000);
+        result = JSON.parse(result);
+      } catch(e) {
+        console.error("Erreur parsing JSON:", e);
       }
-    };
-
+    }
+    
+    console.log("🔍 Type de result:", typeof result);
+    console.log("🔍 Contenu de result:", result);
+    
+    // ✅ Prendre le numéro (maintenant c'est un objet)
+    const commandeId = result?.command_id || result?.commande_id || result?.numero_commande || orderData?.commandeId;
+    
+    console.log("📦 Numéro final utilisé:", commandeId);
+    
+    state.cart = {};
+    updateCartUI();
+    state.pendingOrder = null;
+    $('orderModal').classList.remove('open');
+    
+    // ✅ Passer le résultat
+    envoyerMessageClient(commandeId, result);
+    
+    const t = TRANSLATIONS[state.currentLanguage];
+    showToast(`✅ ${t.toastOrderValidated}`);
+    
+  } catch (error) {
+    console.error('❌ Erreur validation commande:', error);
+    showToast('❌ Erreur lors de la validation de la commande', 'error');
+  } finally {
+    setTimeout(() => {
+      state.isSendingOrder = false;
+      const sendBtn = $('sendOrderBtn');
+      sendBtn.disabled = false;
+      sendBtn.classList.remove('sending');
+      sendBtn.innerHTML = '✅ Valider et envoyer';
+    }, 3000);
+  }
+};
     // ===================== INITIALISATION =====================
     function init() {
       try {
@@ -7304,8 +7074,6 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
 
       $('closeOrderModalBtn').onclick = () => {
         $('orderModal').classList.remove('open');
-        // Remettre le bouton "Valider et envoyer" visible pour la prochaine fois
-        $('sendOrderBtn').style.display = 'block';
       };
 
       $('copyOrderBtn').onclick = () => {
@@ -7399,5 +7167,14 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
 
 
