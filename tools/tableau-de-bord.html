@@ -704,7 +704,7 @@
                 <th>Adresse</th>
                 <th>Commande</th>
                 <th>Articles</th>
-                <th>Total</th>
+                <th>Total calculé</th>
                 <th>Statut</th>
               </tr>
             </thead>
@@ -813,11 +813,9 @@
       showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
     }
 
-    // ✅ CORRECTION: Format prix avec 3 chiffres après la virgule et gestion correcte des virgules
+    // ✅ CORRECTION: Format prix avec 3 chiffres après la virgule
     function formatPrice(amount) {
-      // Si c'est une chaîne avec virgule et "dt"
       if (typeof amount === 'string') {
-        // Nettoyer la chaîne : "1,500 dt" → "1.5"
         let cleanAmount = amount
           .replace(' dt', '')
           .replace('dt', '')
@@ -829,17 +827,57 @@
         return num.toFixed(3).replace('.', ',') + ' dt';
       }
       
-      // Si c'est déjà un nombre
       const num = parseFloat(amount) || 0;
       return num.toFixed(3).replace('.', ',') + ' dt';
     }
 
-    // ✅ CORRECTION: Fonction pour nettoyer et convertir un montant en nombre
+    // ✅ NOUVELLE FONCTION: Calcule le total à partir des articles
+    function calculateTotalFromArticles(articlesText) {
+      if (!articlesText) return 0;
+      
+      const lines = String(articlesText)
+        .replace(/\\n/g, "\n")
+        .replace(/<br\s*\/?>/gi, "\n")
+        .split("\n")
+        .map(s => s.trim())
+        .filter(Boolean);
+      
+      let total = 0;
+      
+      for (const line of lines) {
+        // Ignorer les lignes qui ne sont pas des articles
+        if (/^COMMANDE/i.test(line)) continue;
+        if (/^CMD[-_ ]?MAXI/i.test(line)) continue;
+        if (/^TOTAL/i.test(line)) continue;
+        if (/^GPS/i.test(line)) continue;
+        if (/^ÉCONOMIE/i.test(line)) continue;
+        
+        // Chercher le format: "4,500 dt × 4 = 18,000 dt" ou "4,500 dt x 4 = 18,000 dt"
+        const match = line.match(/(\d+(?:[.,]\d+)?)\s*dt\s*[×x]\s*(\d+)\s*=\s*(\d+(?:[.,]\d+)?)\s*dt/);
+        if (match) {
+          // Nettoyer le montant trouvé
+          let montant = match[3].replace(',', '.').replace(/\s+/g, '');
+          total += parseFloat(montant) || 0;
+          continue;
+        }
+        
+        // Format simple: "4,500 dt × 4"
+        const simpleMatch = line.match(/(\d+(?:[.,]\d+)?)\s*dt\s*[×x]\s*(\d+)/);
+        if (simpleMatch) {
+          let prixUnitaire = parseFloat(simpleMatch[1].replace(',', '.'));
+          let quantite = parseInt(simpleMatch[2], 10);
+          total += (prixUnitaire * quantite) || 0;
+        }
+      }
+      
+      return total;
+    }
+
+    // ✅ Fonction pour parser un prix
     function parsePrice(priceStr) {
       if (!priceStr) return 0;
       
       if (typeof priceStr === 'string') {
-        // Nettoie la chaîne : "1,500 dt" → 1.5
         let cleanStr = priceStr
           .replace(' dt', '')
           .replace('dt', '')
@@ -916,7 +954,7 @@
       const map = new Map();
 
       for (const order of orders) {
-        const orderTotal = num(order.total);
+        const orderTotal = calculateTotalFromArticles(order.articles) || num(order.total);
         const articles = parseArticles(order.articles);
         if (articles.length === 0) continue;
 
@@ -984,16 +1022,21 @@
 
     function calculateAnalytics() {
       const orders = state.orders || [];
+      
+      // ✅ Recalculer le CA total à partir des articles pour plus de précision
+      let totalRevenue = 0;
+      for (const order of orders) {
+        totalRevenue += calculateTotalFromArticles(order.articles) || num(order.total);
+      }
+      
       state.analytics = {
-        totalRevenue: 0, totalOrders: 0, avgOrderValue: 0,
+        totalRevenue: totalRevenue,
+        totalOrders: orders.length,
+        avgOrderValue: orders.length > 0 ? totalRevenue / orders.length : 0,
         statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
         ordersByHour: {}, ordersByDay: {},
         conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
       };
-
-      state.analytics.totalRevenue = orders.reduce((sum, order) => sum + num(order.total), 0);
-      state.analytics.totalOrders = orders.length;
-      state.analytics.avgOrderValue = state.analytics.totalOrders > 0 ? state.analytics.totalRevenue / state.analytics.totalOrders : 0;
 
       const now = new Date();
       const todayKey = now.toISOString().slice(0,10);
@@ -1007,15 +1050,16 @@
 
         const dayKey = d.toISOString().slice(0,10);
         const hour = d.getHours();
+        const orderTotal = calculateTotalFromArticles(order.articles) || num(order.total);
 
-        state.analytics.salesByDay[dayKey] = (state.analytics.salesByDay[dayKey] || 0) + num(order.total);
-        state.analytics.salesByHourRevenue[hour] = (state.analytics.salesByHourRevenue[hour] || 0) + num(order.total);
+        state.analytics.salesByDay[dayKey] = (state.analytics.salesByDay[dayKey] || 0) + orderTotal;
+        state.analytics.salesByHourRevenue[hour] = (state.analytics.salesByHourRevenue[hour] || 0) + orderTotal;
         state.analytics.ordersByHour[hour] = (state.analytics.ordersByHour[hour] || 0) + 1;
         state.analytics.ordersByDay[dayKey] = (state.analytics.ordersByDay[dayKey] || 0) + 1;
 
         if (dayKey === todayKey) {
           state.analytics.ordersToday += 1;
-          state.analytics.revenueToday += num(order.total);
+          state.analytics.revenueToday += orderTotal;
         }
       }
 
@@ -1085,6 +1129,10 @@
             addressLink = `<a href="https://www.google.com/maps/search/?api=1&query=${query}" target="_blank" class="address-link" title="Voir sur Google Maps"><i class="fas fa-map-marker-alt"></i> ${addressText.substring(0,30)}...</a>`;
           }
 
+          // ✅ Calculer le total réel à partir des articles
+          const calculatedTotal = calculateTotalFromArticles(order.articles);
+          const displayTotal = calculatedTotal > 0 ? calculatedTotal : num(order.total);
+
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>${dateStr}</td>
@@ -1093,10 +1141,10 @@
             <td>${addressLink}</td>
             <td><strong>${safeText(order.commande_id) || 'N/A'}</strong></td>
             <td class="articles-cell">${articlesText}</td>
-            <td><strong>${formatPrice(order.total)}</strong></td>
+            <td><strong style="color: var(--green);">${formatPrice(displayTotal)}</strong></td>
             <td>
               <select class="statut-select" onchange="updateOrderStatus('${order.commande_id}', this.value)">
-                ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${s.substring(0,8)}</option>`).join("")}
+                ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${s}</option>`).join("")}
               </select>
             </td>
           `;
@@ -1191,7 +1239,7 @@
 
       for (const s of order) {
         const c = state.analytics.statusDistribution[s] || 0;
-        if (c > 0) { labels.push(s.substring(0,10)); data.push(c); }
+        if (c > 0) { labels.push(s); data.push(c); }
       }
 
       state.charts.status.data.labels = labels;
@@ -1243,27 +1291,55 @@
       state.charts.hourly.update();
     }
 
+    // ✅ MISE À JOUR: Changement de statut avec synchronisation
     async function updateOrderStatus(commandeId, nouveauStatut) {
       try {
-        showToast(`⏳ Mise à jour...`, "info");
+        showToast(`⏳ Mise à jour du statut...`, "info");
         state.statusUpdateInProgress = true;
         state.statusUpdateForId = commandeId;
 
-        if (state.apiStatus === 'demo') return;
+        if (state.apiStatus === 'demo') {
+          // Mode démo: mise à jour locale uniquement
+          const i = state.orders.findIndex(o => o.commande_id === commandeId);
+          if (i !== -1) {
+            state.orders[i].statut = nouveauStatut;
+            calculateAnalytics();
+            updateUI();
+            updateCharts();
+            showToast(`✅ Statut mis à jour (mode démo)`, "success");
+          }
+          return;
+        }
 
+        // ✅ Appel API pour mettre à jour le statut
         const url = `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`;
-        const response = await fetch(url, { cache:"no-store" });
+        const response = await fetch(url, { cache: "no-store" });
         const result = await response.json();
 
         if (!result.success) throw new Error(result.error || "Erreur API");
 
+        // Mise à jour locale
         const i = state.orders.findIndex(o => o.commande_id === commandeId);
-        if (i !== -1) state.orders[i].statut = nouveauStatut;
+        if (i !== -1) {
+          state.orders[i].statut = nouveauStatut;
+        }
 
+        // Recalculer les analytics
         calculateAnalytics();
         updateUI();
         updateCharts();
-        showToast(`✅ Statut mis à jour`, "success");
+        
+        showToast(`✅ Statut mis à jour avec succès`, "success");
+
+        // 🔄 Forcer une synchronisation pour l'application client
+        setTimeout(() => {
+          // Notifier les autres onglets que les données ont changé
+          localStorage.setItem('maxi_jdc_status_update', JSON.stringify({
+            commandeId: commandeId,
+            nouveauStatut: nouveauStatut,
+            timestamp: Date.now()
+          }));
+        }, 500);
 
       } catch (e) {
         console.error(e);
@@ -1329,6 +1405,27 @@
         $("btnRefresh").innerHTML = '<i class="fas fa-sync-alt"></i> Actualiser';
       }
     }
+
+    // Écouter les changements de statut depuis d'autres onglets
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'maxi_jdc_status_update') {
+        try {
+          const data = JSON.parse(e.newValue);
+          console.log('Statut mis à jour depuis un autre onglet:', data);
+          
+          // Mettre à jour localement sans recharger toute l'API
+          const i = state.orders.findIndex(o => o.commande_id === data.commandeId);
+          if (i !== -1) {
+            state.orders[i].statut = data.nouveauStatut;
+            calculateAnalytics();
+            updateUI();
+            updateCharts();
+          }
+        } catch (err) {
+          console.error('Erreur parsing storage event:', err);
+        }
+      }
+    });
 
     document.addEventListener("DOMContentLoaded", () => {
       initCharts();
