@@ -377,7 +377,7 @@
     table{ 
       width: 100%;
       border-collapse: collapse;
-      min-width: 1100px;
+      min-width: 1200px;
     }
     
     th{
@@ -457,6 +457,21 @@
       line-height: 1.4;
       max-width: 320px;
       word-wrap: break-word;
+    }
+    
+    .shipping-badge {
+      font-size: 9px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--blue);
+      margin-left: 4px;
+      font-weight: 600;
+    }
+    
+    .free-shipping {
+      background: rgba(0, 255, 136, 0.15);
+      color: var(--green);
     }
     
     #topProductsTable {
@@ -704,13 +719,15 @@
                 <th>Adresse</th>
                 <th>Commande</th>
                 <th>Articles</th>
-                <th>Total calculé</th>
+                <th>Sous-total</th>
+                <th>Frais</th>
+                <th>Total TTC</th>
                 <th>Statut</th>
               </tr>
             </thead>
             <tbody id="allOrdersBody">
               <tr>
-                <td colspan="8" style="text-align:center; padding:20px; color:var(--muted)">
+                <td colspan="10" style="text-align:center; padding:20px; color:var(--muted)">
                   Chargement des commandes...
                 </td>
               </tr>
@@ -768,6 +785,14 @@
           <div class="analytics-label">CA aujourd'hui</div>
           <div class="analytics-value" id="revenueToday">0,000 dt</div>
         </div>
+        <div class="analytics-item">
+          <div class="analytics-label">CA livraisons</div>
+          <div class="analytics-value" id="shippingRevenue">0,000 dt</div>
+        </div>
+        <div class="analytics-item">
+          <div class="analytics-label">Commandes livraison</div>
+          <div class="analytics-value" id="paidShippingCount">0</div>
+        </div>
       </div>
     </div>
 
@@ -775,6 +800,7 @@
       <div>© 2024 MAXI JDC MARKET — Tableau de bord</div>
       <div style="margin-top:4px; font-size:11px;">Mise à jour : <span id="lastUpdate">—</span></div>
       <div style="margin-top:4px; font-size:10px; color:var(--orange);" id="dataSourceInfo"></div>
+      <div style="margin-top:4px; font-size:10px; color:var(--blue);">🚚 Livraison: 3 DT (gratuit dès 100 DT)</div>
     </footer>
   </div>
 
@@ -783,6 +809,10 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbzS84SbAg80R2GcYortCdl5dgvxbneAqnsrs6kMxp30whjAN6tadiIWF7x6MK3jmizf/exec";
     const STATUTS = ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
+    
+    // Configuration des frais de livraison
+    const SHIPPING_FEE = 3.000;
+    const FREE_SHIPPING_THRESHOLD = 100.000;
 
     const state = {
       orders: [],
@@ -791,7 +821,8 @@
         totalRevenue: 0, totalOrders: 0, avgOrderValue: 0,
         statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
         ordersByHour: {}, ordersByDay: {},
-        conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
+        conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0,
+        shippingRevenue: 0, paidShippingCount: 0
       },
       charts: { sales: null, status: null, products: null, hourly: null },
       apiStatus: 'checking',
@@ -813,7 +844,7 @@
       showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
     }
 
-    // ✅ CORRECTION: Format prix avec 3 chiffres après la virgule
+    // ✅ Format prix avec 3 chiffres après la virgule
     function formatPrice(amount) {
       if (typeof amount === 'string') {
         let cleanAmount = amount
@@ -831,8 +862,8 @@
       return num.toFixed(3).replace('.', ',') + ' dt';
     }
 
-    // ✅ NOUVELLE FONCTION: Calcule le total à partir des articles
-    function calculateTotalFromArticles(articlesText) {
+    // ✅ Calcul du sous-total à partir des articles (sans livraison)
+    function calculateSubtotalFromArticles(articlesText) {
       if (!articlesText) return 0;
       
       const lines = String(articlesText)
@@ -842,7 +873,7 @@
         .map(s => s.trim())
         .filter(Boolean);
       
-      let total = 0;
+      let subtotal = 0;
       
       for (const line of lines) {
         // Ignorer les lignes qui ne sont pas des articles
@@ -852,28 +883,33 @@
         if (/^GPS/i.test(line)) continue;
         if (/^ÉCONOMIE/i.test(line)) continue;
         
-        // Chercher le format: "4,500 dt × 4 = 18,000 dt" ou "4,500 dt x 4 = 18,000 dt"
+        // Format: "4,500 dt × 4 = 18,000 dt"
         const match = line.match(/(\d+(?:[.,]\d+)?)\s*dt\s*[×x]\s*(\d+)\s*=\s*(\d+(?:[.,]\d+)?)\s*dt/);
         if (match) {
-          // Nettoyer le montant trouvé
           let montant = match[3].replace(',', '.').replace(/\s+/g, '');
-          total += parseFloat(montant) || 0;
+          subtotal += parseFloat(montant) || 0;
           continue;
         }
         
-        // Format simple: "4,500 dt × 4"
+        // Format: "4,500 dt × 4"
         const simpleMatch = line.match(/(\d+(?:[.,]\d+)?)\s*dt\s*[×x]\s*(\d+)/);
         if (simpleMatch) {
           let prixUnitaire = parseFloat(simpleMatch[1].replace(',', '.'));
           let quantite = parseInt(simpleMatch[2], 10);
-          total += (prixUnitaire * quantite) || 0;
+          subtotal += (prixUnitaire * quantite) || 0;
         }
       }
       
-      return total;
+      return subtotal;
     }
 
-    // ✅ Fonction pour parser un prix
+    // ✅ Calcul du total TTC (sous-total + frais de livraison si applicable)
+    function calculateTotalWithShipping(subtotal) {
+      const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+      return subtotal + shipping;
+    }
+
+    // ✅ Parse un prix
     function parsePrice(priceStr) {
       if (!priceStr) return 0;
       
@@ -954,7 +990,7 @@
       const map = new Map();
 
       for (const order of orders) {
-        const orderTotal = calculateTotalFromArticles(order.articles) || num(order.total);
+        const subtotal = calculateSubtotalFromArticles(order.articles) || parsePrice(order.total);
         const articles = parseArticles(order.articles);
         if (articles.length === 0) continue;
 
@@ -964,7 +1000,7 @@
           const name = (a.produit || "Produit").trim();
           const q = num(a.quantite);
 
-          const lineRevenue = a.prix_total > 0 ? num(a.prix_total) : (orderTotal * (q / totalQty));
+          const lineRevenue = a.prix_total > 0 ? num(a.prix_total) : (subtotal * (q / totalQty));
 
           if (!map.has(name)) map.set(name, { name, quantity: 0, revenue: 0 });
           const it = map.get(name);
@@ -1023,23 +1059,28 @@
     function calculateAnalytics() {
       const orders = state.orders || [];
       
-      // ✅ Recalculer le CA total à partir des articles pour plus de précision
-      let totalRevenue = 0;
-      for (const order of orders) {
-        totalRevenue += calculateTotalFromArticles(order.articles) || num(order.total);
-      }
-      
+      // Réinitialiser les analytics
       state.analytics = {
-        totalRevenue: totalRevenue,
+        totalRevenue: 0, 
         totalOrders: orders.length,
-        avgOrderValue: orders.length > 0 ? totalRevenue / orders.length : 0,
-        statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
-        ordersByHour: {}, ordersByDay: {},
-        conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
+        avgOrderValue: 0,
+        statusDistribution: {}, 
+        salesByDay: {}, 
+        salesByHourRevenue: {},
+        ordersByHour: {}, 
+        ordersByDay: {},
+        conversionRate: 0, 
+        avgCustomerValue: 0, 
+        ordersToday: 0, 
+        revenueToday: 0,
+        shippingRevenue: 0,
+        paidShippingCount: 0
       };
 
       const now = new Date();
       const todayKey = now.toISOString().slice(0,10);
+
+      let totalRevenueWithShipping = 0;
 
       for (const order of orders) {
         const statut = order.statut || "🟡 NOUVELLE";
@@ -1050,28 +1091,47 @@
 
         const dayKey = d.toISOString().slice(0,10);
         const hour = d.getHours();
-        const orderTotal = calculateTotalFromArticles(order.articles) || num(order.total);
+        
+        // ✅ Calcul du sous-total et du total avec livraison
+        const subtotal = calculateSubtotalFromArticles(order.articles) || parsePrice(order.total);
+        const totalWithShipping = calculateTotalWithShipping(subtotal);
+        const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
 
-        state.analytics.salesByDay[dayKey] = (state.analytics.salesByDay[dayKey] || 0) + orderTotal;
-        state.analytics.salesByHourRevenue[hour] = (state.analytics.salesByHourRevenue[hour] || 0) + orderTotal;
+        // Statistiques par jour/heure (utiliser le total TTC)
+        state.analytics.salesByDay[dayKey] = (state.analytics.salesByDay[dayKey] || 0) + totalWithShipping;
+        state.analytics.salesByHourRevenue[hour] = (state.analytics.salesByHourRevenue[hour] || 0) + totalWithShipping;
         state.analytics.ordersByHour[hour] = (state.analytics.ordersByHour[hour] || 0) + 1;
         state.analytics.ordersByDay[dayKey] = (state.analytics.ordersByDay[dayKey] || 0) + 1;
 
+        // Revenu total TTC
+        totalRevenueWithShipping += totalWithShipping;
+
+        // Statistiques de livraison
+        if (shippingFee > 0) {
+          state.analytics.shippingRevenue += shippingFee;
+          state.analytics.paidShippingCount++;
+        }
+
         if (dayKey === todayKey) {
           state.analytics.ordersToday += 1;
-          state.analytics.revenueToday += orderTotal;
+          state.analytics.revenueToday += totalWithShipping;
         }
       }
 
+      state.analytics.totalRevenue = totalRevenueWithShipping;
+      state.analytics.avgOrderValue = state.analytics.totalOrders > 0 ? totalRevenueWithShipping / state.analytics.totalOrders : 0;
+
       if (state.topProducts.length > 0) state.analytics.topProduct = state.topProducts[0];
       state.analytics.conversionRate = Math.min(100, Math.round((orders.length / 100) * 100));
-      state.analytics.avgCustomerValue = state.analytics.totalOrders > 0 ? state.analytics.totalRevenue / (state.analytics.totalOrders * 0.7) : 0;
+      state.analytics.avgCustomerValue = state.analytics.totalOrders > 0 ? totalRevenueWithShipping / (state.analytics.totalOrders * 0.7) : 0;
     }
 
     function updateUI() {
       $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
       $("totalOrders").textContent = state.analytics.totalOrders;
       $("avgOrderValue").textContent = formatPrice(state.analytics.avgOrderValue);
+      $("shippingRevenue").textContent = formatPrice(state.analytics.shippingRevenue);
+      $("paidShippingCount").textContent = state.analytics.paidShippingCount;
 
       const selectedStatut = $("statusSelector").value;
       const count = state.analytics.statusDistribution[selectedStatut] || 0;
@@ -1106,7 +1166,7 @@
       });
 
       if (sortedOrders.length === 0) {
-        allOrdersBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted)">Aucune commande</td></tr>`;
+        allOrdersBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:var(--muted)">Aucune commande</td></tr>`;
       } else {
         sortedOrders.slice(0, 50).forEach(order => {
           const statut = order.statut || "🟡 NOUVELLE";
@@ -1129,9 +1189,13 @@
             addressLink = `<a href="https://www.google.com/maps/search/?api=1&query=${query}" target="_blank" class="address-link" title="Voir sur Google Maps"><i class="fas fa-map-marker-alt"></i> ${addressText.substring(0,30)}...</a>`;
           }
 
-          // ✅ Calculer le total réel à partir des articles
-          const calculatedTotal = calculateTotalFromArticles(order.articles);
-          const displayTotal = calculatedTotal > 0 ? calculatedTotal : num(order.total);
+          // ✅ Calculer le sous-total et le total avec livraison
+          const subtotal = calculateSubtotalFromArticles(order.articles) || parsePrice(order.total);
+          const totalWithShipping = calculateTotalWithShipping(subtotal);
+          const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+          
+          const shippingBadgeClass = shippingFee === 0 ? 'free-shipping' : '';
+          const shippingText = shippingFee === 0 ? 'GRATUIT' : formatPrice(shippingFee);
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
@@ -1141,7 +1205,9 @@
             <td>${addressLink}</td>
             <td><strong>${safeText(order.commande_id) || 'N/A'}</strong></td>
             <td class="articles-cell">${articlesText}</td>
-            <td><strong style="color: var(--green);">${formatPrice(displayTotal)}</strong></td>
+            <td><strong style="color: var(--blue);">${formatPrice(subtotal)}</strong></td>
+            <td><span class="shipping-badge ${shippingBadgeClass}">${shippingText}</span></td>
+            <td><strong style="color: var(--green); font-size: 12px;">${formatPrice(totalWithShipping)}</strong></td>
             <td>
               <select class="statut-select" onchange="updateOrderStatus('${order.commande_id}', this.value)">
                 ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${s}</option>`).join("")}
@@ -1291,7 +1357,7 @@
       state.charts.hourly.update();
     }
 
-    // ✅ MISE À JOUR: Changement de statut avec synchronisation
+    // ✅ Mise à jour du statut avec synchronisation
     async function updateOrderStatus(commandeId, nouveauStatut) {
       try {
         showToast(`⏳ Mise à jour du statut...`, "info");
@@ -1299,7 +1365,6 @@
         state.statusUpdateForId = commandeId;
 
         if (state.apiStatus === 'demo') {
-          // Mode démo: mise à jour locale uniquement
           const i = state.orders.findIndex(o => o.commande_id === commandeId);
           if (i !== -1) {
             state.orders[i].statut = nouveauStatut;
@@ -1311,29 +1376,24 @@
           return;
         }
 
-        // ✅ Appel API pour mettre à jour le statut
         const url = `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`;
         const response = await fetch(url, { cache: "no-store" });
         const result = await response.json();
 
         if (!result.success) throw new Error(result.error || "Erreur API");
 
-        // Mise à jour locale
         const i = state.orders.findIndex(o => o.commande_id === commandeId);
         if (i !== -1) {
           state.orders[i].statut = nouveauStatut;
         }
 
-        // Recalculer les analytics
         calculateAnalytics();
         updateUI();
         updateCharts();
         
         showToast(`✅ Statut mis à jour avec succès`, "success");
 
-        // 🔄 Forcer une synchronisation pour l'application client
         setTimeout(() => {
-          // Notifier les autres onglets que les données ont changé
           localStorage.setItem('maxi_jdc_status_update', JSON.stringify({
             commandeId: commandeId,
             nouveauStatut: nouveauStatut,
@@ -1406,14 +1466,12 @@
       }
     }
 
-    // Écouter les changements de statut depuis d'autres onglets
     window.addEventListener('storage', (e) => {
       if (e.key === 'maxi_jdc_status_update') {
         try {
           const data = JSON.parse(e.newValue);
           console.log('Statut mis à jour depuis un autre onglet:', data);
           
-          // Mettre à jour localement sans recharger toute l'API
           const i = state.orders.findIndex(o => o.commande_id === data.commandeId);
           if (i !== -1) {
             state.orders[i].statut = data.nouveauStatut;
