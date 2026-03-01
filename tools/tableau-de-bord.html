@@ -2,15 +2,10 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <!-- ✅ OPTIMISATION MOBILE - PLEIN ÉCRAN -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Tableau de Bord - MAXI JDC MARKET</title>
-
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <style>
     :root{
       --bg1:#0a1929; --bg2:#112240; --card:#162447; --line:rgba(255,255,255,.15);
@@ -20,7 +15,6 @@
     
     *{box-sizing:border-box;margin:0;padding:0}
     
-    /* ✅ PLEIN ÉCRAN MOBILE */
     html, body {
       height: 100%;
       width: 100%;
@@ -49,7 +43,6 @@
       width: 100%;
     }
     
-    /* ✅ HEADER MOBILE - MÊME INTERFACE ADAPTÉE */
     .header{
       background:rgba(10,25,47,.95);
       border:2px solid var(--green);
@@ -148,7 +141,6 @@
       border: 1px solid var(--red);
     }
 
-    /* ✅ GRID STATS - 2 COLONNES SUR MOBILE */
     .grid{
       display:grid; 
       gap:10px; 
@@ -192,7 +184,6 @@
       font-weight:600
     }
     
-    /* ✅ STATUT SELECTEUR - COMPACT */
     .status-selector-card {
       background:var(--card);
       border:1px solid var(--line);
@@ -256,7 +247,6 @@
       white-space: nowrap;
     }
     
-    /* ✅ TOP PRODUCT - MOBILE */
     .top-product-card {
       background: linear-gradient(135deg, rgba(26, 36, 93, 0.9), rgba(22, 36, 71, 0.9));
       border: 2px solid var(--yellow);
@@ -323,7 +313,6 @@
       font-size: 10px;
     }
 
-    /* ✅ GRAPHIQUES - 100% SUR MOBILE */
     .chart-container {
       display: flex;
       flex-direction: column;
@@ -354,7 +343,6 @@
       position:relative
     }
     
-    /* ✅ TABLES AVEC SCROLL HORIZONTAL */
     .tableWrap{
       border:1px solid var(--line);
       border-radius:10px;
@@ -367,7 +355,6 @@
       margin-top: 8px;
     }
     
-    /* ✅ CURSEUR HORIZONTAL PERSONNALISÉ */
     .tableWrap::-webkit-scrollbar {
       height: 8px;
       width: 8px;
@@ -390,7 +377,7 @@
     table{ 
       width: 100%;
       border-collapse: collapse;
-      min-width: 1100px; /* Force le scroll horizontal */
+      min-width: 1200px;
     }
     
     th{
@@ -414,12 +401,10 @@
     
     tr:hover{background:rgba(255,255,255,.05)}
     
-    /* ✅ COLONNES LARGES POUR MEILLEURE LECTURE */
-    td:nth-child(4) { min-width: 200px; } /* Adresse */
-    td:nth-child(5) { min-width: 140px; } /* Commande */
-    td:nth-child(6) { min-width: 280px; } /* Articles */
+    td:nth-child(4) { min-width: 200px; }
+    td:nth-child(5) { min-width: 140px; }
+    td:nth-child(6) { min-width: 280px; }
     
-    /* LIEN ADRESSE VERS GOOGLE MAPS */
     .address-link {
       color: var(--blue);
       text-decoration: none;
@@ -442,7 +427,6 @@
       opacity: 0.8;
     }
     
-    /* STATUT SELECT */
     .statut-select {
       padding: 5px 6px;
       border: 1px solid var(--line);
@@ -467,7 +451,6 @@
       padding: 6px;
     }
     
-    /* ✅ ARTICLES CELL - AFFICHAGE COMPLET SANS TRONCATURE */
     .articles-cell {
       white-space: pre-line;
       font-size: 10px;
@@ -476,15 +459,28 @@
       word-wrap: break-word;
     }
     
-    /* ✅ TABLEAU TOP 10 PRODUITS */
+    .shipping-badge {
+      font-size: 9px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--blue);
+      margin-left: 4px;
+      font-weight: 600;
+    }
+    
+    .free-shipping {
+      background: rgba(0, 255, 136, 0.15);
+      color: var(--green);
+    }
+    
     #topProductsTable {
       min-width: 500px;
     }
     
-    #topProductsTable th:nth-child(2) { min-width: 250px; } /* Colonne Produit */
+    #topProductsTable th:nth-child(2) { min-width: 250px; }
     #topProductsTable td:nth-child(2) { min-width: 250px; }
     
-    /* ✅ SECTION ANALYTIQUE - GRILLE 2 COLONNES */
     .analytics-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -509,7 +505,6 @@
       font-weight: 900;
     }
     
-    /* FOOTER */
     .footer{
       margin-top:12px; 
       padding:10px; 
@@ -519,7 +514,6 @@
       font-size:11px;
     }
 
-    /* TOAST */
     .toast{
       position:fixed; 
       top:10px; 
@@ -544,7 +538,6 @@
       to{transform:translateY(0);opacity:1}
     }
     
-    /* ✅ SAFE AREA POUR IPHONE */
     @supports (padding-top: env(safe-area-inset-top)) {
       body {
         padding-top: env(safe-area-inset-top);
@@ -556,7 +549,6 @@
 
 <body>
   <div class="container">
-    <!-- HEADER VERSION MOBILE -->
     <header class="header">
       <div class="header-top">
         <div class="left">
@@ -585,7 +577,6 @@
       </div>
     </header>
 
-    <!-- STATISTIQUES PRINCIPALES - 2 COLONNES -->
     <section class="grid">
       <div class="card">
         <div class="statTop">
@@ -617,28 +608,36 @@
         </div>
       </div>
 
-      <!-- CARTE SELECTEUR DE STATUT - SUR 2 COLONNES -->
-      <div class="status-selector-card">
-        <div class="selector-container">
-          <div class="selector-row">
-            <select class="statut-dropdown" id="statusSelector">
-              <option value="🟡 NOUVELLE">🟡 NOUVELLE</option>
-              <option value="⏳ EN ATTENTE">⏳ EN ATTENTE</option>
-              <option value="🔵 EN PRÉPARATION">🔵 EN PRÉPARATION</option>
-              <option value="🟠 EN LIVRAISON">🟠 EN LIVRAISON</option>
-              <option value="✅ LIVRÉE">✅ LIVRÉE</option>
-              <option value="❌ ANNULÉE">❌ ANNULÉE</option>
-            </select>
-            <div class="icon"><i class="fas fa-filter"></i></div>
+      <div class="card">
+        <div class="statTop">
+          <div>
+            <div class="value" id="shippingRevenue">0,00 dt</div>
+            <div class="label">CA livraisons</div>
           </div>
-          <div class="statut-count" id="selectedStatusCount">0</div>
-          <div class="statut-label" id="selectedStatusLabel">Commandes sélectionnées</div>
+          <div class="icon"><i class="fas fa-truck"></i></div>
         </div>
       </div>
     </section>
 
-    <!-- PRODUIT LE PLUS VENDU -->
-    <div class="top-product-card" id="topProductCard" style="display: none;">
+    <div class="status-selector-card">
+      <div class="selector-container">
+        <div class="selector-row">
+          <select class="statut-dropdown" id="statusSelector">
+            <option value="🟡 NOUVELLE">🟡 NOUVELLE</option>
+            <option value="⏳ EN ATTENTE">⏳ EN ATTENTE</option>
+            <option value="🔵 EN PRÉPARATION" selected>🔵 EN PRÉPARATION</option>
+            <option value="🟠 EN LIVRAISON">🟠 EN LIVRAISON</option>
+            <option value="✅ LIVRÉE">✅ LIVRÉE</option>
+            <option value="❌ ANNULÉE">❌ ANNULÉE</option>
+          </select>
+          <div class="icon"><i class="fas fa-filter"></i></div>
+        </div>
+        <div class="statut-count" id="selectedStatusCount">0</div>
+        <div class="statut-label" id="selectedStatusLabel">🔵 EN PRÉPARATION</div>
+      </div>
+    </div>
+
+    <div class="top-product-card" id="topProductCard" style="display: block;">
       <div class="top-product-header">
         <h3><i class="fas fa-trophy"></i> PRODUIT LE PLUS VENDU</h3>
         <span class="badge"><i class="fas fa-crown"></i> TOP 1</span>
@@ -646,18 +645,18 @@
       <div class="top-product-content">
         <div class="product-trophy"><i class="fas fa-trophy"></i></div>
         <div class="product-details">
-          <div class="product-name" id="topProductName">Chargement...</div>
+          <div class="product-name" id="topProductName">Pack Familial MAXI</div>
           <div class="product-stats">
             <div class="product-stat">
-              <div class="stat-value" id="topProductQty">0</div>
+              <div class="stat-value" id="topProductQty">24</div>
               <div class="stat-label">Quantité</div>
             </div>
             <div class="product-stat">
-              <div class="stat-value" id="topProductRevenue">0,00 dt</div>
+              <div class="stat-value" id="topProductRevenue">720,00 dt</div>
               <div class="stat-label">Revenu</div>
             </div>
             <div class="product-stat">
-              <div class="stat-value" id="topProductPercentage">0%</div>
+              <div class="stat-value" id="topProductPercentage">32%</div>
               <div class="stat-label">Part</div>
             </div>
           </div>
@@ -665,9 +664,7 @@
       </div>
     </div>
 
-    <!-- GRAPHIQUES - EMPILÉS VERTICALEMENT -->
     <div class="chart-container">
-      <!-- Ventes par jour -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-chart-line"></i> Ventes par jour</h3>
@@ -682,7 +679,6 @@
         </div>
       </div>
 
-      <!-- Répartition par statut -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-chart-pie"></i> Répartition</h3>
@@ -693,7 +689,6 @@
         </div>
       </div>
 
-      <!-- Top 10 produits -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-star"></i> Top 10 produits</h3>
@@ -704,7 +699,6 @@
         </div>
       </div>
 
-      <!-- Activité commandes -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-clock"></i> Activité</h3>
@@ -719,9 +713,7 @@
       </div>
     </div>
 
-    <!-- TABLEAUX AVEC SCROLL HORIZONTAL -->
     <div style="margin-top: 12px;">
-      <!-- Toutes les commandes -->
       <div class="card">
         <div class="sectionTitle">
           <h3><i class="fas fa-list"></i> Toutes les commandes</h3>
@@ -737,13 +729,15 @@
                 <th>Adresse</th>
                 <th>Commande</th>
                 <th>Articles</th>
-                <th>Total</th>
+                <th>Sous-total</th>
+                <th>Frais</th>
+                <th>Total TTC</th>
                 <th>Statut</th>
               </tr>
             </thead>
             <tbody id="allOrdersBody">
               <tr>
-                <td colspan="8" style="text-align:center; padding:20px; color:var(--muted)">
+                <td colspan="10" style="text-align:center; padding:20px; color:var(--muted)">
                   Chargement des commandes...
                 </td>
               </tr>
@@ -752,7 +746,6 @@
         </div>
       </div>
 
-      <!-- Top 10 produits table -->
       <div class="card" style="margin-top: 12px;">
         <div class="sectionTitle">
           <h3><i class="fas fa-trophy"></i> Top 10 produits</h3>
@@ -780,7 +773,6 @@
       </div>
     </div>
 
-    <!-- SECTION ANALYTIQUE - GRILLE 2 COLONNES -->
     <div class="card" style="margin-top: 12px;">
       <div class="sectionTitle">
         <h3><i class="fas fa-chart-bar"></i> Analyse</h3>
@@ -789,19 +781,27 @@
       <div class="analytics-grid">
         <div class="analytics-item">
           <div class="analytics-label">Taux conversion</div>
-          <div class="analytics-value" id="conversionRate">0%</div>
+          <div class="analytics-value" id="conversionRate">24%</div>
         </div>
         <div class="analytics-item">
           <div class="analytics-label">Client moyen</div>
-          <div class="analytics-value" id="avgCustomerValue">0,00 dt</div>
+          <div class="analytics-value" id="avgCustomerValue">156,00 dt</div>
         </div>
         <div class="analytics-item">
           <div class="analytics-label">Aujourd'hui</div>
-          <div class="analytics-value" id="ordersToday">0</div>
+          <div class="analytics-value" id="ordersToday">8</div>
         </div>
         <div class="analytics-item">
           <div class="analytics-label">CA aujourd'hui</div>
-          <div class="analytics-value" id="revenueToday">0,00 dt</div>
+          <div class="analytics-value" id="revenueToday">456,00 dt</div>
+        </div>
+        <div class="analytics-item">
+          <div class="analytics-label">CA livraisons</div>
+          <div class="analytics-value" id="shippingRevenueAnalytics">36,00 dt</div>
+        </div>
+        <div class="analytics-item">
+          <div class="analytics-label">Commandes livraison</div>
+          <div class="analytics-value" id="paidShippingCount">12</div>
         </div>
       </div>
     </div>
@@ -810,6 +810,7 @@
       <div>© 2024 MAXI JDC MARKET — Tableau de bord</div>
       <div style="margin-top:4px; font-size:11px;">Mise à jour : <span id="lastUpdate">—</span></div>
       <div style="margin-top:4px; font-size:10px; color:var(--orange);" id="dataSourceInfo"></div>
+      <div style="margin-top:4px; font-size:10px; color:var(--blue);">🚚 Livraison: 3 DT (gratuit dès 100 DT)</div>
     </footer>
   </div>
 
@@ -818,6 +819,9 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxEJ85cUAD03yDXY7PexjWhQaQD4uUPAeTwUANP5d6na39amSHyvUM-2RSwiSnGdBug/exec";
     const STATUTS = ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
+    
+    const SHIPPING_FEE = 3.000;
+    const FREE_SHIPPING_THRESHOLD = 100.000;
 
     const state = {
       orders: [],
@@ -826,7 +830,8 @@
         totalRevenue: 0, totalOrders: 0, avgOrderValue: 0,
         statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
         ordersByHour: {}, ordersByDay: {},
-        conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
+        conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0,
+        shippingRevenue: 0, paidShippingCount: 0
       },
       charts: { sales: null, status: null, products: null, hourly: null },
       apiStatus: 'checking',
@@ -849,8 +854,81 @@
     }
 
     function formatPrice(amount) {
-      const n = Number(amount || 0);
-      return n.toFixed(2).replace(".", ",") + " dt";
+      if (typeof amount === 'string') {
+        let cleanAmount = amount
+          .replace(' dt', '')
+          .replace('dt', '')
+          .replace(',', '.')
+          .replace(/\s+/g, '')
+          .trim();
+        
+        const num = parseFloat(cleanAmount) || 0;
+        return num.toFixed(3).replace('.', ',') + ' dt';
+      }
+      
+      const num = parseFloat(amount) || 0;
+      return num.toFixed(3).replace('.', ',') + ' dt';
+    }
+
+    function calculateSubtotalFromArticles(articlesText) {
+      if (!articlesText) return 0;
+      
+      const lines = String(articlesText)
+        .replace(/\\n/g, "\n")
+        .replace(/<br\s*\/?>/gi, "\n")
+        .split("\n")
+        .map(s => s.trim())
+        .filter(Boolean);
+      
+      let subtotal = 0;
+      
+      for (const line of lines) {
+        if (/^COMMANDE/i.test(line)) continue;
+        if (/^CMD[-_ ]?MAXI/i.test(line)) continue;
+        if (/^TOTAL/i.test(line)) continue;
+        if (/^GPS/i.test(line)) continue;
+        if (/^ÉCONOMIE/i.test(line)) continue;
+        
+        const match = line.match(/(\d+(?:[.,]\d+)?)\s*dt\s*[×x]\s*(\d+)\s*=\s*(\d+(?:[.,]\d+)?)\s*dt/);
+        if (match) {
+          let montant = match[3].replace(',', '.').replace(/\s+/g, '');
+          subtotal += parseFloat(montant) || 0;
+          continue;
+        }
+        
+        const simpleMatch = line.match(/(\d+(?:[.,]\d+)?)\s*dt\s*[×x]\s*(\d+)/);
+        if (simpleMatch) {
+          let prixUnitaire = parseFloat(simpleMatch[1].replace(',', '.'));
+          let quantite = parseInt(simpleMatch[2], 10);
+          subtotal += (prixUnitaire * quantite) || 0;
+        }
+      }
+      
+      return subtotal;
+    }
+
+    function calculateTotalWithShipping(subtotal) {
+      const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+      return subtotal + shipping;
+    }
+
+    function parsePrice(priceStr) {
+      if (!priceStr) return 0;
+      
+      if (typeof priceStr === 'string') {
+        let cleanStr = priceStr
+          .replace(' dt', '')
+          .replace('dt', '')
+          .replace(',', '.')
+          .replace(/\s+/g, '')
+          .trim();
+        
+        const num = parseFloat(cleanStr);
+        return isNaN(num) ? 0 : num;
+      }
+      
+      const num = parseFloat(priceStr);
+      return isNaN(num) ? 0 : num;
     }
 
     function safeText(x) {
@@ -859,8 +937,7 @@
     }
 
     function num(x) {
-      const n = Number(String(x ?? "0").replace(",", "."));
-      return Number.isFinite(n) ? n : 0;
+      return parsePrice(x);
     }
 
     function parseOrderDate(dateStr) {
@@ -898,9 +975,9 @@
           const q = parseInt(m[1], 10) || 0;
           let rest = (m[2] || "").trim();
           let unit = 0;
-          const p = rest.match(/-\s*([0-9]+(?:[.,][0-9]{1,2})?)\s*dt\b/i);
-          if (p && p[1]) unit = num(p[1]);
-          rest = rest.replace(/\s*-\s*[0-9]+(?:[.,][0-9]{1,2})?\s*dt\b/i, "").trim();
+          const p = rest.match(/-\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt\b/i);
+          if (p && p[1]) unit = parsePrice(p[1]);
+          rest = rest.replace(/\s*-\s*[0-9]+(?:[.,][0-9]{1,3})?\s*dt\b/i, "").trim();
 
           out.push({ produit: rest || "Produit", quantite: q, prix_unitaire: unit, prix_total: unit * q });
           continue;
@@ -915,7 +992,7 @@
       const map = new Map();
 
       for (const order of orders) {
-        const orderTotal = num(order.total);
+        const subtotal = calculateSubtotalFromArticles(order.articles) || parsePrice(order.total);
         const articles = parseArticles(order.articles);
         if (articles.length === 0) continue;
 
@@ -925,7 +1002,7 @@
           const name = (a.produit || "Produit").trim();
           const q = num(a.quantite);
 
-          const lineRevenue = a.prix_total > 0 ? num(a.prix_total) : (orderTotal * (q / totalQty));
+          const lineRevenue = a.prix_total > 0 ? num(a.prix_total) : (subtotal * (q / totalQty));
 
           if (!map.has(name)) map.set(name, { name, quantity: 0, revenue: 0 });
           const it = map.get(name);
@@ -937,11 +1014,81 @@
       return Array.from(map.values())
         .sort((a,b)=> b.quantity - a.quantity)
         .slice(0,10)
-        .map(p => ({ name: p.name, quantity: Math.round(p.quantity), revenue: Number(p.revenue.toFixed(2)) }));
+        .map(p => ({ name: p.name, quantity: Math.round(p.quantity), revenue: Number(p.revenue.toFixed(3)) }));
+    }
+
+    // Données de démonstration
+    function loadDemoData() {
+      const now = new Date();
+      const demoOrders = [];
+      
+      // Générer 50 commandes de démonstration
+      for (let i = 1; i <= 50; i++) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+        date.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60), 0);
+        
+        const dateStr = date.toLocaleDateString('fr-FR', { 
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        }).replace(',', '');
+        
+        const produits = [
+          { nom: "Pack Familial MAXI", prix: 30.000, qty: Math.floor(Math.random() * 3) + 1 },
+          { nom: "Kit Économique", prix: 45.000, qty: Math.floor(Math.random() * 2) + 1 },
+          { nom: "Pack Découverte", prix: 15.000, qty: Math.floor(Math.random() * 4) + 1 },
+          { nom: "Lot Promotion", prix: 25.000, qty: Math.floor(Math.random() * 3) + 1 },
+          { nom: "Pack Premium", prix: 65.000, qty: 1 },
+          { nom: "Accessoires", prix: 12.500, qty: Math.floor(Math.random() * 5) + 1 },
+          { nom: "Produit Spécial", prix: 42.000, qty: Math.floor(Math.random() * 2) + 1 },
+          { nom: "Pack Duo", prix: 55.000, qty: 1 }
+        ];
+        
+        const produitChoisi = produits[Math.floor(Math.random() * produits.length)];
+        const qty = produitChoisi.qty;
+        const subtotal = produitChoisi.prix * qty;
+        
+        let articlesText = `${qty}x ${produitChoisi.nom} - ${produitChoisi.prix.toFixed(3)} dt = ${subtotal.toFixed(3)} dt`;
+        
+        const statuts = ["🟡 NOUVELLE", "⏳ EN ATTENTE", "🔵 EN PRÉPARATION", "🟠 EN LIVRAISON", "✅ LIVRÉE", "❌ ANNULÉE"];
+        const statut = statuts[Math.floor(Math.random() * statuts.length)];
+        
+        const noms = ["Jean Dupont", "Marie Martin", "Pierre Durand", "Sophie Lefebvre", "Thomas Bernard", 
+                     "Julie Robert", "Nicolas Petit", "Camille Moreau", "Lucas Simon", "Emma Laurent"];
+        const nom = noms[Math.floor(Math.random() * noms.length)];
+        
+        const telephones = ["+216 98 765 432", "+216 97 123 456", "+216 99 456 789", "+216 95 321 654"];
+        const tel = telephones[Math.floor(Math.random() * telephones.length)];
+        
+        const adresses = [
+          "15 Rue de la Liberté, Tunis | GPS: 36.8065, 10.1815",
+          "8 Avenue Habib Bourguiba, Sfax | GPS: 34.7400, 10.7600",
+          "22 Rue de Marseille, Sousse | GPS: 35.8256, 10.6411",
+          "5 Boulevard du 7 Novembre, Bizerte | GPS: 37.2746, 9.8739",
+          "12 Rue des Entrepreneurs, Nabeul | GPS: 36.4565, 10.7376"
+        ];
+        const adresse = adresses[Math.floor(Math.random() * adresses.length)];
+        
+        const commandeId = `CMD-${String(i).padStart(4, '0')}`;
+        
+        demoOrders.push({
+          date: dateStr,
+          nom: nom,
+          telephone: tel,
+          adresse: adresse,
+          commande_id: commandeId,
+          articles: articlesText,
+          total: subtotal.toFixed(3) + " dt",
+          statut: statut
+        });
+      }
+      
+      return demoOrders;
     }
 
     async function loadData() {
       try {
+        // Essayer de charger depuis l'API
         const ordersResponse = await fetch(`${API_URL}?method=getorders&t=${Date.now()}`, { cache: "no-store" });
         if (!ordersResponse.ok) throw new Error("API commandes non disponible");
         const ordersData = await ordersResponse.json();
@@ -967,35 +1114,48 @@
         $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> API Connectée';
         $("dataSourceInfo").textContent = "Source : API Google Sheets";
 
-        state.topProducts = computeTopProductsFromOrders(state.orders);
         return true;
 
       } catch (error) {
-        console.error("Erreur chargement:", error);
+        console.error("Erreur chargement, utilisation des données démo:", error);
+        
+        // Utiliser les données de démonstration
+        state.orders = loadDemoData();
         state.apiStatus = 'demo';
         $("apiStatus").className = "api-status api-offline";
         $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> Mode Démo';
-        $("dataSourceInfo").textContent = "Mode Démonstration";
+        $("dataSourceInfo").textContent = "Mode Démonstration - Données de test";
         showToast("📊 Mode démonstration activé", "warning");
-        return false;
+        
+        return true; // Retourner true même en mode démo
       }
     }
 
     function calculateAnalytics() {
       const orders = state.orders || [];
+      
       state.analytics = {
-        totalRevenue: 0, totalOrders: 0, avgOrderValue: 0,
-        statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
-        ordersByHour: {}, ordersByDay: {},
-        conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
+        totalRevenue: 0, 
+        totalOrders: orders.length,
+        avgOrderValue: 0,
+        statusDistribution: {}, 
+        salesByDay: {}, 
+        salesByHourRevenue: {},
+        ordersByHour: {}, 
+        ordersByDay: {},
+        conversionRate: 0, 
+        avgCustomerValue: 0, 
+        ordersToday: 0, 
+        revenueToday: 0,
+        shippingRevenue: 0,
+        paidShippingCount: 0,
+        topProduct: null
       };
-
-      state.analytics.totalRevenue = orders.reduce((sum, order) => sum + num(order.total), 0);
-      state.analytics.totalOrders = orders.length;
-      state.analytics.avgOrderValue = state.analytics.totalOrders > 0 ? state.analytics.totalRevenue / state.analytics.totalOrders : 0;
 
       const now = new Date();
       const todayKey = now.toISOString().slice(0,10);
+
+      let totalRevenueWithShipping = 0;
 
       for (const order of orders) {
         const statut = order.statut || "🟡 NOUVELLE";
@@ -1006,27 +1166,44 @@
 
         const dayKey = d.toISOString().slice(0,10);
         const hour = d.getHours();
+        
+        const subtotal = calculateSubtotalFromArticles(order.articles) || parsePrice(order.total);
+        const totalWithShipping = calculateTotalWithShipping(subtotal);
+        const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
 
-        state.analytics.salesByDay[dayKey] = (state.analytics.salesByDay[dayKey] || 0) + num(order.total);
-        state.analytics.salesByHourRevenue[hour] = (state.analytics.salesByHourRevenue[hour] || 0) + num(order.total);
+        state.analytics.salesByDay[dayKey] = (state.analytics.salesByDay[dayKey] || 0) + totalWithShipping;
+        state.analytics.salesByHourRevenue[hour] = (state.analytics.salesByHourRevenue[hour] || 0) + totalWithShipping;
         state.analytics.ordersByHour[hour] = (state.analytics.ordersByHour[hour] || 0) + 1;
         state.analytics.ordersByDay[dayKey] = (state.analytics.ordersByDay[dayKey] || 0) + 1;
 
+        totalRevenueWithShipping += totalWithShipping;
+
+        if (shippingFee > 0) {
+          state.analytics.shippingRevenue += shippingFee;
+          state.analytics.paidShippingCount++;
+        }
+
         if (dayKey === todayKey) {
           state.analytics.ordersToday += 1;
-          state.analytics.revenueToday += num(order.total);
+          state.analytics.revenueToday += totalWithShipping;
         }
       }
 
+      state.analytics.totalRevenue = totalRevenueWithShipping;
+      state.analytics.avgOrderValue = state.analytics.totalOrders > 0 ? totalRevenueWithShipping / state.analytics.totalOrders : 0;
+
+      state.topProducts = computeTopProductsFromOrders(state.orders);
       if (state.topProducts.length > 0) state.analytics.topProduct = state.topProducts[0];
+      
       state.analytics.conversionRate = Math.min(100, Math.round((orders.length / 100) * 100));
-      state.analytics.avgCustomerValue = state.analytics.totalOrders > 0 ? state.analytics.totalRevenue / (state.analytics.totalOrders * 0.7) : 0;
+      state.analytics.avgCustomerValue = state.analytics.totalOrders > 0 ? totalRevenueWithShipping / (state.analytics.totalOrders * 0.7) : 0;
     }
 
     function updateUI() {
       $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
       $("totalOrders").textContent = state.analytics.totalOrders;
       $("avgOrderValue").textContent = formatPrice(state.analytics.avgOrderValue);
+      $("shippingRevenue").textContent = formatPrice(state.analytics.shippingRevenue);
 
       const selectedStatut = $("statusSelector").value;
       const count = state.analytics.statusDistribution[selectedStatut] || 0;
@@ -1050,6 +1227,8 @@
       $("avgCustomerValue").textContent = formatPrice(state.analytics.avgCustomerValue);
       $("ordersToday").textContent = state.analytics.ordersToday;
       $("revenueToday").textContent = formatPrice(state.analytics.revenueToday);
+      $("shippingRevenueAnalytics").textContent = formatPrice(state.analytics.shippingRevenue);
+      $("paidShippingCount").textContent = state.analytics.paidShippingCount;
 
       const allOrdersBody = $("allOrdersBody");
       allOrdersBody.innerHTML = "";
@@ -1061,12 +1240,11 @@
       });
 
       if (sortedOrders.length === 0) {
-        allOrdersBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted)">Aucune commande</td></tr>`;
+        allOrdersBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:var(--muted)">Aucune commande</td></tr>`;
       } else {
         sortedOrders.slice(0, 50).forEach(order => {
           const statut = order.statut || "🟡 NOUVELLE";
           
-          // ✅ Correction : affichage complet des articles sans troncature
           const articlesText = order.articles ? safeText(order.articles).replace(/\n/g, '<br>') : '';
           
           const d = parseOrderDate(order.date);
@@ -1085,6 +1263,13 @@
             addressLink = `<a href="https://www.google.com/maps/search/?api=1&query=${query}" target="_blank" class="address-link" title="Voir sur Google Maps"><i class="fas fa-map-marker-alt"></i> ${addressText.substring(0,30)}...</a>`;
           }
 
+          const subtotal = calculateSubtotalFromArticles(order.articles) || parsePrice(order.total);
+          const totalWithShipping = calculateTotalWithShipping(subtotal);
+          const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+          
+          const shippingBadgeClass = shippingFee === 0 ? 'free-shipping' : '';
+          const shippingText = shippingFee === 0 ? 'GRATUIT' : formatPrice(shippingFee);
+
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>${dateStr}</td>
@@ -1092,11 +1277,13 @@
             <td>${safeText(order.telephone)}</td>
             <td>${addressLink}</td>
             <td><strong>${safeText(order.commande_id) || 'N/A'}</strong></td>
-            <td class="articles-cell">${articlesText}</td>  <!-- ✅ plus de limite, tout l'article -->
-            <td><strong>${formatPrice(order.total)}</strong></td>
+            <td class="articles-cell">${articlesText}</td>
+            <td><strong style="color: var(--blue);">${formatPrice(subtotal)}</strong></td>
+            <td><span class="shipping-badge ${shippingBadgeClass}">${shippingText}</span></td>
+            <td><strong style="color: var(--green); font-size: 12px;">${formatPrice(totalWithShipping)}</strong></td>
             <td>
               <select class="statut-select" onchange="updateOrderStatus('${order.commande_id}', this.value)">
-                ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${s.substring(0,8)}</option>`).join("")}
+                ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${s}</option>`).join("")}
               </select>
             </td>
           `;
@@ -1129,7 +1316,7 @@
       const salesCtx = $("salesChart").getContext("2d");
       state.charts.sales = new Chart(salesCtx, {
         type: "line",
-        data: { labels: [], datasets: [{ label: "CA (dt)", data: [], borderWidth: 2, fill: true, tension: 0.4 }] },
+        data: { labels: [], datasets: [{ label: "CA (dt)", data: [], borderColor: "#00ff88", backgroundColor: "rgba(0,255,136,0.1)", borderWidth: 2, fill: true, tension: 0.4 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#f0f6fc", font: { size: 11 } } } } }
       });
 
@@ -1137,8 +1324,7 @@
       state.charts.status = new Chart(statusCtx, {
         type: "doughnut",
         data: { labels: [], datasets: [{ data: [], borderWidth: 1, backgroundColor: [
-          "rgba(255, 204, 0, 0.8)","rgba(255, 153, 0, 0.8)","rgba(0, 102, 204, 0.8)",
-          "rgba(255, 102, 0, 0.8)","rgba(0, 170, 0, 0.8)","rgba(204, 0, 0, 0.8)"
+          "#FFC107","#FF9800","#2196F3","#FF5722","#4CAF50","#F44336"
         ]}]},
         options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: "right", labels: { color: "#f0f6fc", font: { size: 11 } } } } }
       });
@@ -1146,14 +1332,14 @@
       const productsCtx = $("productsChart").getContext("2d");
       state.charts.products = new Chart(productsCtx, {
         type: "bar",
-        data: { labels: [], datasets: [{ label: "Quantité", data: [] }] },
+        data: { labels: [], datasets: [{ label: "Quantité", data: [], backgroundColor: "#00d4ff" }] },
         options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 11 } } } } }
       });
 
       const hourlyCtx = $("hourlyChart").getContext("2d");
       state.charts.hourly = new Chart(hourlyCtx, {
         type: "bar",
-        data: { labels: [], datasets: [{ label: "Commandes", data: [] }] },
+        data: { labels: [], datasets: [{ label: "Commandes", data: [], backgroundColor: "#ffa726" }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 11 } } } } }
       });
     }
@@ -1191,7 +1377,7 @@
 
       for (const s of order) {
         const c = state.analytics.statusDistribution[s] || 0;
-        if (c > 0) { labels.push(s.substring(0,10)); data.push(c); }
+        if (c > 0) { labels.push(s); data.push(c); }
       }
 
       state.charts.status.data.labels = labels;
@@ -1245,25 +1431,46 @@
 
     async function updateOrderStatus(commandeId, nouveauStatut) {
       try {
-        showToast(`⏳ Mise à jour...`, "info");
+        showToast(`⏳ Mise à jour du statut...`, "info");
         state.statusUpdateInProgress = true;
         state.statusUpdateForId = commandeId;
 
-        if (state.apiStatus === 'demo') return;
+        if (state.apiStatus === 'demo') {
+          const i = state.orders.findIndex(o => o.commande_id === commandeId);
+          if (i !== -1) {
+            state.orders[i].statut = nouveauStatut;
+            calculateAnalytics();
+            updateUI();
+            updateCharts();
+            showToast(`✅ Statut mis à jour (mode démo)`, "success");
+          }
+          return;
+        }
 
         const url = `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`;
-        const response = await fetch(url, { cache:"no-store" });
+        const response = await fetch(url, { cache: "no-store" });
         const result = await response.json();
 
         if (!result.success) throw new Error(result.error || "Erreur API");
 
         const i = state.orders.findIndex(o => o.commande_id === commandeId);
-        if (i !== -1) state.orders[i].statut = nouveauStatut;
+        if (i !== -1) {
+          state.orders[i].statut = nouveauStatut;
+        }
 
         calculateAnalytics();
         updateUI();
         updateCharts();
-        showToast(`✅ Statut mis à jour`, "success");
+        
+        showToast(`✅ Statut mis à jour avec succès`, "success");
+
+        setTimeout(() => {
+          localStorage.setItem('maxi_jdc_status_update', JSON.stringify({
+            commandeId: commandeId,
+            nouveauStatut: nouveauStatut,
+            timestamp: Date.now()
+          }));
+        }, 500);
 
       } catch (e) {
         console.error(e);
@@ -1286,7 +1493,7 @@
           telephone: "+216 20000000",
           adresse: "Adresse test | GPS: 36.858546, 10.301467",
           articles: "2x PRODUIT TEST A\n1x PRODUIT TEST B",
-          total: "30.00"
+          total: "30.000"
         });
 
         const resp = await fetch(API_URL, {
@@ -1303,7 +1510,13 @@
 
       } catch (e) {
         console.error(e);
-        showToast(`❌ ${e.message}`, "error");
+        // En mode démo, simuler la création
+        if (state.apiStatus === 'demo') {
+          showToast(`✅ Test simulé (mode démo)`, "success");
+          setTimeout(() => refreshAll(true), 900);
+        } else {
+          showToast(`❌ ${e.message}`, "error");
+        }
       }
     }
 
@@ -1329,6 +1542,25 @@
         $("btnRefresh").innerHTML = '<i class="fas fa-sync-alt"></i> Actualiser';
       }
     }
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'maxi_jdc_status_update') {
+        try {
+          const data = JSON.parse(e.newValue);
+          console.log('Statut mis à jour depuis un autre onglet:', data);
+          
+          const i = state.orders.findIndex(o => o.commande_id === data.commandeId);
+          if (i !== -1) {
+            state.orders[i].statut = data.nouveauStatut;
+            calculateAnalytics();
+            updateUI();
+            updateCharts();
+          }
+        } catch (err) {
+          console.error('Erreur parsing storage event:', err);
+        }
+      }
+    });
 
     document.addEventListener("DOMContentLoaded", () => {
       initCharts();
