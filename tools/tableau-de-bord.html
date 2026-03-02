@@ -1,8 +1,7 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <!-- ✅ OPTIMISATION MOBILE - PLEIN ÉCRAN -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Tableau de Bord - MAXI JDC MARKET</title>
 
@@ -20,7 +19,6 @@
     
     *{box-sizing:border-box;margin:0;padding:0}
     
-    /* ✅ PLEIN ÉCRAN MOBILE */
     html, body {
       height: 100%;
       width: 100%;
@@ -49,7 +47,6 @@
       width: 100%;
     }
     
-    /* ✅ HEADER MOBILE - MÊME INTERFACE ADAPTÉE */
     .header{
       background:rgba(10,25,47,.95);
       border:2px solid var(--green);
@@ -148,7 +145,6 @@
       border: 1px solid var(--red);
     }
 
-    /* ✅ GRID STATS - 2 COLONNES SUR MOBILE */
     .grid{
       display:grid; 
       gap:10px; 
@@ -192,7 +188,6 @@
       font-weight:600
     }
     
-    /* ✅ STATUT SELECTEUR - COMPACT */
     .status-selector-card {
       background:var(--card);
       border:1px solid var(--line);
@@ -256,7 +251,6 @@
       white-space: nowrap;
     }
     
-    /* ✅ TOP PRODUCT - MOBILE */
     .top-product-card {
       background: linear-gradient(135deg, rgba(26, 36, 93, 0.9), rgba(22, 36, 71, 0.9));
       border: 2px solid var(--yellow);
@@ -323,7 +317,6 @@
       font-size: 10px;
     }
 
-    /* ✅ GRAPHIQUES - 100% SUR MOBILE */
     .chart-container {
       display: flex;
       flex-direction: column;
@@ -354,7 +347,6 @@
       position:relative
     }
     
-    /* ✅ TABLES AVEC SCROLL HORIZONTAL */
     .tableWrap{
       border:1px solid var(--line);
       border-radius:10px;
@@ -367,7 +359,6 @@
       margin-top: 8px;
     }
     
-    /* ✅ CURSEUR HORIZONTAL PERSONNALISÉ */
     .tableWrap::-webkit-scrollbar {
       height: 8px;
       width: 8px;
@@ -390,7 +381,7 @@
     table{ 
       width: 100%;
       border-collapse: collapse;
-      min-width: 1100px; /* Force le scroll horizontal */
+      min-width: 1100px;
     }
     
     th{
@@ -414,12 +405,10 @@
     
     tr:hover{background:rgba(255,255,255,.05)}
     
-    /* ✅ COLONNES LARGES POUR MEILLEURE LECTURE */
-    td:nth-child(4) { min-width: 200px; } /* Adresse */
-    td:nth-child(5) { min-width: 140px; } /* Commande */
-    td:nth-child(6) { min-width: 280px; } /* Articles */
+    td:nth-child(4) { min-width: 200px; }
+    td:nth-child(5) { min-width: 140px; }
+    td:nth-child(6) { min-width: 280px; }
     
-    /* LIEN ADRESSE VERS GOOGLE MAPS */
     .address-link {
       color: var(--blue);
       text-decoration: none;
@@ -442,7 +431,6 @@
       opacity: 0.8;
     }
     
-    /* STATUT SELECT */
     .statut-select {
       padding: 5px 6px;
       border: 1px solid var(--line);
@@ -467,7 +455,6 @@
       padding: 6px;
     }
     
-    /* ✅ ARTICLES CELL - AFFICHAGE COMPLET SANS TRONCATURE */
     .articles-cell {
       white-space: pre-line;
       font-size: 10px;
@@ -476,15 +463,13 @@
       word-wrap: break-word;
     }
     
-    /* ✅ TABLEAU TOP 10 PRODUITS */
     #topProductsTable {
       min-width: 500px;
     }
     
-    #topProductsTable th:nth-child(2) { min-width: 250px; } /* Colonne Produit */
+    #topProductsTable th:nth-child(2) { min-width: 250px; }
     #topProductsTable td:nth-child(2) { min-width: 250px; }
     
-    /* ✅ SECTION ANALYTIQUE - GRILLE 2 COLONNES */
     .analytics-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -509,7 +494,6 @@
       font-weight: 900;
     }
 
-    /* FOOTER */
     .footer{
       margin-top:12px; 
       padding:10px; 
@@ -519,7 +503,6 @@
       font-size:11px;
     }
 
-    /* TOAST */
     .toast{
       position:fixed; 
       top:10px; 
@@ -544,7 +527,6 @@
       to{transform:translateY(0);opacity:1}
     }
     
-    /* ✅ SAFE AREA POUR IPHONE */
     @supports (padding-top: env(safe-area-inset-top)) {
       body {
         padding-top: env(safe-area-inset-top);
@@ -556,7 +538,6 @@
 
 <body>
   <div class="container">
-    <!-- HEADER VERSION MOBILE -->
     <header class="header">
       <div class="header-top">
         <div class="left">
@@ -585,7 +566,6 @@
       </div>
     </header>
 
-    <!-- STATISTIQUES PRINCIPALES - 2 COLONNES -->
     <section class="grid">
       <div class="card">
         <div class="statTop">
@@ -617,7 +597,6 @@
         </div>
       </div>
 
-      <!-- CARTE SELECTEUR DE STATUT - SUR 2 COLONNES -->
       <div class="status-selector-card">
         <div class="selector-container">
           <div class="selector-row">
@@ -637,7 +616,6 @@
       </div>
     </section>
 
-    <!-- PRODUIT LE PLUS VENDU -->
     <div class="top-product-card" id="topProductCard" style="display: none;">
       <div class="top-product-header">
         <h3><i class="fas fa-trophy"></i> PRODUIT LE PLUS VENDU</h3>
@@ -665,9 +643,7 @@
       </div>
     </div>
 
-    <!-- GRAPHIQUES - EMPILÉS VERTICALEMENT -->
     <div class="chart-container">
-      <!-- Ventes par jour -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-chart-line"></i> Ventes par jour</h3>
@@ -682,7 +658,6 @@
         </div>
       </div>
 
-      <!-- Répartition par statut -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-chart-pie"></i> Répartition</h3>
@@ -693,7 +668,6 @@
         </div>
       </div>
 
-      <!-- Top 10 produits -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-star"></i> Top 10 produits</h3>
@@ -704,7 +678,6 @@
         </div>
       </div>
 
-      <!-- Activité commandes -->
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-clock"></i> Activité</h3>
@@ -719,9 +692,7 @@
       </div>
     </div>
 
-    <!-- TABLEAUX AVEC SCROLL HORIZONTAL -->
     <div style="margin-top: 12px;">
-      <!-- Toutes les commandes -->
       <div class="card">
         <div class="sectionTitle">
           <h3><i class="fas fa-list"></i> Toutes les commandes</h3>
@@ -752,7 +723,6 @@
         </div>
       </div>
 
-      <!-- Top 10 produits table -->
       <div class="card" style="margin-top: 12px;">
         <div class="sectionTitle">
           <h3><i class="fas fa-trophy"></i> Top 10 produits</h3>
@@ -780,7 +750,6 @@
       </div>
     </div>
 
-    <!-- SECTION ANALYTIQUE - GRILLE 2 COLONNES -->
     <div class="card" style="margin-top: 12px;">
       <div class="sectionTitle">
         <h3><i class="fas fa-chart-bar"></i> Analyse</h3>
@@ -816,8 +785,8 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // Configuration
-    const API_URL = "https://script.google.com/macros/s/AKfycbxuQNhS5ir9gLOswHuKibiUUOmFRmIjP16sQ4XhcXM7ftsfZJVJXwIrt6gTAj9CAVE9/exec";
+    // Configuration - UNE SEULE LISTE DE STATUTS (définie une seule fois)
+    const API_URL = "https://script.google.com/macros/s/AKfycbxncfpQUATJDvbLAyjGBRjzoj9CkEDdKNzj8YrjnZSNa7U-647FQkj7w2g7rmbp_j0-/exec";
     const STATUTS = ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
 
     // État global
@@ -875,7 +844,6 @@
     function parseOrderDate(dateStr) {
       if (!dateStr) return null;
       
-      // Format: "dd/MM/yyyy HH:mm:ss"
       const m = String(dateStr).match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
       if (m) {
         const dd = parseInt(m[1],10);
@@ -887,7 +855,6 @@
         return new Date(yy, mm, dd, hh, mi, ss);
       }
       
-      // Format ISO
       const d = new Date(dateStr);
       return !isNaN(d.getTime()) ? d : null;
     }
@@ -903,17 +870,14 @@
       const out = [];
 
       for (const line of lines) {
-        // Ignorer les lignes de métadonnées
         if (/^(COMMANDE|CMD-|TOTAL|SOUS-TOTAL|FRAIS|DATE|GPS)/i.test(line)) continue;
 
-        // Format: "2x PRODUIT - 45.000 dt"
         const m = line.match(/^(\d+)\s*(?:x|×)\s*(.+?)(?:\s*-\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt)?$/i);
         if (m) {
           const q = parseInt(m[1], 10) || 1;
           let nom = m[2].trim();
           const prix = m[3] ? num(m[3]) : 0;
           
-          // Nettoyer le nom
           nom = nom.replace(/\s*-\s*[0-9]+(?:[.,][0-9]{1,3})?\s*dt\b/i, "").trim();
           
           out.push({ 
@@ -925,7 +889,6 @@
           continue;
         }
 
-        // Format simple: "Produit"
         if (line.length >= 3 && !line.includes("dt")) {
           out.push({ produit: line, quantite: 1, prix_unitaire: 0, prix_total: 0 });
         }
@@ -944,7 +907,6 @@
         
         if (articles.length === 0) continue;
 
-        // Répartition proportionnelle du total
         const totalQty = articles.reduce((s, a) => s + num(a.quantite), 0) || 1;
 
         for (const a of articles) {
@@ -952,7 +914,6 @@
           if (!name) continue;
           
           const q = num(a.quantite);
-          // Si pas de prix unitaire, répartir le total de la commande
           const lineRevenue = a.prix_total > 0 ? num(a.prix_total) : (orderTotal * (q / totalQty));
 
           if (!map.has(name)) {
@@ -980,7 +941,6 @@
     // Chargement des données depuis Google Sheets
     async function loadData() {
       try {
-        // Test de connexion d'abord
         const testResponse = await fetch(`${API_URL}?method=test&t=${Date.now()}`, { 
           method: 'GET',
           cache: "no-store",
@@ -994,7 +954,6 @@
         const testData = await testResponse.json();
         console.log("Test API:", testData);
         
-        // Chargement des commandes
         const ordersResponse = await fetch(`${API_URL}?method=getorders&t=${Date.now()}`, { 
           method: 'GET',
           cache: "no-store",
@@ -1008,10 +967,8 @@
         const ordersData = await ordersResponse.json();
         console.log("Réponse API commandes:", ordersData);
 
-        // Adapter selon la structure de réponse
         if (ordersData.success && ordersData.commandes) {
           state.orders = ordersData.commandes.map(order => {
-            // Nettoyer les données
             return {
               date: order.date || order["📅 DATE"] || "",
               nom: order.nom || order["👤 NOM CLIENT"] || order.name || "",
@@ -1043,7 +1000,6 @@
         $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> API Connectée';
         $("dataSourceInfo").textContent = "Source : Google Sheets (temps réel)";
         
-        // Calculer les top produits
         state.topProducts = computeTopProductsFromOrders(state.orders);
         
         return true;
@@ -1063,7 +1019,6 @@
     function calculateAnalytics() {
       const orders = state.orders || [];
       
-      // Réinitialisation
       state.analytics = {
         totalRevenue: 0, 
         totalOrders: 0, 
@@ -1081,7 +1036,6 @@
 
       if (orders.length === 0) return;
 
-      // Calculs de base
       state.analytics.totalRevenue = orders.reduce((sum, order) => sum + num(order.total), 0);
       state.analytics.totalOrders = orders.length;
       state.analytics.avgOrderValue = state.analytics.totalRevenue / state.analytics.totalOrders;
@@ -1089,13 +1043,11 @@
       const now = new Date();
       const todayKey = now.toISOString().slice(0,10);
       
-      // Distribution par statut
       for (const order of orders) {
         const statut = order.statut || "🟡 NOUVELLE";
         state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
       }
 
-      // Analyses temporelles
       for (const order of orders) {
         const d = parseOrderDate(order.date);
         if (!d) continue;
@@ -1114,7 +1066,6 @@
         }
       }
 
-      // Métriques avancées
       if (state.topProducts.length > 0) {
         state.analytics.topProduct = state.topProducts[0];
       }
@@ -1126,18 +1077,15 @@
 
     // Mise à jour de l'interface
     function updateUI() {
-      // Stats principales
       $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
       $("totalOrders").textContent = state.analytics.totalOrders;
       $("avgOrderValue").textContent = formatPrice(state.analytics.avgOrderValue);
 
-      // Sélecteur de statut
       const selectedStatut = $("statusSelector").value;
       const count = state.analytics.statusDistribution[selectedStatut] || 0;
       $("selectedStatusCount").textContent = count;
       $("selectedStatusLabel").textContent = selectedStatut;
 
-      // Top produit
       if (state.analytics.topProduct) {
         const totalQuantity = state.topProducts.reduce((sum, p) => sum + num(p.quantity), 0);
         const percentage = totalQuantity > 0 ? Math.round((num(state.analytics.topProduct.quantity) / totalQuantity) * 100) : 0;
@@ -1151,13 +1099,11 @@
         $("topProductCard").style.display = "none";
       }
 
-      // Analytics
       $("conversionRate").textContent = state.analytics.conversionRate + "%";
       $("avgCustomerValue").textContent = formatPrice(state.analytics.avgCustomerValue);
       $("ordersToday").textContent = state.analytics.ordersToday;
       $("revenueToday").textContent = formatPrice(state.analytics.revenueToday);
 
-      // Tableau des commandes
       const allOrdersBody = $("allOrdersBody");
       allOrdersBody.innerHTML = "";
 
@@ -1173,10 +1119,8 @@
         sortedOrders.slice(0, 50).forEach(order => {
           const statut = order.statut || "🟡 NOUVELLE";
           
-          // Formatage des articles
           const articlesText = order.articles ? safeText(order.articles).replace(/\n/g, '<br>') : '';
           
-          // Formatage date
           const d = parseOrderDate(order.date);
           const dateStr = d ? d.toLocaleDateString('fr-FR', { 
             day: '2-digit', 
@@ -1186,7 +1130,6 @@
             minute: '2-digit' 
           }) : safeText(order.date);
 
-          // Lien Google Maps
           const addressText = safeText(order.adresse);
           let addressLink = addressText;
           
@@ -1219,7 +1162,6 @@
         });
       }
 
-      // Tableau top produits
       const topProductsBody = $("topProductsBody");
       topProductsBody.innerHTML = "";
       
@@ -1239,7 +1181,6 @@
         });
       }
 
-      // Mise à jour timestamp
       $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
     }
 
@@ -1477,13 +1418,11 @@
         console.log("Update response:", result);
 
         if (result.success) {
-          // Mise à jour locale
           const order = state.orders.find(o => o.commande_id === commandeId);
           if (order) {
             order.statut = nouveauStatut;
           }
 
-          // Recalculer les analytics
           calculateAnalytics();
           updateUI();
           updateCharts();
@@ -1497,7 +1436,6 @@
         console.error("Erreur update:", e);
         showToast(`❌ ${e.message}`, "error");
         
-        // Recharger les données pour resynchroniser
         setTimeout(() => refreshAll(true), 1500);
       }
     }
@@ -1572,7 +1510,6 @@
           showToast("✅ Données synchronisées avec Google Sheets", "success");
         } else {
           showToast("⚠️ Mode démonstration - données locales", "warning");
-          // Données de démonstration si échec
           generateDemoData();
           calculateAnalytics();
           updateUI();
@@ -1644,7 +1581,6 @@
       
       initCharts();
       
-      // Écouteurs d'événements
       $("statusSelector").addEventListener("change", () => {
         const selectedStatut = $("statusSelector").value;
         const count = state.analytics.statusDistribution[selectedStatut] || 0;
@@ -1657,20 +1593,16 @@
       $("btnRefresh").addEventListener("click", () => refreshAll(true));
       $("btnCreateTest").addEventListener("click", () => createTestOrder());
       
-      // Rendre la fonction disponible globalement
       window.updateOrderStatus = updateOrderStatus;
 
-      // Premier chargement
       refreshAll(true);
       
-      // Rafraîchissement automatique toutes les 30 secondes
       setInterval(() => {
         if (!document.hidden) {
           refreshAll(false);
         }
       }, 30000);
       
-      // Rafraîchir au retour sur l'onglet
       document.addEventListener("visibilitychange", () => { 
         if (!document.hidden) {
           refreshAll(true); 
