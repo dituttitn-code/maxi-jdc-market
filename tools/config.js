@@ -7,7 +7,7 @@
 /**
  * 1) Mets ici l'URL de ton WebApp Apps Script (le même que tu utilises déjà)
  * Exemple:
- * https://script.google.com/macros/s/AKfycbzS84SbAg80R2GcYortCdl5dgvxbneAqnsrs6kMxp30whjAN6tadiIWF7x6MK3jmizf/exec
+ * https://script.google.com/macros/s/AKfycbxuQNhS5ir9gLOswHuKibiUUOmFRmIjP16sQ4XhcXM7ftsfZJVJXwIrt6gTAj9CAVE9/exec
  */
 const APPS_SCRIPT_URL = "PUT_YOUR_APPS_SCRIPT_WEBAPP_URL_HERE";
 
