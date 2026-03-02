@@ -601,12 +601,12 @@
         <div class="selector-container">
           <div class="selector-row">
             <select class="statut-dropdown" id="statusSelector">
-              <option value="🟡 NOUVELLE">🟡 NOUVELLE</option>
-              <option value="⏳ EN ATTENTE">⏳ EN ATTENTE</option>
-              <option value="🔵 EN PRÉPARATION">🔵 EN PRÉPARATION</option>
-              <option value="🟠 EN LIVRAISON">🟠 EN LIVRAISON</option>
-              <option value="✅ LIVRÉE">✅ LIVRÉE</option>
-              <option value="❌ ANNULÉE">❌ ANNULÉE</option>
+              <option value="NOUVELLE">🟡 NOUVELLE</option>
+              <option value="EN ATTENTE">⏳ EN ATTENTE</option>
+              <option value="EN PRÉPARATION">🔵 EN PRÉPARATION</option>
+              <option value="EN LIVRAISON">🟠 EN LIVRAISON</option>
+              <option value="LIVRÉ">✅ LIVRÉE</option>
+              <option value="ANNULÉ">❌ ANNULÉE</option>
             </select>
             <div class="icon"><i class="fas fa-filter"></i></div>
           </div>
@@ -785,9 +785,19 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // Configuration - UNE SEULE LISTE DE STATUTS (définie une seule fois)
+    // Configuration - statuts SANS émojis pour correspondre à Google Sheets
     const API_URL = "https://script.google.com/macros/s/AKfycbxncfpQUATJDvbLAyjGBRjzoj9CkEDdKNzj8YrjnZSNa7U-647FQkj7w2g7rmbp_j0-/exec";
-    const STATUTS = ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
+    const STATUTS = ["NOUVELLE", "EN ATTENTE", "EN PRÉPARATION", "EN LIVRAISON", "LIVRÉ", "ANNULÉ"];
+    
+    // Mapping pour l'affichage avec émojis
+    const STATUTS_AFFICHAGE = {
+      "NOUVELLE": "🟡 NOUVELLE",
+      "EN ATTENTE": "⏳ EN ATTENTE",
+      "EN PRÉPARATION": "🔵 EN PRÉPARATION",
+      "EN LIVRAISON": "🟠 EN LIVRAISON",
+      "LIVRÉ": "✅ LIVRÉE",
+      "ANNULÉ": "❌ ANNULÉE"
+    };
 
     // État global
     const state = {
@@ -800,9 +810,7 @@
         conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
       },
       charts: { sales: null, status: null, products: null, hourly: null },
-      apiStatus: 'checking',
-      statusUpdateInProgress: false,
-      statusUpdateForId: null
+      apiStatus: 'checking'
     };
 
     // Sélecteurs
@@ -859,12 +867,15 @@
       return !isNaN(d.getTime()) ? d : null;
     }
 
-    // Parsing articles
+    // Parsing articles amélioré
     function parseArticles(articlesText) {
+      if (!articlesText) return [];
+      
       const t = String(articlesText || "")
         .replace(/\\n/g, "\n")
         .replace(/<br\s*\/?>/gi, "\n")
-        .replace(/\r/g, "");
+        .replace(/\r/g, "")
+        .replace(/\+/g, ' '); // Remplacer les + par des espaces
 
       const lines = t.split("\n").map(s => s.trim()).filter(Boolean);
       const out = [];
@@ -872,13 +883,14 @@
       for (const line of lines) {
         if (/^(COMMANDE|CMD-|TOTAL|SOUS-TOTAL|FRAIS|DATE|GPS)/i.test(line)) continue;
 
-        const m = line.match(/^(\d+)\s*(?:x|×)\s*(.+?)(?:\s*-\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt)?$/i);
+        // Format avec x ou ×
+        const m = line.match(/^(\d+)\s*(?:x|×)\s*(.+?)(?:\s*[-–—]\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt)?$/i);
         if (m) {
           const q = parseInt(m[1], 10) || 1;
           let nom = m[2].trim();
           const prix = m[3] ? num(m[3]) : 0;
           
-          nom = nom.replace(/\s*-\s*[0-9]+(?:[.,][0-9]{1,3})?\s*dt\b/i, "").trim();
+          nom = nom.replace(/\s*[-–—]\s*[0-9]+(?:[.,][0-9]{1,3})?\s*dt\b/i, "").trim();
           
           out.push({ 
             produit: nom || "Produit", 
@@ -889,7 +901,20 @@
           continue;
         }
 
-        if (line.length >= 3 && !line.includes("dt")) {
+        // Format avec tiret
+        const m2 = line.match(/^(.+?)\s*[-–—]\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt$/i);
+        if (m2) {
+          out.push({ 
+            produit: m2[1].trim(), 
+            quantite: 1, 
+            prix_unitaire: num(m2[2]),
+            prix_total: num(m2[2])
+          });
+          continue;
+        }
+
+        // Format simple
+        if (line.length >= 3) {
           out.push({ produit: line, quantite: 1, prix_unitaire: 0, prix_total: 0 });
         }
       }
@@ -907,14 +932,11 @@
         
         if (articles.length === 0) continue;
 
-        const totalQty = articles.reduce((s, a) => s + num(a.quantite), 0) || 1;
-
         for (const a of articles) {
           const name = (a.produit || "Produit").trim();
           if (!name) continue;
           
-          const q = num(a.quantite);
-          const lineRevenue = a.prix_total > 0 ? num(a.prix_total) : (orderTotal * (q / totalQty));
+          const q = num(a.quantite) || 1;
 
           if (!map.has(name)) {
             map.set(name, { name, quantity: 0, revenue: 0, orders: 0 });
@@ -922,7 +944,7 @@
           
           const it = map.get(name);
           it.quantity += q;
-          it.revenue += lineRevenue;
+          it.revenue += a.prix_total > 0 ? a.prix_total : (orderTotal * (q / articles.length));
           it.orders += 1;
         }
       }
@@ -969,15 +991,23 @@
 
         if (ordersData.success && ordersData.commandes) {
           state.orders = ordersData.commandes.map(order => {
+            // Nettoyer le statut (enlever les émojis si présents)
+            let statut = order.statut || "NOUVELLE";
+            // Si le statut contient un émoji, extraire seulement le texte
+            const statutMatch = statut.match(/[🟡⏳🔵🟠✅❌]\s*(.+)/);
+            if (statutMatch) {
+              statut = statutMatch[1].trim();
+            }
+            
             return {
-              date: order.date || order["📅 DATE"] || "",
-              nom: order.nom || order["👤 NOM CLIENT"] || order.name || "",
-              telephone: String(order.telephone || order["📞 TÉLÉPHONE"] || order.phone || "").replace(/^'/, ""),
-              adresse: order.adresse || order["📍 ADRESSE"] || order.address || "",
-              commande_id: order.commande_id || order["🆔 N° COMMANDE"] || order.numero || "",
-              articles: order.articles || order["🛒 ARTICLES"] || order.items || "",
-              total: order.total || order["💰 TOTAL (DT)"] || "0",
-              statut: order.statut || order["📊 STATUT"] || "🟡 NOUVELLE"
+              date: order.date || "",
+              nom: order.nom || "",
+              telephone: String(order.telephone || "").replace(/^'/, ""),
+              adresse: order.adresse || "",
+              commande_id: order.commande_id || "",
+              articles: order.articles || "",
+              total: String(order.total || "0").replace(',', '.'),
+              statut: statut
             };
           });
         } else if (Array.isArray(ordersData)) {
@@ -986,15 +1016,16 @@
             nom: order.nom || order.name || "",
             telephone: String(order.telephone || order.phone || "").replace(/^'/, ""),
             adresse: order.adresse || order.address || "",
-            commande_id: order.commande_id || order.numero || order.order_id || "",
+            commande_id: order.commande_id || order.numero || "",
             articles: order.articles || order.items || "",
-            total: order.total || order.amount || "0",
-            statut: order.statut || "🟡 NOUVELLE"
+            total: String(order.total || order.amount || "0").replace(',', '.'),
+            statut: order.statut || "NOUVELLE"
           }));
         } else {
           throw new Error("Format de données inattendu");
         }
 
+        console.log(`${state.orders.length} commandes chargées`);
         state.apiStatus = 'online';
         $("apiStatus").className = "api-status api-online";
         $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> API Connectée';
@@ -1044,7 +1075,7 @@
       const todayKey = now.toISOString().slice(0,10);
       
       for (const order of orders) {
-        const statut = order.statut || "🟡 NOUVELLE";
+        const statut = order.statut || "NOUVELLE";
         state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
       }
 
@@ -1084,7 +1115,7 @@
       const selectedStatut = $("statusSelector").value;
       const count = state.analytics.statusDistribution[selectedStatut] || 0;
       $("selectedStatusCount").textContent = count;
-      $("selectedStatusLabel").textContent = selectedStatut;
+      $("selectedStatusLabel").textContent = STATUTS_AFFICHAGE[selectedStatut] || selectedStatut;
 
       if (state.analytics.topProduct) {
         const totalQuantity = state.topProducts.reduce((sum, p) => sum + num(p.quantity), 0);
@@ -1117,9 +1148,11 @@
         allOrdersBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted)">Aucune commande trouvée</td></tr>`;
       } else {
         sortedOrders.slice(0, 50).forEach(order => {
-          const statut = order.statut || "🟡 NOUVELLE";
+          const statut = order.statut || "NOUVELLE";
           
-          const articlesText = order.articles ? safeText(order.articles).replace(/\n/g, '<br>') : '';
+          const articlesText = order.articles ? safeText(order.articles)
+            .replace(/\\n/g, '<br>')
+            .replace(/\+/g, ' ') : '';
           
           const d = parseOrderDate(order.date);
           const dateStr = d ? d.toLocaleDateString('fr-FR', { 
@@ -1154,7 +1187,7 @@
             <td><strong>${formatPrice(order.total)}</strong></td>
             <td>
               <select class="statut-select" onchange="updateOrderStatus('${safeText(order.commande_id)}', this.value)">
-                ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${s}</option>`).join("")}
+                ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${STATUTS_AFFICHAGE[s] || s}</option>`).join("")}
               </select>
             </td>
           `;
@@ -1225,12 +1258,12 @@
             data: [], 
             borderWidth: 1, 
             backgroundColor: [
-              "rgba(255, 204, 0, 0.8)",
-              "rgba(255, 153, 0, 0.8)",
-              "rgba(0, 102, 204, 0.8)",
-              "rgba(255, 102, 0, 0.8)",
-              "rgba(0, 170, 0, 0.8)",
-              "rgba(204, 0, 0, 0.8)"
+              "#FFC107",
+              "#FF9800",
+              "#2196F3",
+              "#FF5722",
+              "#4CAF50",
+              "#F44336"
             ]
           }]
         },
@@ -1241,7 +1274,24 @@
           plugins: { 
             legend: { 
               position: "right", 
-              labels: { color: "#f0f6fc", font: { size: 11 } } 
+              labels: { 
+                color: "#f0f6fc", 
+                font: { size: 11 },
+                generateLabels: (chart) => {
+                  const data = chart.data;
+                  if (data.labels.length && data.datasets.length) {
+                    return data.labels.map((label, i) => ({
+                      text: STATUTS_AFFICHAGE[label] || label,
+                      fillStyle: data.datasets[0].backgroundColor[i],
+                      strokeStyle: data.datasets[0].backgroundColor[i],
+                      lineWidth: 0,
+                      hidden: false,
+                      index: i
+                    }));
+                  }
+                  return [];
+                }
+              } 
             } 
           } 
         }
@@ -1331,7 +1381,7 @@
     }
 
     function updateStatusChart() {
-      const order = ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
+      const order = STATUTS;
       const labels = [];
       const data = [];
 
@@ -1407,7 +1457,7 @@
       try {
         showToast(`⏳ Mise à jour...`, "info");
         
-        const url = `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`;
+        const url = `${API_URL}?method=updateorderstatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`;
         const response = await fetch(url, { 
           method: 'GET',
           cache: "no-store",
@@ -1456,12 +1506,12 @@
         }).replace(/(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})/, '$1/$2/$3 $4:$5:$6');
 
         const testData = new URLSearchParams({
-          method: "saveOrder",
+          method: "saveorder",
           nom_client: `TEST ${now.toLocaleTimeString()}`,
-          telephone: `'502${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`,
+          telephone: `502${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`,
           adresse: `${Math.floor(Math.random() * 100)} Rue de Test, Tunis | GPS: 36.${Math.floor(Math.random() * 100000)}, 10.${Math.floor(Math.random() * 100000)}`,
           articles: `2x COCA COLA 1.5L - 3.500 dt
-1x EAU ZOUITINA 1.5L - 1.200 dt
+1x EAU ZOUTINA 1.5L - 1.200 dt
 3x PATES TUNISIA 500G - 2.100 dt
 1x HUILE D'OLIVE 1L - 15.000 dt`,
           total: (Math.random() * 50 + 20).toFixed(3)
@@ -1492,11 +1542,6 @@
 
     // Rafraîchissement complet
     async function refreshAll(force = false) {
-      if (!force && state.statusUpdateInProgress) {
-        showToast("⏳ Mise à jour en cours...", "info");
-        return;
-      }
-
       try {
         $("btnRefresh").disabled = true;
         $("btnRefresh").innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
@@ -1529,7 +1574,7 @@
     function generateDemoData() {
       state.orders = [];
       const produits = [
-        "COCA COLA 1.5L", "EAU ZOUITINA 1.5L", "PATES TUNISIA 500G", 
+        "COCA COLA 1.5L", "EAU ZOUTINA 1.5L", "PATES TUNISIA 500G", 
         "HUILE D'OLIVE 1L", "LAIT UHT 1L", "CAFE MOKA 250G", 
         "SUCRE 1KG", "FARINE 1KG", "RIZ 1KG", "LENTILLES 500G"
       ];
@@ -1559,7 +1604,7 @@
         state.orders.push({
           date: dateStr,
           nom: `Client ${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`,
-          telephone: `'50${Math.floor(Math.random() * 10000000).toString().padStart(7, '0')}`,
+          telephone: `50${Math.floor(Math.random() * 10000000).toString().padStart(7, '0')}`,
           adresse: `${Math.floor(Math.random() * 100)} Rue Example, Tunis`,
           commande_id: `CMD-MAXI-${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}-${String(i).padStart(3,'0')}`,
           articles: articles.join("\n"),
@@ -1585,7 +1630,7 @@
         const selectedStatut = $("statusSelector").value;
         const count = state.analytics.statusDistribution[selectedStatut] || 0;
         $("selectedStatusCount").textContent = count;
-        $("selectedStatusLabel").textContent = selectedStatut;
+        $("selectedStatusLabel").textContent = STATUTS_AFFICHAGE[selectedStatut] || selectedStatut;
       });
       
       $("salesPeriod").addEventListener("change", () => updateCharts());
