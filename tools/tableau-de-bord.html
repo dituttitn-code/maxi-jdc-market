@@ -145,6 +145,23 @@
       border: 1px solid var(--red);
     }
 
+    .debug-panel {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid var(--orange);
+      border-radius: var(--r);
+      padding: 10px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 11px;
+      max-height: 200px;
+      overflow: auto;
+      display: none;
+    }
+
+    .debug-panel.visible {
+      display: block;
+    }
+
     .grid{
       display:grid; 
       gap:10px; 
@@ -560,11 +577,18 @@
         <button class="btn" id="btnCreateTest">
           <i class="fas fa-plus"></i> Test
         </button>
+        <button class="btn" id="btnDebug">
+          <i class="fas fa-bug"></i> Debug
+        </button>
         <a class="btn" href="/maxi-jdc-market/">
           <i class="fas fa-home"></i> Accueil
         </a>
       </div>
     </header>
+
+    <div id="debugPanel" class="debug-panel">
+      <pre id="debugContent">Chargement...</pre>
+    </div>
 
     <section class="grid">
       <div class="card">
@@ -872,8 +896,7 @@
       const out = [];
 
       for (const line of lines) {
-        if (/^(COMMANDE|CMD-|TOTAL|SOUS-TOTAL|FRAIS|DATE|GPS)/i.test(line)) continue;
-
+        // Format: 2x PRODUIT - 5.077 dt
         const m = line.match(/^(\d+)\s*(?:x|×)\s*(.+?)(?:\s*[-–—]\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt)?$/i);
         if (m) {
           const q = parseInt(m[1], 10) || 1;
@@ -891,18 +914,8 @@
           continue;
         }
 
-        const m2 = line.match(/^(.+?)\s*[-–—]\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt$/i);
-        if (m2) {
-          out.push({ 
-            produit: m2[1].trim(), 
-            quantite: 1, 
-            prix_unitaire: num(m2[2]),
-            prix_total: num(m2[2])
-          });
-          continue;
-        }
-
-        if (line.length >= 3) {
+        // Format simple avec juste le nom
+        if (line.length >= 3 && !line.includes('COMMANDE') && !line.includes('TOTAL')) {
           out.push({ produit: line, quantite: 1, prix_unitaire: 0, prix_total: 0 });
         }
       }
@@ -947,6 +960,13 @@
         }));
     }
 
+    function showDebugInfo(data) {
+      const debugPanel = $("debugPanel");
+      const debugContent = $("debugContent");
+      debugContent.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+      debugPanel.classList.add("visible");
+    }
+
     async function loadData() {
       try {
         // Test de connexion
@@ -976,65 +996,94 @@
         
         const ordersData = await ordersResponse.json();
         console.log("Réponse API commandes:", ordersData);
+        
+        // Afficher les données brutes dans le panneau debug
+        showDebugInfo(ordersData);
 
-        // Gestion des différents formats de réponse possibles
+        // Essayer de détecter le format des données
         let rawOrders = [];
         
         if (ordersData.success && ordersData.commandes) {
+          // Format: { success: true, commandes: [...] }
           rawOrders = ordersData.commandes;
-        } else if (Array.isArray(ordersData)) {
-          rawOrders = ordersData;
+        } else if (ordersData.commandes && Array.isArray(ordersData.commandes)) {
+          rawOrders = ordersData.commandes;
         } else if (ordersData.data && Array.isArray(ordersData.data)) {
           rawOrders = ordersData.data;
         } else if (ordersData.rows && Array.isArray(ordersData.rows)) {
           rawOrders = ordersData.rows;
-        } else {
-          console.warn("Format de données inattendu:", ordersData);
-          // Tentative de récupération si c'est un objet avec des propriétés numériques
-          const possibleArray = Object.values(ordersData).filter(v => typeof v === 'object' && v !== null);
-          if (possibleArray.length > 0 && possibleArray[0].date) {
+        } else if (ordersData.values && Array.isArray(ordersData.values)) {
+          // Format Google Sheets API: { values: [...] }
+          rawOrders = ordersData.values;
+        } else if (Array.isArray(ordersData)) {
+          // Format: [ {...}, {...} ]
+          rawOrders = ordersData;
+        } else if (typeof ordersData === 'object' && ordersData !== null) {
+          // Essayer de convertir un objet en tableau
+          const possibleArray = Object.values(ordersData).filter(v => 
+            typeof v === 'object' && v !== null && (v.date || v.nom || v.telephone)
+          );
+          if (possibleArray.length > 0) {
             rawOrders = possibleArray;
-          } else {
-            throw new Error("Format de données inattendu");
           }
         }
 
         console.log(`${rawOrders.length} commandes brutes chargées`);
 
+        // Si on a un tableau de tableaux (format CSV), le convertir
+        if (rawOrders.length > 0 && Array.isArray(rawOrders[0]) && rawOrders[0].length >= 8) {
+          // Format: [ [date, nom, telephone, adresse, commande, articles, total, statut], ... ]
+          const headers = rawOrders[0];
+          rawOrders = rawOrders.slice(1).map(row => ({
+            date: row[0] || "",
+            nom: row[1] || "",
+            telephone: row[2] || "",
+            adresse: row[3] || "",
+            commande_id: row[4] || "",
+            articles: row[5] || "",
+            total: row[6] || "0",
+            statut: row[7] || "NOUVELLE"
+          }));
+        }
+
         // Transformation des données
         state.orders = rawOrders.map(order => {
-          // Nettoyer le statut
-          let statut = order.statut || order.status || "NOUVELLE";
-          const statutMatch = String(statut).match(/[🟡⏳🔵🟠✅❌]\s*(.+)/);
-          if (statutMatch) {
-            statut = statutMatch[1].trim();
+          // Si l'ordre est un objet simple, on essaie de mapper les propriétés
+          if (typeof order === 'object' && order !== null) {
+            // Nettoyer le statut
+            let statut = order.statut || order.status || order.STATUT || order.Statut || "NOUVELLE";
+            const statutMatch = String(statut).match(/[🟡⏳🔵🟠✅❌]\s*(.+)/);
+            if (statutMatch) {
+              statut = statutMatch[1].trim();
+            }
+            
+            // Nettoyer le téléphone
+            let telephone = String(order.telephone || order.phone || order.Téléphone || order.Tél || order.Tel || order.PHONE || "");
+            telephone = telephone.replace(/^'/, "").trim();
+            
+            // Nettoyer l'adresse
+            let adresse = String(order.adresse || order.address || order.Adresse || order.ADRESSE || "");
+            
+            // Nettoyer les articles
+            let articles = String(order.articles || order.items || order.Articles || order.ARTICLES || "");
+            
+            // Nettoyer le total
+            let total = String(order.total || order.amount || order.Total || order.TOTAL || "0");
+            total = total.replace(',', '.');
+            
+            return {
+              date: order.date || order.Date || order.DATE || "",
+              nom: order.nom || order.name || order.Nom || order.NAME || order.client || "",
+              telephone: telephone,
+              adresse: adresse,
+              commande_id: order.commande_id || order.numero || order["N° Commande"] || order.id || order.ID || order.COMMANDE_ID || "",
+              articles: articles,
+              total: total,
+              statut: statut
+            };
           }
-          
-          // Nettoyer le téléphone
-          let telephone = String(order.telephone || order.phone || order.Téléphone || order.Tél || "");
-          telephone = telephone.replace(/^'/, "").trim();
-          
-          // Nettoyer l'adresse
-          let adresse = String(order.adresse || order.address || order.Adresse || "");
-          
-          // Nettoyer les articles
-          let articles = String(order.articles || order.items || order.Articles || "");
-          
-          // Nettoyer le total
-          let total = String(order.total || order.amount || order.Total || "0");
-          total = total.replace(',', '.');
-          
-          return {
-            date: order.date || order.Date || "",
-            nom: order.nom || order.name || order.Nom || order.client || "",
-            telephone: telephone,
-            adresse: adresse,
-            commande_id: order.commande_id || order.numero || order["N° Commande"] || order.id || "",
-            articles: articles,
-            total: total,
-            statut: statut
-          };
-        });
+          return null;
+        }).filter(o => o !== null && o.date && o.nom); // Filtrer les entrées vides
 
         console.log(`${state.orders.length} commandes transformées`);
 
@@ -1045,12 +1094,13 @@
           $("apiStatus").className = "api-status api-offline";
           $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> Mode Démo (aucune donnée)';
           $("dataSourceInfo").textContent = "Aucune commande dans Google Sheets";
-        } else {
-          state.apiStatus = 'online';
-          $("apiStatus").className = "api-status api-online";
-          $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> API Connectée';
-          $("dataSourceInfo").textContent = `Source : Google Sheets (${state.orders.length} commandes)`;
+          return false;
         }
+
+        state.apiStatus = 'online';
+        $("apiStatus").className = "api-status api-online";
+        $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> API Connectée';
+        $("dataSourceInfo").textContent = `Source : Google Sheets (${state.orders.length} commandes)`;
         
         state.topProducts = computeTopProductsFromOrders(state.orders);
         
@@ -1058,6 +1108,8 @@
 
       } catch (error) {
         console.error("Erreur chargement:", error);
+        showDebugInfo(`Erreur: ${error.message}\n\nVérifiez la console pour plus de détails.`);
+        
         state.apiStatus = 'offline';
         $("apiStatus").className = "api-status api-offline";
         $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> API Hors ligne';
@@ -1092,7 +1144,8 @@
 
       state.analytics.totalRevenue = orders.reduce((sum, order) => sum + num(order.total), 0);
       state.analytics.totalOrders = orders.length;
-      state.analytics.avgOrderValue = state.analytics.totalRevenue / state.analytics.totalOrders;
+      state.analytics.avgOrderValue = state.analytics.totalOrders > 0 ? 
+        state.analytics.totalRevenue / state.analytics.totalOrders : 0;
 
       const now = new Date();
       const todayKey = now.toISOString().slice(0,10);
@@ -1137,10 +1190,13 @@
     function generateDemoData() {
       state.orders = [];
       const produits = [
-        "COCA COLA 1.5L", "EAU ZOUTINA 1.5L", "PATES TUNISIA 500G", 
-        "HUILE D'OLIVE 1L", "LAIT UHT 1L", "CAFE MOKA 250G", 
-        "SUCRE 1KG", "FARINE 1KG", "RIZ 1KG", "LENTILLES 500G"
+        "CAFE MOKA 250G", "LENTILLES 500G", "SUCRE 1KG", 
+        "HUILE D'OLIVE 1L", "LAIT UHT 1L", "COCA COLA 1.5L",
+        "EAU ZOUTINA 1.5L", "PATES TUNISIA 500G", "FARINE 1KG", "RIZ 1KG"
       ];
+
+      const statuses = ["NOUVELLE", "EN ATTENTE", "EN PRÉPARATION", "EN LIVRAISON", "LIVRÉ", "ANNULÉ"];
+      const noms = ["Client R", "Client Q", "Client O", "Client D", "Client N", "Client F"];
 
       for (let i = 0; i < 25; i++) {
         const date = new Date();
@@ -1149,10 +1205,10 @@
         
         const dateStr = date.toLocaleDateString('fr-FR', {
           day: '2-digit', month: '2-digit', year: 'numeric',
-          hour: '2-digit', minute: '2-digit', second: '2-digit'
-        }).replace(/(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})/, '$1/$2/$3 $4:$5:$6');
+          hour: '2-digit', minute: '2-digit'
+        }).replace(/(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2})/, '$1/$2/$3 $4:$5');
 
-        const nbArticles = Math.floor(Math.random() * 5) + 1;
+        const nbArticles = Math.floor(Math.random() * 4) + 1;
         let articles = [];
         let total = 0;
 
@@ -1166,13 +1222,13 @@
 
         state.orders.push({
           date: dateStr,
-          nom: `Client ${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`,
+          nom: noms[Math.floor(Math.random() * noms.length)],
           telephone: `50${Math.floor(Math.random() * 10000000).toString().padStart(7, '0')}`,
-          adresse: `${Math.floor(Math.random() * 100)} Rue Example, Tunis`,
-          commande_id: `CMD-MAXI-${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}-${String(i).padStart(3,'0')}`,
-          articles: articles.join("\n"),
+          adresse: `${Math.floor(Math.random() * 100)} Rue Example, Tunis...`,
+          commande_id: `CMD-MAXI-${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}-${String(i+1).padStart(3,'0')}`,
+          articles: articles.join("<br>"),
           total: total.toFixed(3),
-          statut: STATUTS[Math.floor(Math.random() * STATUTS.length)]
+          statut: statuses[Math.floor(Math.random() * statuses.length)]
         });
       }
 
@@ -1637,6 +1693,9 @@
       $("activityMode").addEventListener("change", () => updateCharts());
       $("btnRefresh").addEventListener("click", () => refreshAll(true));
       $("btnCreateTest").addEventListener("click", () => createTestOrder());
+      $("btnDebug").addEventListener("click", () => {
+        $("debugPanel").classList.toggle("visible");
+      });
       
       window.updateOrderStatus = updateOrderStatus;
 
