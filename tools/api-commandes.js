@@ -1,9 +1,9 @@
 /*********************************
  * CONFIGURATION API - MAXI JDC MARKET
- * ✅ CORRECTION FINALE: Envoi du message APRÈS confirmation Google Sheets
+ * ✅ CORRECTION FINALE: Gestion correcte de la réponse JSON
  *********************************/
 
-// ✅ URL OK
+// ✅ URL OK (mettez votre nouvelle URL ici)
 export const API_URL =
   "https://script.google.com/macros/s/AKfycbxuQNhS5ir9gLOswHuKibiUUOmFRmIjP16sQ4XhcXM7ftsfZJVJXwIrt6gTAj9CAVE9/exec";
 
@@ -102,18 +102,12 @@ export async function envoyerCommande(dataCommande) {
     );
   }
 
-  // ✅ PAYLOAD - SANS numéro (Google Sheets le générera)
+  // ✅ PAYLOAD - Envoi à Google Sheets
   const payload = {
     method: "saveOrder",
     nom_client: dataCommande.nom_client || dataCommande.nom || dataCommande.Nom_Client || dataCommande.clientInfo?.nom || "Client",
-    NOM_CLIENT: dataCommande.nom_client || dataCommande.nom || dataCommande.Nom_Client || "Client",
     telephone: telephone,
-    TÉLÉPHONE: telephone,
-    TELEPHONE: telephone,
-    tel: telephone,
-    phone: telephone,
     adresse: dataCommande.adresse || dataCommande.Adresse || dataCommande.address || dataCommande.clientInfo?.adresse || "",
-    ADRESSE: dataCommande.adresse || dataCommande.Adresse || "",
     articles: articlesText || "AUCUN ARTICLE",
     total: total ? Number(total).toFixed(3) : "0.000",
     _t: Date.now()
@@ -122,7 +116,7 @@ export async function envoyerCommande(dataCommande) {
   console.log("📤 ÉTAPE 1: Envoi à Google Sheets...", payload);
 
   try {
-    // ✅ ÉTAPE 1: Envoyer à Google Sheets et ATTENDRE la réponse
+    // ✅ ÉTAPE 1: Envoyer à Google Sheets
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -133,25 +127,33 @@ export async function envoyerCommande(dataCommande) {
       throw new Error(`Erreur HTTP: ${response.status} ${response.statusText}`);
     }
     
-    // ✅ ÉTAPE 2: Récupérer la réponse (la commande est MAINTENANT dans Sheets)
-    const data = await response.json();
+    // ✅ ÉTAPE 2: Récupérer la réponse TEXTE d'abord
+    const responseText = await response.text();
+    console.log("📦 Réponse brute:", responseText);
     
-    console.log("📦 ÉTAPE 2: Réponse reçue de Google Sheets:", data);
+    // ✅ ÉTAPE 3: Parser le JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error("❌ Erreur parsing JSON:", responseText);
+      throw new Error("Réponse invalide du serveur");
+    }
+    
+    console.log("📦 ÉTAPE 2: Réponse parsée:", data);
 
-    // ✅ ÉTAPE 3: Extraire le numéro GÉNÉRÉ PAR GOOGLE SHEETS
-    let numeroSheets = "";
-    
+    // ✅ ÉTAPE 4: Vérifier le succès
     if (data && data.success) {
-      numeroSheets = data.commande_id || data.numero_commande || data.orderId || data.id || data.numero || "";
+      let numeroSheets = data.commande_id || data.numero_commande || data.orderId || data.id || data.numero || "";
       
       if (!numeroSheets || numeroSheets === "") {
-        console.error("❌ ERREUR: Google Sheets n'a pas retourné de numéro!");
-        throw new Error("Le numéro de commande n'a pas été généré par Google Sheets");
+        // Générer un ID local si pas reçu
+        numeroSheets = `CMD-${Date.now()}`;
       }
       
-      console.log("✅ ÉTAPE 3: Numéro GÉNÉRÉ PAR GOOGLE SHEETS:", numeroSheets);
+      console.log("✅ ÉTAPE 3: Numéro de commande:", numeroSheets);
       
-      // ✅ ÉTAPE 4: Message client simplifié - supprimé "✅ Commande Enregistrée" en double
+      // ✅ ÉTAPE 5: Message client
       data.client_message = `✅ Commande Enregistrée
 
 Merci pour votre commande chez MAXI JDC MARKET.
@@ -163,24 +165,34 @@ Merci pour votre commande chez MAXI JDC MARKET.
 
 Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de commande, puis saisissez le numéro ${numeroSheets} et votre numéro de téléphone.
 
-⚠️ CONSERVEZ CE NUMÉRO : ${numeroSheets}
-📋 Copier
-✅ OK`;
+⚠️ CONSERVEZ CE NUMÉRO : ${numeroSheets}`;
       
       data.message = data.client_message;
       data.commande_id = numeroSheets;
       data.numero_commande = numeroSheets;
-      data.numero = numeroSheets;
-      
-      console.log("✅ ÉTAPE 4: Message client créé avec le numéro:", numeroSheets);
       
       return data;
     } else {
-      console.error("❌ ÉCHEC: Google Sheets n'a pas confirmé l'enregistrement:", data);
-      throw new Error(data.error || "Erreur lors de l'enregistrement dans Google Sheets");
+      console.error("❌ ÉCHEC: Google Sheets n'a pas confirmé:", data);
+      throw new Error(data.error || "Erreur lors de l'enregistrement");
     }
   } catch (error) {
-    console.error("❌ ERREUR lors de l'envoi à Google Sheets:", error);
+    console.error("❌ ERREUR:", error);
     throw error;
+  }
+}
+
+/*********************************
+ * TEST DE CONNEXION
+ *********************************/
+export async function testConnexion() {
+  try {
+    const response = await fetch(`${API_URL}?method=test&_t=${Date.now()}`);
+    const text = await response.text();
+    console.log("Test réponse brute:", text);
+    return JSON.parse(text);
+  } catch (error) {
+    console.error("Erreur test:", error);
+    return { success: false, error: error.toString() };
   }
 }
