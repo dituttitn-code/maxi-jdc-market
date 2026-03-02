@@ -785,11 +785,10 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // Configuration - statuts SANS émojis pour correspondre à Google Sheets
+    // Configuration
     const API_URL = "https://script.google.com/macros/s/AKfycbwT2liu35iSJkwGsWMI9kogMRocSAsWv3BABjJzps3i4WG8pMN5sU8AFsyeqmPZhbCF/exec";
     const STATUTS = ["NOUVELLE", "EN ATTENTE", "EN PRÉPARATION", "EN LIVRAISON", "LIVRÉ", "ANNULÉ"];
     
-    // Mapping pour l'affichage avec émojis
     const STATUTS_AFFICHAGE = {
       "NOUVELLE": "🟡 NOUVELLE",
       "EN ATTENTE": "⏳ EN ATTENTE",
@@ -809,14 +808,11 @@
         ordersByHour: {}, ordersByDay: {},
         conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
       },
-      charts: { sales: null, status: null, products: null, hourly: null },
-      apiStatus: 'checking'
+      charts: { sales: null, status: null, products: null, hourly: null }
     };
 
-    // Sélecteurs
     const $ = (id) => document.getElementById(id);
 
-    // Toast notification
     function showToast(msg, type = "info") {
       const el = $("toast");
       const bg = type === "success" ? "#00ff88" : 
@@ -829,26 +825,22 @@
       showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
     }
 
-    // Formatage prix
     function formatPrice(amount) {
       const n = Number(amount || 0);
       return n.toFixed(3).replace(".", ",") + " dt";
     }
 
-    // Texte sécurisé
     function safeText(x) {
       if (x === null || x === undefined) return "";
       return String(x);
     }
 
-    // Conversion nombre
     function num(x) {
       if (x === null || x === undefined) return 0;
       const n = Number(String(x).replace(",", ".").replace(/[^0-9.-]/g, ""));
       return Number.isFinite(n) ? n : 0;
     }
 
-    // Parsing date
     function parseOrderDate(dateStr) {
       if (!dateStr) return null;
       
@@ -867,7 +859,6 @@
       return !isNaN(d.getTime()) ? d : null;
     }
 
-    // Parsing articles amélioré
     function parseArticles(articlesText) {
       if (!articlesText) return [];
       
@@ -875,7 +866,7 @@
         .replace(/\\n/g, "\n")
         .replace(/<br\s*\/?>/gi, "\n")
         .replace(/\r/g, "")
-        .replace(/\+/g, ' '); // Remplacer les + par des espaces
+        .replace(/\+/g, ' ');
 
       const lines = t.split("\n").map(s => s.trim()).filter(Boolean);
       const out = [];
@@ -883,7 +874,6 @@
       for (const line of lines) {
         if (/^(COMMANDE|CMD-|TOTAL|SOUS-TOTAL|FRAIS|DATE|GPS)/i.test(line)) continue;
 
-        // Format avec x ou ×
         const m = line.match(/^(\d+)\s*(?:x|×)\s*(.+?)(?:\s*[-–—]\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt)?$/i);
         if (m) {
           const q = parseInt(m[1], 10) || 1;
@@ -901,7 +891,6 @@
           continue;
         }
 
-        // Format avec tiret
         const m2 = line.match(/^(.+?)\s*[-–—]\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt$/i);
         if (m2) {
           out.push({ 
@@ -913,7 +902,6 @@
           continue;
         }
 
-        // Format simple
         if (line.length >= 3) {
           out.push({ produit: line, quantite: 1, prix_unitaire: 0, prix_total: 0 });
         }
@@ -922,7 +910,6 @@
       return out;
     }
 
-    // Calcul top produits
     function computeTopProductsFromOrders(orders) {
       const map = new Map();
 
@@ -960,9 +947,9 @@
         }));
     }
 
-    // Chargement des données depuis Google Sheets
     async function loadData() {
       try {
+        // Test de connexion
         const testResponse = await fetch(`${API_URL}?method=test&t=${Date.now()}`, { 
           method: 'GET',
           cache: "no-store",
@@ -976,6 +963,7 @@
         const testData = await testResponse.json();
         console.log("Test API:", testData);
         
+        // Chargement des commandes
         const ordersResponse = await fetch(`${API_URL}?method=getorders&t=${Date.now()}`, { 
           method: 'GET',
           cache: "no-store",
@@ -989,47 +977,80 @@
         const ordersData = await ordersResponse.json();
         console.log("Réponse API commandes:", ordersData);
 
+        // Gestion des différents formats de réponse possibles
+        let rawOrders = [];
+        
         if (ordersData.success && ordersData.commandes) {
-          state.orders = ordersData.commandes.map(order => {
-            // Nettoyer le statut (enlever les émojis si présents)
-            let statut = order.statut || "NOUVELLE";
-            // Si le statut contient un émoji, extraire seulement le texte
-            const statutMatch = statut.match(/[🟡⏳🔵🟠✅❌]\s*(.+)/);
-            if (statutMatch) {
-              statut = statutMatch[1].trim();
-            }
-            
-            return {
-              date: order.date || "",
-              nom: order.nom || "",
-              telephone: String(order.telephone || "").replace(/^'/, ""),
-              adresse: order.adresse || "",
-              commande_id: order.commande_id || "",
-              articles: order.articles || "",
-              total: String(order.total || "0").replace(',', '.'),
-              statut: statut
-            };
-          });
+          rawOrders = ordersData.commandes;
         } else if (Array.isArray(ordersData)) {
-          state.orders = ordersData.map(order => ({
-            date: order.date || "",
-            nom: order.nom || order.name || "",
-            telephone: String(order.telephone || order.phone || "").replace(/^'/, ""),
-            adresse: order.adresse || order.address || "",
-            commande_id: order.commande_id || order.numero || "",
-            articles: order.articles || order.items || "",
-            total: String(order.total || order.amount || "0").replace(',', '.'),
-            statut: order.statut || "NOUVELLE"
-          }));
+          rawOrders = ordersData;
+        } else if (ordersData.data && Array.isArray(ordersData.data)) {
+          rawOrders = ordersData.data;
+        } else if (ordersData.rows && Array.isArray(ordersData.rows)) {
+          rawOrders = ordersData.rows;
         } else {
-          throw new Error("Format de données inattendu");
+          console.warn("Format de données inattendu:", ordersData);
+          // Tentative de récupération si c'est un objet avec des propriétés numériques
+          const possibleArray = Object.values(ordersData).filter(v => typeof v === 'object' && v !== null);
+          if (possibleArray.length > 0 && possibleArray[0].date) {
+            rawOrders = possibleArray;
+          } else {
+            throw new Error("Format de données inattendu");
+          }
         }
 
-        console.log(`${state.orders.length} commandes chargées`);
-        state.apiStatus = 'online';
-        $("apiStatus").className = "api-status api-online";
-        $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> API Connectée';
-        $("dataSourceInfo").textContent = "Source : Google Sheets (temps réel)";
+        console.log(`${rawOrders.length} commandes brutes chargées`);
+
+        // Transformation des données
+        state.orders = rawOrders.map(order => {
+          // Nettoyer le statut
+          let statut = order.statut || order.status || "NOUVELLE";
+          const statutMatch = String(statut).match(/[🟡⏳🔵🟠✅❌]\s*(.+)/);
+          if (statutMatch) {
+            statut = statutMatch[1].trim();
+          }
+          
+          // Nettoyer le téléphone
+          let telephone = String(order.telephone || order.phone || order.Téléphone || order.Tél || "");
+          telephone = telephone.replace(/^'/, "").trim();
+          
+          // Nettoyer l'adresse
+          let adresse = String(order.adresse || order.address || order.Adresse || "");
+          
+          // Nettoyer les articles
+          let articles = String(order.articles || order.items || order.Articles || "");
+          
+          // Nettoyer le total
+          let total = String(order.total || order.amount || order.Total || "0");
+          total = total.replace(',', '.');
+          
+          return {
+            date: order.date || order.Date || "",
+            nom: order.nom || order.name || order.Nom || order.client || "",
+            telephone: telephone,
+            adresse: adresse,
+            commande_id: order.commande_id || order.numero || order["N° Commande"] || order.id || "",
+            articles: articles,
+            total: total,
+            statut: statut
+          };
+        });
+
+        console.log(`${state.orders.length} commandes transformées`);
+
+        // Si pas de commandes, générer des données de démonstration
+        if (state.orders.length === 0) {
+          console.log("Aucune commande trouvée, génération de données de démonstration");
+          generateDemoData();
+          $("apiStatus").className = "api-status api-offline";
+          $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> Mode Démo (aucune donnée)';
+          $("dataSourceInfo").textContent = "Aucune commande dans Google Sheets";
+        } else {
+          state.apiStatus = 'online';
+          $("apiStatus").className = "api-status api-online";
+          $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> API Connectée';
+          $("dataSourceInfo").textContent = `Source : Google Sheets (${state.orders.length} commandes)`;
+        }
         
         state.topProducts = computeTopProductsFromOrders(state.orders);
         
@@ -1041,12 +1062,14 @@
         $("apiStatus").className = "api-status api-offline";
         $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> API Hors ligne';
         $("dataSourceInfo").textContent = "⚠️ Erreur de connexion à Google Sheets";
-        showToast(`❌ Erreur: ${error.message}`, "error");
+        
+        // Générer des données de démonstration en cas d'erreur
+        generateDemoData();
+        showToast(`⚠️ Mode démonstration activé`, "warning");
         return false;
       }
     }
 
-    // Calcul des analytics
     function calculateAnalytics() {
       const orders = state.orders || [];
       
@@ -1073,10 +1096,15 @@
 
       const now = new Date();
       const todayKey = now.toISOString().slice(0,10);
+      const uniquePhones = new Set();
       
       for (const order of orders) {
         const statut = order.statut || "NOUVELLE";
         state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
+        
+        if (order.telephone) {
+          uniquePhones.add(order.telephone);
+        }
       }
 
       for (const order of orders) {
@@ -1102,11 +1130,55 @@
       }
       
       state.analytics.conversionRate = Math.min(100, Math.round((orders.length / Math.max(orders.length * 1.5, 1)) * 100));
-      state.analytics.avgCustomerValue = state.analytics.totalOrders > 0 ? 
-        state.analytics.totalRevenue / (new Set(orders.map(o => o.telephone)).size || 1) : 0;
+      state.analytics.avgCustomerValue = uniquePhones.size > 0 ? 
+        state.analytics.totalRevenue / uniquePhones.size : 0;
     }
 
-    // Mise à jour de l'interface
+    function generateDemoData() {
+      state.orders = [];
+      const produits = [
+        "COCA COLA 1.5L", "EAU ZOUTINA 1.5L", "PATES TUNISIA 500G", 
+        "HUILE D'OLIVE 1L", "LAIT UHT 1L", "CAFE MOKA 250G", 
+        "SUCRE 1KG", "FARINE 1KG", "RIZ 1KG", "LENTILLES 500G"
+      ];
+
+      for (let i = 0; i < 25; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+        date.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60), 0);
+        
+        const dateStr = date.toLocaleDateString('fr-FR', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+        }).replace(/(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})/, '$1/$2/$3 $4:$5:$6');
+
+        const nbArticles = Math.floor(Math.random() * 5) + 1;
+        let articles = [];
+        let total = 0;
+
+        for (let j = 0; j < nbArticles; j++) {
+          const qte = Math.floor(Math.random() * 3) + 1;
+          const produit = produits[Math.floor(Math.random() * produits.length)];
+          const prix = Math.random() * 10 + 2;
+          articles.push(`${qte}x ${produit} - ${prix.toFixed(3)} dt`);
+          total += qte * prix;
+        }
+
+        state.orders.push({
+          date: dateStr,
+          nom: `Client ${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`,
+          telephone: `50${Math.floor(Math.random() * 10000000).toString().padStart(7, '0')}`,
+          adresse: `${Math.floor(Math.random() * 100)} Rue Example, Tunis`,
+          commande_id: `CMD-MAXI-${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}-${String(i).padStart(3,'0')}`,
+          articles: articles.join("\n"),
+          total: total.toFixed(3),
+          statut: STATUTS[Math.floor(Math.random() * STATUTS.length)]
+        });
+      }
+
+      state.topProducts = computeTopProductsFromOrders(state.orders);
+    }
+
     function updateUI() {
       $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
       $("totalOrders").textContent = state.analytics.totalOrders;
@@ -1217,7 +1289,6 @@
       $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
     }
 
-    // Initialisation des graphiques
     function initCharts() {
       const salesCtx = $("salesChart").getContext("2d");
       state.charts.sales = new Chart(salesCtx, {
@@ -1351,18 +1422,12 @@
       });
     }
 
-    // Mise à jour des graphiques
     function updateCharts() {
       const period = parseInt($("salesPeriod").value || 30, 10);
-      updateSalesChart(period);
-      updateStatusChart();
-      updateProductsChart();
-      updateActivityChart();
-    }
-
-    function updateSalesChart(period = 30) {
+      
+      // Sales chart
       const labels = [];
-      const data = [];
+      const salesData = [];
       const today = new Date();
 
       for (let i = period - 1; i >= 0; i--) {
@@ -1370,84 +1435,77 @@
         date.setDate(date.getDate() - i);
         const dateKey = date.toISOString().substring(0, 10);
         labels.push(date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }));
-        data.push(num(state.analytics.salesByDay[dateKey] || 0));
+        salesData.push(num(state.analytics.salesByDay[dateKey] || 0));
       }
 
       if (state.charts.sales) {
         state.charts.sales.data.labels = labels;
-        state.charts.sales.data.datasets[0].data = data;
+        state.charts.sales.data.datasets[0].data = salesData;
         state.charts.sales.update();
       }
-    }
 
-    function updateStatusChart() {
+      // Status chart
       const order = STATUTS;
-      const labels = [];
-      const data = [];
+      const statusLabels = [];
+      const statusData = [];
 
       for (const s of order) {
         const c = state.analytics.statusDistribution[s] || 0;
         if (c > 0) { 
-          labels.push(s); 
-          data.push(c); 
+          statusLabels.push(s); 
+          statusData.push(c); 
         }
       }
 
       if (state.charts.status) {
-        state.charts.status.data.labels = labels;
-        state.charts.status.data.datasets[0].data = data;
+        state.charts.status.data.labels = statusLabels;
+        state.charts.status.data.datasets[0].data = statusData;
         state.charts.status.update();
       }
-    }
 
-    function updateProductsChart() {
+      // Products chart
       const top10 = state.topProducts.slice(0, 10);
-      const labels = top10.map(p => p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name);
-      const data = top10.map(p => num(p.quantity));
+      const productLabels = top10.map(p => p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name);
+      const productData = top10.map(p => num(p.quantity));
 
       if (state.charts.products) {
-        state.charts.products.data.labels = labels;
-        state.charts.products.data.datasets[0].data = data;
+        state.charts.products.data.labels = productLabels;
+        state.charts.products.data.datasets[0].data = productData;
         state.charts.products.update();
       }
-    }
 
-    function updateActivityChart() {
+      // Activity chart
       const mode = $("activityMode").value;
 
       if (state.charts.hourly) {
         if (mode === "hour") {
-          const labels = [];
-          const data = [];
+          const hourLabels = [];
+          const hourData = [];
           for (let h = 0; h < 24; h++) {
-            labels.push(`${h}h`);
-            data.push(num(state.analytics.ordersByHour[h] || 0));
+            hourLabels.push(`${h}h`);
+            hourData.push(num(state.analytics.ordersByHour[h] || 0));
           }
-          state.charts.hourly.data.labels = labels;
-          state.charts.hourly.data.datasets[0].data = data;
+          state.charts.hourly.data.labels = hourLabels;
+          state.charts.hourly.data.datasets[0].data = hourData;
           state.charts.hourly.data.datasets[0].label = "Commandes par heure";
         } else {
-          const labels = [];
-          const data = [];
-          const today = new Date();
-          const period = 30;
-
+          const dayLabels = [];
+          const dayData = [];
           for (let i = period - 1; i >= 0; i--) {
             const date = new Date(today);
             date.setDate(date.getDate() - i);
             const key = date.toISOString().slice(0,10);
-            labels.push(date.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit" }));
-            data.push(num(state.analytics.ordersByDay[key] || 0));
+            dayLabels.push(date.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit" }));
+            dayData.push(num(state.analytics.ordersByDay[key] || 0));
           }
-          state.charts.hourly.data.labels = labels;
-          state.charts.hourly.data.datasets[0].data = data;
+          state.charts.hourly.data.labels = dayLabels;
+          state.charts.hourly.data.datasets[0].data = dayData;
           state.charts.hourly.data.datasets[0].label = "Commandes par jour";
         }
         state.charts.hourly.update();
       }
     }
 
-    // Mise à jour statut commande
     async function updateOrderStatus(commandeId, nouveauStatut) {
       if (!commandeId || commandeId === 'N/A' || commandeId === '') {
         showToast(`⚠️ ID commande invalide`, "warning");
@@ -1490,7 +1548,6 @@
       }
     }
 
-    // Création commande test
     async function createTestOrder() {
       try {
         showToast("⏳ Création commande test...", "info");
@@ -1540,7 +1597,6 @@
       }
     }
 
-    // Rafraîchissement complet
     async function refreshAll(force = false) {
       try {
         $("btnRefresh").disabled = true;
@@ -1548,17 +1604,12 @@
 
         const success = await loadData();
         
+        calculateAnalytics();
+        updateUI();
+        updateCharts();
+        
         if (success) {
-          calculateAnalytics();
-          updateUI();
-          updateCharts();
           showToast("✅ Données synchronisées avec Google Sheets", "success");
-        } else {
-          showToast("⚠️ Mode démonstration - données locales", "warning");
-          generateDemoData();
-          calculateAnalytics();
-          updateUI();
-          updateCharts();
         }
 
       } catch (e) {
@@ -1570,57 +1621,6 @@
       }
     }
 
-    // Données de démonstration (fallback)
-    function generateDemoData() {
-      state.orders = [];
-      const produits = [
-        "COCA COLA 1.5L", "EAU ZOUTINA 1.5L", "PATES TUNISIA 500G", 
-        "HUILE D'OLIVE 1L", "LAIT UHT 1L", "CAFE MOKA 250G", 
-        "SUCRE 1KG", "FARINE 1KG", "RIZ 1KG", "LENTILLES 500G"
-      ];
-
-      for (let i = 0; i < 25; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
-        date.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60), 0);
-        
-        const dateStr = date.toLocaleDateString('fr-FR', {
-          day: '2-digit', month: '2-digit', year: 'numeric',
-          hour: '2-digit', minute: '2-digit', second: '2-digit'
-        }).replace(/(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})/, '$1/$2/$3 $4:$5:$6');
-
-        const nbArticles = Math.floor(Math.random() * 5) + 1;
-        let articles = [];
-        let total = 0;
-
-        for (let j = 0; j < nbArticles; j++) {
-          const qte = Math.floor(Math.random() * 3) + 1;
-          const produit = produits[Math.floor(Math.random() * produits.length)];
-          const prix = Math.random() * 10 + 2;
-          articles.push(`${qte}x ${produit} - ${prix.toFixed(3)} dt`);
-          total += qte * prix;
-        }
-
-        state.orders.push({
-          date: dateStr,
-          nom: `Client ${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`,
-          telephone: `50${Math.floor(Math.random() * 10000000).toString().padStart(7, '0')}`,
-          adresse: `${Math.floor(Math.random() * 100)} Rue Example, Tunis`,
-          commande_id: `CMD-MAXI-${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}-${String(i).padStart(3,'0')}`,
-          articles: articles.join("\n"),
-          total: total.toFixed(3),
-          statut: STATUTS[Math.floor(Math.random() * STATUTS.length)]
-        });
-      }
-
-      state.topProducts = computeTopProductsFromOrders(state.orders);
-      state.apiStatus = 'demo';
-      $("apiStatus").className = "api-status api-offline";
-      $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> Mode Démo';
-      $("dataSourceInfo").textContent = "Données de démonstration (fallback)";
-    }
-
-    // Initialisation
     document.addEventListener("DOMContentLoaded", () => {
       console.log("Initialisation du tableau de bord...");
       
