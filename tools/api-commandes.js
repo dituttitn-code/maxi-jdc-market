@@ -6,7 +6,7 @@
 
 // ✅ URL OK
 export const API_URL =
-  "https://script.google.com/macros/s/AKfycbwT2liu35iSJkwGsWMI9kogMRocSAsWv3BABjJzps3i4WG8pMN5sU8AFsyeqmPZhbCF/exec";
+  "https://script.google.com/macros/s/AKfycbzPcUdWPSN0yDrnURSkzmNKO_Ulj2CYHxJE3uC99qWrFwrOq9dlbsalPhRbcPQHBCA/exec";
 
 // ✅ Configuration des numéros WhatsApp
 export const WHATSAPP_CONFIG = {
