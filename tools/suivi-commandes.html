@@ -208,7 +208,19 @@
       border-bottom: 1px solid var(--line);
     }
 
-    .order-id { font-size: 18px; font-weight: 900; color: var(--new); }
+    .order-id { 
+      font-size: 18px; 
+      font-weight: 900; 
+      color: var(--new);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .order-id:hover {
+      color: var(--blue);
+      transform: scale(1.02);
+    }
+    
     .order-date { color: var(--muted); font-size: 14px; }
 
     .status-badge {
@@ -221,32 +233,32 @@
       gap: 8px;
     }
 
-    .status-new {
+    .status-badge.status-new {
       background: rgba(255, 215, 0, 0.15);
       color: #FFD700;
       border: 2px solid rgba(255, 215, 0, 0.3);
     }
-    .status-preparation {
+    .status-badge.status-preparation {
       background: rgba(33, 150, 243, 0.15);
       color: #2196F3;
       border: 2px solid rgba(33, 150, 243, 0.3);
     }
-    .status-livraison {
+    .status-badge.status-livraison {
       background: rgba(255, 152, 0, 0.15);
       color: #FF9800;
       border: 2px solid rgba(255, 152, 0, 0.3);
     }
-    .status-livree {
+    .status-badge.status-livree {
       background: rgba(76, 175, 80, 0.15);
       color: #4CAF50;
       border: 2px solid rgba(76, 175, 80, 0.3);
     }
-    .status-annulee {
+    .status-badge.status-annulee {
       background: rgba(244, 67, 54, 0.15);
       color: #F44336;
       border: 2px solid rgba(244, 67, 54, 0.3);
     }
-    .status-attente {
+    .status-badge.status-attente {
       background: rgba(156, 39, 176, 0.15);
       color: #9C27B0;
       border: 2px solid rgba(156, 39, 176, 0.3);
@@ -315,6 +327,9 @@
       border-color: var(--preparation);
       background: rgba(33, 150, 243, 0.15);
       color: var(--preparation);
+      font-weight: 900;
+      transform: scale(1.1);
+      box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
     }
 
     .step.completed .step-icon {
@@ -328,10 +343,19 @@
       color: var(--muted);
       text-align: center;
       max-width: 100px;
+      font-weight: 700;
     }
 
-    .step.active .step-label { color: var(--preparation); font-weight: 700; }
-    .step.completed .step-label { color: var(--livree); font-weight: 700; }
+    .step.active .step-label { 
+      color: var(--preparation); 
+      font-weight: 900;
+      text-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+    }
+    
+    .step.completed .step-label { 
+      color: var(--livree); 
+      font-weight: 900;
+    }
 
     .order-details {
       display: grid;
@@ -595,6 +619,67 @@
       color: var(--new);
     }
 
+    .sync-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-left: 10px;
+    }
+
+    .sync-indicator i {
+      color: var(--new);
+      animation: spin 2s linear infinite;
+    }
+
+    .sync-indicator i.fa-check-circle {
+      color: var(--livree);
+      animation: none;
+    }
+
+    .sync-indicator i.fa-exclamation-circle {
+      color: var(--annulee);
+      animation: none;
+    }
+
+    .sync-indicator i.fa-sync-alt {
+      color: var(--blue);
+    }
+
+    .order-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+
+    .order-badge i {
+      color: var(--new);
+    }
+
+    .order-badge.gs {
+      background: rgba(33, 150, 243, 0.1);
+      border: 1px solid rgba(33, 150, 243, 0.3);
+    }
+
+    .order-badge.gs i {
+      color: #2196F3;
+    }
+
+    .order-badge.tdb {
+      background: rgba(255, 152, 0, 0.1);
+      border: 1px solid rgba(255, 152, 0, 0.3);
+    }
+
+    .order-badge.tdb i {
+      color: #FF9800;
+    }
+
     @media (max-width: 768px) {
       .header {
         flex-direction: column;
@@ -714,7 +799,21 @@
     <div id="orderCard" class="order-card" style="display: none;">
       <div class="order-header">
         <div>
-          <div class="order-id" id="orderIdDisplay">CMD-MAXI-20260212-004</div>
+          <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div class="order-id" id="orderIdDisplay" onclick="copyOrderId()" title="Cliquez pour copier">
+              CMD-MAXI-20260212-004
+            </div>
+            <div class="sync-indicator" id="syncIndicator">
+              <i class="fas fa-sync-alt fa-spin"></i>
+              <span>Synchronisation...</span>
+            </div>
+            <div class="order-badge gs" id="gsBadge" style="display: none;">
+              <i class="fas fa-database"></i> GS
+            </div>
+            <div class="order-badge tdb" id="tdbBadge" style="display: none;">
+              <i class="fas fa-chart-line"></i> TDB
+            </div>
+          </div>
           <div class="order-date" id="orderDateDisplay">12 février 2026 à 00:28</div>
         </div>
         <div class="status-badge" id="orderStatusBadge">
@@ -918,8 +1017,14 @@
       progressBar: document.getElementById('progressBar'),
       statusTimeline: document.getElementById('statusTimeline'),
       qrCodeContainer: document.getElementById('qrCodeContainer'),
-      toast: document.getElementById('toast')
+      toast: document.getElementById('toast'),
+      syncIndicator: document.getElementById('syncIndicator'),
+      gsBadge: document.getElementById('gsBadge'),
+      tdbBadge: document.getElementById('tdbBadge')
     };
+
+    // Stockage local pour l'historique des commandes
+    let localOrderHistory = [];
 
     function showToast(message, type = 'success') {
       elements.toast.textContent = message;
@@ -1072,6 +1177,44 @@
       });
     }
 
+    function syncOrderWithHistory(order) {
+      // Vérifier la synchronisation avec l'historique local
+      const localOrder = localOrderHistory.find(o => o.commande_id === order.commande_id);
+      
+      if (localOrder) {
+        // Comparer les statuts
+        if (localOrder.statut !== order.statut) {
+          showToast(`🔄 Statut mis à jour : ${order.statut}`, 'info');
+          // Mettre à jour l'historique local
+          localOrderHistory = localOrderHistory.map(o => 
+            o.commande_id === order.commande_id ? { ...o, statut: order.statut } : o
+          );
+          localStorage.setItem('order_history', JSON.stringify(localOrderHistory));
+        }
+        
+        // Afficher les badges de synchronisation
+        elements.syncIndicator.innerHTML = `
+          <i class="fas fa-check-circle"></i>
+          <span>Synchronisé ✓</span>
+        `;
+        elements.syncIndicator.style.color = 'var(--livree)';
+        
+        // Afficher les badges GS/TDB
+        if (localOrder.gs_id) {
+          elements.gsBadge.style.display = 'inline-flex';
+        }
+        if (localOrder.tdb_id) {
+          elements.tdbBadge.style.display = 'inline-flex';
+        }
+      } else {
+        elements.syncIndicator.innerHTML = `
+          <i class="fas fa-exclamation-circle"></i>
+          <span>Non synchronisé</span>
+        `;
+        elements.syncIndicator.style.color = 'var(--annulee)';
+      }
+    }
+
     function displayOrder(order) {
       elements.orderIdDisplay.textContent = order.commande_id;
       elements.orderDateDisplay.textContent = formatDate(order.date);
@@ -1083,6 +1226,9 @@
       updateStatusDisplay(order.statut);
       updateStatusTimeline(order);
       displayArticles(order.articles);
+      
+      // Synchroniser avec l'historique
+      syncOrderWithHistory(order);
       
       hide(elements.loadingState);
       show(elements.orderCard);
@@ -1100,9 +1246,20 @@
             index === self.findIndex(o => o.commande_id === order.commande_id)
           );
         localStorage.setItem('order_history', JSON.stringify(newHistory));
+        localOrderHistory = newHistory;
         console.log('📚 Commandes sauvegardées dans l\'historique:', newHistory.length);
       } catch (e) {
         console.warn('Erreur sauvegarde historique:', e);
+      }
+    }
+
+    function loadHistoryFromStorage() {
+      try {
+        localOrderHistory = JSON.parse(localStorage.getItem('order_history') || '[]');
+        console.log('📚 Historique chargé:', localOrderHistory.length);
+      } catch (e) {
+        console.warn('Erreur chargement historique:', e);
+        localOrderHistory = [];
       }
     }
 
@@ -1121,6 +1278,16 @@
       hide(elements.successMessage);
       show(elements.loadingState);
 
+      // Afficher l'indicateur de synchronisation
+      if (elements.syncIndicator) {
+        elements.syncIndicator.innerHTML = `
+          <i class="fas fa-sync-alt fa-spin"></i>
+          <span>Synchronisation en cours...</span>
+        `;
+        elements.syncIndicator.style.color = 'var(--blue)';
+        show(elements.syncIndicator);
+      }
+
       try {
         const timestamp = Date.now();
         const url = `${API_URL}?method=getOrderHistory&telephone=${encodeURIComponent(phone)}&t=${timestamp}`;
@@ -1133,6 +1300,9 @@
         }
 
         if (data.history && data.history.length > 0) {
+          // Charger l'historique local
+          loadHistoryFromStorage();
+          
           const activeOrders = data.history.filter(order => 
             order.statut !== '✅ LIVRÉE' && order.statut !== '❌ ANNULÉE'
           );
@@ -1152,6 +1322,10 @@
             hide(elements.loadingState);
             show(elements.emptyState);
             showToast('📦 Toutes vos commandes sont livrées', 'info');
+            
+            if (deliveredOrders.length > 0) {
+              saveToHistory(deliveredOrders);
+            }
           }
         } else {
           throw new Error('Aucune commande trouvée');
@@ -1162,6 +1336,14 @@
         hide(elements.loadingState);
         show(elements.emptyState);
         showToast('❌ ' + error.message, 'error');
+        
+        if (elements.syncIndicator) {
+          elements.syncIndicator.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Erreur de synchronisation</span>
+          `;
+          elements.syncIndicator.style.color = 'var(--annulee)';
+        }
       }
     }
 
@@ -1174,11 +1356,51 @@
       elements.qrCodeContainer.innerHTML = `<img src="${qrUrl}" alt="QR Code Suivi Commande">`;
     }
 
+    function copyOrderId() {
+      const orderId = elements.orderIdDisplay.textContent;
+      navigator.clipboard.writeText(orderId).then(() => {
+        showToast('📋 Numéro de commande copié !', 'success');
+      }).catch(() => {
+        showToast('❌ Erreur lors de la copie', 'error');
+      });
+    }
+
+    // Initialisation
     document.addEventListener('DOMContentLoaded', () => {
       elements.searchOrderBtn.addEventListener('click', searchOrder);
       
       elements.phoneInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') searchOrder();
+      });
+
+      // Boutons d'action
+      elements.whatsappBtn.addEventListener('click', () => {
+        const phone = elements.clientPhone.textContent.replace(/\D/g, '');
+        const orderId = elements.orderIdDisplay.textContent;
+        const message = `Bonjour, je souhaite des informations sur ma commande ${orderId}`;
+        window.open(`https://wa.me/21625600978?text=${encodeURIComponent(message)}`);
+      });
+
+      elements.callBtn.addEventListener('click', () => {
+        window.open('tel:+21625600978');
+      });
+
+      elements.reloadBtn.addEventListener('click', searchOrder);
+
+      elements.shareBtn.addEventListener('click', () => {
+        const orderId = elements.orderIdDisplay.textContent;
+        const text = `Ma commande ${orderId} - Suivi MAXI JDC MARKET`;
+        if (navigator.share) {
+          navigator.share({
+            title: 'Suivi de commande',
+            text: text,
+            url: window.location.href
+          }).catch(() => {
+            copyOrderId();
+          });
+        } else {
+          copyOrderId();
+        }
       });
 
       const urlParams = new URLSearchParams(window.location.search);
@@ -1188,9 +1410,12 @@
       }
 
       generateQRCode('');
+      loadHistoryFromStorage();
     });
 
+    // Fonctions globales
     window.searchOrder = searchOrder;
+    window.copyOrderId = copyOrderId;
   </script>
 </body>
 </html>
