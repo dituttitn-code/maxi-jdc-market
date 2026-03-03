@@ -2785,11 +2785,14 @@
       padding: 12px;
       cursor: pointer;
       transition: all 0.2s ease;
+      margin-bottom: 10px;
     }
 
     .history-item:hover {
       background: rgba(255, 255, 255, 0.05);
       border-color: var(--accent2);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
     }
 
     .history-date {
@@ -3573,6 +3576,33 @@
       box-shadow: 0 6px 20px rgba(255, 167, 38, 0.4);
     }
 
+    /* Styles pour les statuts de commande */
+    .statut-livre {
+        background: rgba(0, 255, 136, 0.2) !important;
+        border-left: 4px solid #00ff88 !important;
+    }
+
+    .statut-preparation {
+        background: rgba(0, 212, 255, 0.1) !important;
+        border-left: 4px solid #00d4ff !important;
+    }
+
+    .statut-livraison {
+        background: rgba(255, 167, 38, 0.1) !important;
+        border-left: 4px solid #ffa726 !important;
+    }
+
+    .statut-annule {
+        background: rgba(255, 107, 107, 0.1) !important;
+        border-left: 4px solid #ff6b6b !important;
+        opacity: 0.8;
+    }
+
+    .statut-valide {
+        background: rgba(156, 39, 176, 0.1) !important;
+        border-left: 4px solid #9c27b0 !important;
+    }
+
     @media (max-width: 768px) {
       .drawer {
         width: 90vw;
@@ -3750,43 +3780,6 @@
         width: 100%;
         height: 60px;
       }
-    }
-
-    /* Styles pour les statuts de commande */
-    .statut-livre {
-        background: rgba(0, 255, 136, 0.2) !important;
-        border-left: 4px solid #00ff88 !important;
-    }
-
-    .statut-preparation {
-        background: rgba(0, 212, 255, 0.1) !important;
-        border-left: 4px solid #00d4ff !important;
-    }
-
-    .statut-livraison {
-        background: rgba(255, 167, 38, 0.1) !important;
-        border-left: 4px solid #ffa726 !important;
-    }
-
-    .statut-annule {
-        background: rgba(255, 107, 107, 0.1) !important;
-        border-left: 4px solid #ff6b6b !important;
-        opacity: 0.8;
-    }
-
-    .statut-valide {
-        background: rgba(156, 39, 176, 0.1) !important;
-        border-left: 4px solid #9c27b0 !important;
-    }
-
-    .history-item {
-        transition: all 0.2s ease;
-        margin-bottom: 10px;
-    }
-
-    .history-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
     }
 
     ::-webkit-scrollbar {
@@ -5358,7 +5351,7 @@
       }).sort((a, b) => a.name.localeCompare(b.name));
     }
 
-    // ===================== FONCTION RENDERPRODUCTS (avec ouverture du catalogue sur l'article cliqué) =====================
+    // ===================== FONCTION RENDERPRODUCTS =====================
     function renderProducts() {
       state.filteredProducts = getFilteredProducts();
       const totalPages = Math.ceil(state.filteredProducts.length / CONFIG.itemsPerPage) || 1;
@@ -5438,7 +5431,6 @@
           </div>
         `;
         
-        // ✅ Le catalogue s'ouvre sur l'article cliqué
         card.addEventListener('click', () => {
           if (stockStatus.available) {
             openCatalogueForProduct(product);
@@ -5451,7 +5443,6 @@
       });
     }
 
-    // ✅ Nouvelle fonction : Ouvre le catalogue et affiche le produit spécifique en tête de liste
     function openCatalogueForProduct(targetProduct) {
       const category = CATEGORIES.find(c => c.key === targetProduct.categoryKey);
       if (!category) return;
@@ -5462,7 +5453,6 @@
         return;
       }
       
-      // Placer le produit ciblé en tête de liste, suivi des autres triés par nom
       const otherProducts = products.filter(p => p.code !== targetProduct.code || p.name !== targetProduct.name);
       otherProducts.sort((a, b) => a.name.localeCompare(b.name));
       
@@ -5629,7 +5619,6 @@
           
           if (product && quantity > 0) {
             addToCart(productId, product, quantity);
-            // Réinitialiser la quantité pour cet article après ajout
             state.catalogueQuantityPicks[productId] = 0;
             const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
             const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
@@ -5639,9 +5628,7 @@
               addBtn.classList.remove('has-qty');
             }
           } else if (product && quantity === 0) {
-            // Si la quantité est 0, on ajoute quand même 1 par défaut
             addToCart(productId, product, 1);
-            // Mettre à jour l'input pour afficher 0 après ajout (car on a ajouté 1)
             const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
             if (input) input.value = 0;
             state.catalogueQuantityPicks[productId] = 0;
@@ -5994,7 +5981,6 @@
       $('orderHistorySection').classList.remove('visible');
     }
 
-    // ✅ Fonction pour afficher les commandes en cours
     function afficherCommandesEnCours() {
       if (!state.user || !state.user.phone) {
         showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
@@ -6002,12 +5988,9 @@
         return;
       }
       
-      // Nettoyer le numéro de téléphone (enlever les espaces)
       const phoneClient = state.user.phone.replace(/\s+/g, '');
       
-      // Synchroniser d'abord avec Google Sheets
       synchroniserCommandesAvecGS().then(() => {
-        // Filtrer les commandes en cours (statut différent de "Livré" et "Annulé")
         const commandesEnCours = state.orderHistory.filter(order => 
           order.clientPhone && 
           order.clientPhone.replace(/\s+/g, '').includes(phoneClient) && 
@@ -6016,7 +5999,6 @@
           !order.statut.toLowerCase().includes('annulé')
         );
         
-        // Trier par date (plus récent d'abord)
         commandesEnCours.sort((a, b) => new Date(b.date) - new Date(a.date));
         
         if (commandesEnCours.length === 0) {
@@ -6024,14 +6006,12 @@
           return;
         }
         
-        // Afficher les commandes en cours
         renderHistory(commandesEnCours);
         
         showToast(`📦 ${commandesEnCours.length} commande(s) en cours`);
       });
     }
 
-    // ✅ Fonction pour afficher l'historique des commandes (terminées)
     function afficherHistoriqueCommandes() {
       if (!state.user || !state.user.phone) {
         showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
@@ -6039,12 +6019,9 @@
         return;
       }
       
-      // Nettoyer le numéro de téléphone
       const phoneClient = state.user.phone.replace(/\s+/g, '');
       
-      // Synchroniser d'abord avec Google Sheets
       synchroniserCommandesAvecGS().then(() => {
-        // Filtrer les commandes terminées (statut "Livré" ou "Annulé")
         const historique = state.orderHistory.filter(order => 
           order.clientPhone && 
           order.clientPhone.replace(/\s+/g, '').includes(phoneClient) && 
@@ -6052,7 +6029,6 @@
           (order.statut.toLowerCase().includes('livré') || order.statut.toLowerCase().includes('annulé'))
         );
         
-        // Trier par date (plus récent d'abord)
         historique.sort((a, b) => new Date(b.date) - new Date(a.date));
         
         if (historique.length === 0) {
@@ -6060,21 +6036,17 @@
           return;
         }
         
-        // Afficher l'historique
         renderHistory(historique);
         
         showToast(`📜 ${historique.length} commande(s) dans l'historique`);
       });
     }
 
-    // ✅ Fonction pour charger l'historique par numéro de téléphone
     function loadHistoryForPhone(phone) {
       const cleanPhone = phone.replace(/\s+/g, '');
       
-      // Synchroniser avant de charger
       synchroniserCommandesAvecGS().catch(err => console.warn('Sync warning:', err));
       
-      // Filtrer toutes les commandes pour ce numéro
       const userHistory = state.orderHistory.filter(order =>
         order.clientPhone && 
         order.clientPhone.replace(/\s+/g, '').includes(cleanPhone)
@@ -6097,14 +6069,16 @@
           $('clientAccountBtn').click();
           return;
         }
-        // Afficher directement toutes les commandes pour cet utilisateur (suivi + historique)
-        const allUserOrders = loadHistoryForPhone(state.user.phone);
-        if (allUserOrders.length === 0) {
-          showToast('📭 Aucune commande trouvée', 'warning');
-          return;
-        }
         
-        renderHistory(allUserOrders);
+        synchroniserCommandesAvecGS().then(() => {
+          const allUserOrders = loadHistoryForPhone(state.user.phone);
+          if (allUserOrders.length === 0) {
+            showToast('📭 Aucune commande trouvée', 'warning');
+            return;
+          }
+          
+          renderHistory(allUserOrders);
+        });
       };
     }
 
@@ -6309,7 +6283,6 @@
         };
       });
       
-      // Calculer le total correctement
       const subtotal = orderDetails.subtotal;
       const shipping = orderDetails.shipping;
       const total = subtotal + shipping;
@@ -6322,7 +6295,7 @@
         items: itemsWithSavings,
         subtotal: subtotal,
         shipping: shipping,
-        total: total, // ✅ Correction : utiliser le total calculé correctement
+        total: total,
         savings: orderDetails.savings || 0,
         savingsPercentage: orderDetails.savingsPercentage || 0,
         address: state.user.address,
@@ -6331,7 +6304,7 @@
           lng: state.user.lng
         } : null,
         orderId: orderDetails.commandeId,
-        statut: 'En cours de préparation' // Statut initial
+        statut: 'En cours de préparation'
       };
       state.orderHistory.unshift(historyEntry);
       const twoYearsAgo = new Date();
@@ -6378,8 +6351,7 @@
         const itemCount = order.items.reduce((sum, item) => sum + (item.quantity || 1), 0);
         const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
         
-        // Déterminer la couleur et l'icône du statut
-        let statutColor = '#00d4ff'; // Couleur par défaut (cyan)
+        let statutColor = '#00d4ff';
         let statutIcon = '⏳';
         let statutClass = '';
         
@@ -6415,7 +6387,6 @@
             addressDisplay = renderAddressWithLink(order.address);
         }
         
-        // Formatage du statut en gras et avec couleur
         const statutFormatted = `<span style="color: ${statutColor}; font-weight: 900; background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 12px; border: 1px solid ${statutColor};">${statutIcon} ${order.statut || 'En cours de préparation'}</span>`;
         
         historyItem.innerHTML = `
@@ -6444,7 +6415,6 @@
             ` : ''}
         `;
         
-        // Ajouter un séparateur visuel pour les commandes en cours
         if (!statut.includes('livré') && !statut.includes('annulé')) {
             historyItem.style.borderLeft = `4px solid ${statutColor}`;
             historyItem.style.paddingLeft = '12px';
@@ -6458,14 +6428,11 @@
       });
     }
 
-    // ✅ Modification pour masquer le bouton "Valider et envoyer" quand on consulte une commande depuis l'historique
     function showOrderDetails(order, fromHistory = false) {
       const orderDetails = $('orderDetails');
       
-      // Déterminer le statut pour l'affichage
       const statut = order.statut || 'En cours de préparation';
       
-      // Déterminer la couleur du statut
       let statutColor = '#00d4ff';
       let statutIcon = '⏳';
       
@@ -6512,7 +6479,6 @@
         detailsText += `🔗 Maps: ${googleMapsUrl}\n`;
       }
       
-      // Statut en gras et avec couleur
       detailsText += `📌 Statut: \u001b[1m${statutIcon} ${statut}\u001b[0m\n`;
       
       detailsText += `\n🛒 ARTICLES :\n`;
@@ -6550,13 +6516,11 @@
         detailsText += `\n🎉 Vous avez économisé ${formatPrice(totalSavingsInOrder)} sur cette commande !`;
       }
       
-      // Remplacer le code ANSI par des balises HTML pour l'affichage
       detailsText = detailsText.replace(/\u001b\[1m/g, '<strong style="color: ' + statutColor + ';">');
       detailsText = detailsText.replace(/\u001b\[0m/g, '</strong>');
       
       orderDetails.innerHTML = detailsText;
       
-      // ✅ Cacher le bouton "Valider et envoyer" si on consulte depuis l'historique
       const sendOrderBtn = $('sendOrderBtn');
       if (fromHistory) {
         sendOrderBtn.style.display = 'none';
@@ -6811,7 +6775,7 @@
       }
     }
 
-    // ✅ Nouveau message de confirmation simplifié
+    // ✅ NOUVEAU MESSAGE DE CONFIRMATION SIMPLIFIÉ
     function envoyerMessageClient(commandeId, result) {
       const message = `✅ Commande Enregistrée
       
@@ -6821,9 +6785,11 @@ Merci pour votre commande chez MAXI JDC MARKET.
 ⏳ Elle est actuellement en cours de préparation.
 📞 Nous vous contacterons prochainement pour la livraison.
 
-Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de commande, puis saisissez votre numéro de téléphone.
+Pour suivre votre commande, accédez à Panier > Espace Client > Suivi & Historique
 
-⚠️ CONSERVEZ CE NUMÉRO : ${commandeId}`;
+⚠️ CONSERVEZ CE NUMÉRO : ${commandeId}
+📋 Copier
+✅ OK`;
       
       const modal = document.createElement('div');
       modal.style.cssText = `
@@ -7027,7 +6993,7 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
         console.log("🔍 Type de result:", typeof result);
         console.log("🔍 Contenu de result:", result);
         
-                const commandeId = result?.command_id || result?.commande_id || result?.numero_commande || orderData?.commandeId;
+        const commandeId = result?.command_id || result?.commande_id || result?.numero_commande || orderData?.commandeId;
         
         console.log("📦 Numéro final utilisé:", commandeId);
         
@@ -7060,7 +7026,7 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
         try {
             console.log('🔄 Synchronisation des commandes avec Google Sheets...');
             
-            // URL pour récupérer les commandes depuis Google Sheets (à adapter selon votre configuration)
+            // URL pour récupérer les commandes depuis Google Sheets (à adapter)
             const commandesUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=123456789&single=true&output=csv";
             
             const response = await fetch(commandesUrl + "&t=" + Date.now(), {
@@ -7074,25 +7040,20 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
             const text = await response.text();
             const commandesGS = parseCSVCommandes(text);
             
-            // Mise à jour de l'historique des commandes avec les statuts de Google Sheets
             let commandesMisesAJour = 0;
             
             commandesGS.forEach(commandeGS => {
-                // Chercher la commande correspondante dans l'historique local
                 const indexLocal = state.orderHistory.findIndex(order => 
                     order.orderId === commandeGS.numero_commande || 
                     (order.orderId && order.orderId.includes(commandeGS.numero_commande))
                 );
                 
                 if (indexLocal !== -1) {
-                    // Mise à jour du statut si différent
                     if (state.orderHistory[indexLocal].statut !== commandeGS.statut) {
                         state.orderHistory[indexLocal].statut = commandeGS.statut;
                         commandesMisesAJour++;
                     }
                 } else {
-                    // Si commande non trouvée localement mais existe dans GS, l'ajouter
-                    // (cas d'une commande passée depuis un autre appareil)
                     if (commandeGS.numero_commande && commandeGS.client_phone) {
                         const nouvelleCommande = {
                             id: Date.now() + Math.random(),
@@ -7114,10 +7075,8 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
                 }
             });
             
-            // Trier l'historique par date (plus récent d'abord)
             state.orderHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
             
-            // Sauvegarder les modifications
             saveState();
             saveSyncData();
             
@@ -7126,7 +7085,6 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
             if (commandesMisesAJour > 0) {
                 showToast(`🔄 ${commandesMisesAJour} commande(s) mise(s) à jour`, 'success');
                 
-                // Mettre à jour l'affichage si la section historique est visible
                 if ($('orderHistorySection').classList.contains('visible') && state.user && state.user.phone) {
                     const allUserOrders = loadHistoryForPhone(state.user.phone);
                     renderHistory(allUserOrders);
@@ -7182,10 +7140,8 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
             
             if (rows.length === 0) return [];
             
-            // Déterminer les en-têtes
             const headers = rows.shift().map(h => h.trim().toLowerCase());
             
-            // Mapper les colonnes attendues
             const mapColonne = {
                 'numero_commande': -1,
                 'date': -1,
@@ -7217,7 +7173,6 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
                 }
             });
             
-            // Traiter les lignes
             return rows
                 .filter(r => r.some(x => String(x).trim() !== ""))
                 .map(r => {
@@ -7232,10 +7187,8 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
                         items: []
                     };
                     
-                    // Si la colonne articles existe, essayer de parser
                     if (mapColonne.articles !== -1 && r[mapColonne.articles]) {
                         const articlesText = r[mapColonne.articles];
-                        // Essayer d'extraire des informations basiques
                         const matchQuantite = articlesText.match(/(\d+)x/);
                         if (matchQuantite) {
                             commande.items = [{ quantity: parseInt(matchQuantite[1]) || 1 }];
@@ -7254,19 +7207,16 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
 
     // ===================== LANCEMENT SYNCHRONISATION PÉRIODIQUE =====================
     function demarrerSynchronisationCommandes() {
-        // Synchroniser toutes les 30 secondes
         setInterval(() => {
             if (document.visibilityState === 'visible') {
                 synchroniserCommandesAvecGS();
             }
         }, 30000);
         
-        // Première synchronisation après 5 secondes
         setTimeout(() => {
             synchroniserCommandesAvecGS();
         }, 5000);
         
-        // Synchroniser au retour sur l'onglet
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 synchroniserCommandesAvecGS();
@@ -7507,7 +7457,6 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
 
       $('closeOrderModalBtn').onclick = () => {
         $('orderModal').classList.remove('open');
-        // Remettre le bouton "Valider et envoyer" visible pour la prochaine fois
         $('sendOrderBtn').style.display = 'block';
       };
 
@@ -7579,7 +7528,6 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
       loadAllProducts();
       initializeSync();
       initClientSpace();
-      // Démarrer la synchronisation périodique des commandes
       demarrerSynchronisationCommandes();
       showToast('👋 Bienvenue sur MAXI JDC MARKET !');
     }
