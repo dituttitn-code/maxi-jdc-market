@@ -130,6 +130,23 @@
       margin-left: 15px;
       font-size: 12px;
     }
+    /* Message permanent après validation */
+    .validation-message {
+      background: rgba(0,255,136,0.1);
+      border: 2px solid var(--ok);
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 15px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      display: none;
+    }
+    .validation-message.show {
+      display: block;
+    }
     .sections{
       display:flex;
       flex-direction:column;
@@ -298,7 +315,6 @@
     .toast.show{display:block; animation: slideUp 0.3s ease;}
     .toast.ok{border-color: rgba(18,230,165,.55)}
     .toast.err{border-color: rgba(255,92,92,.55)}
-    .toast.warning{border-color: rgba(255,167,38,.55)}
     .small{
       font-size:12px;
       color: var(--muted);
@@ -469,6 +485,9 @@
 
     <div class="content">
       <div class="details-display" id="detailsDisplay"></div>
+
+      <!-- Message permanent après validation -->
+      <div class="validation-message" id="validationMessage"></div>
 
       <div class="row">
         <div class="pill" id="statusPill">
@@ -759,8 +778,8 @@ function creerLienGoogleMaps(adresse, gpsCoords) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(adresse || '')}`;
 }
 
-// ✅ FONCTION: Construire le message WhatsApp avec le format exact
-function construireMessageWhatsAppComplet(commande, numeroSheets) {
+// ✅ FONCTION: Construire le message de validation complet (avec le titre "Détails de votre commande")
+function construireMessageValidation(commande, numeroSheets) {
   const date = new Date(commande.date);
   const dateFormatted = `${date.getDate().toString().padStart(2,'0')}/${(date.getMonth()+1).toString().padStart(2,'0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
   
@@ -785,7 +804,9 @@ function construireMessageWhatsAppComplet(commande, numeroSheets) {
   // Créer le lien Google Maps
   const mapsLink = creerLienGoogleMaps(commande.adresse, commande.gpsCoords);
   
-  const message = `📦 COMMANDE - MAXI JDC MARKET
+  const message = `📋 Détails de votre commande
+×
+📦 COMMANDE - MAXI JDC MARKET
 📅 ${dateFormatted}
 
 👤 CLIENT
@@ -804,7 +825,9 @@ TOTAL: ${total.toFixed(3).replace('.', ',')} dt
 
 🕒 Heures: 7h - 1h
 📱 WhatsApp: +216 25 600 978
-🆔 N° Commande: ${numeroSheets || commande.numero_commande}`;
+📋 Copier
+💾 Télécharger
+✅ Valider et envoyer`;
 
   return message;
 }
@@ -902,7 +925,7 @@ function ouvrirWhatsAppSilencieux(url) {
   }
 }
 
-// ✅ FONCTION: Valider et envoyer la commande
+// ✅ FONCTION: Valider et envoyer la commande (avec message permanent et envoi WhatsApp)
 async function validerEtEnvoyerCommande(commande) {
   console.log("🟢 Validation de la commande:", commande);
   
@@ -926,19 +949,28 @@ async function validerEtEnvoyerCommande(commande) {
     // Afficher les détails complets
     afficherDetailsCommande(commande);
     
-    toast.innerHTML = `✅ Commande Enregistrée - Réf: ${numeroSheets}`;
+    // Construire le message de validation
+    const messageValidation = construireMessageValidation(commande, numeroSheets);
+    
+    // Afficher le message permanent
+    const validationMsgDiv = document.getElementById("validationMessage");
+    validationMsgDiv.textContent = messageValidation;
+    validationMsgDiv.classList.add("show");
+    
+    // Toast de confirmation rapide
+    toast.innerHTML = `✅ Commande enregistrée (Réf: ${numeroSheets})`;
     toast.className = "toast show ok";
     
     playTabletSound();
     
-    // ✅ ENVOI WHATSAPP AVEC LE FORMAT COMPLET
+    // ✅ ENVOI WHATSAPP AVEC LE MESSAGE COMPLET
     try {
       const statusDiv = document.getElementById('whatsappStatus');
       statusDiv.style.display = 'block';
       statusDiv.innerHTML = '📤 Envoi des notifications WhatsApp...';
       
-      // Construire le message complet
-      const messageComplet = construireMessageWhatsAppComplet(commande, numeroSheets);
+      // Utiliser le même message pour les destinataires internes
+      const messageComplet = messageValidation; // déjà formaté
       
       // Destinataires internes
       const destinataires = [
@@ -957,21 +989,9 @@ async function validerEtEnvoyerCommande(commande) {
         }, item.delay);
       });
       
-      // Message simplifié pour le client
+      // Message simplifié pour le client (optionnel mais on peut aussi lui envoyer le même)
       setTimeout(() => {
-        const msgClient = `✅ Commande Enregistrée
-
-Merci pour votre commande chez MAXI JDC MARKET.
-
-📦 Votre commande, référencée sous le numéro ${numeroSheets}, a bien été enregistrée.
-⏳ Elle est actuellement en cours de préparation.
-📞 Nous vous contacterons prochainement pour la livraison.
-
-🕒 Heures: 7h - 1h
-📱 WhatsApp: +216 25 600 978
-
-⚠️ CONSERVEZ CE NUMÉRO : ${numeroSheets}`;
-        
+        const msgClient = messageValidation; // ou un message plus court
         const clientPhone = commande.telephone.replace(/\D/g, '');
         const clientPhoneFull = clientPhone.length === 8 ? "216" + clientPhone : clientPhone;
         const clientUrl = `https://wa.me/${clientPhoneFull}?text=${encodeURIComponent(msgClient)}`;
@@ -1057,7 +1077,7 @@ document.getElementById("validateSendBtn").addEventListener("click", () => {
 
 document.getElementById("downloadBtn").addEventListener("click", () => {
   const commande = getDonneesCommande();
-  const messageComplet = construireMessageWhatsAppComplet(commande, commande.numero_commande);
+  const messageComplet = construireMessageValidation(commande, commande.numero_commande);
   downloadText(`commande-maxi-${commande.numero_commande}.txt`, messageComplet);
   showToast("📥 Commande téléchargée", "ok");
 });
