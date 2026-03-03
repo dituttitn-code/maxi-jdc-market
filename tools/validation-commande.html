@@ -25,6 +25,7 @@
       --processing:#7e57c2;
       --delivered:#4caf50;
       --cancelled:#ff5252;
+      --whatsapp:#25D366;
       --shadow: 0 18px 55px rgba(0,0,0,.6);
       --radius:16px;
       --radius2:12px;
@@ -347,6 +348,57 @@
       color: #ffcdd2;
     }
     
+    .whatsapp-info {
+      margin-top: 15px;
+      padding: 15px;
+      background: rgba(37, 211, 102, 0.1);
+      border-radius: 8px;
+      border: 2px solid var(--whatsapp);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    
+    .whatsapp-info i {
+      color: var(--whatsapp);
+      font-size: 18px;
+      margin-right: 8px;
+    }
+    
+    .whatsapp-info strong {
+      color: var(--whatsapp);
+    }
+    
+    .whatsapp-info small {
+      color: var(--muted);
+      display: block;
+      margin-top: 6px;
+      font-size: 11px;
+    }
+    
+    .whatsapp-status {
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 6px;
+      background: rgba(0,0,0,0.2);
+      font-size: 12px;
+    }
+    
+    .whatsapp-status.success {
+      border-left: 3px solid var(--whatsapp);
+    }
+    
+    .address-link {
+      color: var(--accent2);
+      text-decoration: underline;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    .address-link:hover {
+      color: var(--accent);
+    }
+    
     @keyframes pulse {
       0% { opacity: 1; }
       50% { opacity: 0.7; }
@@ -401,9 +453,21 @@
         <i class="fas fa-bell"></i> 🔊 Son de notification joué sur la tablette du magasin
       </div>
       
+      <!-- WhatsApp Info améliorée -->
       <div class="whatsapp-info">
-        <i class="fab fa-whatsapp"></i> <strong>WhatsApp Business:</strong> +216 25 600 978<br>
-        <small>Votre commande a été envoyée au WhatsApp du magasin</small>
+        <i class="fab fa-whatsapp"></i> <strong>Notifications WhatsApp automatiques</strong><br>
+        <small>
+          📤 Les détails de cette commande seront envoyés à :
+        </small>
+        <div style="margin-top: 8px;">
+          <div>👤 <strong>Administrateur:</strong> +1 514-586-0453</div>
+          <div>🏪 <strong>Vendeur magasin:</strong> +216 55 482 062</div>
+          <div>🚚 <strong>Livreur:</strong> +216 25 600 978</div>
+        </div>
+        <div style="margin-top: 8px; font-size: 11px; color: var(--accent2);">
+          <i class="fas fa-map-marker-alt"></i> L'adresse sera cliquable pour ouvrir Google Maps
+        </div>
+        <div class="whatsapp-status" id="whatsappStatus" style="display:none;"></div>
       </div>
     </div>
 
@@ -415,7 +479,7 @@
         <i class="fas fa-download"></i> 📥 Télécharger
       </button>
       <button class="btn whatsapp" id="whatsappBtn">
-        <i class="fab fa-whatsapp"></i> 📱 WhatsApp
+        <i class="fab fa-whatsapp"></i> 📱 WhatsApp Client
       </button>
       <button class="btn cancel" id="cancelBtn">
         <i class="fas fa-times"></i> ❌ Annuler
@@ -426,9 +490,18 @@
   <div class="toast" id="toast"></div>
 
 <script>
+// Configuration
 const API_URL = "https://script.google.com/macros/s/AKfycbzPcUdWPSN0yDrnURSkzmNKO_Ulj2CYHxJE3uC99qWrFwrOq9dlbsalPhRbcPQHBCA/exec";
 const WHATSAPP_NUMBER = "0021625600978";
 
+// Configuration des destinataires WhatsApp internes
+const WHATSAPP_DESTINATAIRES = {
+  admin: "5145860453",
+  vendeur: "21655482062",
+  livreur: "21625600978"
+};
+
+// Fonction pour parser les données de commande
 function analyserDonneesCommande(rawData) {
   const result = {
     nom: "",
@@ -438,7 +511,8 @@ function analyserDonneesCommande(rawData) {
     total: 0,
     numero_commande: "TEMP-" + Date.now(),
     date: new Date().toISOString(),
-    statut: "En attente"
+    statut: "En attente",
+    gpsCoords: null
   };
 
   if (typeof rawData === "string") {
@@ -447,6 +521,15 @@ function analyserDonneesCommande(rawData) {
     let section = "none";
     
     lignes.forEach(ligne => {
+      // Chercher les coordonnées GPS
+      const gpsMatch = ligne.match(/GPS:\s*([-+]?\d*\.\d+),\s*([-+]?\d*\.\d+)/i);
+      if (gpsMatch) {
+        result.gpsCoords = {
+          lat: gpsMatch[1],
+          lng: gpsMatch[2]
+        };
+      }
+
       if (ligne.includes("Détails de votre commande") || 
           ligne.includes("Informations client") ||
           ligne.includes("👤") || ligne.includes("📞") || ligne.includes("📍")) {
@@ -505,6 +588,18 @@ function analyserDonneesCommande(rawData) {
     });
   } else if (typeof rawData === "object") {
     Object.assign(result, rawData);
+    // Chercher les coordonnées GPS dans l'objet
+    if (rawData.gpsCoords) {
+      result.gpsCoords = rawData.gpsCoords;
+    } else if (rawData.adresse && rawData.adresse.includes('GPS:')) {
+      const gpsMatch = rawData.adresse.match(/GPS:\s*([-+]?\d*\.\d+),\s*([-+]?\d*\.\d+)/i);
+      if (gpsMatch) {
+        result.gpsCoords = {
+          lat: gpsMatch[1],
+          lng: gpsMatch[2]
+        };
+      }
+    }
   }
 
   return result;
@@ -549,6 +644,114 @@ function parserArticle(ligne, articlesArray) {
 function formatPrice(amount) {
   const num = parseFloat(String(amount || '0').replace(',', '.')) || 0;
   return num.toFixed(3).replace('.', ',') + ' DT';
+}
+
+// Fonction pour créer un lien Google Maps cliquable
+function creerLienGoogleMaps(adresse, gpsCoords) {
+  if (gpsCoords && gpsCoords.lat && gpsCoords.lng) {
+    return `https://www.google.com/maps/search/?api=1&query=${gpsCoords.lat},${gpsCoords.lng}`;
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(adresse)}`;
+}
+
+// Fonction pour construire le message WhatsApp pour les destinataires internes
+function construireMessageWhatsApp(commande) {
+  const mapsLink = creerLienGoogleMaps(commande.adresse, commande.gpsCoords);
+  
+  let articlesDetail = "";
+  if (commande.articles && commande.articles.length > 0) {
+    articlesDetail = commande.articles.map(a => 
+      `${a.quantite}x ${a.produit}`
+    ).join("\n");
+  } else {
+    articlesDetail = "Aucun article détaillé";
+  }
+  
+  const sousTotal = commande.articles.reduce((sum, a) => sum + (a.prix_total || 0), 0);
+  const fraisLivraison = sousTotal < 100 ? 3 : 0;
+  
+  const message = `📦 *NOUVELLE COMMANDE* - MAXI JDC MARKET
+─────────────────────
+🆔 *N° Commande:* ${commande.numero_commande}
+📅 *Date:* ${new Date().toLocaleDateString('fr-FR')} ${new Date().toLocaleTimeString('fr-FR')}
+
+👤 *CLIENT*
+Nom: ${commande.nom}
+📞 Téléphone: ${commande.telephone}
+📍 *Adresse:* ${commande.adresse}
+
+🗺️ *Localisation (cliquable)*
+${mapsLink}
+
+🛒 *ARTICLES COMMANDÉS*
+${articlesDetail}
+
+💰 *RÉCAPITULATIF*
+Sous-total: ${sousTotal.toFixed(3).replace('.', ',')} dt
+🚚 Livraison: ${fraisLivraison.toFixed(3).replace('.', ',')} dt
+──────────────
+💳 *TOTAL: ${commande.total.toFixed(3).replace('.', ',')} dt*
+
+🕒 Heures de livraison: 7h - 1h
+📱 Support: +216 25 600 978
+
+⚠️ *Préparez cette commande pour livraison*`;
+
+  return message;
+}
+
+// Fonction pour envoyer un message WhatsApp
+async function envoyerMessageWhatsApp(numero, message) {
+  try {
+    let numeroPropre = numero.replace(/[\s\-\(\)\+]/g, '');
+    
+    if (!numeroPropre.startsWith('216') && !numeroPropre.startsWith('514') && numeroPropre.length === 8) {
+      numeroPropre = `216${numeroPropre}`;
+    }
+    
+    const whatsappUrl = `https://wa.me/${numeroPropre}?text=${encodeURIComponent(message)}`;
+    
+    // Ouvrir dans un nouvel onglet
+    window.open(whatsappUrl, '_blank');
+    
+    return { success: true, numero: numeroPropre };
+  } catch (error) {
+    console.error("Erreur envoi WhatsApp:", error);
+    throw error;
+  }
+}
+
+// Fonction pour envoyer aux 3 destinataires
+async function envoyerAuxTroisWhatsApp(commande) {
+  const message = construireMessageWhatsApp(commande);
+  
+  const resultats = await Promise.allSettled([
+    envoyerMessageWhatsApp(WHATSAPP_DESTINATAIRES.admin, message),
+    envoyerMessageWhatsApp(WHATSAPP_DESTINATAIRES.vendeur, message),
+    envoyerMessageWhatsApp(WHATSAPP_DESTINATAIRES.livreur, message)
+  ]);
+  
+  const reussis = resultats.filter(r => r.status === 'fulfilled').length;
+  
+  const statusDiv = document.getElementById('whatsappStatus');
+  statusDiv.style.display = 'block';
+  
+  if (reussis === 3) {
+    statusDiv.innerHTML = '✅ Notifications envoyées aux 3 contacts WhatsApp';
+    statusDiv.className = 'whatsapp-status success';
+  } else if (reussis > 0) {
+    statusDiv.innerHTML = `⚠️ Envoyé à ${reussis}/3 contacts WhatsApp`;
+    statusDiv.className = 'whatsapp-status';
+  } else {
+    statusDiv.innerHTML = '❌ Échec de l\'envoi WhatsApp';
+    statusDiv.className = 'whatsapp-status';
+  }
+  
+  return {
+    admin: resultats[0].status === 'fulfilled',
+    vendeur: resultats[1].status === 'fulfilled',
+    livreur: resultats[2].status === 'fulfilled'
+  };
 }
 
 function afficherSectionsStructurees(commande) {
@@ -717,6 +920,9 @@ async function validerEtEnvoyerCommande(commande) {
       numeroDisplay.textContent = numeroSheets;
     }
     
+    // Mettre à jour la commande avec le numéro Sheets
+    commande.numero_commande = numeroSheets;
+    
     const toast = document.getElementById("toast");
     toast.innerHTML = `✅ Commande Enregistrée
 
@@ -733,14 +939,24 @@ Merci pour votre commande chez MAXI JDC MARKET.
     
     playTabletSound();
     
-    const message = `🛒 NOUVELLE COMMANDE VALIDÉE\n\n` +
-                   `Client: ${commande.nom}\n` +
-                   `Téléphone: ${commande.telephone}\n` +
-                   `Adresse: ${commande.adresse}\n` +
-                   `N° Commande: ${numeroSheets}\n` +
-                   `Total: ${formatPrice(commande.total)}`;
+    // ✅ Envoyer aux 3 comptes WhatsApp internes
+    try {
+      await envoyerAuxTroisWhatsApp(commande);
+    } catch (whatsappError) {
+      console.error("Erreur envoi WhatsApp interne:", whatsappError);
+    }
     
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, "_blank");
+    // ✅ Envoyer au client (optionnel)
+    const messageClient = `✅ Commande Enregistrée
+
+Merci pour votre commande chez MAXI JDC MARKET.
+
+📦 Votre commande, référence ${numeroSheets}, a bien été enregistrée.
+⏳ Elle est actuellement en cours de préparation.
+📞 Nous vous contacterons prochainement pour la livraison.`;
+
+    // Ouvrir WhatsApp client
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(messageClient)}`, "_blank");
     
     console.log("✅ Affichage mis à jour avec le numéro:", numeroSheets);
     
