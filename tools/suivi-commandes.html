@@ -184,6 +184,84 @@
       font-size: 18px;
     }
 
+    /* Liste des commandes */
+    .orders-list {
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+
+    .orders-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .order-summary-card {
+      background: linear-gradient(135deg, rgba(26, 36, 93, 0.8), rgba(22, 36, 71, 0.8));
+      border: 2px solid var(--line);
+      border-radius: var(--r);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .order-summary-card:hover {
+      border-color: var(--blue);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 212, 255, 0.2);
+    }
+
+    .order-summary-card.selected {
+      border-color: var(--new);
+      background: rgba(255, 215, 0, 0.1);
+    }
+
+    .order-summary-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 2;
+      min-width: 200px;
+    }
+
+    .order-summary-id {
+      font-weight: 900;
+      color: var(--new);
+      font-size: 15px;
+    }
+
+    .order-summary-date {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .order-summary-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .order-summary-total {
+      font-weight: 700;
+      color: var(--txt);
+      font-size: 16px;
+      background: rgba(255,255,255,0.05);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+    }
+
+    .status-badge.small {
+      padding: 4px 12px;
+      font-size: 12px;
+    }
+
     .order-card {
       background: linear-gradient(135deg, rgba(26, 36, 93, 0.8), rgba(22, 36, 71, 0.8));
       border: 2px solid var(--line);
@@ -724,6 +802,15 @@
         text-align: left;
         max-width: none;
       }
+      
+      .order-summary-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .order-summary-total {
+        align-self: flex-end;
+      }
     }
   </style>
 </head>
@@ -764,7 +851,7 @@
 
         <div class="verification-hint">
           <i class="fas fa-shield-alt"></i>
-          Entrez votre numéro de téléphone pour voir vos commandes en cours
+          Entrez votre numéro de téléphone pour voir toutes vos commandes
         </div>
       </div>
     </div>
@@ -782,12 +869,20 @@
       <div>Recherche en cours...</div>
     </div>
 
+    <!-- Liste des commandes (affichée après la recherche) -->
+    <div id="ordersListContainer" class="orders-list" style="display: none;">
+      <h2 style="margin-bottom: 15px; color: var(--new);">
+        <i class="fas fa-list"></i> Vos commandes
+      </h2>
+      <div id="ordersList" class="orders-grid"></div>
+    </div>
+
     <div id="emptyState" class="empty-state" style="display: none;">
       <div class="empty-icon">📦</div>
-      <div class="empty-title">Aucune commande active</div>
+      <div class="empty-title">Aucune commande trouvée</div>
       <div class="empty-description">
-        Vous n'avez pas de commande en cours actuellement.<br>
-        Toutes vos commandes livrées sont dans l'historique.
+        Nous n'avons trouvé aucune commande associée à ce numéro.<br>
+        Vérifiez votre saisie ou contactez-nous.
       </div>
       <div style="margin-top: 20px;">
         <button class="btn" onclick="window.open('tel:21625600978')">
@@ -796,6 +891,7 @@
       </div>
     </div>
 
+    <!-- Détail d'une commande (affiché quand on clique sur une commande) -->
     <div id="orderCard" class="order-card" style="display: none;">
       <div class="order-header">
         <div>
@@ -995,6 +1091,8 @@
       emptyState: document.getElementById('emptyState'),
       errorMessage: document.getElementById('errorMessage'),
       successMessage: document.getElementById('successMessage'),
+      ordersListContainer: document.getElementById('ordersListContainer'),
+      ordersList: document.getElementById('ordersList'),
       orderIdDisplay: document.getElementById('orderIdDisplay'),
       orderDateDisplay: document.getElementById('orderDateDisplay'),
       orderStatusBadge: document.getElementById('orderStatusBadge'),
@@ -1025,6 +1123,8 @@
 
     // Stockage local pour l'historique des commandes
     let localOrderHistory = [];
+    let allOrders = []; // Toutes les commandes du client actuel
+    let currentSelectedOrderId = null;
 
     function showToast(message, type = 'success') {
       elements.toast.textContent = message;
@@ -1215,27 +1315,84 @@
       }
     }
 
-    function displayOrder(order) {
+    function displayOrderDetails(order) {
       elements.orderIdDisplay.textContent = order.commande_id;
       elements.orderDateDisplay.textContent = formatDate(order.date);
       elements.clientName.textContent = order.nom;
       elements.clientPhone.textContent = formatPhone(order.telephone);
-      elements.clientAddress.textContent = order.adresse.replace(/🗺️$/, '').trim();
+      elements.clientAddress.textContent = (order.adresse || '').replace(/🗺️$/, '').trim();
       elements.orderTotal.textContent = formatPrice(order.total);
       
       updateStatusDisplay(order.statut);
       updateStatusTimeline(order);
       displayArticles(order.articles);
       
-      // Synchroniser avec l'historique
       syncOrderWithHistory(order);
       
-      hide(elements.loadingState);
       show(elements.orderCard);
-      show(elements.successMessage);
-      setTimeout(() => hide(elements.successMessage), 2000);
       
       generateQRCode(order.commande_id);
+      
+      // Mettre à jour la sélection dans la liste
+      if (currentSelectedOrderId !== order.commande_id) {
+        currentSelectedOrderId = order.commande_id;
+        highlightSelectedOrder(order.commande_id);
+      }
+    }
+
+    function highlightSelectedOrder(orderId) {
+      const summaryCards = document.querySelectorAll('.order-summary-card');
+      summaryCards.forEach(card => {
+        if (card.dataset.orderId === orderId) {
+          card.classList.add('selected');
+        } else {
+          card.classList.remove('selected');
+        }
+      });
+    }
+
+    function renderOrdersList(orders) {
+      if (!elements.ordersList) return;
+      
+      elements.ordersList.innerHTML = '';
+      
+      orders.forEach(order => {
+        const status = ORDER_STATUSES[order.statut] || ORDER_STATUSES["⏳ EN ATTENTE"];
+        const card = document.createElement('div');
+        card.className = 'order-summary-card';
+        card.dataset.orderId = order.commande_id;
+        
+        card.innerHTML = `
+          <div class="order-summary-info">
+            <div class="order-summary-id">${order.commande_id}</div>
+            <div class="order-summary-date">${formatDate(order.date)}</div>
+            <div class="order-summary-status">
+              <span class="status-badge small status-${status.id}">
+                <span class="status-icon">${status.emoji}</span>
+                <span>${order.statut}</span>
+              </span>
+            </div>
+          </div>
+          <div class="order-summary-total">${formatPrice(order.total)}</div>
+        `;
+        
+        card.addEventListener('click', () => {
+          displayOrderDetails(order);
+        });
+        
+        elements.ordersList.appendChild(card);
+      });
+      
+      // Si une seule commande, on peut la sélectionner par défaut
+      if (orders.length === 1) {
+        displayOrderDetails(orders[0]);
+      } else if (orders.length > 0 && currentSelectedOrderId) {
+        // Essayer de garder la sélection précédente
+        const prevOrder = orders.find(o => o.commande_id === currentSelectedOrderId);
+        if (prevOrder) {
+          displayOrderDetails(prevOrder);
+        }
+      }
     }
 
     function saveToHistory(orders) {
@@ -1276,9 +1433,9 @@
       hide(elements.emptyState);
       hide(elements.errorMessage);
       hide(elements.successMessage);
+      hide(elements.ordersListContainer);
       show(elements.loadingState);
 
-      // Afficher l'indicateur de synchronisation
       if (elements.syncIndicator) {
         elements.syncIndicator.innerHTML = `
           <i class="fas fa-sync-alt fa-spin"></i>
@@ -1300,33 +1457,25 @@
         }
 
         if (data.history && data.history.length > 0) {
-          // Charger l'historique local
           loadHistoryFromStorage();
           
-          const activeOrders = data.history.filter(order => 
-            order.statut !== '✅ LIVRÉE' && order.statut !== '❌ ANNULÉE'
-          );
+          allOrders = data.history; // toutes les commandes
           
-          const deliveredOrders = data.history.filter(order => 
-            order.statut === '✅ LIVRÉE'
-          );
-          
-          if (activeOrders.length > 0) {
-            displayOrder(activeOrders[0]);
-            showToast(`${activeOrders.length} commande(s) active(s) trouvée(s)`, 'success');
-            
-            if (deliveredOrders.length > 0) {
-              saveToHistory(deliveredOrders);
-            }
-          } else {
-            hide(elements.loadingState);
-            show(elements.emptyState);
-            showToast('📦 Toutes vos commandes sont livrées', 'info');
-            
-            if (deliveredOrders.length > 0) {
-              saveToHistory(deliveredOrders);
-            }
+          // Sauvegarder les commandes livrées dans l'historique local (optionnel)
+          const deliveredOrders = allOrders.filter(order => order.statut === '✅ LIVRÉE');
+          if (deliveredOrders.length > 0) {
+            saveToHistory(deliveredOrders);
           }
+          
+          // Afficher la liste
+          renderOrdersList(allOrders);
+          
+          hide(elements.loadingState);
+          show(elements.ordersListContainer);
+          show(elements.successMessage);
+          setTimeout(() => hide(elements.successMessage), 2000);
+          
+          showToast(`${allOrders.length} commande(s) trouvée(s)`, 'success');
         } else {
           throw new Error('Aucune commande trouvée');
         }
@@ -1373,7 +1522,7 @@
         if (e.key === 'Enter') searchOrder();
       });
 
-      // Boutons d'action
+      // Boutons d'action (ils utilisent la commande actuellement affichée)
       elements.whatsappBtn.addEventListener('click', () => {
         const phone = elements.clientPhone.textContent.replace(/\D/g, '');
         const orderId = elements.orderIdDisplay.textContent;
@@ -1407,6 +1556,7 @@
       const orderIdFromUrl = urlParams.get('order');
       if (orderIdFromUrl) {
         elements.phoneInput.value = orderIdFromUrl;
+        // On pourrait lancer la recherche automatiquement, mais attendons l'utilisateur
       }
 
       generateQRCode('');
