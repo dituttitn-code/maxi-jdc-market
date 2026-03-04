@@ -4899,15 +4899,15 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi & Histori
       confirmationMsg.textContent = message;
       confirmationModal.classList.add('open');
       
-      // Envoyer aux deux numéros (admin + livreur)
+      // Envoyer aux deux numéros (admin + livreur) - ✅ numéro admin corrigé avec indicatif 1
       try {
         await Promise.allSettled([
-          envoyerMessageWhatsApp("5145860453", message),   // Admin
-          envoyerMessageWhatsApp("21625600978", message)   // Livreur
+          envoyerMessageWhatsApp("15145860453", message),   // Admin (Canada) avec indicatif 1
+          envoyerMessageWhatsApp("21625600978", message)    // Livreur (Tunisie) déjà correct
         ]);
-        // Note : on ne bloque pas l'interface, et on n'affiche pas de toast pour ne pas surcharger
+        console.log("✅ Messages WhatsApp simplifiés envoyés");
       } catch (error) {
-        console.error("Erreur lors de l'envoi des messages WhatsApp simplifiés :", error);
+        console.error("❌ Erreur lors de l'envoi des messages WhatsApp simplifiés :", error);
       }
     }
 
