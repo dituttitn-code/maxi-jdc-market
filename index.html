@@ -18,6 +18,7 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   
   <style>
+    /* === STYLES EXISTANTS (inchangés) === */
     :root {
       --bg0: #0a1929;
       --bg1: #112240;
@@ -3471,6 +3472,95 @@
       box-shadow: 0 8px 25px rgba(0, 255, 136, 0.4);
     }
 
+    /* === NOUVEAU : MODAL DE CONFIRMATION COMMANDE === */
+    .confirmation-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 5000;
+      padding: 20px;
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+    }
+    .confirmation-modal-overlay.open {
+      display: flex;
+    }
+    .confirmation-modal {
+      width: 100%;
+      max-width: 480px;
+      background: linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
+      border-radius: var(--radius);
+      border: 3px solid var(--accent);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+    .confirmation-header {
+      padding: 20px;
+      background: rgba(0, 255, 136, 0.1);
+      border-bottom: 1px solid var(--accent);
+      text-align: center;
+    }
+    .confirmation-header h3 {
+      margin: 0;
+      font-size: 20px;
+      color: var(--accent);
+      font-weight: 900;
+    }
+    .confirmation-body {
+      padding: 25px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(0, 0, 0, 0.3);
+    }
+    .confirmation-footer {
+      padding: 20px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .confirmation-btn {
+      min-width: 120px;
+      height: 44px;
+      border-radius: 8px;
+      border: 2px solid;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .confirmation-btn.copy {
+      background: rgba(0, 212, 255, 0.1);
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+    .confirmation-btn.copy:hover {
+      background: rgba(0, 212, 255, 0.2);
+    }
+    .confirmation-btn.ok {
+      background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+      border-color: transparent;
+      color: var(--bg0);
+      font-weight: 900;
+    }
+    .confirmation-btn.ok:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+    }
+
     .toast {
       position: fixed;
       top: 20px;
@@ -4421,6 +4511,24 @@
     </div>
   </div>
 
+  <!-- === NOUVEAU : MODAL DE CONFIRMATION AVEC MESSAGE PERSONNALISÉ === -->
+  <div class="confirmation-modal-overlay" id="confirmationModal">
+    <div class="confirmation-modal">
+      <div class="confirmation-header">
+        <h3>✅ Commande Enregistrée</h3>
+      </div>
+      <div class="confirmation-body" id="confirmationMessage"></div>
+      <div class="confirmation-footer">
+        <button class="confirmation-btn copy" id="copyConfirmationBtn">
+          📋 Copier
+        </button>
+        <button class="confirmation-btn ok" id="closeConfirmationBtn">
+          ✅ OK
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -4451,7 +4559,7 @@
       commandeApiUrl: "https://script.google.com/macros/s/AKfycbzPcUdWPSN0yDrnURSkzmNKO_Ulj2CYHxJE3uC99qWrFwrOq9dlbsalPhRbcPQHBCA/exec",
     };
 
-    // ✅ CONFIGURATION WHATSAPP
+    // ✅ CONFIGURATION WHATSAPP (trois destinataires internes)
     const WHATSAPP_CONFIG = {
       admin: "5145860453",      // Administrateur (Canada)
       vendeur: "21655482062",   // Vendeur magasin (Tunisie)
@@ -4647,7 +4755,7 @@
 
     // ===================== FONCTIONS WHATSAPP =====================
     
-    // ✅ CONSTRUIRE LE MESSAGE WHATSAPP AVEC ADRESSE CLIQUABLE
+    // ✅ CONSTRUIRE LE MESSAGE WHATSAPP AVEC ADRESSE CLIQUABLE (pour staff)
     function construireMessageWhatsApp(numeroCommande, clientNom, clientTel, adresse, items, total, gpsCoords) {
       // Créer le lien Google Maps
       let mapsLink = "";
@@ -4702,7 +4810,7 @@ Sous-total: ${formatPrice(sousTotal)}
       return message;
     }
 
-    // ✅ ENVOYER MESSAGE WHATSAPP
+    // ✅ ENVOYER MESSAGE WHATSAPP (ouvre un nouvel onglet)
     async function envoyerMessageWhatsApp(numero, message) {
       try {
         // Nettoyer le numéro
@@ -4718,7 +4826,7 @@ Sous-total: ${formatPrice(sousTotal)}
         // Créer l'URL WhatsApp
         const whatsappUrl = `https://wa.me/${numeroPropre}?text=${encodeURIComponent(message)}`;
         
-        // Ouvrir dans un nouvel onglet (en arrière-plan)
+        // Ouvrir dans un nouvel onglet (en arrière‑plan)
         const newWindow = window.open(whatsappUrl, '_blank');
         
         // Si le popup est bloqué, essayer avec un lien invisible
@@ -4737,7 +4845,7 @@ Sous-total: ${formatPrice(sousTotal)}
       }
     }
 
-    // ✅ ENVOYER À TOUS LES DESTINATAIRES WHATSAPP
+    // ✅ ENVOYER À TOUS LES DESTINATAIRES WHATSAPP (pour staff)
     async function envoyerAuxTroisWhatsApp(numeroCommande, clientNom, clientTel, adresse, items, total, gpsCoords) {
       const message = construireMessageWhatsApp(numeroCommande, clientNom, clientTel, adresse, items, total, gpsCoords);
       
@@ -4763,6 +4871,44 @@ Sous-total: ${formatPrice(sousTotal)}
         vendeur: resultats[1].status === 'fulfilled',
         livreur: resultats[2].status === 'fulfilled'
       };
+    }
+
+    // ✅ NOUVELLE FONCTION : Construire le message simplifié pour le client
+    function construireMessageConfirmation(numeroCommande) {
+      return `✅ Commande Enregistrée
+
+Merci pour votre commande chez MAXI JDC MARKET.
+
+📦 Votre commande, référencée sous le numéro ${numeroCommande}, a bien été enregistrée.
+
+⏳ Elle est actuellement en cours de préparation.
+📞 Nous vous contacterons prochainement pour la livraison.
+
+Pour suivre votre commande, accédez à Panier > Espace Client > Suivi & Historique
+
+⚠️ CONSERVEZ CE NUMÉRO : ${numeroCommande}`;
+    }
+
+    // ✅ NOUVELLE FONCTION : Afficher la popup de confirmation et envoyer le message aux deux numéros demandés
+    async function afficherConfirmationEtEnvoyerWhatsApp(numeroCommande) {
+      const message = construireMessageConfirmation(numeroCommande);
+      
+      // Afficher la popup
+      const confirmationModal = $('confirmationModal');
+      const confirmationMsg = $('confirmationMessage');
+      confirmationMsg.textContent = message;
+      confirmationModal.classList.add('open');
+      
+      // Envoyer aux deux numéros (admin + livreur)
+      try {
+        await Promise.allSettled([
+          envoyerMessageWhatsApp("5145860453", message),   // Admin
+          envoyerMessageWhatsApp("21625600978", message)   // Livreur
+        ]);
+        // Note : on ne bloque pas l'interface, et on n'affiche pas de toast pour ne pas surcharger
+      } catch (error) {
+        console.error("Erreur lors de l'envoi des messages WhatsApp simplifiés :", error);
+      }
     }
 
     // Catégories (conservé intact)
@@ -6952,7 +7098,7 @@ Sous-total: ${formatPrice(sousTotal)}
         
         playOrderNotificationSound();
         
-        // ✅ NOUVEAU: Envoyer les détails aux 3 comptes WhatsApp
+        // ✅ Envoyer les détails aux 3 comptes WhatsApp (pour staff)
         try {
           await envoyerAuxTroisWhatsApp(
             commandeId,
@@ -6964,9 +7110,12 @@ Sous-total: ${formatPrice(sousTotal)}
             gpsCoords
           );
         } catch (whatsappError) {
-          console.error('❌ Erreur envoi WhatsApp:', whatsappError);
+          console.error('❌ Erreur envoi WhatsApp (staff):', whatsappError);
           // Ne pas bloquer le processus principal
         }
+        
+        // ✅ AFFICHER LA POPUP DE CONFIRMATION AVEC LE MESSAGE SIMPLIFIÉ
+        await afficherConfirmationEtEnvoyerWhatsApp(commandeId);
         
         const t = TRANSLATIONS[state.currentLanguage];
         showToast(`✅ ${t.toastOrderSaved}`);
@@ -6979,29 +7128,11 @@ Sous-total: ${formatPrice(sousTotal)}
         
         saveOrderToHistory(orderData);
         
-        // ✅ Même en cas d'erreur, essayer d'envoyer WhatsApp
+        // Même en cas d'erreur, on essaie d'envoyer la confirmation simplifiée
         try {
-          const sousTotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-          const livraison = sousTotal >= CONFIG.freeShipping ? 0 : 3.000;
-          const total = sousTotal + livraison;
-          const itemsList = Object.values(state.cart).map(item => ({
-            name: item.name,
-            code: item.code,
-            quantity: item.quantity,
-            price: item.price
-          }));
-          
-          await envoyerAuxTroisWhatsApp(
-            orderData.commandeId,
-            state.user.name,
-            state.user.phone,
-            state.user.address,
-            itemsList,
-            total,
-            state.user.lat && state.user.lng ? { lat: state.user.lat, lng: state.user.lng } : null
-          );
+          await afficherConfirmationEtEnvoyerWhatsApp(orderData.commandeId);
         } catch (e) {
-          console.error('❌ Échec envoi WhatsApp de secours:', e);
+          console.error('❌ Échec envoi confirmation WhatsApp de secours:', e);
         }
         
         return { success: true, commande_id: orderData.commandeId };
@@ -7052,21 +7183,6 @@ Sous-total: ${formatPrice(sousTotal)}
         updateCartUI();
         state.pendingOrder = null;
         $('orderModal').classList.remove('open');
-        
-        // Message client simplifié
-        const message = `✅ Commande Enregistrée
-
-Merci pour votre commande chez MAXI JDC MARKET.
-
-📦 Votre commande, référencée sous le numéro ${commandeId}, a bien été enregistrée.
-⏳ Elle est actuellement en cours de préparation.
-📞 Nous vous contacterons prochainement pour la livraison.
-
-Pour suivre votre commande, accédez à Panier > Espace Client > Suivi & Historique
-
-⚠️ CONSERVEZ CE NUMÉRO : ${commandeId}`;
-
-        showToast(message, 'success');
         
         const t = TRANSLATIONS[state.currentLanguage];
         showToast(`✅ ${t.toastOrderValidated}`);
@@ -7683,6 +7799,22 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi & Histori
         showToast('✅ Tous les stocks sauvegardés');
       };
 
+      // === NOUVELLE GESTION DE LA POPUP DE CONFIRMATION ===
+      $('copyConfirmationBtn').onclick = () => {
+        const message = $('confirmationMessage').textContent;
+        navigator.clipboard.writeText(message).then(() => {
+          showToast('📋 Message copié dans le presse-papier');
+        }).catch(err => {
+          console.error('Erreur copie:', err);
+          showToast('❌ Erreur lors de la copie', 'error');
+        });
+      };
+
+      $('closeConfirmationBtn').onclick = () => {
+        $('confirmationModal').classList.remove('open');
+        document.body.style.overflow = '';
+      };
+
       loadAllProducts();
       initializeSync();
       initClientSpace();
@@ -7710,4 +7842,3 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi & Histori
   </script>
 </body>
 </html>
-
