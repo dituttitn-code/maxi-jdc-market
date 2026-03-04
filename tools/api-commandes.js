@@ -1,20 +1,11 @@
 /*********************************
  * CONFIGURATION API - MAXI JDC MARKET
  * ✅ CORRECTION FINALE: Envoi du message APRÈS confirmation Google Sheets
- * ✅ AJOUT: Envoi vers 3 comptes WhatsApp avec adresse cliquable
  *********************************/
 
 // ✅ URL OK
 export const API_URL =
   "https://script.google.com/macros/s/AKfycbxo3RHbiQDz6r0aHAyxjoSkEoOcuMh1o5XsKLRe45pwvw6bFNhn_liyDB7UDka9BeFP/exec";
-
-// ✅ Configuration des numéros WhatsApp
-export const WHATSAPP_CONFIG = {
-  admin: "5145860453",      // Administrateur (Canada)
-  vendeur: "21655482062",   // Vendeur magasin (Tunisie)
-  livreur: "21625600978",   // Livreur (Tunisie)
-  defaultCountryCode: "216" // Code pays par défaut
-};
 
 /*********************************
  * ENVOYER UNE COMMANDE (ECRITURE)
@@ -102,19 +93,6 @@ export async function envoyerCommande(dataCommande) {
     } catch (_) {}
   }
 
-  // ✅ Extraire les coordonnées GPS de l'adresse si présentes
-  let adresseComplete = dataCommande.adresse || dataCommande.Adresse || dataCommande.address || dataCommande.clientInfo?.adresse || "";
-  let gpsCoords = null;
-  
-  // Chercher des coordonnées GPS dans l'adresse (format: "GPS: 36.858546, 10.301467")
-  const gpsMatch = adresseComplete.match(/GPS:\s*([-+]?\d*\.\d+),\s*([-+]?\d*\.\d+)/i);
-  if (gpsMatch) {
-    gpsCoords = {
-      lat: gpsMatch[1],
-      lng: gpsMatch[2]
-    };
-  }
-
   // ✅ Total avec 3 décimales
   let total = parseFloat(dataCommande.total || 0);
   if ((!total || isNaN(total)) && articlesFormat.length) {
@@ -134,8 +112,8 @@ export async function envoyerCommande(dataCommande) {
     TELEPHONE: telephone,
     tel: telephone,
     phone: telephone,
-    adresse: adresseComplete,
-    ADRESSE: adresseComplete,
+    adresse: dataCommande.adresse || dataCommande.Adresse || dataCommande.address || dataCommande.clientInfo?.adresse || "",
+    ADRESSE: dataCommande.adresse || dataCommande.Adresse || "",
     articles: articlesText || "AUCUN ARTICLE",
     total: total ? Number(total).toFixed(3) : "0.000",
     _t: Date.now()
@@ -194,40 +172,6 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
       data.numero_commande = numeroSheets;
       data.numero = numeroSheets;
       
-      // ✅ ÉTAPE 5: Envoyer les détails aux 3 comptes WhatsApp
-      try {
-        // Construire le message détaillé pour les destinataires internes
-        const whatsappMessage = construireMessageWhatsApp(
-          numeroSheets,
-          payload.nom_client,
-          telephone,
-          adresseComplete,
-          articlesFormat,
-          articlesText,
-          total,
-          gpsCoords
-        );
-        
-        // Envoyer aux 3 numéros (en parallèle)
-        await Promise.all([
-          envoyerMessageWhatsApp(WHATSAPP_CONFIG.admin, whatsappMessage),
-          envoyerMessageWhatsApp(WHATSAPP_CONFIG.vendeur, whatsappMessage),
-          envoyerMessageWhatsApp(WHATSAPP_CONFIG.livreur, whatsappMessage)
-        ]);
-        
-        console.log("✅ ÉTAPE 5: Messages WhatsApp envoyés aux 3 destinataires");
-        data.whatsapp_sent = true;
-        data.whatsapp_result = {
-          admin: true,
-          vendeur: true,
-          livreur: true
-        };
-      } catch (whatsappError) {
-        console.error("❌ Erreur envoi WhatsApp:", whatsappError);
-        data.whatsapp_sent = false;
-        data.whatsapp_error = whatsappError.message;
-      }
-      
       console.log("✅ ÉTAPE 4: Message client créé avec le numéro:", numeroSheets);
       
       return data;
@@ -239,148 +183,4 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
     console.error("❌ ERREUR lors de l'envoi à Google Sheets:", error);
     throw error;
   }
-}
-
-/*********************************
- * CONSTRUIRE LE MESSAGE WHATSAPP AVEC ADRESSE CLIQUABLE
- *********************************/
-function construireMessageWhatsApp(numeroCommande, clientNom, clientTel, adresse, articlesFormat, articlesText, total, gpsCoords) {
-  // Créer le lien Google Maps
-  let mapsLink = "";
-  if (gpsCoords && gpsCoords.lat && gpsCoords.lng) {
-    mapsLink = `https://www.google.com/maps/search/?api=1&query=${gpsCoords.lat},${gpsCoords.lng}`;
-  } else {
-    mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(adresse)}`;
-  }
-  
-  // Formater les articles de façon détaillée
-  let articlesDetail = "";
-  if (articlesFormat && articlesFormat.length > 0) {
-    articlesDetail = articlesFormat.map(item => 
-      `${item.quantite}x ${item.produit}`
-    ).join("\n");
-  } else {
-    articlesDetail = articlesText;
-  }
-  
-  // Calculer le sous-total et les frais de livraison
-  let sousTotal = 0;
-  if (articlesFormat && articlesFormat.length > 0) {
-    sousTotal = articlesFormat.reduce((sum, item) => sum + (Number(item.prix_total) || 0), 0);
-  } else {
-    // Essayer d'extraire le sous-total du texte
-    const subTotalMatch = articlesText.match(/Sous-total:\s*(\d+[.,]\d+)/i);
-    if (subTotalMatch) {
-      sousTotal = parseFloat(subTotalMatch[1].replace(',', '.'));
-    } else {
-      sousTotal = total - 3; // Approximation si frais de livraison inclus
-    }
-  }
-  
-  const fraisLivraison = (sousTotal < 100) ? 3 : 0;
-  const totalFinal = total; // Le total inclut déjà les frais si présents
-  
-  // Construire le message complet
-  const message = `📦 *NOUVELLE COMMANDE* - MAXI JDC MARKET
-─────────────────────
-🆔 *N° Commande:* ${numeroCommande}
-📅 *Date:* ${new Date().toLocaleDateString('fr-FR')} ${new Date().toLocaleTimeString('fr-FR')}
-
-👤 *CLIENT*
-Nom: ${clientNom}
-📞 Téléphone: ${clientTel}
-📍 *Adresse:* ${adresse}
-
-🗺️ *Localisation (cliquable)*
-${mapsLink}
-
-🛒 *ARTICLES COMMANDÉS*
-${articlesDetail}
-
-💰 *RÉCAPITULATIF*
-Sous-total: ${sousTotal.toFixed(3).replace('.', ',')} dt
-🚚 Livraison: ${fraisLivraison.toFixed(3).replace('.', ',')} dt
-──────────────
-💳 *TOTAL: ${totalFinal.toFixed(3).replace('.', ',')} dt*
-
-🕒 Heures de livraison: 7h - 1h
-📱 Support: +216 25 600 978
-
-⚠️ *Préparez cette commande pour livraison*`;
-
-  return message;
-}
-
-/*********************************
- * ENVOYER UN MESSAGE WHATSAPP
- *********************************/
-export async function envoyerMessageWhatsApp(numero, message) {
-  try {
-    // Nettoyer le numéro (enlever les espaces, tirets, etc.)
-    let numeroPropre = numero.replace(/[\s\-\(\)\+]/g, '');
-    
-    // S'assurer que le numéro a l'indicatif international
-    if (!numeroPropre.startsWith('216') && !numeroPropre.startsWith('514')) {
-      if (numeroPropre.length === 8) {
-        // Numéro tunisien sans indicatif
-        numeroPropre = `216${numeroPropre}`;
-      }
-    }
-    
-    console.log(`📤 Envoi WhatsApp vers ${numeroPropre}...`);
-    
-    // Créer l'URL WhatsApp
-    const whatsappUrl = `https://wa.me/${numeroPropre}?text=${encodeURIComponent(message)}`;
-    
-    // Ouvrir dans un nouvel onglet (version web)
-    // Pour une utilisation en arrière-plan, on pourrait utiliser une API mais WhatsApp ne fournit pas d'API publique
-    // Cette approche ouvre WhatsApp Web dans un nouvel onglet
-    window.open(whatsappUrl, '_blank');
-    
-    // Note: Pour une intégration plus poussée, il faudrait utiliser WhatsApp Business API
-    // Mais cela nécessite un compte approuvé par Meta
-    
-    return { success: true, numero: numeroPropre };
-  } catch (error) {
-    console.error("❌ Erreur envoi WhatsApp:", error);
-    throw error;
-  }
-}
-
-/*********************************
- * ENVOYER LE RÉCAPITULATIF À TOUS LES DESTINATAIRES
- *********************************/
-export async function envoyerRecapitulatifWhatsApp(detailsCommande) {
-  const {
-    numeroCommande,
-    clientNom,
-    clientTel,
-    adresse,
-    articles,
-    total,
-    gpsCoords
-  } = detailsCommande;
-  
-  const message = construireMessageWhatsApp(
-    numeroCommande,
-    clientNom,
-    clientTel,
-    adresse,
-    articles,
-    "",
-    total,
-    gpsCoords
-  );
-  
-  const resultats = await Promise.allSettled([
-    envoyerMessageWhatsApp(WHATSAPP_CONFIG.admin, message),
-    envoyerMessageWhatsApp(WHATSAPP_CONFIG.vendeur, message),
-    envoyerMessageWhatsApp(WHATSAPP_CONFIG.livreur, message)
-  ]);
-  
-  return {
-    admin: resultats[0].status === 'fulfilled',
-    vendeur: resultats[1].status === 'fulfilled',
-    livreur: resultats[2].status === 'fulfilled'
-  };
 }
