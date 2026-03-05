@@ -6141,48 +6141,56 @@
       }
     }
 
-    function renderHistoryFromAPI(orders) {
-      const historyItemsList = $('historyItemsList');
-      const historyEmptyMessage = $('historyEmptyMessage');
-      const historyCount = $('historyCount');
-      const orderHistorySection = $('orderHistorySection');
-      
-      historyItemsList.innerHTML = '';
-      historyEmptyMessage.style.display = 'none';
-      orderHistorySection.classList.add('visible');
-      historyCount.textContent = `${orders.length} commande(s)`;
-      
-      orders.forEach(order => {
-        const orderDate = new Date(order.date);
-        const formattedDate = orderDate.toLocaleDateString('fr-FR', {
-          day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-        });
-        
-        // Compter les lignes d'articles (sans l'en-tête)
-        const articlesLines = (order.articles || '')
-          .split('\n')
-          .filter(l => l.trim() && !l.startsWith('COMMANDE') && !l.startsWith('CMD-MAXI'))
-          .length;
-        const itemCount = articlesLines || 0;
-        
-        const historyItem = document.createElement('div');
-        historyItem.className = 'history-item';
-        historyItem.innerHTML = `
-          <div class="history-date">📅 ${formattedDate}</div>
-          <div class="history-summary">
-            <span class="history-items-count">${itemCount} article(s)</span>
-            <span class="history-total">${formatPrice(order.total)}</span>
-          </div>
-          <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
-            📦 N°: ${order.commande_id}
-          </div>
-        `;
-        historyItem.addEventListener('click', () => {
-          showOrderDetailsFromAPI(order);
-        });
-        historyItemsList.appendChild(historyItem);
-      });
-    }
+  function renderHistoryFromAPI(orders) {
+  // ✅ Trier par date décroissante (la plus récente en premier)
+  const sorted = [...orders].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const historyItemsList = $('historyItemsList');
+  const historyEmptyMessage = $('historyEmptyMessage');
+  const historyCount = $('historyCount');
+  const orderHistorySection = $('orderHistorySection');
+  
+  historyItemsList.innerHTML = '';
+  historyEmptyMessage.style.display = 'none';
+  orderHistorySection.classList.add('visible');
+  historyCount.textContent = `${sorted.length} commande(s)`;
+  
+  if (sorted.length === 0) {
+    historyEmptyMessage.style.display = 'block';
+    return;
+  }
+  
+  sorted.forEach(order => {
+    const orderDate = new Date(order.date);
+    const formattedDate = orderDate.toLocaleDateString('fr-FR', {
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    
+    // Compter les lignes d'articles (sans l'en-tête)
+    const articlesLines = (order.articles || '')
+      .split('\n')
+      .filter(l => l.trim() && !l.startsWith('COMMANDE') && !l.startsWith('CMD-MAXI'))
+      .length;
+    const itemCount = articlesLines || 0;
+    
+    const historyItem = document.createElement('div');
+    historyItem.className = 'history-item';
+    historyItem.innerHTML = `
+      <div class="history-date">📅 ${formattedDate}</div>
+      <div class="history-summary">
+        <span class="history-items-count">${itemCount} article(s)</span>
+        <span class="history-total">${formatPrice(order.total)}</span>
+      </div>
+      <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
+        📦 N°: ${order.commande_id}
+      </div>
+    `;
+    historyItem.addEventListener('click', () => {
+      showOrderDetailsFromAPI(order);
+    });
+    historyItemsList.appendChild(historyItem);
+  });
+}
 
     function showOrderDetailsFromAPI(order) {
       const orderDetails = $('orderDetails');
@@ -7443,4 +7451,5 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
   </script>
 </body>
 </html>
+
 
