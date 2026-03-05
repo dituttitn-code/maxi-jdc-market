@@ -6007,9 +6007,6 @@
             <span class="history-items-count">${itemCount} article(s)</span>
             <span class="history-total">${formatPrice(order.total)}</span>
           </div>
-          <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
-            📦 Statut: ${order.statut || 'En cours de préparation'}
-          </div>
           ${orderSavings > 0 ? `
             <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
               💰 Économies: ${formatPrice(orderSavings)}
@@ -6084,9 +6081,6 @@
             <span class="history-items-count">${itemCount} article(s)</span>
             <span class="history-total">${formatPrice(order.total)}</span>
           </div>
-          <div style="font-size:10px;color:${order.statut === 'Livré' ? '#00ff88' : '#ff6b6b'};margin-top:4px;font-weight:700;">
-            📌 Statut: ${order.statut}
-          </div>
           ${orderSavings > 0 ? `
             <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
               💰 Économies: ${formatPrice(orderSavings)}
@@ -6138,7 +6132,7 @@
           $('clientAccountBtn').click();
           return;
         }
-        // Afficher directement toutes les commandes pour cet utilisateur (suivi + historique)
+        // Afficher directement toutes les commandes pour cet utilisateur (suivi + historique) SANS le statut
         const allUserOrders = loadHistoryForPhone(state.user.phone);
         if (allUserOrders.length === 0) {
           showToast('📭 Aucune commande trouvée', 'warning');
@@ -6167,9 +6161,6 @@
             <div class="history-summary">
               <span class="history-items-count">${itemCount} article(s)</span>
               <span class="history-total">${formatPrice(order.total)}</span>
-            </div>
-            <div style="font-size:10px;color:${order.statut === 'Livré' ? '#00ff88' : (order.statut === 'Annulé' ? '#ff6b6b' : '#00d4ff')};margin-top:4px;font-weight:700;">
-              📌 Statut: ${order.statut || 'En cours'}
             </div>
             ${orderSavings > 0 ? `
               <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
@@ -6486,11 +6477,6 @@
           ${order.orderId ? `
             <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
               📦 N°: ${order.orderId}
-            </div>
-          ` : ''}
-          ${order.statut ? `
-            <div style="font-size:10px;color:${order.statut === 'Livré' ? '#00ff88' : '#ff6b6b'};margin-top:4px;font-weight:700;">
-              📌 Statut: ${order.statut}
             </div>
           ` : ''}
           ${addressDisplay.includes('href=') ? `
@@ -7399,6 +7385,3 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
   </script>
 </body>
 </html>
-
-
-
