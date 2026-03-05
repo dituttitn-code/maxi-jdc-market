@@ -18,7 +18,7 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   
   <style>
-    /* [TOUT LE CSS RESTE IDENTIQUE – inchangé] */
+    /* [TOUT LE CSS RESTE IDENTIQUE] */
     :root {
       --bg0: #0a1929;
       --bg1: #112240;
@@ -4606,7 +4606,7 @@
       quantityPicks: {},
       filteredProducts: [],
       filteredProductsIndex: -1,
-      orderHistory: [],
+      orderHistory: [], // historique local (pour les économies)
       promotions: [],
       tempMapCoords: null,
       isAdmin: false,
@@ -6128,6 +6128,86 @@
       return userHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
 
+    // ===================== FONCTIONS API =====================
+    async function fetchUserOrdersFromAPI(phone) {
+      const cleanPhone = phone.replace(/\s+/g, '');
+      const url = `${CONFIG.commandeApiUrl}?method=getOrderHistory&telephone=${encodeURIComponent(cleanPhone)}&t=${Date.now()}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data.success && data.history) {
+        return data.history;
+      } else {
+        throw new Error(data.error || 'Erreur inconnue');
+      }
+    }
+
+    function renderHistoryFromAPI(orders) {
+      const historyItemsList = $('historyItemsList');
+      const historyEmptyMessage = $('historyEmptyMessage');
+      const historyCount = $('historyCount');
+      const orderHistorySection = $('orderHistorySection');
+      
+      historyItemsList.innerHTML = '';
+      historyEmptyMessage.style.display = 'none';
+      orderHistorySection.classList.add('visible');
+      historyCount.textContent = `${orders.length} commande(s)`;
+      
+      orders.forEach(order => {
+        const orderDate = new Date(order.date);
+        const formattedDate = orderDate.toLocaleDateString('fr-FR', {
+          day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        
+        // Compter les lignes d'articles (sans l'en-tête)
+        const articlesLines = (order.articles || '')
+          .split('\n')
+          .filter(l => l.trim() && !l.startsWith('COMMANDE') && !l.startsWith('CMD-MAXI'))
+          .length;
+        const itemCount = articlesLines || 0;
+        
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+          <div class="history-date">📅 ${formattedDate}</div>
+          <div class="history-summary">
+            <span class="history-items-count">${itemCount} article(s)</span>
+            <span class="history-total">${formatPrice(order.total)}</span>
+          </div>
+          <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
+            📦 N°: ${order.commande_id}
+          </div>
+        `;
+        historyItem.addEventListener('click', () => {
+          showOrderDetailsFromAPI(order);
+        });
+        historyItemsList.appendChild(historyItem);
+      });
+    }
+
+    function showOrderDetailsFromAPI(order) {
+      const orderDetails = $('orderDetails');
+      let detailsText = `📦 COMMANDE #${order.commande_id}\n`;
+      detailsText += `📅 ${new Date(order.date).toLocaleDateString('fr-FR', {
+        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      })}\n`;
+      detailsText += `👤 ${order.nom}\n`;
+      detailsText += `📱 ${order.telephone}\n`;
+      detailsText += `📍 ${order.adresse}\n`;
+      detailsText += `📌 Statut: ${order.statut || 'En cours'}\n`;
+      detailsText += `\n🛒 ARTICLES :\n`;
+      detailsText += '─'.repeat(50) + '\n';
+      detailsText += (order.articles || 'Aucun article') + '\n';
+      detailsText += '─'.repeat(50) + '\n';
+      detailsText += `TOTAL: ${formatPrice(order.total)}\n`;
+      
+      orderDetails.textContent = detailsText;
+      
+      // Cacher le bouton "Valider et envoyer"
+      $('sendOrderBtn').style.display = 'none';
+      
+      $('orderModal').classList.add('open');
+    }
+
     function initClientSpace() {
       $('clientAccountBtn').onclick = () => {
         $('accountDetailsSection').classList.add('visible');
@@ -6136,62 +6216,28 @@
         showToast('👤 Accès à votre compte');
       };
 
-      $('clientCombinedBtn').onclick = () => {
+      $('clientCombinedBtn').onclick = async () => {
         if (!state.user || !state.user.phone) {
           showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
           $('clientAccountBtn').click();
           return;
         }
-        // Afficher directement toutes les commandes pour cet utilisateur (suivi + historique) SANS le statut
-        const allUserOrders = loadHistoryForPhone(state.user.phone);
-        if (allUserOrders.length === 0) {
-          showToast('📭 Aucune commande trouvée', 'warning');
-          return;
+        
+        showToast('🔄 Chargement de vos commandes...', 'warning');
+        
+        try {
+          const orders = await fetchUserOrdersFromAPI(state.user.phone);
+          if (orders.length === 0) {
+            showToast('📭 Aucune commande trouvée', 'warning');
+            renderHistoryFromAPI([]);
+          } else {
+            renderHistoryFromAPI(orders);
+            showToast(`📜 ${orders.length} commande(s) trouvée(s)`);
+          }
+        } catch (error) {
+          console.error('Erreur chargement commandes:', error);
+          showToast('❌ Erreur de chargement', 'error');
         }
-        
-        const historyItemsList = $('historyItemsList');
-        historyItemsList.innerHTML = '';
-        
-        allUserOrders.forEach(order => {
-          const orderDate = new Date(order.date);
-          const formattedDate = orderDate.toLocaleDateString('fr-FR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          });
-          const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
-          const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
-          
-          const historyItem = document.createElement('div');
-          historyItem.className = 'history-item';
-          historyItem.innerHTML = `
-            <div class="history-date">📅 ${formattedDate}</div>
-            <div class="history-summary">
-              <span class="history-items-count">${itemCount} article(s)</span>
-              <span class="history-total">${formatPrice(order.total)}</span>
-            </div>
-            ${orderSavings > 0 ? `
-              <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
-                💰 Économies: ${formatPrice(orderSavings)}
-              </div>
-            ` : ''}
-            ${order.orderId ? `
-              <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
-                📦 N°: ${order.orderId}
-              </div>
-            ` : ''}
-          `;
-          historyItem.addEventListener('click', () => {
-            showOrderDetails(order, true);
-          });
-          historyItemsList.appendChild(historyItem);
-        });
-        
-        $('orderHistorySection').classList.add('visible');
-        $('historyCount').textContent = `${allUserOrders.length} commande(s)`;
-        $('historyEmptyMessage').style.display = 'none';
       };
     }
 
@@ -6456,11 +6502,7 @@
       history.forEach(order => {
         const orderDate = new Date(order.date);
         const formattedDate = orderDate.toLocaleDateString('fr-FR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
+          day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
         });
         const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
         const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
@@ -7067,6 +7109,27 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
       }
     };
 
+    // ===================== RECHERCHE D'HISTORIQUE PAR TÉLÉPHONE =====================
+    $('searchHistoryBtn').onclick = async () => {
+      const phone = $('searchHistoryPhone').value.trim();
+      if (!phone) {
+        showToast('❌ Veuillez entrer votre numéro de téléphone', 'error');
+        return;
+      }
+      try {
+        const orders = await fetchUserOrdersFromAPI(phone);
+        if (orders.length === 0) {
+          showToast('📭 Aucune commande trouvée pour ce numéro', 'warning');
+          renderHistoryFromAPI([]);
+        } else {
+          renderHistoryFromAPI(orders);
+          showToast(`📜 ${orders.length} commande(s) trouvée(s)`);
+        }
+      } catch (error) {
+        showToast('❌ Erreur de chargement', 'error');
+      }
+    };
+
     // ===================== INITIALISATION =====================
     function init() {
       try {
@@ -7281,21 +7344,6 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
         $('closeMapModalBtn').click();
       };
 
-      $('searchHistoryBtn').onclick = () => {
-        const phone = $('searchHistoryPhone').value.trim();
-        if (!phone) {
-          showToast('❌ Veuillez entrer votre numéro de téléphone', 'error');
-          return;
-        }
-        const history = loadHistoryForPhone(phone);
-        renderHistory(history);
-        if (history.length === 0) {
-          showToast('📭 Aucune commande trouvée pour ce numéro', 'warning');
-        } else {
-          showToast(`📜 ${history.length} commande(s) trouvée(s)`);
-        }
-      };
-
       $('placeOrderBtn').onclick = placeOrder;
 
       $('closeOrderModalBtn').onclick = () => {
@@ -7395,4 +7443,3 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
   </script>
 </body>
 </html>
-
