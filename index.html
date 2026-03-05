@@ -18,7 +18,7 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   
   <style>
-    /* [TOUT LE CSS RESTE IDENTIQUE] */
+    /* [TOUT LE CSS RESTE IDENTIQUE – inchangé] */
     :root {
       --bg0: #0a1929;
       --bg1: #112240;
@@ -4373,6 +4373,16 @@
       commandeApiUrl: "https://script.google.com/macros/s/AKfycbzPSkNF3-gq27vVdYtRDC4iaWP33HDWynT-1kQWYaCh5ll2sXJmuBR9FPmZaBhRM5YX/exec",
     };
 
+    // ===================== STATUTS =====================
+    const ORDER_STATUSES = {
+      "🟡 NOUVELLE": { emoji: "🟡", label: "Nouvelle" },
+      "⏳ EN ATTENTE": { emoji: "⏳", label: "En attente" },
+      "🔵 EN PRÉPARATION": { emoji: "🔵", label: "En préparation" },
+      "🟠 EN LIVRAISON": { emoji: "🟠", label: "En livraison" },
+      "✅ LIVRÉE": { emoji: "✅", label: "Livrée" },
+      "❌ ANNULÉE": { emoji: "❌", label: "Annulée" }
+    };
+
     // ===================== TRADUCTIONS =====================
     const TRANSLATIONS = {
       fr: {
@@ -6366,7 +6376,8 @@
       );
     }
 
-    function saveOrderToHistory(orderDetails) {
+    // ✅ Nouvelle fonction pour créer l'entrée d'historique après validation API
+    function createHistoryEntry(orderData, apiResult) {
       if (!state.user || !state.user.phone) {
         console.warn('Utilisateur non enregistré, impossible de sauvegarder l\'historique');
         return;
@@ -6386,9 +6397,8 @@
         };
       });
       
-      // Calculer le total correctement
-      const subtotal = orderDetails.subtotal;
-      const shipping = orderDetails.shipping;
+      const subtotal = orderData.subtotal;
+      const shipping = orderData.shipping;
       const total = subtotal + shipping;
       
       const historyEntry = {
@@ -6399,16 +6409,16 @@
         items: itemsWithSavings,
         subtotal: subtotal,
         shipping: shipping,
-        total: total, // ✅ Correction : utiliser le total calculé correctement
-        savings: orderDetails.savings || 0,
-        savingsPercentage: orderDetails.savingsPercentage || 0,
+        total: total,
+        savings: orderData.savings || 0,
+        savingsPercentage: orderData.savingsPercentage || 0,
         address: state.user.address,
         coords: state.user.lat && state.user.lng ? {
           lat: state.user.lat,
           lng: state.user.lng
         } : null,
-        orderId: orderDetails.commandeId,
-        statut: 'En cours de préparation' // Statut initial
+        orderId: apiResult.commande_id || orderData.commandeId,
+        statut: apiResult.statut || "🟡 NOUVELLE"
       };
       state.orderHistory.unshift(historyEntry);
       const twoYearsAgo = new Date();
@@ -6418,8 +6428,8 @@
       );
       saveState();
       saveSyncData();
-      if (orderDetails.savings && orderDetails.savings > 0) {
-        showToast(`🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(orderDetails.savings)} sur cette commande !`);
+      if (orderData.savings && orderData.savings > 0) {
+        showToast(`🎉 FÉLICITATIONS ! Vous avez économisé ${formatPrice(orderData.savings)} sur cette commande !`);
       } else {
         showToast('📝 Commande ajoutée à votre historique');
       }
@@ -6806,9 +6816,7 @@
       } catch (error) {
         console.error('Erreur enregistrement Google Sheets:', error);
         showToast('⚠️ Commande créée mais erreur d\'enregistrement système', 'warning');
-        
-        saveOrderToHistory(orderData);
-        
+        // Retourner un résultat simulé pour que la commande soit tout de même enregistrée en local
         return { success: true, commande_id: orderData.commandeId };
       }
     }
@@ -7014,8 +7022,7 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
 
         const orderData = state.pendingOrder;
         
-        saveOrderToHistory(orderData);
-        
+        // Envoyer à Google Sheets
         let result = await enregistrerCommandeGoogleSheets(orderData);
         
         if (typeof result === 'string') {
@@ -7026,13 +7033,16 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
           }
         }
         
-        console.log("🔍 Type de result:", typeof result);
-        console.log("🔍 Contenu de result:", result);
-        
-                const commandeId = result?.command_id || result?.commande_id || result?.numero_commande || orderData?.commandeId;
+        const commandeId = result?.command_id || result?.commande_id || result?.numero_commande || orderData?.commandeId;
+        const statut = result?.statut || "🟡 NOUVELLE";
         
         console.log("📦 Numéro final utilisé:", commandeId);
+        console.log("📌 Statut final:", statut);
         
+        // Créer l'entrée d'historique avec les bonnes informations
+        createHistoryEntry(orderData, { commande_id: commandeId, statut });
+        
+        // Vider le panier
         state.cart = {};
         updateCartUI();
         state.pendingOrder = null;
@@ -7385,4 +7395,3 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
   </script>
 </body>
 </html>
-
