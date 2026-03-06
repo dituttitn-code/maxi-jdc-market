@@ -6151,25 +6151,41 @@
     }
 
 function envoyerWhatsappLivreur(message) {
-  const numero = "21625600978"; // Numéro du livreur (sans +, sans espace)
+  const numero = "21625600978"; // 0021625600978 sans le 00
   const texte = encodeURIComponent(message);
   const url = `https://wa.me/${numero}?text=${texte}`;
-  
+  const urlFallback = `https://api.whatsapp.com/send?phone=${numero}&text=${texte}`;
+
   console.log('📤 Envoi WhatsApp - URL:', url);
+  console.log('📤 Fallback URL:', urlFallback);
 
-  // Tentative d'ouverture automatique
-  const win = window.open(url, '_blank');
+  // 1️⃣ Méthode la plus fiable : créer un lien invisible et simuler un clic
+  const link = document.createElement('a');
+  link.href = url;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
 
-  // Si l'ouverture a échoué (bloquée), on propose un lien cliquable
-  if (!win || win.closed || typeof win.closed === 'undefined') {
-    showToast(
-      '📱 Cliquez ici pour envoyer la commande au livreur : <a href="' + url + '" target="_blank" style="color:white;font-weight:bold;text-decoration:underline;">Ouvrir WhatsApp</a>',
-      'warning',
-      20000
-    );
-  } else {
-    showToast('📱 WhatsApp ouvert, veuillez envoyer le message', 'success');
-  }
+  // 2️⃣ Après un court délai, on essaie avec window.open (au cas où)
+  setTimeout(() => {
+    document.body.removeChild(link);
+    const win = window.open(urlFallback, '_blank');
+
+    // 3️⃣ Si tout échoue, on affiche un toast avec un lien direct
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+      showToast(
+        '📱 WhatsApp ne s\'est pas ouvert automatiquement. ' +
+        '<a href="' + urlFallback + '" target="_blank" style="color:white;font-weight:bold;text-decoration:underline;">' +
+        'Cliquez ici pour envoyer la commande</a>',
+        'warning',
+        20000
+      );
+    } else {
+      showToast('📱 WhatsApp ouvert, veuillez envoyer le message', 'success');
+    }
+  }, 1000);
 }
 
     function openStockManagement() {
@@ -7381,6 +7397,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
