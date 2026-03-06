@@ -6992,77 +6992,104 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
     }
 
     // ===================== BOUTON "VALIDER ET ENVOYER" =====================
-    $('sendOrderBtn').onclick = async () => {
+  $('sendOrderBtn').onclick = async () => {
+  try {
+    if (state.isSendingOrder) {
+      showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
+      return;
+    }
+
+    if (!state.pendingOrder) {
+      showToast('❌ Aucune commande en attente', 'error');
+      return;
+    }
+
+    state.isSendingOrder = true;
+    const sendBtn = $('sendOrderBtn');
+    sendBtn.disabled = true;
+    sendBtn.classList.add('sending');
+    sendBtn.innerHTML = '⏳ Envoi en cours...';
+
+    // Ouvrir une fenêtre vierge immédiatement (autorisé par le geste utilisateur)
+    let whatsappWindow = window.open('', '_blank');
+    if (!whatsappWindow) {
+      // Fenêtre bloquée, on utilisera un toast plus tard
+      console.warn('Fenêtre WhatsApp bloquée par le navigateur');
+    }
+
+    const orderData = state.pendingOrder;
+
+    // Envoyer à Google Sheets
+    let result = await enregistrerCommandeGoogleSheets(orderData);
+
+    if (typeof result === 'string') {
       try {
-        if (state.isSendingOrder) {
-          showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
-          return;
-        }
-
-        if (!state.pendingOrder) {
-          showToast('❌ Aucune commande en attente', 'error');
-          return;
-        }
-
-        state.isSendingOrder = true;
-        const sendBtn = $('sendOrderBtn');
-        sendBtn.disabled = true;
-        sendBtn.classList.add('sending');
-        sendBtn.innerHTML = '⏳ Envoi en cours...';
-
-        const orderData = state.pendingOrder;
-        
-        // Envoyer à Google Sheets
-        let result = await enregistrerCommandeGoogleSheets(orderData);
-        
-        if (typeof result === 'string') {
-          try {
-            result = JSON.parse(result);
-          } catch(e) {
-            console.error("Erreur parsing JSON:", e);
-          }
-        }
-        
-        const commandeId = result?.command_id || result?.commande_id || result?.numero_commande || orderData?.commandeId;
-        const statut = result?.statut || "🟡 NOUVELLE";
-        
-        console.log("📦 Numéro final utilisé:", commandeId);
-        console.log("📌 Statut final:", statut);
-        
-        // ✅ Construire le texte détaillé de la commande pour WhatsApp
-        const detailsText = buildOrderDetailsText(orderData, state.cart, state.user);
-        
-        // ✅ Envoyer les détails par WhatsApp au livreur
-        envoyerWhatsappLivreur(detailsText);
-        
-        // Créer l'entrée d'historique avec les bonnes informations
-        createHistoryEntry(orderData, { commande_id: commandeId, statut });
-        
-        // Vider le panier
-        state.cart = {};
-        updateCartUI();
-        state.pendingOrder = null;
-        $('orderModal').classList.remove('open');
-        
-        envoyerMessageClient(commandeId, result);
-        
-        const t = TRANSLATIONS[state.currentLanguage];
-        showToast(`✅ ${t.toastOrderValidated}`);
-        
-      } catch (error) {
-        console.error('❌ Erreur validation commande:', error);
-        showToast('❌ Erreur lors de la validation de la commande', 'error');
-      } finally {
-        setTimeout(() => {
-          state.isSendingOrder = false;
-          const sendBtn = $('sendOrderBtn');
-          sendBtn.disabled = false;
-          sendBtn.classList.remove('sending');
-          sendBtn.innerHTML = '✅ Valider et envoyer';
-        }, 3000);
+        result = JSON.parse(result);
+      } catch (e) {
+        console.error("Erreur parsing JSON:", e);
       }
-    };
+    }
 
+    const commandeId = result?.command_id || result?.commande_id || result?.numero_commande || orderData?.commandeId;
+    const statut = result?.statut || "🟡 NOUVELLE";
+
+    console.log("📦 Numéro final utilisé:", commandeId);
+    console.log("📌 Statut final:", statut);
+
+    // Construire le message WhatsApp
+    const detailsText = buildOrderDetailsText(orderData, state.cart, state.user);
+
+    // Préparer l'URL WhatsApp
+    const numero = "21625600978"; // +216 25 600 978 sans +
+    const texte = encodeURIComponent(detailsText);
+    const urlWhatsApp = `https://wa.me/${numero}?text=${texte}`;
+    const urlFallback = `https://api.whatsapp.com/send?phone=${numero}&text=${texte}`;
+
+    if (whatsappWindow && !whatsappWindow.closed) {
+      // Rediriger la fenêtre déjà ouverte
+      whatsappWindow.location.href = urlWhatsApp;
+    } else {
+      // Tentative d'ouverture directe (au cas où)
+      const win = window.open(urlWhatsApp, '_blank');
+      if (!win || win.closed) {
+        // Dernier recours : toast cliquable
+        showToast(
+          '📱 WhatsApp ne s\'est pas ouvert automatiquement. ' +
+          '<a href="' + urlFallback + '" target="_blank" style="color:white;font-weight:bold;text-decoration:underline;">' +
+          'Cliquez ici pour envoyer la commande</a>',
+          'warning',
+          20000
+        );
+      }
+    }
+
+    // Créer l'entrée d'historique
+    createHistoryEntry(orderData, { commande_id: commandeId, statut });
+
+    // Vider le panier
+    state.cart = {};
+    updateCartUI();
+    state.pendingOrder = null;
+    $('orderModal').classList.remove('open');
+
+    envoyerMessageClient(commandeId, result);
+
+    const t = TRANSLATIONS[state.currentLanguage];
+    showToast(`✅ ${t.toastOrderValidated}`);
+
+  } catch (error) {
+    console.error('❌ Erreur validation commande:', error);
+    showToast('❌ Erreur lors de la validation de la commande', 'error');
+  } finally {
+    setTimeout(() => {
+      state.isSendingOrder = false;
+      const sendBtn = $('sendOrderBtn');
+      sendBtn.disabled = false;
+      sendBtn.classList.remove('sending');
+      sendBtn.innerHTML = '✅ Valider et envoyer';
+    }, 3000);
+  }
+};
     // ===================== RECHERCHE D'HISTORIQUE PAR TÉLÉPHONE =====================
     $('searchHistoryBtn').onclick = async () => {
       const phone = $('searchHistoryPhone').value.trim();
@@ -7397,6 +7424,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
