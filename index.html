@@ -7011,14 +7011,27 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
     sendBtn.innerHTML = '⏳ Envoi en cours...';
 
     // 🔓 Ouvrir une fenêtre immédiatement (liée au clic)
-    let whatsappWindow = window.open('', 'whatsapp_send');
+    // On utilise une petite fenêtre pour minimiser l'impact visuel
+    const winFeatures = 'width=500,height=600,left=100,top=100,resizable=yes,scrollbars=yes';
+    let whatsappWindow = window.open('', 'whatsapp_send', winFeatures);
+    
     if (!whatsappWindow) {
-      console.warn('⚠️ Fenêtre WhatsApp bloquée par le navigateur');
-      showToast('📱 Tentative d\'ouverture de WhatsApp... Si bloqué, utilisez le lien ci-dessous.', 'warning');
+      console.warn('⚠️ Fenêtre WhatsApp bloquée');
+      // Si bloquée, on prépare un toast de secours
     } else {
-      // Afficher un message temporaire dans la fenêtre
-      whatsappWindow.document.write('<h3>Redirection vers WhatsApp...</h3>');
-      console.log('✅ Fenêtre WhatsApp ouverte, en attente de redirection');
+      // Afficher un message d'attente dans la fenêtre
+      whatsappWindow.document.write(`
+        <html>
+          <head><title>Envoi vers WhatsApp...</title></head>
+          <body style="background:#0a1929;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;">
+            <div style="text-align:center;">
+              <h3>📤 Préparation de la commande...</h3>
+              <p>Redirection automatique vers WhatsApp dans un instant.</p>
+            </div>
+          </body>
+        </html>
+      `);
+      whatsappWindow.document.close();
     }
 
     const orderData = state.pendingOrder;
@@ -7040,28 +7053,28 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
     console.log("📦 Numéro final utilisé:", commandeId);
     console.log("📌 Statut final:", statut);
 
-    // Construire le message WhatsApp (format demandé)
+    // Construire le message WhatsApp au format demandé
     const detailsText = buildOrderDetailsText(orderData, state.cart, state.user);
 
     // Préparer l'URL WhatsApp
-    const numero = "21625600978"; // +216 25 600 978 sans +
+    const numero = "21625600978";
     const texte = encodeURIComponent(detailsText);
     const urlWhatsApp = `https://wa.me/${numero}?text=${texte}`;
-    const urlFallback = `https://api.whatsapp.com/send?phone=${numero}&text=${texte}`;
 
-    // 🔁 Rediriger la fenêtre existante
+    // 🔁 Rediriger la fenêtre existante ou en ouvrir une nouvelle
     if (whatsappWindow && !whatsappWindow.closed) {
       try {
         whatsappWindow.location.href = urlWhatsApp;
-        console.log('🔄 Redirection de la fenêtre WhatsApp vers:', urlWhatsApp);
+        console.log('🔄 Redirection réussie');
       } catch (e) {
         console.error('❌ Erreur redirection:', e);
-        // Si échec, on tente une ouverture directe
-        const win = window.open(urlWhatsApp, '_blank');
-        if (!win) {
+        // Fallback : ouvrir une nouvelle fenêtre
+        const newWin = window.open(urlWhatsApp, '_blank');
+        if (!newWin) {
+          // Dernier recours : toast cliquable
           showToast(
             '📱 WhatsApp ne s\'est pas ouvert. ' +
-            '<a href="' + urlFallback + '" target="_blank" style="color:white;font-weight:bold;text-decoration:underline;">' +
+            '<a href="' + urlWhatsApp + '" target="_blank" style="color:white;font-weight:bold;text-decoration:underline;">' +
             'Cliquez ici pour envoyer la commande</a>',
             'warning',
             20000
@@ -7070,11 +7083,11 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
       }
     } else {
       // Fenêtre non disponible, tentative directe
-      const win = window.open(urlWhatsApp, '_blank');
-      if (!win || win.closed) {
+      const newWin = window.open(urlWhatsApp, '_blank');
+      if (!newWin || newWin.closed) {
         showToast(
           '📱 WhatsApp ne s\'est pas ouvert automatiquement. ' +
-          '<a href="' + urlFallback + '" target="_blank" style="color:white;font-weight:bold;text-decoration:underline;">' +
+          '<a href="' + urlWhatsApp + '" target="_blank" style="color:white;font-weight:bold;text-decoration:underline;">' +
           'Cliquez ici pour envoyer la commande</a>',
           'warning',
           20000
@@ -7093,8 +7106,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
 
     envoyerMessageClient(commandeId, result);
 
-    const t = TRANSLATIONS[state.currentLanguage];
-    showToast(`✅ ${t.toastOrderValidated}`);
+    showToast(`✅ Commande enregistrée et envoyée au livreur !`);
 
   } catch (error) {
     console.error('❌ Erreur validation commande:', error);
@@ -7443,6 +7455,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
