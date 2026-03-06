@@ -6150,43 +6150,12 @@
       return text;
     }
 
-function envoyerWhatsappLivreur(message) {
-  const numero = "21625600978"; // 0021625600978 sans le 00
-  const texte = encodeURIComponent(message);
-  const url = `https://wa.me/${numero}?text=${texte}`;
-  const urlFallback = `https://api.whatsapp.com/send?phone=${numero}&text=${texte}`;
-
-  console.log('📤 Envoi WhatsApp - URL:', url);
-  console.log('📤 Fallback URL:', urlFallback);
-
-  // 1️⃣ Méthode la plus fiable : créer un lien invisible et simuler un clic
-  const link = document.createElement('a');
-  link.href = url;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-
-  // 2️⃣ Après un court délai, on essaie avec window.open (au cas où)
-  setTimeout(() => {
-    document.body.removeChild(link);
-    const win = window.open(urlFallback, '_blank');
-
-    // 3️⃣ Si tout échoue, on affiche un toast avec un lien direct
-    if (!win || win.closed || typeof win.closed === 'undefined') {
-      showToast(
-        '📱 WhatsApp ne s\'est pas ouvert automatiquement. ' +
-        '<a href="' + urlFallback + '" target="_blank" style="color:white;font-weight:bold;text-decoration:underline;">' +
-        'Cliquez ici pour envoyer la commande</a>',
-        'warning',
-        20000
-      );
-    } else {
-      showToast('📱 WhatsApp ouvert, veuillez envoyer le message', 'success');
+    function envoyerWhatsappLivreur(message) {
+      const livreurNumber = "21625600978"; // 0021625600978 sans le 00
+      const url = `https://wa.me/${livreurNumber}?text=${encodeURIComponent(message)}`;
+      // Ouvrir dans un nouvel onglet
+      window.open(url, '_blank');
     }
-  }, 1000);
-}
 
     function openStockManagement() {
       if (!state.isAdmin) {
@@ -6992,70 +6961,77 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
     }
 
     // ===================== BOUTON "VALIDER ET ENVOYER" =====================
-$('sendOrderBtn').onclick = async () => {
-  try {
-    if (state.isSendingOrder) {
-      showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
-      return;
-    }
-
-    if (!state.pendingOrder) {
-      showToast('❌ Aucune commande en attente', 'error');
-      return;
-    }
-
-    state.isSendingOrder = true;
-    const sendBtn = $('sendOrderBtn');
-    sendBtn.disabled = true;
-    sendBtn.classList.add('sending');
-    sendBtn.innerHTML = '⏳ Envoi en cours...';
-
-    const orderData = state.pendingOrder;
-
-    // 📤 Envoyer à Google Sheets
-    let result = await enregistrerCommandeGoogleSheets(orderData);
-
-    if (typeof result === 'string') {
+    $('sendOrderBtn').onclick = async () => {
       try {
-        result = JSON.parse(result);
-      } catch (e) {
-        console.error("Erreur parsing JSON:", e);
+        if (state.isSendingOrder) {
+          showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
+          return;
+        }
+
+        if (!state.pendingOrder) {
+          showToast('❌ Aucune commande en attente', 'error');
+          return;
+        }
+
+        state.isSendingOrder = true;
+        const sendBtn = $('sendOrderBtn');
+        sendBtn.disabled = true;
+        sendBtn.classList.add('sending');
+        sendBtn.innerHTML = '⏳ Envoi en cours...';
+
+        const orderData = state.pendingOrder;
+        
+        // Envoyer à Google Sheets
+        let result = await enregistrerCommandeGoogleSheets(orderData);
+        
+        if (typeof result === 'string') {
+          try {
+            result = JSON.parse(result);
+          } catch(e) {
+            console.error("Erreur parsing JSON:", e);
+          }
+        }
+        
+        const commandeId = result?.command_id || result?.commande_id || result?.numero_commande || orderData?.commandeId;
+        const statut = result?.statut || "🟡 NOUVELLE";
+        
+        console.log("📦 Numéro final utilisé:", commandeId);
+        console.log("📌 Statut final:", statut);
+        
+        // ✅ Construire le texte détaillé de la commande pour WhatsApp
+        const detailsText = buildOrderDetailsText(orderData, state.cart, state.user);
+        
+        // ✅ Envoyer les détails par WhatsApp au livreur
+        envoyerWhatsappLivreur(detailsText);
+        
+        // Créer l'entrée d'historique avec les bonnes informations
+        createHistoryEntry(orderData, { commande_id: commandeId, statut });
+        
+        // Vider le panier
+        state.cart = {};
+        updateCartUI();
+        state.pendingOrder = null;
+        $('orderModal').classList.remove('open');
+        
+        envoyerMessageClient(commandeId, result);
+        
+        const t = TRANSLATIONS[state.currentLanguage];
+        showToast(`✅ ${t.toastOrderValidated}`);
+        
+      } catch (error) {
+        console.error('❌ Erreur validation commande:', error);
+        showToast('❌ Erreur lors de la validation de la commande', 'error');
+      } finally {
+        setTimeout(() => {
+          state.isSendingOrder = false;
+          const sendBtn = $('sendOrderBtn');
+          sendBtn.disabled = false;
+          sendBtn.classList.remove('sending');
+          sendBtn.innerHTML = '✅ Valider et envoyer';
+        }, 3000);
       }
-    }
+    };
 
-    const commandeId = result?.command_id || result?.commande_id || result?.numero_commande || orderData?.commandeId;
-    const statut = result?.statut || "🟡 NOUVELLE";
-
-    console.log("📦 Numéro final utilisé:", commandeId);
-    console.log("📌 Statut final:", statut);
-
-    // Créer l'entrée d'historique
-    createHistoryEntry(orderData, { commande_id: commandeId, statut });
-
-    // Vider le panier
-    state.cart = {};
-    updateCartUI();
-    state.pendingOrder = null;
-    $('orderModal').classList.remove('open');
-
-    // Afficher le message de confirmation au client
-    envoyerMessageClient(commandeId, result);
-
-    showToast(`✅ Commande enregistrée !`);
-
-  } catch (error) {
-    console.error('❌ Erreur validation commande:', error);
-    showToast('❌ Erreur lors de la validation de la commande', 'error');
-  } finally {
-    setTimeout(() => {
-      state.isSendingOrder = false;
-      const sendBtn = $('sendOrderBtn');
-      sendBtn.disabled = false;
-      sendBtn.classList.remove('sending');
-      sendBtn.innerHTML = '✅ Valider et envoyer';
-    }, 3000);
-  }
-};
     // ===================== RECHERCHE D'HISTORIQUE PAR TÉLÉPHONE =====================
     $('searchHistoryBtn').onclick = async () => {
       const phone = $('searchHistoryPhone').value.trim();
@@ -7390,13 +7366,4 @@ $('sendOrderBtn').onclick = async () => {
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
 
