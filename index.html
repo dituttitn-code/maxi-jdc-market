@@ -6150,7 +6150,7 @@
       return text;
     }
 
-  function envoyerWhatsappLivreur(message) {
+function envoyerWhatsappLivreur(message) {
   const livreurNumber = "21625600978";
   const encodedMessage = encodeURIComponent(message);
   
@@ -6162,7 +6162,7 @@
   console.log('URL 1:', url1);
   console.log('URL 2:', url2);
 
-  // Méthode 1 : lien cliquable invisible (imite une action utilisateur)
+  // Méthode 1 : lien invisible cliquable (imite une action utilisateur)
   const link = document.createElement('a');
   link.href = url1;
   link.target = '_blank';
@@ -6171,15 +6171,19 @@
   document.body.appendChild(link);
   link.click();
   
-  // Méthode 2 : fallback après un délai (au cas où la première ne fonctionne pas)
+  // Méthode 2 : après un délai, on tente avec window.open (api.whatsapp.com)
   setTimeout(() => {
     document.body.removeChild(link);
     const win = window.open(url2, '_blank');
-    if (!win) {
-      // Si le navigateur bloque les pop-ups, on affiche un message cliquable
-      showToast('📱 Cliquez ici si WhatsApp ne s\'ouvre pas : <a href="' + url2 + '" target="_blank" style="color:white;text-decoration:underline;">Ouvrir WhatsApp</a>', 'warning', 10000);
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+      // Si bloqué, on affiche un toast avec un lien direct
+      showToast(
+        '📱 WhatsApp ne s\'est pas ouvert automatiquement. <a href="' + url2 + '" target="_blank" style="color:white;font-weight:bold;text-decoration:underline;">Cliquez ici pour envoyer la commande</a>',
+        'warning',
+        15000 // durée longue pour laisser le temps de cliquer
+      );
     }
-  }, 1500);
+  }, 2000);
   
   showToast('📱 Redirection vers WhatsApp...', 'warning');
 }
@@ -7393,6 +7397,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
