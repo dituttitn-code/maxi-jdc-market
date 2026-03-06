@@ -6992,7 +6992,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
     }
 
     // ===================== BOUTON "VALIDER ET ENVOYER" =====================
- $('sendOrderBtn').onclick = async () => {
+$('sendOrderBtn').onclick = async () => {
   try {
     if (state.isSendingOrder) {
       showToast('⏳ Envoi en cours, veuillez patienter...', 'warning');
@@ -7009,30 +7009,6 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
     sendBtn.disabled = true;
     sendBtn.classList.add('sending');
     sendBtn.innerHTML = '⏳ Envoi en cours...';
-
-    // 🔓 Ouvrir une fenêtre immédiatement (liée au clic)
-    // On utilise une petite fenêtre pour minimiser l'impact visuel
-    const winFeatures = 'width=500,height=600,left=100,top=100,resizable=yes,scrollbars=yes';
-    let whatsappWindow = window.open('', 'whatsapp_send', winFeatures);
-    
-    if (!whatsappWindow) {
-      console.warn('⚠️ Fenêtre WhatsApp bloquée');
-      // Si bloquée, on prépare un toast de secours
-    } else {
-      // Afficher un message d'attente dans la fenêtre
-      whatsappWindow.document.write(`
-        <html>
-          <head><title>Envoi vers WhatsApp...</title></head>
-          <body style="background:#0a1929;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;">
-            <div style="text-align:center;">
-              <h3>📤 Préparation de la commande...</h3>
-              <p>Redirection automatique vers WhatsApp dans un instant.</p>
-            </div>
-          </body>
-        </html>
-      `);
-      whatsappWindow.document.close();
-    }
 
     const orderData = state.pendingOrder;
 
@@ -7053,48 +7029,6 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
     console.log("📦 Numéro final utilisé:", commandeId);
     console.log("📌 Statut final:", statut);
 
-    // Construire le message WhatsApp au format demandé
-    const detailsText = buildOrderDetailsText(orderData, state.cart, state.user);
-
-    // Préparer l'URL WhatsApp
-    const numero = "21625600978";
-    const texte = encodeURIComponent(detailsText);
-    const urlWhatsApp = `https://wa.me/${numero}?text=${texte}`;
-
-    // 🔁 Rediriger la fenêtre existante ou en ouvrir une nouvelle
-    if (whatsappWindow && !whatsappWindow.closed) {
-      try {
-        whatsappWindow.location.href = urlWhatsApp;
-        console.log('🔄 Redirection réussie');
-      } catch (e) {
-        console.error('❌ Erreur redirection:', e);
-        // Fallback : ouvrir une nouvelle fenêtre
-        const newWin = window.open(urlWhatsApp, '_blank');
-        if (!newWin) {
-          // Dernier recours : toast cliquable
-          showToast(
-            '📱 WhatsApp ne s\'est pas ouvert. ' +
-            '<a href="' + urlWhatsApp + '" target="_blank" style="color:white;font-weight:bold;text-decoration:underline;">' +
-            'Cliquez ici pour envoyer la commande</a>',
-            'warning',
-            20000
-          );
-        }
-      }
-    } else {
-      // Fenêtre non disponible, tentative directe
-      const newWin = window.open(urlWhatsApp, '_blank');
-      if (!newWin || newWin.closed) {
-        showToast(
-          '📱 WhatsApp ne s\'est pas ouvert automatiquement. ' +
-          '<a href="' + urlWhatsApp + '" target="_blank" style="color:white;font-weight:bold;text-decoration:underline;">' +
-          'Cliquez ici pour envoyer la commande</a>',
-          'warning',
-          20000
-        );
-      }
-    }
-
     // Créer l'entrée d'historique
     createHistoryEntry(orderData, { commande_id: commandeId, statut });
 
@@ -7104,9 +7038,10 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
     state.pendingOrder = null;
     $('orderModal').classList.remove('open');
 
+    // Afficher le message de confirmation au client
     envoyerMessageClient(commandeId, result);
 
-    showToast(`✅ Commande enregistrée et envoyée au livreur !`);
+    showToast(`✅ Commande enregistrée !`);
 
   } catch (error) {
     console.error('❌ Erreur validation commande:', error);
@@ -7455,6 +7390,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
