@@ -7364,6 +7364,83 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
       }
     });
   </script>
+  <script>
+  (function() {
+    // Attendre que le DOM soit prêt
+    document.addEventListener('DOMContentLoaded', function() {
+      // Sélectionner le tableau principal (vous pouvez adapter le sélecteur si besoin)
+      const table = document.querySelector('table'); // suppose que le premier tableau est celui des commandes
+      if (!table) return;
+
+      // Fonction pour extraire les données d'une ligne (td)
+      function getOrderDataFromRow(row) {
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 8) return null;
+
+        return {
+          date: cells[0]?.innerText.trim() || '',
+          nom: cells[1]?.innerText.trim() || '',
+          tel: cells[2]?.innerText.trim() || '',
+          adresse: cells[3]?.innerText.trim() || '',
+          commande: cells[4]?.innerText.trim() || '',
+          article: cells[5]?.innerText.trim() || '',
+          total: cells[6]?.innerText.trim() || '',
+          statut: cells[7]?.innerText.trim() || ''
+        };
+      }
+
+      // Fonction pour construire le message WhatsApp
+      function buildWhatsAppMessage(data) {
+        let message = `📦 *COMMANDE ${data.commande}*\n`;
+        message += `👤 *Client* : ${data.nom}\n`;
+        message += `📞 *Tél* : ${data.tel}\n`;
+        message += `📍 *Adresse* : ${data.adresse}\n`;
+        message += `\n🛒 *Articles* :\n${data.article}\n`;
+        message += `💰 *Total* : ${data.total}\n`;
+        message += `📌 *Statut* : ${data.statut}\n`;
+        return message;
+      }
+
+      // Parcourir toutes les lignes du corps du tableau (ignorer l'en-tête)
+      const tbody = table.querySelector('tbody') || table;
+      const rows = tbody.querySelectorAll('tr');
+
+      rows.forEach(row => {
+        // Ignorer la ligne d'en-tête si elle contient des <th>
+        if (row.querySelector('th')) return;
+
+        row.style.cursor = 'pointer'; // Indiquer que la ligne est cliquable
+        row.addEventListener('click', function(e) {
+          // Ne pas déclencher si on clique sur un lien ou un bouton à l'intérieur de la ligne
+          if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+
+          const orderData = getOrderDataFromRow(row);
+          if (!orderData) return;
+
+          // Construire le message
+          const message = buildWhatsAppMessage(orderData);
+
+          // Demander le numéro WhatsApp
+          const phone = prompt(
+            '📲 Envoyer cette commande par WhatsApp.\n\nEntrez le numéro (sans le +, ex: 216XXXXXXXX) :',
+            '216'
+          );
+
+          // Si l'utilisateur annule ou laisse vide, on ne fait rien
+          if (!phone) return;
+
+          // Nettoyer le numéro (enlever espaces, tirets)
+          const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+
+          // Ouvrir WhatsApp Web (ou l'application)
+          const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+          window.open(whatsappUrl, '_blank');
+        });
+      });
+    });
+  })();
+</script>
 </body>
 </html>
+
 
