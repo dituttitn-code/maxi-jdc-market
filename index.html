@@ -4370,6 +4370,7 @@
       dashboardUrl: 'tools/tableau-de-bord.html',
       trackingUrl: 'tools/suivi-commandes.html',
       googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
+      // ✅ URL de l'API (celle fournie)
       commandeApiUrl: "https://script.google.com/macros/s/AKfycbybNnbVsCeefE1vfcwdoGCGblQ8i2NTyBv8A5Bd3Itri9Ouq3FOPNqXHETrWJwcqze3/exec",
     };
 
@@ -5967,230 +5968,77 @@
       $('orderHistorySection').classList.remove('visible');
     }
 
-    // ✅ Fonction pour afficher les commandes en cours
-    function afficherCommandesEnCours() {
-      if (!state.user || !state.user.phone) {
-        showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
-        $('clientAccountBtn').click();
-        return;
-      }
-      
-      // Nettoyer le numéro de téléphone (enlever les espaces)
-      const phoneClient = state.user.phone.replace(/\s+/g, '');
-      
-      // Filtrer les commandes en cours (statut différent de "Livré" et "Annulé")
-      const commandesEnCours = state.orderHistory.filter(order => 
-        order.clientPhone && 
-        order.clientPhone.replace(/\s+/g, '').includes(phoneClient) && 
-        order.statut !== 'Livré' && order.statut !== 'Annulé'
-      );
-      
-      // Trier par date (plus récent d'abord)
-      commandesEnCours.sort((a, b) => new Date(b.date) - new Date(a.date));
-      
-      if (commandesEnCours.length === 0) {
-        showToast('📭 Aucune commande en cours', 'warning');
-        return;
-      }
-      
-      // Afficher les commandes en cours
-      const historyItemsList = $('historyItemsList');
-      historyItemsList.innerHTML = '';
-      
-      commandesEnCours.forEach(order => {
-        const orderDate = new Date(order.date);
-        const formattedDate = orderDate.toLocaleDateString('fr-FR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-        const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
-        const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
-        
-        const historyItem = document.createElement('div');
-        historyItem.className = 'history-item';
-        historyItem.innerHTML = `
-          <div class="history-date">📅 ${formattedDate}</div>
-          <div class="history-summary">
-            <span class="history-items-count">${itemCount} article(s)</span>
-            <span class="history-total">${formatPrice(order.total)}</span>
-          </div>
-          ${orderSavings > 0 ? `
-            <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
-              💰 Économies: ${formatPrice(orderSavings)}
-            </div>
-          ` : ''}
-          ${order.orderId ? `
-            <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
-              📦 N°: ${order.orderId}
-            </div>
-          ` : ''}
-        `;
-        historyItem.addEventListener('click', () => {
-          showOrderDetails(order, true);
-        });
-        historyItemsList.appendChild(historyItem);
-      });
-      
-      $('orderHistorySection').classList.add('visible');
-      $('historyCount').textContent = `${commandesEnCours.length} commande(s) en cours`;
-      $('historyEmptyMessage').style.display = 'none';
-      
-      showToast(`📦 ${commandesEnCours.length} commande(s) en cours`);
-    }
-
-    // ✅ Fonction pour afficher l'historique des commandes (terminées)
-    function afficherHistoriqueCommandes() {
-      if (!state.user || !state.user.phone) {
-        showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
-        $('clientAccountBtn').click();
-        return;
-      }
-      
-      // Nettoyer le numéro de téléphone
-      const phoneClient = state.user.phone.replace(/\s+/g, '');
-      
-      // Filtrer les commandes terminées (statut "Livré" ou "Annulé")
-      const historique = state.orderHistory.filter(order => 
-        order.clientPhone && 
-        order.clientPhone.replace(/\s+/g, '').includes(phoneClient) && 
-        (order.statut === 'Livré' || order.statut === 'Annulé')
-      );
-      
-      // Trier par date (plus récent d'abord)
-      historique.sort((a, b) => new Date(b.date) - new Date(a.date));
-      
-      if (historique.length === 0) {
-        showToast('📭 Aucun historique trouvé', 'warning');
-        return;
-      }
-      
-      // Afficher l'historique
-      const historyItemsList = $('historyItemsList');
-      historyItemsList.innerHTML = '';
-      
-      historique.forEach(order => {
-        const orderDate = new Date(order.date);
-        const formattedDate = orderDate.toLocaleDateString('fr-FR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-        const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
-        const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
-        
-        const historyItem = document.createElement('div');
-        historyItem.className = 'history-item';
-        historyItem.innerHTML = `
-          <div class="history-date">📅 ${formattedDate}</div>
-          <div class="history-summary">
-            <span class="history-items-count">${itemCount} article(s)</span>
-            <span class="history-total">${formatPrice(order.total)}</span>
-          </div>
-          ${orderSavings > 0 ? `
-            <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
-              💰 Économies: ${formatPrice(orderSavings)}
-            </div>
-          ` : ''}
-          ${order.orderId ? `
-            <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
-              📦 N°: ${order.orderId}
-            </div>
-          ` : ''}
-        `;
-        historyItem.addEventListener('click', () => {
-          showOrderDetails(order, true);
-        });
-        historyItemsList.appendChild(historyItem);
-      });
-      
-      $('orderHistorySection').classList.add('visible');
-      $('historyCount').textContent = `${historique.length} commande(s) dans l'historique`;
-      $('historyEmptyMessage').style.display = 'none';
-      
-      showToast(`📜 ${historique.length} commande(s) dans l'historique`);
-    }
-
-    // ✅ Fonction pour charger l'historique par numéro de téléphone
-    function loadHistoryForPhone(phone) {
-      const cleanPhone = phone.replace(/\s+/g, '');
-      
-      // Filtrer toutes les commandes pour ce numéro
-      const userHistory = state.orderHistory.filter(order =>
-        order.clientPhone && 
-        order.clientPhone.replace(/\s+/g, '').includes(cleanPhone)
-      );
-      
-      return userHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-    }
-
     // ===================== FONCTIONS API =====================
     async function fetchUserOrdersFromAPI(phone) {
       const cleanPhone = phone.replace(/\s+/g, '');
       const url = `${CONFIG.commandeApiUrl}?method=getOrderHistory&telephone=${encodeURIComponent(cleanPhone)}&t=${Date.now()}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      if (data.success && data.history) {
-        return data.history;
-      } else {
-        throw new Error(data.error || 'Erreur inconnue');
+      console.log('📡 Appel API:', url);
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log('📦 Réponse API:', data);
+        if (data.success && data.history) {
+          return data.history;
+        } else {
+          console.error('❌ API Error:', data.error);
+          throw new Error(data.error || 'Erreur inconnue');
+        }
+      } catch (error) {
+        console.error('❌ Fetch error:', error);
+        throw error;
       }
     }
 
-  function renderHistoryFromAPI(orders) {
-  // ✅ Trier par date décroissante (la plus récente en premier)
-  const sorted = [...orders].sort((a, b) => new Date(b.date) - new Date(a.date));
+    function renderHistoryFromAPI(orders) {
+      // ✅ Trier par date décroissante (les plus récentes en premier)
+      const sorted = [...orders].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  const historyItemsList = $('historyItemsList');
-  const historyEmptyMessage = $('historyEmptyMessage');
-  const historyCount = $('historyCount');
-  const orderHistorySection = $('orderHistorySection');
-  
-  historyItemsList.innerHTML = '';
-  historyEmptyMessage.style.display = 'none';
-  orderHistorySection.classList.add('visible');
-  historyCount.textContent = `${sorted.length} commande(s)`;
-  
-  if (sorted.length === 0) {
-    historyEmptyMessage.style.display = 'block';
-    return;
-  }
-  
-  sorted.forEach(order => {
-    const orderDate = new Date(order.date);
-    const formattedDate = orderDate.toLocaleDateString('fr-FR', {
-      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-    
-    // Compter les lignes d'articles (sans l'en-tête)
-    const articlesLines = (order.articles || '')
-      .split('\n')
-      .filter(l => l.trim() && !l.startsWith('COMMANDE') && !l.startsWith('CMD-MAXI'))
-      .length;
-    const itemCount = articlesLines || 0;
-    
-    const historyItem = document.createElement('div');
-    historyItem.className = 'history-item';
-    historyItem.innerHTML = `
-      <div class="history-date">📅 ${formattedDate}</div>
-      <div class="history-summary">
-        <span class="history-items-count">${itemCount} article(s)</span>
-        <span class="history-total">${formatPrice(order.total)}</span>
-      </div>
-      <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
-        📦 N°: ${order.commande_id}
-      </div>
-    `;
-    historyItem.addEventListener('click', () => {
-      showOrderDetailsFromAPI(order);
-    });
-    historyItemsList.appendChild(historyItem);
-  });
-}
+      const historyItemsList = $('historyItemsList');
+      const historyEmptyMessage = $('historyEmptyMessage');
+      const historyCount = $('historyCount');
+      const orderHistorySection = $('orderHistorySection');
+      
+      historyItemsList.innerHTML = '';
+      historyEmptyMessage.style.display = 'none';
+      orderHistorySection.classList.add('visible');
+      historyCount.textContent = `${sorted.length} commande(s)`;
+      
+      if (sorted.length === 0) {
+        historyEmptyMessage.style.display = 'block';
+        return;
+      }
+      
+      sorted.forEach(order => {
+        const orderDate = new Date(order.date);
+        const formattedDate = orderDate.toLocaleDateString('fr-FR', {
+          day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        
+        // Compter les lignes d'articles (sans l'en-tête)
+        const articlesLines = (order.articles || '')
+          .split('\n')
+          .filter(l => l.trim() && !l.startsWith('COMMANDE') && !l.startsWith('CMD-MAXI'))
+          .length;
+        const itemCount = articlesLines || 0;
+        
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+          <div class="history-date">📅 ${formattedDate}</div>
+          <div class="history-summary">
+            <span class="history-items-count">${itemCount} article(s)</span>
+            <span class="history-total">${formatPrice(order.total)}</span>
+          </div>
+          <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
+            📦 N°: ${order.commande_id}
+          </div>
+        `;
+        historyItem.addEventListener('click', () => {
+          showOrderDetailsFromAPI(order);
+        });
+        historyItemsList.appendChild(historyItem);
+      });
+    }
 
     function showOrderDetailsFromAPI(order) {
       const orderDetails = $('orderDetails');
@@ -6247,6 +6095,66 @@
           showToast('❌ Erreur de chargement', 'error');
         }
       };
+    }
+
+    // ===================== FONCTION POUR CONSTRUIRE LE TEXTE DE LA COMMANDE =====================
+    function buildOrderDetailsText(orderData, cart, user) {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('fr-FR', {
+        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+      
+      let text = `📦 COMMANDE - MAXI JDC MARKET\n`;
+      text += `📅 ${dateStr}\n\n`;
+      
+      text += `👤 CLIENT\n`;
+      text += `Nom: ${user.name}\n`;
+      text += `Téléphone: +216 ${user.phone}\n`;
+      text += `Adresse: ${user.address}\n`;
+      if (user.lat && user.lng) {
+        text += `📍 GPS: ${user.lat}, ${user.lng}\n`;
+        text += `🗺️ Lien Maps: https://maps.google.com/?q=${user.lat},${user.lng}\n`;
+      } else {
+        // Si pas de GPS, créer un lien avec l'adresse
+        const encodedAddress = encodeURIComponent(user.address);
+        text += `🗺️ Lien Maps: https://www.google.com/maps/search/?api=1&query=${encodedAddress}\n`;
+      }
+      
+      text += `\n🛒 ARTICLES\n`;
+      text += '─'.repeat(50) + '\n';
+      
+      let subtotal = 0;
+      Object.values(cart).forEach(item => {
+        const itemTotal = item.price * item.quantity;
+        subtotal += itemTotal;
+        text += `${item.quantity}x ${item.name} (${item.code})\n`;
+        text += ` ${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(itemTotal)}\n`;
+        if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
+          const saving = (item.oldPrice - item.price) * item.quantity;
+          text += ` 💰 Économie: ${formatPrice(saving)}`;
+          if (item.discountPercent) text += ` (-${item.discountPercent}%)`;
+          text += `\n`;
+        }
+      });
+      
+      text += '─'.repeat(50) + '\n';
+      text += `Sous-total: ${formatPrice(subtotal)}\n`;
+      
+      const shipping = orderData.shipping;
+      text += `Livraison: ${shipping === 0 ? 'GRATUIT' : formatPrice(shipping)}\n`;
+      text += `TOTAL: ${formatPrice(orderData.total)}\n\n`;
+      
+      text += `🕒 Heures: 7h - 1h\n`;
+      text += `📱 WhatsApp: +216 25 600 978\n`;
+      
+      return text;
+    }
+
+    function envoyerWhatsappLivreur(message) {
+      const livreurNumber = "21625600978"; // 0021625600978 sans le 00
+      const url = `https://wa.me/${livreurNumber}?text=${encodeURIComponent(message)}`;
+      // Ouvrir dans un nouvel onglet
+      window.open(url, '_blank');
     }
 
     function openStockManagement() {
@@ -6490,12 +6398,13 @@
     }
 
     function renderHistory(history) {
+      const sorted = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
       const historyItemsList = $('historyItemsList');
       const historyEmptyMessage = $('historyEmptyMessage');
       const historyCount = $('historyCount');
       const orderHistorySection = $('orderHistorySection');
       
-      if (!history || history.length === 0) {
+      if (!sorted || sorted.length === 0) {
         historyItemsList.innerHTML = '';
         historyEmptyMessage.style.display = 'block';
         historyCount.textContent = '0 commande(s)';
@@ -6504,10 +6413,10 @@
       
       historyEmptyMessage.style.display = 'none';
       orderHistorySection.classList.add('visible');
-      historyCount.textContent = `${history.length} commande(s)`;
+      historyCount.textContent = `${sorted.length} commande(s)`;
       historyItemsList.innerHTML = '';
       
-      history.forEach(order => {
+      sorted.forEach(order => {
         const orderDate = new Date(order.date);
         const formattedDate = orderDate.toLocaleDateString('fr-FR', {
           day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -6871,91 +6780,91 @@
       }
     }
 
-    // ✅ Nouveau message de confirmation simplifié
-    function envoyerMessageClient(commandeId, result) {
-      const message = `✅ Commande Enregistrée
-      
+ function envoyerMessageClient(commandeId, result) {
+  // Message épuré (sans les lignes "📋 Copier" et "✅ OK")
+  const message = `✅ Commande Enregistrée
+
 Merci pour votre commande chez MAXI JDC MARKET.
 
 📦 Votre commande, référencée sous le numéro ${commandeId}, a bien été enregistrée.
 ⏳ Elle est actuellement en cours de préparation.
 📞 Nous vous contacterons prochainement pour la livraison.
 
-Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de commande, puis saisissez votre numéro de téléphone.
+Pour consulter vos commandes et leur historique, accédez à Panier > Espace Client > Suivi & Historique.
 
 ⚠️ CONSERVEZ CE NUMÉRO : ${commandeId}`;
-      
-      const modal = document.createElement('div');
-      modal.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, #0a1929 0%, #112240 100%);
-        border: 3px solid var(--accent);
-        border-radius: 20px;
-        padding: 30px;
-        z-index: 9999;
-        max-width: 90%;
-        width: 400px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-        color: var(--text);
-        font-family: inherit;
-      `;
-      
-      modal.innerHTML = `
-        <h3 style="color: var(--accent); margin-top: 0; text-align: center;">✅ Commande Enregistrée</h3>
-        <div style="white-space: pre-line; margin: 20px 0; font-size: 14px; line-height: 1.5;">${message}</div>
-        <div style="display: flex; gap: 10px; justify-content: center;">
-          <button id="copyMsgBtn" style="
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: 2px solid var(--accent2);
-            background: rgba(0, 212, 255, 0.1);
-            color: var(--accent2);
-            cursor: pointer;
-            font-weight: 700;
-          ">📋 Copier</button>
-          <button id="closeMsgBtn" style="
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: 2px solid var(--accent);
-            background: rgba(0, 255, 136, 0.1);
-            color: var(--accent);
-            cursor: pointer;
-            font-weight: 700;
-          ">✅ OK</button>
-        </div>
-      `;
-      
-      document.body.appendChild(modal);
-      
-      const overlay = document.createElement('div');
-      overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.9);
-        z-index: 9998;
-      `;
-      document.body.appendChild(overlay);
-      
-      modal.querySelector('#copyMsgBtn').onclick = () => {
-        navigator.clipboard.writeText(message).then(() => {
-          showToast('📋 Message copié dans le presse-papier');
-        });
-      };
-      
-      const closeModal = () => {
-        document.body.removeChild(modal);
-        document.body.removeChild(overlay);
-      };
-      
-      modal.querySelector('#closeMsgBtn').onclick = closeModal;
-      overlay.onclick = closeModal;
-    }
+
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #0a1929 0%, #112240 100%);
+    border: 3px solid var(--accent);
+    border-radius: 20px;
+    padding: 30px;
+    z-index: 9999;
+    max-width: 90%;
+    width: 400px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    color: var(--text);
+    font-family: inherit;
+  `;
+  
+  modal.innerHTML = `
+    <h3 style="color: var(--accent); margin-top: 0; text-align: center;">✅ Commande Enregistrée</h3>
+    <div style="white-space: pre-line; margin: 20px 0; font-size: 14px; line-height: 1.5;">${message}</div>
+    <div style="display: flex; gap: 10px; justify-content: center;">
+      <button id="copyMsgBtn" style="
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: 2px solid var(--accent2);
+        background: rgba(0, 212, 255, 0.1);
+        color: var(--accent2);
+        cursor: pointer;
+        font-weight: 700;
+      ">📋 Copier</button>
+      <button id="closeMsgBtn" style="
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: 2px solid var(--accent);
+        background: rgba(0, 255, 136, 0.1);
+        color: var(--accent);
+        cursor: pointer;
+        font-weight: 700;
+      ">✅ OK</button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 9998;
+  `;
+  document.body.appendChild(overlay);
+  
+  modal.querySelector('#copyMsgBtn').onclick = () => {
+    navigator.clipboard.writeText(message).then(() => {
+      showToast('📋 Message copié dans le presse-papier');
+    });
+  };
+  
+  const closeModal = () => {
+    document.body.removeChild(modal);
+    document.body.removeChild(overlay);
+  };
+  
+  modal.querySelector('#closeMsgBtn').onclick = closeModal;
+  overlay.onclick = closeModal;
+}
 
     // ===================== COMMANDES =====================
     async function placeOrder() {
@@ -7088,6 +6997,12 @@ Pour suivre votre commande, accédez à Panier > Espace Client > Suivi de comman
         
         console.log("📦 Numéro final utilisé:", commandeId);
         console.log("📌 Statut final:", statut);
+        
+        // ✅ Construire le texte détaillé de la commande pour WhatsApp
+        const detailsText = buildOrderDetailsText(orderData, state.cart, state.user);
+        
+        // ✅ Envoyer les détails par WhatsApp au livreur
+        envoyerWhatsappLivreur(detailsText);
         
         // Créer l'entrée d'historique avec les bonnes informations
         createHistoryEntry(orderData, { commande_id: commandeId, statut });
