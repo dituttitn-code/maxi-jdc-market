@@ -864,18 +864,7 @@
       const askSend = confirm('Voulez-vous envoyer cette commande vers WhatsApp ?\n\nCommande : ' + (order.commande_id || 'N/A'));
       if (!askSend) return;
 
-      const phone = prompt('À quel numéro WhatsApp envoyer cette commande ?\n\nExemple : 21655532482 ou 55532482');
-      if (phone === null) return;
-
-      const phoneNormalized = normalizeWhatsAppPhone(phone);
-      if (!phoneNormalized) {
-        alert('Numéro WhatsApp invalide.');
-        return;
-      }
-
-      const message = buildWhatsAppOrderMessage(order);
-      const whatsappUrl = `https://wa.me/${phoneNormalized}?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, '_blank');
+      showWhatsAppPhoneModal(order);
     }
 
     async function loadData() {
@@ -1350,7 +1339,95 @@
       }
     }
 
+    function ensureWhatsAppPhoneModal() {
+      if (document.getElementById('whatsappPhoneModal')) return;
+
+      const modal = document.createElement('div');
+      modal.id = 'whatsappPhoneModal';
+      modal.style.cssText = `
+        position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+        background:rgba(0,0,0,.55); z-index:100000; padding:16px;
+      `;
+
+      modal.innerHTML = `
+        <div style="width:min(420px,100%); background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:16px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;">
+            <div>
+              <div style="font-size:15px; font-weight:900; color:var(--green);">Envoyer vers WhatsApp</div>
+              <div style="font-size:11px; color:var(--muted);">Saisir un numéro au format téléphone</div>
+            </div>
+            <button id="waModalClose" class="btn" type="button"><i class="fas fa-times"></i></button>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <label for="waPhoneInput" style="font-size:12px; font-weight:700; color:var(--txt);">Numéro WhatsApp</label>
+            <input
+              id="waPhoneInput"
+              type="tel"
+              inputmode="tel"
+              autocomplete="tel"
+              placeholder="Ex: 21655532482 ou 55532482"
+              style="width:100%; padding:12px; border:1px solid var(--line); border-radius:8px; background:rgba(255,255,255,.08); color:var(--txt); font-size:15px;"
+            />
+            <div style="font-size:11px; color:var(--muted);">Sur mobile, le clavier téléphone s’ouvre automatiquement.</div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+            <button id="waModalCancel" class="btn" type="button">Annuler</button>
+            <button id="waModalSend" class="btn" type="button"><i class="fab fa-whatsapp"></i> Envoyer</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      const closeModal = () => {
+        modal.style.display = 'none';
+        modal.dataset.order = '';
+      };
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      modal.querySelector('#waModalClose').addEventListener('click', closeModal);
+      modal.querySelector('#waModalCancel').addEventListener('click', closeModal);
+
+      modal.querySelector('#waModalSend').addEventListener('click', () => {
+        const input = modal.querySelector('#waPhoneInput');
+        const rawPhone = input.value;
+        const phoneNormalized = normalizeWhatsAppPhone(rawPhone);
+
+        if (!phoneNormalized) {
+          input.focus();
+          showToast('❌ Numéro WhatsApp invalide', 'error');
+          return;
+        }
+
+        const order = JSON.parse(modal.dataset.order || '{}');
+        const message = buildWhatsAppOrderMessage(order);
+        const whatsappUrl = `https://wa.me/${phoneNormalized}?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
+        closeModal();
+      });
+
+      modal.querySelector('#waPhoneInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') modal.querySelector('#waModalSend').click();
+      });
+    }
+
+    function showWhatsAppPhoneModal(order) {
+      ensureWhatsAppPhoneModal();
+      const modal = document.getElementById('whatsappPhoneModal');
+      const input = document.getElementById('waPhoneInput');
+      modal.dataset.order = JSON.stringify(order || {});
+      input.value = '';
+      modal.style.display = 'flex';
+      setTimeout(() => input.focus(), 50);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+      ensureWhatsAppPhoneModal();
       initCharts();
 
       $('statusSelector').addEventListener('change', () => {
