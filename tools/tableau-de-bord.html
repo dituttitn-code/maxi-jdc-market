@@ -102,6 +102,7 @@
       gap:6px; 
       align-items:center; 
       font-size:12px;
+      text-decoration: none;
     }
     
     .btn:hover{transform:translateY(-1px); border-color:var(--blue); background:rgba(255,255,255,.15)}
@@ -400,6 +401,14 @@
     }
     
     tr:hover{background:rgba(255,255,255,.05)}
+
+    .clickable-order-row {
+      cursor: pointer;
+    }
+
+    .clickable-order-row:hover {
+      background: rgba(0, 212, 255, 0.08);
+    }
     
     td:nth-child(4) { min-width: 200px; }
     td:nth-child(5) { min-width: 140px; }
@@ -813,7 +822,6 @@
       showToast._t = setTimeout(() => el.classList.remove("show"), 2600);
     }
 
-    // ✅ CORRECTION: Format prix avec 3 chiffres après la virgule
     function formatPrice(amount) {
       const num = parseFloat(String(amount || '0').replace(',', '.')) || 0;
       return num.toFixed(3).replace('.', ',') + ' dt';
@@ -904,6 +912,118 @@
         .sort((a,b)=> b.quantity - a.quantity)
         .slice(0,10)
         .map(p => ({ name: p.name, quantity: Math.round(p.quantity), revenue: Number(p.revenue.toFixed(3)) }));
+    }
+
+    function normalizeWhatsAppPhone(phone) {
+      let p = String(phone || "").replace(/\D/g, "");
+      if (!p) return "";
+
+      if (p.startsWith("00")) {
+        p = p.substring(2);
+      }
+
+      if (p.length === 8) {
+        p = "216" + p;
+      }
+
+      if (p.length < 11) return "";
+      return p;
+    }
+
+    function normalizeDisplayedTotal(value) {
+      const n = parseFloat(String(value || "0").replace(",", ".")) || 0;
+      return n.toFixed(3).replace(".", ",");
+    }
+
+    function extractGpsFromAddressText(text) {
+      const s = String(text || "");
+      const gpsMatch1 = s.match(/GPS:\s*([0-9.-]+)\s*,\s*([0-9.-]+)/i);
+      if (gpsMatch1) return `${gpsMatch1[1]}, ${gpsMatch1[2]}`;
+
+      const gpsMatch2 = s.match(/([0-9.-]+)\s*,\s*([0-9.-]+)/);
+      if (gpsMatch2) return `${gpsMatch2[1]}, ${gpsMatch2[2]}`;
+
+      return "";
+    }
+
+    function formatArticlesForWhatsapp(articlesText) {
+      const text = String(articlesText || "").replace(/\r/g, "").trim();
+      if (!text) return "AUCUN ARTICLE";
+
+      const lines = text.split("\n").map(line => String(line || "").trim()).filter(Boolean);
+      if (!lines.length) return "AUCUN ARTICLE";
+
+      return lines.join("\n");
+    }
+
+    function buildWhatsAppOrderMessage(order) {
+      const dateText = safeText(order.date);
+      const nom = safeText(order.nom) || "Client";
+      const telephone = safeText(order.telephone);
+      const adresse = safeText(order.adresse) || "Adresse non fournie";
+      const articles = formatArticlesForWhatsapp(order.articles || "");
+      const total = normalizeDisplayedTotal(order.total || "0");
+      const gps = extractGpsFromAddressText(adresse);
+
+      let gpsLine = "";
+      if (gps) {
+        gpsLine = `\n📍 GPS: ${gps}`;
+      }
+
+      return `📋 Détails de votre commande
+
+📦 COMMANDE - MAXI JDC MARKET
+📅 ${dateText}
+
+👤 CLIENT
+Nom: ${nom}
+Téléphone: ${telephone}
+Adresse: ${adresse}${gpsLine}
+
+🛒 ARTICLES
+──────────────────────────────────────────────────
+${articles}
+──────────────────────────────────────────────────
+TOTAL: ${total} dt
+
+🕒 Heures: 7h - 1h
+📱 WhatsApp: +216 25 600 978`;
+    }
+
+    function sendOrderToWhatsApp(order) {
+      const askSend = confirm(
+        "Voulez-vous envoyer cette ligne du tableau de bord vers WhatsApp ?\n\nCommande : " +
+        (order.commande_id || "N/A")
+      );
+
+      if (!askSend) return;
+
+      const phone = prompt(
+        "À quel numéro WhatsApp envoyer cette commande ?\n\nExemple : 21655532482 ou 55532482"
+      );
+
+      if (phone === null) return;
+
+      const phoneNormalized = normalizeWhatsAppPhone(phone);
+
+      if (!phoneNormalized) {
+        alert("Numéro WhatsApp invalide.");
+        return;
+      }
+
+      const confirmSend = confirm(
+        "Confirmer l'envoi de la commande " +
+        (order.commande_id || "N/A") +
+        "\nvers le numéro WhatsApp : " +
+        phoneNormalized +
+        " ?"
+      );
+
+      if (!confirmSend) return;
+
+      const message = buildWhatsAppOrderMessage(order);
+      const whatsappUrl = "https://wa.me/" + phoneNormalized + "?text=" + encodeURIComponent(message);
+      window.open(whatsappUrl, "_blank");
     }
 
     async function loadData() {
@@ -1031,7 +1151,6 @@
       } else {
         sortedOrders.slice(0, 50).forEach(order => {
           const statut = order.statut || "🟡 NOUVELLE";
-          
           const articlesText = order.articles ? safeText(order.articles).replace(/\n/g, '<br>') : '';
           
           const d = parseOrderDate(order.date);
@@ -1051,6 +1170,9 @@
           }
 
           const tr = document.createElement("tr");
+          tr.className = "clickable-order-row";
+          tr.title = "Cliquer pour envoyer cette commande vers WhatsApp";
+
           tr.innerHTML = `
             <td>${dateStr}</td>
             <td><strong>${safeText(order.nom).substring(0,15)}</strong></td>
@@ -1060,11 +1182,41 @@
             <td class="articles-cell">${articlesText}</td>
             <td><strong>${formatPrice(order.total)}</strong></td>
             <td>
-              <select class="statut-select" onchange="updateOrderStatus('${order.commande_id}', this.value)">
+              <select class="statut-select">
                 ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${s.substring(0,8)}</option>`).join("")}
               </select>
             </td>
           `;
+
+          const select = tr.querySelector(".statut-select");
+          select.addEventListener("click", function(e) {
+            e.stopPropagation();
+          });
+          select.addEventListener("change", function(e) {
+            e.stopPropagation();
+            updateOrderStatus(order.commande_id, this.value);
+          });
+
+          const addressAnchor = tr.querySelector(".address-link");
+          if (addressAnchor) {
+            addressAnchor.addEventListener("click", function(e) {
+              e.stopPropagation();
+            });
+          }
+
+          tr.addEventListener("click", function() {
+            sendOrderToWhatsApp({
+              date: dateStr,
+              nom: order.nom,
+              telephone: order.telephone,
+              adresse: order.adresse,
+              commande_id: order.commande_id,
+              articles: order.articles,
+              total: order.total,
+              statut: order.statut
+            });
+          });
+
           allOrdersBody.appendChild(tr);
         });
       }
