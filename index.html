@@ -6356,12 +6356,12 @@ background:#ff4d4d;
 function getStatusClass(status) {
   const s = String(status || "").toUpperCase();
 
-  if (s.includes("ANNUL")) return "status-cancel";
-  if (s.includes("LIVRÉE") || s.includes("LIVREE")) return "status-done";
-  if (s.includes("EN LIVRAISON")) return "status-delivery";
-  if (s.includes("PRÉPARATION") || s.includes("PREPARATION")) return "status-prep";
-  if (s.includes("ATTENTE")) return "status-wait";
-  if (s.includes("NOUVELLE")) return "status-new";
+  if (s.includes("❌") || s.includes("ANNUL")) return "status-cancel";
+  if (s.includes("✅") || s.includes("LIVRÉE") || s.includes("LIVREE")) return "status-done";
+  if (s.includes("🟠") || s.includes("EN LIVRAISON")) return "status-delivery";
+  if (s.includes("🔵") || s.includes("PRÉPARATION") || s.includes("PREPARATION")) return "status-prep";
+  if (s.includes("⏳") || s.includes("ATTENTE")) return "status-wait";
+  if (s.includes("🟡") || s.includes("NOUVELLE")) return "status-new";
 
   return "status-new";
 }
@@ -6371,18 +6371,16 @@ function getStatusClass(status) {
 /* ============================= */
 
 function getTrackingStep(status) {
-
   const s = String(status || "").toUpperCase();
 
-  if (s.includes("ANNUL")) return "cancelled";
-  if (s.includes("LIVRÉE") || s.includes("LIVREE")) return 4;
-  if (s.includes("EN LIVRAISON")) return 3;
-  if (s.includes("PRÉPARATION") || s.includes("PREPARATION")) return 2;
-  if (s.includes("ATTENTE")) return 1;
-  if (s.includes("NOUVELLE")) return 1;
+  if (s.includes("❌") || s.includes("ANNUL")) return "cancelled";
+  if (s.includes("✅") || s.includes("LIVRÉE") || s.includes("LIVREE")) return 4;
+  if (s.includes("🟠") || s.includes("EN LIVRAISON")) return 3;
+  if (s.includes("🔵") || s.includes("PRÉPARATION") || s.includes("PREPARATION")) return 2;
+  if (s.includes("⏳") || s.includes("ATTENTE")) return 1;
+  if (s.includes("🟡") || s.includes("NOUVELLE")) return 1;
 
   return 1;
-
 }
 
 function buildOrderTrackingHTML(status) {
@@ -7707,6 +7705,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
