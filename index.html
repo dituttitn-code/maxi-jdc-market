@@ -6354,9 +6354,15 @@ background:#ff4d4d;
 }
 
 function getStatusClass(status) {
-  if (!status) return "status-new";
-  if (status.includes("ANNUL")) return "status-cancel";
-  if (status.includes("LIVR")) return "status-done";
+  const s = String(status || "").toUpperCase();
+
+  if (s.includes("ANNUL")) return "status-cancel";
+  if (s.includes("LIVRÉE") || s.includes("LIVREE")) return "status-done";
+  if (s.includes("EN LIVRAISON")) return "status-delivery";
+  if (s.includes("PRÉPARATION") || s.includes("PREPARATION")) return "status-prep";
+  if (s.includes("ATTENTE")) return "status-wait";
+  if (s.includes("NOUVELLE")) return "status-new";
+
   return "status-new";
 }
 
@@ -7711,6 +7717,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
