@@ -4578,31 +4578,46 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <script>
-    // ===================== CONFIGURATION =====================
-    const CONFIG = {
-      minOrder: 15,
-      freeShipping: 100,
-      shippingFee: 3,
-      whatsappNumber: "21625600978",
-      itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v42',
-      imagesBasePath: 'images/products/',
-      historyRetentionYears: 2,
-      adminPasswordKey: 'maxi_jdc_admin_password',
-      syncStorageKey: 'maxi_jdc_sync_data',
-      qrCodeUrl: window.location.href,
-      adminPassword: "admin123",
-      storeLocation: {
-        lat: 36.851234,
-        lng: 10.301234
-      },
-      syncInterval: 30000,
-      dashboardUrl: 'tools/tableau-de-bord.html',
-      trackingUrl: 'tools/suivi-commandes.html',
-      googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
-      commandeApiUrl: "https://script.google.com/macros/s/AKfycbz9ztyd8kQz8VC4r9RKZqDU8rz79nRwZsYDuY26Os0wjZLdn70xTZX7N52FaUCptw9q/exec",
-    };
+  // ===================== CONFIGURATION =====================
+const CONFIG = {
+  minOrder: 15,
+  freeShipping: 100,
+  shippingFee: 3,
+  whatsappNumber: "21625600978",
+  itemsPerPage: 24,
+  localStorageKey: 'maxi_jdc_market_app_v42',
+  imagesBasePath: 'images/products/',
+  historyRetentionYears: 2,
+  adminPasswordKey: 'maxi_jdc_admin_password',
+  syncStorageKey: 'maxi_jdc_sync_data',
+  qrCodeUrl: window.location.href,
+  adminPassword: "admin123",
+  storeLocation: {
+    lat: 36.851234,
+    lng: 10.301234
+  },
+  syncInterval: 30000,
+  dashboardUrl: 'tools/tableau-de-bord.html',
+  trackingUrl: 'tools/suivi-commandes.html',
+  googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
+  commandeApiUrl: "https://script.google.com/macros/s/AKfycbz9ztyd8kQz8VC4r9RKZqDU8rz79nRwZsYDuY26Os0wjZLdn70xTZX7N52FaUCptw9q/exec",
+};
 
+// ===================== BOUTON ACTUALISER =====================
+document.addEventListener("DOMContentLoaded", function () {
+  const refreshBtn = document.getElementById("refreshOrderBtn");
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", function () {
+      refreshBtn.disabled = true;
+      refreshBtn.innerHTML = "⏳ Actualisation...";
+
+      setTimeout(() => {
+        location.reload();
+      }, 400);
+    });
+  }
+});
     // ===================== STATUTS =====================
     const ORDER_STATUSES = {
       "🟡 NOUVELLE": { emoji: "🟡", label: "Nouvelle" },
@@ -7788,6 +7803,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
