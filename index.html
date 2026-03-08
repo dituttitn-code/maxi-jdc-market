@@ -6223,6 +6223,14 @@ border:1px solid #FFD700;
   });
 }
 
+function getStatusClass(status) {
+  if (!status) return "status-new";
+  if (status.includes("ANNUL")) return "status-cancel";
+  if (status.includes("LIVR")) return "status-done";
+  return "status-new";
+}
+
+                 
     function showOrderDetailsFromAPI(order) {
       const orderDetails = $('orderDetails');
       let detailsText = `📦 COMMANDE #${order.commande_id}\n`;
@@ -7482,6 +7490,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
