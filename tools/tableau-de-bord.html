@@ -914,66 +914,77 @@
         .map(p => ({ name: p.name, quantity: Math.round(p.quantity), revenue: Number(p.revenue.toFixed(3)) }));
     }
 
-    function normalizeWhatsAppPhone(phone) {
-      let p = String(phone || "").replace(/\D/g, "");
-      if (!p) return "";
+    function normalizeClientPhoneForWhatsApp(phone) {
+  let p = String(phone || "").trim();
 
-      if (p.startsWith("00")) {
-        p = p.substring(2);
-      }
+  // garder le + si présent au début, supprimer espaces/tirets/parenthèses
+  p = p.replace(/[^\d+]/g, "");
 
-      if (p.length === 8) {
-        p = "216" + p;
-      }
+  // si le + n'est pas au début, on l'enlève
+  if (p.indexOf("+") > 0) {
+    p = p.replace(/\+/g, "");
+  }
 
-      if (p.length < 11) return "";
-      return p;
+  // si numéro local tunisien sur 8 chiffres => +216
+  const digitsOnly = p.replace(/\D/g, "");
+  if (!p.startsWith("+") && digitsOnly.length === 8) {
+    return "+216 " + digitsOnly.slice(0, 2) + " " + digitsOnly.slice(2, 5) + " " + digitsOnly.slice(5);
+  }
+
+  // si 216xxxxxxxx sans +
+  if (!p.startsWith("+") && digitsOnly.length === 11 && digitsOnly.startsWith("216")) {
+    return "+216 " + digitsOnly.slice(3, 5) + " " + digitsOnly.slice(5, 8) + " " + digitsOnly.slice(8);
+  }
+
+  // si déjà +216xxxxxxxx
+  if (p.startsWith("+216")) {
+    const d = p.replace(/\D/g, "");
+    if (d.length === 11) {
+      return "+216 " + d.slice(3, 5) + " " + d.slice(5, 8) + " " + d.slice(8);
     }
+  }
 
-    function normalizeDisplayedTotal(value) {
-      const n = parseFloat(String(value || "0").replace(",", ".")) || 0;
-      return n.toFixed(3).replace(".", ",");
-    }
+  // fallback
+  if (p.startsWith("+")) return p;
+  return digitsOnly;
+}
 
-    function extractGpsFromAddressText(text) {
-      const s = String(text || "");
-      const gpsMatch1 = s.match(/GPS:\s*([0-9.-]+)\s*,\s*([0-9.-]+)/i);
-      if (gpsMatch1) return `${gpsMatch1[1]}, ${gpsMatch1[2]}`;
+function extractGpsFromAddressText(text) {
+  const s = String(text || "");
 
-      const gpsMatch2 = s.match(/([0-9.-]+)\s*,\s*([0-9.-]+)/);
-      if (gpsMatch2) return `${gpsMatch2[1]}, ${gpsMatch2[2]}`;
+  const m1 = s.match(/GPS:\s*([0-9.-]+)\s*,\s*([0-9.-]+)/i);
+  if (m1) return `${m1[1]},${m1[2]}`;
 
-      return "";
-    }
+  const m2 = s.match(/([0-9]{1,3}\.[0-9]+)\s*,\s*([0-9]{1,3}\.[0-9]+)/);
+  if (m2) return `${m2[1]},${m2[2]}`;
 
-    function formatArticlesForWhatsapp(articlesText) {
-      const text = String(articlesText || "").replace(/\r/g, "").trim();
-      if (!text) return "AUCUN ARTICLE";
+  return "";
+}
 
-      const lines = text.split("\n").map(line => String(line || "").trim()).filter(Boolean);
-      if (!lines.length) return "AUCUN ARTICLE";
+function cleanAddressForWhatsApp(address) {
+  return String(address || "")
+    .replace(/\s*\|\s*GPS\s*:\s*[0-9.-]+\s*,\s*[0-9.-]+/i, "")
+    .replace(/\s*GPS\s*:\s*[0-9.-]+\s*,\s*[0-9.-]+/i, "")
+    .trim();
+}
 
-      return lines.join("\n");
-    }
-
-  function buildWhatsAppOrderMessage(order) {
-
+function buildWhatsAppOrderMessage(order) {
   const dateText = safeText(order.date);
   const nom = safeText(order.nom) || "Client";
-
-  const phoneRaw = String(order.telephone || "");
-  const phoneFormatted = phoneRaw.replace(/\s+/g, "");
-
-  const adresse = safeText(order.adresse) || "Adresse non fournie";
-
+  const telephone = normalizeClientPhoneForWhatsApp(order.telephone || "");
+  const adresseBrute = safeText(order.adresse) || "Adresse non fournie";
+  const adresse = cleanAddressForWhatsApp(adresseBrute);
   const articles = formatArticlesForWhatsapp(order.articles || "");
   const total = normalizeDisplayedTotal(order.total || "0");
+  const gps = extractGpsFromAddressText(adresseBrute);
 
-  const gps = extractGpsFromAddressText(adresse);
-
-  let gpsLink = "";
+  let localisationBlock = "";
   if (gps) {
-    gpsLink = `\n📍 Localisation: https://maps.google.com/?q=${gps}`;
+    // lien brut pour que WhatsApp le reconnaisse et le rende cliquable
+    localisationBlock = `
+
+Localisation Google Maps:
+https://maps.google.com/?q=${gps}`;
   }
 
   return `📋 Détails de votre commande
@@ -983,8 +994,8 @@
 
 👤 CLIENT
 Nom: ${nom}
-Téléphone: ${phoneFormatted}
-Adresse: ${adresse}${gpsLink}
+Téléphone: ${telephone}
+Adresse: ${adresse}${localisationBlock}
 
 🛒 ARTICLES
 ──────────────────────────────────
@@ -993,7 +1004,7 @@ ${articles}
 TOTAL: ${total} dt
 
 🕒 Heures: 7h - 1h
-📱 WhatsApp: +21625600978`;
+📱 WhatsApp magasin: +216 25 600 978`;
 }
     function sendOrderToWhatsApp(order) {
       const askSend = confirm(
