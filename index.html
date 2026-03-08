@@ -8,166 +8,161 @@
   <meta name="apple-mobile-web-app-title" content="MAXI JDC MARKET" />
   <meta name="theme-color" content="#0a1929" />
   <title>MAXI JDC MARKET --- Application Mobile</title>
-  
-  <!-- Manifest P
-  
+
   <!-- Manifest PWA -->
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  
+
   <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
- 
- <style>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
 
-/* ============================= */
-/* BADGE STATUT COMMANDE */
-/* ============================= */
+  <style>
+    /* ============================= */
+    /* BADGE STATUT COMMANDE */
+    /* ============================= */
 
-.order-status-badge{
-display:inline-block;
-padding:6px 12px;
-border-radius:20px;
-font-weight:900;
-font-size:13px;
-margin-left:6px;
-}
+    .order-status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 900;
+      font-size: 13px;
+      margin-left: 6px;
+    }
 
-.status-cancel{
-background:rgba(255,0,0,0.15);
-color:#ff4d4d;
-border:1px solid #ff4d4d;
-}
+    .status-cancel {
+      background: rgba(255, 0, 0, 0.15);
+      color: #ff4d4d;
+      border: 1px solid #ff4d4d;
+    }
 
-.status-done{
-background:rgba(0,255,136,0.15);
-color:#00ff88;
-border:1px solid #00ff88;
-}
+    .status-done {
+      background: rgba(0, 255, 136, 0.15);
+      color: #00ff88;
+      border: 1px solid #00ff88;
+    }
 
-.status-new{
-background:rgba(255,215,0,0.15);
-color:#FFD700;
-border:1px solid #FFD700;
-}
+    .status-new {
+      background: rgba(255, 215, 0, 0.15);
+      color: #ffd700;
+      border: 1px solid #ffd700;
+    }
 
-/* ============================= */
-/* TIMELINE SUIVI COMMANDE */
-/* ============================= */
+    /* ============================= */
+    /* TIMELINE SUIVI COMMANDE */
+    /* ============================= */
 
-.order-tracking{
-margin:14px 0 10px;
-padding:12px;
-border:1px solid rgba(255,255,255,0.15);
-border-radius:12px;
-background:rgba(255,255,255,0.04);
-}
+    .order-tracking {
+      margin: 14px 0 10px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+    }
 
-.order-tracking-title{
-font-size:12px;
-font-weight:800;
-color:#00d4ff;
-margin-bottom:10px;
-}
+    .order-tracking-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #00d4ff;
+      margin-bottom: 10px;
+    }
 
-.order-tracking-steps{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:8px;
-align-items:start;
-}
+    .order-tracking-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      align-items: start;
+    }
 
-.track-step{
-position:relative;
-text-align:center;
-}
+    .track-step {
+      position: relative;
+      text-align: center;
+    }
 
-.track-step::before{
-content:"";
-position:absolute;
-top:12px;
-left:-50%;
-width:100%;
-height:3px;
-background:rgba(255,255,255,0.12);
-z-index:0;
-}
+    .track-step::before {
+      content: "";
+      position: absolute;
+      top: 12px;
+      left: -50%;
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.12);
+      z-index: 0;
+    }
 
-.track-step:first-child::before{
-display:none;
-}
+    .track-step:first-child::before {
+      display: none;
+    }
 
-.track-dot{
-position:relative;
-z-index:1;
-width:24px;
-height:24px;
-margin:0 auto 8px;
-border-radius:50%;
-border:2px solid rgba(255,255,255,0.25);
-background:rgba(255,255,255,0.08);
-}
+    .track-dot {
+      position: relative;
+      z-index: 1;
+      width: 24px;
+      height: 24px;
+      margin: 0 auto 8px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.08);
+    }
 
-.track-label{
-font-size:11px;
-font-weight:700;
-color:#8b94a9;
-line-height:1.25;
-}
+    .track-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #8b94a9;
+      line-height: 1.25;
+    }
 
-/* étape terminée */
+    /* étape terminée */
+    .track-step.done .track-dot {
+      background: #00ff88;
+      border-color: #00ff88;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.35);
+    }
 
-.track-step.done .track-dot{
-background:#00ff88;
-border-color:#00ff88;
-box-shadow:0 0 10px rgba(0,255,136,0.35);
-}
+    .track-step.done .track-label {
+      color: #00ff88;
+    }
 
-.track-step.done .track-label{
-color:#00ff88;
-}
+    /* étape actuelle */
+    .track-step.current .track-dot {
+      background: #00d4ff;
+      border-color: #00d4ff;
+      box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+    }
 
-/* étape actuelle */
+    .track-step.current .track-label {
+      color: #00d4ff;
+      font-weight: 900;
+    }
 
-.track-step.current .track-dot{
-background:#00d4ff;
-border-color:#00d4ff;
-box-shadow:0 0 12px rgba(0,212,255,0.4);
-}
+    /* commande annulée */
+    .track-step.cancelled .track-dot {
+      background: #ff4d4d;
+      border-color: #ff4d4d;
+      box-shadow: 0 0 12px rgba(255, 77, 77, 0.35);
+    }
 
-.track-step.current .track-label{
-color:#00d4ff;
-font-weight:900;
-}
+    .track-step.cancelled .track-label {
+      color: #ff4d4d;
+      font-weight: 900;
+    }
 
-/* commande annulée */
+    /* responsive mobile */
+    @media (max-width: 640px) {
+      .order-tracking-steps {
+        grid-template-columns: repeat(2, 1fr);
+        row-gap: 14px;
+      }
 
-.track-step.cancelled .track-dot{
-background:#ff4d4d;
-border-color:#ff4d4d;
-box-shadow:0 0 12px rgba(255,77,77,0.35);
-}
-
-.track-step.cancelled .track-label{
-color:#ff4d4d;
-font-weight:900;
-}
-
-/* responsive mobile */
-
-@media (max-width:640px){
-
-.order-tracking-steps{
-grid-template-columns:repeat(2,1fr);
-row-gap:14px;
-}
-
-.track-step::before{
-display:none;
-}
-
-}
+      .track-step::before {
+        display: none;
+      }
+    }
 
 
     
@@ -7612,6 +7607,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
