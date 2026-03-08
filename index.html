@@ -6390,73 +6390,61 @@ function buildOrderTrackingHTML(status) {
   const step = getTrackingStep(status);
 
   if (step === "cancelled") {
-
     return `
-    <div class="order-tracking">
+      <div class="order-tracking">
+        <div class="order-tracking-title">Suivi de commande</div>
+        <div class="order-tracking-steps">
+          <div class="track-step done">
+            <div class="track-dot"></div>
+            <div class="track-label">Nouvelle</div>
+          </div>
 
-      <div class="order-tracking-title">Suivi de commande</div>
+          <div class="track-step done">
+            <div class="track-dot"></div>
+            <div class="track-label">Préparation</div>
+          </div>
 
-      <div class="order-tracking-steps">
+          <div class="track-step cancelled">
+            <div class="track-dot"></div>
+            <div class="track-label">Annulée</div>
+          </div>
 
-        <div class="track-step done">
-          <div class="track-dot"></div>
-          <div class="track-label">Nouvelle</div>
+          <div class="track-step">
+            <div class="track-dot"></div>
+            <div class="track-label">Livrée</div>
+          </div>
         </div>
-
-        <div class="track-step done">
-          <div class="track-dot"></div>
-          <div class="track-label">Préparation</div>
-        </div>
-
-        <div class="track-step cancelled">
-          <div class="track-dot"></div>
-          <div class="track-label">Annulée</div>
-        </div>
-
-        <div class="track-step">
-          <div class="track-dot"></div>
-          <div class="track-label">Livrée</div>
-        </div>
-
       </div>
-
-    </div>
     `;
   }
 
   return `
-  <div class="order-tracking">
+    <div class="order-tracking">
+      <div class="order-tracking-title">Suivi de commande</div>
+      <div class="order-tracking-steps">
+        <div class="track-step ${step > 1 ? "done" : "current"}">
+          <div class="track-dot"></div>
+          <div class="track-label">Nouvelle</div>
+        </div>
 
-    <div class="order-tracking-title">Suivi de commande</div>
+        <div class="track-step ${step > 2 ? "done" : step === 2 ? "current" : ""}">
+          <div class="track-dot"></div>
+          <div class="track-label">Préparation</div>
+        </div>
 
-    <div class="order-tracking-steps">
+        <div class="track-step ${step > 3 ? "done" : step === 3 ? "current" : ""}">
+          <div class="track-dot"></div>
+          <div class="track-label">Livraison</div>
+        </div>
 
-      <div class="track-step ${step > 1 ? "done" : "current"}">
-        <div class="track-dot"></div>
-        <div class="track-label">Nouvelle</div>
+        <div class="track-step ${step === 4 ? "current" : ""}">
+          <div class="track-dot"></div>
+          <div class="track-label">Livrée</div>
+        </div>
       </div>
-
-      <div class="track-step ${step > 2 ? "done" : step === 2 ? "current" : ""}">
-        <div class="track-dot"></div>
-        <div class="track-label">Préparation</div>
-      </div>
-
-      <div class="track-step ${step > 3 ? "done" : step === 3 ? "current" : ""}">
-        <div class="track-dot"></div>
-        <div class="track-label">Livraison</div>
-      </div>
-
-      <div class="track-step ${step === 4 ? "current" : ""}">
-        <div class="track-dot"></div>
-        <div class="track-label">Livrée</div>
-      </div>
-
     </div>
-
-  </div>
   `;
 }
-
     
     function showOrderDetailsFromAPI(order) {
       const orderDetails = $('orderDetails');
@@ -7718,6 +7706,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
