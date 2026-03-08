@@ -956,40 +956,45 @@
       return lines.join("\n");
     }
 
-    function buildWhatsAppOrderMessage(order) {
-      const dateText = safeText(order.date);
-      const nom = safeText(order.nom) || "Client";
-      const telephone = safeText(order.telephone);
-      const adresse = safeText(order.adresse) || "Adresse non fournie";
-      const articles = formatArticlesForWhatsapp(order.articles || "");
-      const total = normalizeDisplayedTotal(order.total || "0");
-      const gps = extractGpsFromAddressText(adresse);
+  function buildWhatsAppOrderMessage(order) {
 
-      let gpsLine = "";
-      if (gps) {
-        gpsLine = `\n📍 GPS: ${gps}`;
-      }
+  const dateText = safeText(order.date);
+  const nom = safeText(order.nom) || "Client";
 
-      return `📋 Détails de votre commande
+  const phoneRaw = String(order.telephone || "");
+  const phoneFormatted = phoneRaw.replace(/\s+/g, "");
+
+  const adresse = safeText(order.adresse) || "Adresse non fournie";
+
+  const articles = formatArticlesForWhatsapp(order.articles || "");
+  const total = normalizeDisplayedTotal(order.total || "0");
+
+  const gps = extractGpsFromAddressText(adresse);
+
+  let gpsLink = "";
+  if (gps) {
+    gpsLink = `\n📍 Localisation: https://maps.google.com/?q=${gps}`;
+  }
+
+  return `📋 Détails de votre commande
 
 📦 COMMANDE - MAXI JDC MARKET
 📅 ${dateText}
 
 👤 CLIENT
 Nom: ${nom}
-Téléphone: ${telephone}
-Adresse: ${adresse}${gpsLine}
+Téléphone: ${phoneFormatted}
+Adresse: ${adresse}${gpsLink}
 
 🛒 ARTICLES
-──────────────────────────────────────────────────
+──────────────────────────────────
 ${articles}
-──────────────────────────────────────────────────
+──────────────────────────────────
 TOTAL: ${total} dt
 
 🕒 Heures: 7h - 1h
-📱 WhatsApp: +216 25 600 978`;
-    }
-
+📱 WhatsApp: +21625600978`;
+}
     function sendOrderToWhatsApp(order) {
       const askSend = confirm(
         "Voulez-vous envoyer cette ligne du tableau de bord vers WhatsApp ?\n\nCommande : " +
