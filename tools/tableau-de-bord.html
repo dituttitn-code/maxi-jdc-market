@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -12,143 +12,134 @@
       --txt:#f0f6fc; --muted:#8b949e; --green:#00ff88; --blue:#00d4ff; --orange:#ffa726; --red:#ff6b6b;
       --purple:#9c27b0; --yellow:#FFC107; --shadow:0 10px 40px rgba(0,0,0,.45); --r:14px;
     }
-    
+
     *{box-sizing:border-box;margin:0;padding:0}
-    
+
     html, body {
       height: 100%;
       width: 100%;
       overflow: hidden;
       position: fixed;
     }
-    
+
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
       background:linear-gradient(135deg,var(--bg1),var(--bg2));
-      color:var(--txt); 
-      height: 100vh;
-      height: -webkit-fill-available;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
+      color:var(--txt);
+      height:100vh;
+      height:-webkit-fill-available;
+      padding:0;
+      display:flex;
+      flex-direction:column;
     }
-    
+
     .container{
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 12px;
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
+      flex:1;
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      padding:12px;
+      max-width:1400px;
+      margin:0 auto;
+      width:100%;
     }
-    
+
     .header{
       background:rgba(10,25,47,.95);
       border:2px solid var(--green);
       border-radius:var(--r);
       padding:12px 16px;
-      display:flex; 
-      flex-direction: column;
+      display:flex;
+      flex-direction:column;
       gap:10px;
       box-shadow:var(--shadow);
     }
-    
+
     .header-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
     }
-    
-    .left{
-      display:flex; 
-      align-items:center; 
-      gap:10px
-    }
-    
+
+    .left{display:flex;align-items:center;gap:10px}
+
     .logo{
       width:44px;height:44px;border-radius:10px;
       border:2px solid var(--green);
       display:flex;align-items:center;justify-content:center;
       background:rgba(0,255,136,.12); font-size:18px; font-weight:900;
     }
-    
+
     h1{
       font-size:16px;font-weight:900;
       background:linear-gradient(90deg,var(--green),var(--blue));
       -webkit-background-clip:text; -webkit-text-fill-color:transparent;
       margin-bottom:2px;
     }
-    
+
     .sub{color:var(--muted);font-size:11px}
-    
+
     .header-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-start;
-    }
-    
-    .btn{
-      background:rgba(255,255,255,.10); 
-      border:1px solid var(--line);
-      color:var(--txt); 
-      padding:8px 12px; 
-      border-radius:8px; 
-      font-weight:700;
-      cursor:pointer; 
-      transition:.2s;
-      display:flex; 
-      gap:6px; 
-      align-items:center; 
-      font-size:12px;
-      text-decoration: none;
-    }
-    
-    .btn:hover{transform:translateY(-1px); border-color:var(--blue); background:rgba(255,255,255,.15)}
-    
-    .badge{
-      background:rgba(255,167,38,.18); 
-      border:1px solid var(--orange);
-      color:var(--orange); 
-      padding:6px 10px; 
-      border-radius:999px; 
-      font-weight:700; 
-      font-size:12px;
-      display:flex; 
-      gap:6px; 
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-start;
       align-items:center;
     }
-    
-    .api-status {
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    
-    .api-online {
-      background: rgba(0, 255, 136, 0.15);
-      color: var(--green);
-      border: 1px solid var(--green);
-    }
-    
-    .api-offline {
-      background: rgba(255, 107, 107, 0.15);
-      color: var(--red);
-      border: 1px solid var(--red);
+
+    .btn{
+      background:rgba(255,255,255,.10);
+      border:1px solid var(--line);
+      color:var(--txt);
+      padding:8px 12px;
+      border-radius:8px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.2s;
+      display:flex;
+      gap:6px;
+      align-items:center;
+      font-size:12px;
+      text-decoration:none;
     }
 
+    .btn:hover{transform:translateY(-1px); border-color:var(--blue); background:rgba(255,255,255,.15)}
+    .btn:disabled{opacity:.7; cursor:not-allowed; transform:none}
+
+    .badge{
+      background:rgba(255,167,38,.18);
+      border:1px solid var(--orange);
+      color:var(--orange);
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:700;
+      font-size:12px;
+      display:flex;
+      gap:6px;
+      align-items:center;
+      white-space:nowrap;
+    }
+
+    .api-status {
+      padding:6px 10px;
+      border-radius:6px;
+      font-size:11px;
+      font-weight:600;
+      display:flex;
+      align-items:center;
+      gap:4px;
+    }
+
+    .api-online { background:rgba(0,255,136,0.15); color:var(--green); border:1px solid var(--green); }
+    .api-offline { background:rgba(255,107,107,0.15); color:var(--red); border:1px solid var(--red); }
+
     .grid{
-      display:grid; 
-      gap:10px; 
+      display:grid;
+      gap:10px;
       margin-top:12px;
       grid-template-columns:repeat(2, 1fr);
     }
-    
+
     .card{
       background:var(--card);
       border:1px solid var(--line);
@@ -157,34 +148,21 @@
       padding:14px;
       transition:.2s;
     }
-    
+
     .card:hover{border-color:var(--green); transform:translateY(-2px)}
-    
-    .statTop{
-      display:flex; 
-      justify-content:space-between; 
-      align-items:center; 
-      gap:8px
-    }
-    
+
+    .statTop{display:flex;justify-content:space-between;align-items:center;gap:8px}
+
     .icon{
-      width:40px; height:40px; border-radius:10px; 
+      width:40px; height:40px; border-radius:10px;
       display:flex; align-items:center; justify-content:center;
       font-size:18px; background:rgba(255,255,255,.06); border:1px solid var(--line);
+      flex-shrink:0;
     }
-    
-    .value{
-      font-size:22px; 
-      font-weight:1000; 
-      line-height:1.2
-    }
-    
-    .label{
-      font-size:11px; 
-      color:var(--muted); 
-      font-weight:600
-    }
-    
+
+    .value{font-size:22px; font-weight:1000; line-height:1.2}
+    .label{font-size:11px; color:var(--muted); font-weight:600}
+
     .status-selector-card {
       background:var(--card);
       border:1px solid var(--line);
@@ -192,346 +170,202 @@
       box-shadow:var(--shadow);
       padding:14px;
       transition:.2s;
-      grid-column: span 2;
-    }
-    
-    .selector-container {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    
-    .selector-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .statut-dropdown {
-      padding: 8px 10px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: rgba(255,255,255,.08);
-      color: var(--txt);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-      transition: all 0.2s;
-    }
-    
-    .statut-dropdown:focus {
-      outline: none;
-      border-color: var(--green);
-    }
-    
-    .statut-dropdown option {
-      background: var(--card);
-      color: var(--txt);
-      padding: 6px;
-    }
-    
-    .statut-count {
-      font-size: 26px;
-      font-weight: 1000;
-      line-height: 1.2;
-      color: var(--green);
-      text-align: center;
-    }
-    
-    .statut-label {
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 600;
-      text-align: center;
-      white-space: nowrap;
-    }
-    
-    .top-product-card {
-      background: linear-gradient(135deg, rgba(26, 36, 93, 0.9), rgba(22, 36, 71, 0.9));
-      border: 2px solid var(--yellow);
-      border-radius: var(--r);
-      padding: 14px;
-      margin-top: 12px;
-    }
-    
-    .top-product-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    
-    .top-product-header h3 {
-      color: var(--yellow);
-      font-size: 14px;
-      margin: 0;
-    }
-    
-    .top-product-content {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    
-    .product-trophy {
-      font-size: 32px;
-      color: var(--yellow);
-    }
-    
-    .product-details {
-      flex: 1;
-    }
-    
-    .product-name {
-      font-size: 15px;
-      font-weight: 900;
-      color: var(--txt);
-      margin-bottom: 6px;
-    }
-    
-    .product-stats {
-      display: flex;
-      gap: 12px;
-      font-size: 12px;
-      flex-wrap: wrap;
-    }
-    
-    .product-stat {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    
-    .stat-value {
-      font-weight: 900;
-      color: var(--green);
-    }
-    
-    .stat-label {
-      color: var(--muted);
-      font-size: 10px;
+      grid-column:span 2;
     }
 
-    .chart-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 12px;
+    .selector-container { display:flex; flex-direction:column; gap:6px; }
+    .selector-row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+
+    .statut-dropdown, .statut-select, .mini-select {
+      padding:8px 10px;
+      border:1px solid var(--line);
+      border-radius:6px;
+      background:rgba(255,255,255,.08);
+      color:var(--txt);
+      font-size:13px;
+      font-weight:600;
+      cursor:pointer;
+      transition:all .2s;
     }
-    
-    .chart-card {
-      width: 100%;
+
+    .statut-dropdown{width:100%}
+    .statut-dropdown:focus, .statut-select:focus, .mini-select:focus { outline:none; border-color:var(--green); }
+    .statut-dropdown option, .statut-select option, .mini-select option { background:var(--card); color:var(--txt); }
+
+    .statut-count { font-size:26px; font-weight:1000; line-height:1.2; color:var(--green); text-align:center; }
+    .statut-label { font-size:13px; color:var(--muted); font-weight:600; text-align:center; white-space:nowrap; }
+
+    .top-product-card {
+      background:linear-gradient(135deg, rgba(26, 36, 93, 0.9), rgba(22, 36, 71, 0.9));
+      border:2px solid var(--yellow);
+      border-radius:var(--r);
+      padding:14px;
+      margin-top:12px;
+      box-shadow:var(--shadow);
     }
-    
-    .sectionTitle{
-      display:flex; 
-      justify-content:space-between; 
-      align-items:center; 
-      gap:8px; 
-      margin-bottom:8px
-    }
-    
-    .sectionTitle h3{
-      font-size:14px; 
-      font-weight:1000; 
-      color:var(--green)
-    }
-    
-    .chartBox{
-      height:200px; 
-      position:relative
-    }
-    
+
+    .top-product-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+    .top-product-header h3 { color:var(--yellow); font-size:14px; margin:0; }
+    .top-product-content { display:flex; align-items:center; gap:12px; }
+    .product-trophy { font-size:32px; color:var(--yellow); }
+    .product-details { flex:1; }
+    .product-name { font-size:15px; font-weight:900; color:var(--txt); margin-bottom:6px; }
+    .product-stats { display:flex; gap:12px; font-size:12px; flex-wrap:wrap; }
+    .product-stat { display:flex; flex-direction:column; gap:2px; }
+    .stat-value { font-weight:900; color:var(--green); }
+    .stat-label { color:var(--muted); font-size:10px; }
+
+    .chart-container { display:flex; flex-direction:column; gap:12px; margin-top:12px; }
+    .chart-card { width:100%; }
+    .sectionTitle{ display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+    .sectionTitle h3{ font-size:14px; font-weight:1000; color:var(--green) }
+    .chartBox{ height:240px; position:relative }
+
     .tableWrap{
       border:1px solid var(--line);
       border-radius:10px;
-      overflow-x: auto;
-      overflow-y: auto;
-      max-height: 400px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-      scrollbar-color: var(--green) var(--line);
-      margin-top: 8px;
+      overflow-x:auto;
+      overflow-y:auto;
+      max-height:420px;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:thin;
+      scrollbar-color:var(--green) var(--line);
+      margin-top:8px;
     }
-    
-    .tableWrap::-webkit-scrollbar {
-      height: 8px;
-      width: 8px;
-    }
-    
-    .tableWrap::-webkit-scrollbar-track {
-      background: var(--line);
-      border-radius: 4px;
-    }
-    
-    .tableWrap::-webkit-scrollbar-thumb {
-      background: var(--green);
-      border-radius: 4px;
-    }
-    
-    .tableWrap::-webkit-scrollbar-thumb:hover {
-      background: var(--blue);
-    }
-    
-    table{ 
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1100px;
-    }
-    
+
+    .tableWrap::-webkit-scrollbar { height:8px; width:8px; }
+    .tableWrap::-webkit-scrollbar-track { background:var(--line); border-radius:4px; }
+    .tableWrap::-webkit-scrollbar-thumb { background:var(--green); border-radius:4px; }
+    .tableWrap::-webkit-scrollbar-thumb:hover { background:var(--blue); }
+
+    table{ width:100%; border-collapse:collapse; min-width:1100px; }
+
     th{
-      position:sticky; 
+      position:sticky;
       top:0;
       background:rgba(0,212,255,.15);
       color:var(--blue);
       padding:10px 8px;
       border-bottom:2px solid var(--blue);
-      font-size:12px; 
+      font-size:12px;
       font-weight:700;
       white-space:nowrap;
+      z-index:1;
     }
-    
+
     td{
       padding:8px;
       border-bottom:1px solid var(--line);
-      font-size:11px; 
+      font-size:11px;
       vertical-align:top;
     }
-    
+
     tr:hover{background:rgba(255,255,255,.05)}
+    .clickable-order-row { cursor:pointer; }
+    .clickable-order-row:hover { background:rgba(0, 212, 255, 0.08); }
 
-    .clickable-order-row {
-      cursor: pointer;
-    }
+    td:nth-child(4) { min-width:220px; }
+    td:nth-child(5) { min-width:140px; }
+    td:nth-child(6) { min-width:320px; }
 
-    .clickable-order-row:hover {
-      background: rgba(0, 212, 255, 0.08);
-    }
-    
-    td:nth-child(4) { min-width: 200px; }
-    td:nth-child(5) { min-width: 140px; }
-    td:nth-child(6) { min-width: 280px; }
-    
     .address-link {
-      color: var(--blue);
-      text-decoration: none;
-      font-weight: 600;
-      transition: all 0.2s;
-      display: inline-block;
-      max-width: 200px;
-      word-break: break-word;
-      font-size: 11px;
+      color:var(--blue);
+      text-decoration:none;
+      font-weight:600;
+      transition:all .2s;
+      display:inline-block;
+      max-width:220px;
+      word-break:break-word;
+      font-size:11px;
     }
-    
-    .address-link:hover {
-      color: var(--green);
-      text-decoration: underline;
-    }
-    
-    .address-link i {
-      margin-right: 4px;
-      font-size: 10px;
-      opacity: 0.8;
-    }
-    
+
+    .address-link:hover { color:var(--green); text-decoration:underline; }
+    .address-link i { margin-right:4px; font-size:10px; opacity:.8; }
+
     .statut-select {
-      padding: 5px 6px;
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      background: rgba(255,255,255,.08);
-      color: var(--txt);
-      font-size: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      width: 110px;
-      transition: all 0.2s;
+      padding:5px 6px;
+      font-size:10px;
+      width:120px;
     }
-    
-    .statut-select:focus {
-      outline: none;
-      border-color: var(--green);
-    }
-    
-    .statut-select option {
-      background: var(--card);
-      color: var(--txt);
-      padding: 6px;
-    }
-    
+
     .articles-cell {
-      white-space: pre-line;
-      font-size: 10px;
-      line-height: 1.4;
-      max-width: 320px;
-      word-wrap: break-word;
+      white-space:pre-line;
+      font-size:10px;
+      line-height:1.4;
+      max-width:320px;
+      word-wrap:break-word;
     }
-    
-    #topProductsTable {
-      min-width: 500px;
-    }
-    
-    #topProductsTable th:nth-child(2) { min-width: 250px; }
-    #topProductsTable td:nth-child(2) { min-width: 250px; }
-    
+
+    #topProductsTable { min-width:500px; }
+    #topProductsTable th:nth-child(2), #topProductsTable td:nth-child(2) { min-width:250px; }
+
     .analytics-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-top: 10px;
+      display:grid;
+      grid-template-columns:repeat(2, 1fr);
+      gap:8px;
+      margin-top:10px;
     }
-    
-    .analytics-item {
-      background: rgba(255,255,255,0.05);
-      padding: 12px;
-      border-radius: 8px;
+
+    .analytics-item { background:rgba(255,255,255,0.05); padding:12px; border-radius:8px; }
+    .analytics-label { font-size:10px; color:var(--muted); margin-bottom:3px; }
+    .analytics-value { font-size:16px; font-weight:900; }
+
+    .filters-row {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:12px;
     }
-    
-    .analytics-label {
-      font-size: 10px;
-      color: var(--muted);
-      margin-bottom: 3px;
+
+    .search-input {
+      flex:1;
+      min-width:220px;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:rgba(255,255,255,.08);
+      color:var(--txt);
+      font-size:12px;
     }
-    
-    .analytics-value {
-      font-size: 16px;
-      font-weight: 900;
-    }
-    
+
+    .search-input:focus { outline:none; border-color:var(--green); }
+
     .footer{
-      margin-top:12px; 
-      padding:10px; 
-      text-align:center; 
+      margin-top:12px;
+      padding:10px;
+      text-align:center;
       color:var(--muted);
       border-top:1px solid var(--line);
       font-size:11px;
     }
 
     .toast{
-      position:fixed; 
-      top:10px; 
-      right:10px; 
+      position:fixed;
+      top:10px;
+      right:10px;
       z-index:99999;
-      padding:8px 12px; 
-      border-radius:8px; 
-      font-weight:600; 
+      padding:8px 12px;
+      border-radius:8px;
+      font-weight:600;
       color:#0a1929;
       box-shadow:0 10px 30px rgba(0,0,0,.35);
-      display:none; 
+      display:none;
       font-size:12px;
+      max-width:90vw;
     }
-    
-    .toast.show{
-      display:block; 
-      animation:pop .2s ease
+
+    .toast.show{ display:block; animation:pop .2s ease }
+    @keyframes pop{ from{transform:translateY(-8px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+    @media (max-width: 768px) {
+      .grid, .analytics-grid { grid-template-columns:1fr; }
+      .status-selector-card { grid-column:span 1; }
+      .header-top { flex-direction:column; align-items:flex-start; }
+      .value { font-size:20px; }
+      .chartBox { height:220px; }
     }
-    
-    @keyframes pop{
-      from{transform:translateY(-8px);opacity:0}
-      to{transform:translateY(0);opacity:1}
-    }
-    
+
     @supports (padding-top: env(safe-area-inset-top)) {
       body {
         padding-top: env(safe-area-inset-top);
@@ -540,7 +374,6 @@
     }
   </style>
 </head>
-
 <body>
   <div class="container">
     <header class="header">
@@ -554,7 +387,7 @@
         </div>
         <div class="badge"><i class="fas fa-tools"></i> ADMIN</div>
       </div>
-      
+
       <div class="header-actions">
         <div id="apiStatus" class="api-status api-online">
           <i class="fas fa-circle"></i> API Connectée
@@ -621,7 +454,7 @@
       </div>
     </section>
 
-    <div class="top-product-card" id="topProductCard" style="display: none;">
+    <div class="top-product-card" id="topProductCard" style="display:none;">
       <div class="top-product-header">
         <h3><i class="fas fa-trophy"></i> PRODUIT LE PLUS VENDU</h3>
         <span class="badge"><i class="fas fa-crown"></i> TOP 1</span>
@@ -648,11 +481,37 @@
       </div>
     </div>
 
+    <div class="card" style="margin-top:12px;">
+      <div class="sectionTitle">
+        <h3><i class="fas fa-sliders-h"></i> Recherche & filtres</h3>
+        <span class="sub">Sans toucher aux commandes fonctionnelles</span>
+      </div>
+      <div class="filters-row">
+        <input id="searchInput" class="search-input" type="text" placeholder="Rechercher nom, téléphone, adresse, commande..." />
+        <select id="tableStatusFilter" class="mini-select">
+          <option value="">Tous les statuts</option>
+          <option value="🟡 NOUVELLE">🟡 NOUVELLE</option>
+          <option value="⏳ EN ATTENTE">⏳ EN ATTENTE</option>
+          <option value="🔵 EN PRÉPARATION">🔵 EN PRÉPARATION</option>
+          <option value="🟠 EN LIVRAISON">🟠 EN LIVRAISON</option>
+          <option value="✅ LIVRÉE">✅ LIVRÉE</option>
+          <option value="❌ ANNULÉE">❌ ANNULÉE</option>
+        </select>
+        <select id="tableSortMode" class="mini-select">
+          <option value="date_desc">Date décroissante</option>
+          <option value="date_asc">Date croissante</option>
+          <option value="total_desc">Total décroissant</option>
+          <option value="total_asc">Total croissant</option>
+          <option value="name_asc">Nom A → Z</option>
+        </select>
+      </div>
+    </div>
+
     <div class="chart-container">
       <div class="card chart-card">
         <div class="sectionTitle">
           <h3><i class="fas fa-chart-line"></i> Ventes par jour</h3>
-          <select class="statut-select" id="salesPeriod" style="width: auto;">
+          <select class="statut-select" id="salesPeriod" style="width:auto;">
             <option value="7">7j</option>
             <option value="30" selected>30j</option>
             <option value="90">90j</option>
@@ -697,11 +556,11 @@
       </div>
     </div>
 
-    <div style="margin-top: 12px;">
+    <div style="margin-top:12px;">
       <div class="card">
         <div class="sectionTitle">
           <h3><i class="fas fa-list"></i> Toutes les commandes</h3>
-          <span class="sub"><i class="fas fa-arrow-left"></i> <i class="fas fa-arrow-right"></i> scroll</span>
+          <span class="sub"><span id="visibleCount">0</span> affichées</span>
         </div>
         <div class="tableWrap">
           <table id="allOrdersTable">
@@ -728,10 +587,10 @@
         </div>
       </div>
 
-      <div class="card" style="margin-top: 12px;">
+      <div class="card" style="margin-top:12px;">
         <div class="sectionTitle">
           <h3><i class="fas fa-trophy"></i> Top 10 produits</h3>
-          <span class="sub"><i class="fas fa-arrow-left"></i> <i class="fas fa-arrow-right"></i> scroll</span>
+          <span class="sub">Classement automatique</span>
         </div>
         <div class="tableWrap">
           <table id="topProductsTable">
@@ -745,9 +604,7 @@
             </thead>
             <tbody id="topProductsBody">
               <tr>
-                <td colspan="4" style="text-align:center; padding:15px; color:var(--muted)">
-                  Chargement...
-                </td>
+                <td colspan="4" style="text-align:center; padding:15px; color:var(--muted)">Chargement...</td>
               </tr>
             </tbody>
           </table>
@@ -755,7 +612,7 @@
       </div>
     </div>
 
-    <div class="card" style="margin-top: 12px;">
+    <div class="card" style="margin-top:12px;">
       <div class="sectionTitle">
         <h3><i class="fas fa-chart-bar"></i> Analyse</h3>
         <span class="sub">Statistiques</span>
@@ -797,24 +654,26 @@
       orders: [],
       topProducts: [],
       analytics: {
-        totalRevenue: 0, totalOrders: 0, avgOrderValue: 0,
-        statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
-        ordersByHour: {}, ordersByDay: {},
-        conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
+        totalRevenue:0, totalOrders:0, avgOrderValue:0,
+        statusDistribution:{}, salesByDay:{}, salesByHourRevenue:{},
+        ordersByHour:{}, ordersByDay:{}, conversionRate:0,
+        avgCustomerValue:0, ordersToday:0, revenueToday:0, topProduct:null
       },
-      charts: { sales: null, status: null, products: null, hourly: null },
-      apiStatus: 'checking',
-      statusUpdateInProgress: false,
-      statusUpdateForId: null
+      charts: { sales:null, status:null, products:null, hourly:null },
+      apiStatus:'checking',
+      statusUpdateInProgress:false,
+      statusUpdateForId:null,
+      filteredOrders:[]
     };
 
     const $ = (id) => document.getElementById(id);
 
     function showToast(msg, type = "info") {
       const el = $("toast");
-      const bg = type === "success" ? "#00ff88" : 
-                  type === "error" ? "#ff6b6b" : 
-                  type === "warning" ? "#ffa726" : "#00d4ff";
+      const bg = type === "success" ? "#00ff88"
+        : type === "error" ? "#ff6b6b"
+        : type === "warning" ? "#ffa726"
+        : "#00d4ff";
       el.style.background = bg;
       el.textContent = msg;
       el.classList.add("show");
@@ -823,8 +682,8 @@
     }
 
     function formatPrice(amount) {
-      const num = parseFloat(String(amount || '0').replace(',', '.')) || 0;
-      return num.toFixed(3).replace('.', ',') + ' dt';
+      const numValue = parseFloat(String(amount || '0').replace(',', '.')) || 0;
+      return numValue.toFixed(3).replace('.', ',') + ' dt';
     }
 
     function safeText(x) {
@@ -832,8 +691,17 @@
       return String(x);
     }
 
+    function escapeHtml(str) {
+      return safeText(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function num(x) {
-      const n = Number(String(x ?? "0").replace(",", "."));
+      const n = Number(String(x ?? '0').replace(',', '.'));
       return Number.isFinite(n) ? n : 0;
     }
 
@@ -842,23 +710,23 @@
       const d1 = new Date(dateStr);
       if (!isNaN(d1.getTime())) return d1;
 
-      const m = String(dateStr).match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
+      const m = String(dateStr).match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
       if (m) {
         const dd = parseInt(m[1],10), mm = parseInt(m[2],10), yy = parseInt(m[3],10);
-        const hh = parseInt(m[4],10), mi = parseInt(m[5],10), ss = parseInt(m[6]||"0",10);
-        const d = new Date(yy, mm-1, dd, hh, mi, ss);
+        const hh = parseInt(m[4] || '0',10), mi = parseInt(m[5] || '0',10), ss = parseInt(m[6] || '0',10);
+        const d = new Date(yy, mm - 1, dd, hh, mi, ss);
         return isNaN(d.getTime()) ? null : d;
       }
       return null;
     }
 
     function parseArticles(articlesText) {
-      const t = String(articlesText || "")
-        .replace(/\\n/g, "\n")
-        .replace(/<br\s*\/?>/gi, "\n")
-        .replace(/\r/g, "");
+      const t = String(articlesText || '')
+        .replace(/\\n/g, '\n')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/\r/g, '');
 
-      const lines = t.split("\n").map(s => s.trim()).filter(Boolean);
+      const lines = t.split('\n').map(s => s.trim()).filter(Boolean);
       const out = [];
 
       for (const line of lines) {
@@ -870,13 +738,13 @@
         const m = line.match(/^(\d+)\s*(?:x|×)\s*(.+)$/i);
         if (m) {
           const q = parseInt(m[1], 10) || 0;
-          let rest = (m[2] || "").trim();
+          let rest = (m[2] || '').trim();
           let unit = 0;
           const p = rest.match(/-\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt\b/i);
           if (p && p[1]) unit = num(p[1]);
-          rest = rest.replace(/\s*-\s*[0-9]+(?:[.,][0-9]{1,3})?\s*dt\b/i, "").trim();
+          rest = rest.replace(/\s*-\s*[0-9]+(?:[.,][0-9]{1,3})?\s*dt\b/i, '').trim();
 
-          out.push({ produit: rest || "Produit", quantite: q, prix_unitaire: unit, prix_total: unit * q });
+          out.push({ produit: rest || 'Produit', quantite: q, prix_unitaire: unit, prix_total: unit * q });
           continue;
         }
 
@@ -893,15 +761,14 @@
         const articles = parseArticles(order.articles);
         if (articles.length === 0) continue;
 
-        const totalQty = articles.reduce((s,a)=> s + num(a.quantite), 0) || 1;
+        const totalQty = articles.reduce((s,a) => s + num(a.quantite), 0) || 1;
 
         for (const a of articles) {
-          const name = (a.produit || "Produit").trim();
+          const name = (a.produit || 'Produit').trim();
           const q = num(a.quantite);
-
           const lineRevenue = a.prix_total > 0 ? num(a.prix_total) : (orderTotal * (q / totalQty));
 
-          if (!map.has(name)) map.set(name, { name, quantity: 0, revenue: 0 });
+          if (!map.has(name)) map.set(name, { name, quantity:0, revenue:0 });
           const it = map.get(name);
           it.quantity += q;
           it.revenue += lineRevenue;
@@ -909,225 +776,140 @@
       }
 
       return Array.from(map.values())
-        .sort((a,b)=> b.quantity - a.quantity)
+        .sort((a,b) => b.quantity - a.quantity || b.revenue - a.revenue)
         .slice(0,10)
-        .map(p => ({ name: p.name, quantity: Math.round(p.quantity), revenue: Number(p.revenue.toFixed(3)) }));
+        .map(p => ({ name:p.name, quantity:Math.round(p.quantity), revenue:Number(p.revenue.toFixed(3)) }));
     }
 
- <script>
-  function normalizeWhatsAppPhone(phone) {
-    let p = String(phone || "").trim();
+    function normalizeWhatsAppPhone(phone) {
+      let p = String(phone || '').trim();
+      p = p.replace(/[^\d+]/g, '');
 
-    // supprimer espaces, tirets, parenthèses, etc.
-    p = p.replace(/[^\d+]/g, "");
+      if (p.indexOf('+') > 0) p = p.replace(/\+/g, '');
 
-    // garder un seul + s'il est au début
-    if (p.indexOf("+") > 0) {
-      p = p.replace(/\+/g, "");
+      const digits = p.replace(/\D/g, '');
+
+      if (!p.startsWith('+') && digits.length === 8) return '216' + digits;
+      if (!p.startsWith('+') && digits.length === 11 && digits.startsWith('216')) return digits;
+      if (p.startsWith('+') && digits.length >= 8) return digits;
+      return digits.length >= 8 ? digits : '';
     }
 
-    const digits = p.replace(/\D/g, "");
+    function normalizeClientPhoneForDisplay(phone) {
+      const digits = normalizeWhatsAppPhone(phone);
+      if (!digits) return '';
 
-    // numéro tunisien local sur 8 chiffres => ajouter 216
-    if (!p.startsWith("+") && digits.length === 8) {
-      return "216" + digits;
+      if (digits.startsWith('216') && digits.length === 11) {
+        return '+216 ' + digits.slice(3,5) + ' ' + digits.slice(5,8) + ' ' + digits.slice(8);
+      }
+      return '+' + digits;
     }
 
-    // déjà 216xxxxxxxx
-    if (!p.startsWith("+") && digits.length === 11 && digits.startsWith("216")) {
-      return digits;
+    function extractGpsFromAddressText(text) {
+      const s = String(text || '');
+      const m1 = s.match(/GPS:\s*([0-9.-]+)\s*,\s*([0-9.-]+)/i);
+      if (m1) return `${m1[1]},${m1[2]}`;
+
+      const m2 = s.match(/([0-9]{1,3}\.[0-9]+)\s*,\s*([0-9]{1,3}\.[0-9]+)/);
+      if (m2) return `${m2[1]},${m2[2]}`;
+      return '';
     }
 
-    // +216xxxxxxxx => retirer le +
-    if (p.startsWith("+") && digits.length >= 8) {
-      return digits;
+    function cleanAddressForWhatsApp(address) {
+      return String(address || '')
+        .replace(/\s*\|\s*GPS\s*:\s*[0-9.-]+\s*,\s*[0-9.-]+/i, '')
+        .replace(/\s*GPS\s*:\s*[0-9.-]+\s*,\s*[0-9.-]+/i, '')
+        .trim();
     }
 
-    // fallback
-    return digits.length >= 8 ? digits : "";
-  }
+    function buildGoogleMapsLink(addressText) {
+      const gps = extractGpsFromAddressText(addressText);
+      if (gps) return `https://www.google.com/maps?q=${gps}`;
 
-  function normalizeClientPhoneForDisplay(phone) {
-    const digits = normalizeWhatsAppPhone(phone);
-
-    if (!digits) return "";
-
-    // Tunisie
-    if (digits.startsWith("216") && digits.length === 11) {
-      return "+216 " + digits.slice(3, 5) + " " + digits.slice(5, 8) + " " + digits.slice(8);
+      const cleanAddress = cleanAddressForWhatsApp(addressText);
+      if (!cleanAddress) return '';
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanAddress)}`;
     }
 
-    return "+" + digits;
-  }
+    function formatArticlesForWhatsapp(articlesText) {
+      const articles = parseArticles(articlesText || '');
+      if (!articles.length) return '• Aucun article';
 
-  function extractGpsFromAddressText(text) {
-    const s = String(text || "");
-
-    const m1 = s.match(/GPS:\s*([0-9.-]+)\s*,\s*([0-9.-]+)/i);
-    if (m1) return `${m1[1]},${m1[2]}`;
-
-    const m2 = s.match(/([0-9]{1,3}\.[0-9]+)\s*,\s*([0-9]{1,3}\.[0-9]+)/);
-    if (m2) return `${m2[1]},${m2[2]}`;
-
-    return "";
-  }
-
-  function cleanAddressForWhatsApp(address) {
-    return String(address || "")
-      .replace(/\s*\|\s*GPS\s*:\s*[0-9.-]+\s*,\s*[0-9.-]+/i, "")
-      .replace(/\s*GPS\s*:\s*[0-9.-]+\s*,\s*[0-9.-]+/i, "")
-      .trim();
-  }
-
-  function buildGoogleMapsLink(addressText) {
-    const gps = extractGpsFromAddressText(addressText);
-
-    if (gps) {
-      return `https://www.google.com/maps?q=${gps}`;
+      return articles.map(a => {
+        const qty = num(a.quantite) || 1;
+        const name = safeText(a.produit) || 'Produit';
+        const pu = num(a.prix_unitaire);
+        return pu > 0 ? `• ${qty} x ${name} — ${formatPrice(pu)}` : `• ${qty} x ${name}`;
+      }).join('\n');
     }
 
-    const cleanAddress = cleanAddressForWhatsApp(addressText);
-    if (!cleanAddress) return "";
+    function normalizeDisplayedTotal(total) {
+      return num(total).toFixed(3).replace('.', ',');
+    }
 
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanAddress)}`;
-  }
+    function buildWhatsAppOrderMessage(order) {
+      const dateText = safeText(order.date);
+      const nom = safeText(order.nom) || 'Client';
+      const telephone = normalizeClientPhoneForDisplay(order.telephone || '');
+      const adresseBrute = safeText(order.adresse) || 'Adresse non fournie';
+      const adresse = cleanAddressForWhatsApp(adresseBrute);
+      const mapsLink = buildGoogleMapsLink(adresseBrute);
+      const articles = formatArticlesForWhatsapp(order.articles || '');
+      const total = normalizeDisplayedTotal(order.total || '0');
 
-  function formatArticlesForWhatsapp(articlesText) {
-    const articles = parseArticles(articlesText || "");
+      return `📋 Détails de votre commande\n\n📦 COMMANDE - MAXI JDC MARKET\n📅 ${dateText}\n\n👤 CLIENT\nNom : ${nom}\nTéléphone : ${telephone}\nAdresse : ${adresse}\n\n📍 Google Maps :\n${mapsLink || 'Non disponible'}\n\n🛒 ARTICLES\n────────────────────\n${articles}\n────────────────────\nTOTAL : ${total} dt\n\n🕒 Heures : 7h - 1h\n📱 WhatsApp magasin : +216 25 600 978`;
+    }
 
-    if (!articles.length) return "• Aucun article";
+    function sendOrderToWhatsApp(order) {
+      const askSend = confirm('Voulez-vous envoyer cette commande vers WhatsApp ?\n\nCommande : ' + (order.commande_id || 'N/A'));
+      if (!askSend) return;
 
-    return articles.map(a => {
-      const qty = num(a.quantite) || 1;
-      const name = safeText(a.produit) || "Produit";
-      const pu = num(a.prix_unitaire);
+      const phone = prompt('À quel numéro WhatsApp envoyer cette commande ?\n\nExemple : 21655532482 ou 55532482');
+      if (phone === null) return;
 
-      if (pu > 0) {
-        return `• ${qty} x ${name} — ${formatPrice(pu)}`;
+      const phoneNormalized = normalizeWhatsAppPhone(phone);
+      if (!phoneNormalized) {
+        alert('Numéro WhatsApp invalide.');
+        return;
       }
 
-      return `• ${qty} x ${name}`;
-    }).join("\n");
-  }
-
-  function normalizeDisplayedTotal(total) {
-    const n = num(total);
-    return n.toFixed(3).replace(".", ",");
-  }
-
-  function buildWhatsAppOrderMessage(order) {
-    const dateText = safeText(order.date);
-    const nom = safeText(order.nom) || "Client";
-    const telephone = normalizeClientPhoneForDisplay(order.telephone || "");
-    const adresseBrute = safeText(order.adresse) || "Adresse non fournie";
-    const adresse = cleanAddressForWhatsApp(adresseBrute);
-    const mapsLink = buildGoogleMapsLink(adresseBrute);
-    const articles = formatArticlesForWhatsapp(order.articles || "");
-    const total = normalizeDisplayedTotal(order.total || "0");
-
-    return `📋 Détails de votre commande
-
-📦 COMMANDE - MAXI JDC MARKET
-📅 ${dateText}
-
-👤 CLIENT
-Nom : ${nom}
-Téléphone : ${telephone}
-Adresse : ${adresse}
-
-📍 Google Maps :
-${mapsLink}
-
-🛒 ARTICLES
-────────────────────
-${articles}
-────────────────────
-TOTAL : ${total} dt
-
-🕒 Heures : 7h - 1h
-📱 WhatsApp magasin : +216 25 600 978`;
-  }
-
-  function sendOrderToWhatsApp(order) {
-    const askSend = confirm(
-      "Voulez-vous envoyer cette commande vers WhatsApp ?\n\nCommande : " +
-      (order.commande_id || "N/A")
-    );
-
-    if (!askSend) return;
-
-    const phone = prompt(
-      "À quel numéro WhatsApp envoyer cette commande ?\n\nExemple : 21655532482 ou 55532482"
-    );
-
-    if (phone === null) return;
-
-    const phoneNormalized = normalizeWhatsAppPhone(phone);
-
-    if (!phoneNormalized) {
-      alert("Numéro WhatsApp invalide.");
-      return;
-    }
-
-    const message = buildWhatsAppOrderMessage(order);
-    const whatsappUrl = `https://wa.me/${phoneNormalized}?text=${encodeURIComponent(message)}`;
-
-    window.open(whatsappUrl, "_blank");
-  }
-
-
-      const confirmSend = confirm(
-        "Confirmer l'envoi de la commande " +
-        (order.commande_id || "N/A") +
-        "\nvers le numéro WhatsApp : " +
-        phoneNormalized +
-        " ?"
-      );
-
-      if (!confirmSend) return;
-
       const message = buildWhatsAppOrderMessage(order);
-      const whatsappUrl = "https://wa.me/" + phoneNormalized + "?text=" + encodeURIComponent(message);
-      window.open(whatsappUrl, "_blank");
+      const whatsappUrl = `https://wa.me/${phoneNormalized}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
     }
 
     async function loadData() {
       try {
-        const ordersResponse = await fetch(`${API_URL}?method=getorders&t=${Date.now()}`, { cache: "no-store" });
-        if (!ordersResponse.ok) throw new Error("API commandes non disponible");
+        const ordersResponse = await fetch(`${API_URL}?method=getorders&t=${Date.now()}`, { cache:'no-store' });
+        if (!ordersResponse.ok) throw new Error('API commandes non disponible');
         const ordersData = await ordersResponse.json();
-        if (!ordersData.success || !ordersData.orders) throw new Error("Aucune donnée valide");
+        if (!ordersData.success || !ordersData.orders) throw new Error('Aucune donnée valide');
 
-        state.orders = ordersData.orders.map(order => {
-          let commandeId = order.commande_id || order.numero || order.order_id || order.n_commande || order.reference || "";
-          
-          return {
-            date: order.date,
-            nom: order.nom || order.name || "",
-            telephone: order.telephone || order.phone || "",
-            adresse: order.adresse || order.address || "",
-            commande_id: commandeId,
-            articles: order.articles || order.items || "",
-            total: order.total || order.amount || "0",
-            statut: order.statut || "🟡 NOUVELLE"
-          };
-        });
+        state.orders = ordersData.orders.map(order => ({
+          date: order.date,
+          nom: order.nom || order.name || '',
+          telephone: order.telephone || order.phone || '',
+          adresse: order.adresse || order.address || '',
+          commande_id: order.commande_id || order.numero || order.order_id || order.n_commande || order.reference || '',
+          articles: order.articles || order.items || '',
+          total: order.total || order.amount || '0',
+          statut: order.statut || '🟡 NOUVELLE'
+        }));
 
         state.apiStatus = 'online';
-        $("apiStatus").className = "api-status api-online";
-        $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> API Connectée';
-        $("dataSourceInfo").textContent = "Source : API Google Sheets";
+        $('apiStatus').className = 'api-status api-online';
+        $('apiStatus').innerHTML = '<i class="fas fa-circle"></i> API Connectée';
+        $('dataSourceInfo').textContent = 'Source : API Google Sheets';
 
         state.topProducts = computeTopProductsFromOrders(state.orders);
         return true;
-
       } catch (error) {
-        console.error("Erreur chargement:", error);
+        console.error('Erreur chargement:', error);
         state.apiStatus = 'demo';
-        $("apiStatus").className = "api-status api-offline";
-        $("apiStatus").innerHTML = '<i class="fas fa-circle"></i> Mode Démo';
-        $("dataSourceInfo").textContent = "Mode Démonstration";
-        showToast("📊 Mode démonstration activé", "warning");
+        $('apiStatus').className = 'api-status api-offline';
+        $('apiStatus').innerHTML = '<i class="fas fa-circle"></i> Mode Démo';
+        $('dataSourceInfo').textContent = 'Mode Démonstration';
+        showToast('📊 Mode démonstration activé', 'warning');
         return false;
       }
     }
@@ -1135,10 +917,10 @@ TOTAL : ${total} dt
     function calculateAnalytics() {
       const orders = state.orders || [];
       state.analytics = {
-        totalRevenue: 0, totalOrders: 0, avgOrderValue: 0,
-        statusDistribution: {}, salesByDay: {}, salesByHourRevenue: {},
-        ordersByHour: {}, ordersByDay: {},
-        conversionRate: 0, avgCustomerValue: 0, ordersToday: 0, revenueToday: 0
+        totalRevenue:0, totalOrders:0, avgOrderValue:0,
+        statusDistribution:{}, salesByDay:{}, salesByHourRevenue:{},
+        ordersByHour:{}, ordersByDay:{}, conversionRate:0,
+        avgCustomerValue:0, ordersToday:0, revenueToday:0, topProduct:null
       };
 
       state.analytics.totalRevenue = orders.reduce((sum, order) => sum + num(order.total), 0);
@@ -1149,7 +931,7 @@ TOTAL : ${total} dt
       const todayKey = now.toISOString().slice(0,10);
 
       for (const order of orders) {
-        const statut = order.statut || "🟡 NOUVELLE";
+        const statut = order.statut || '🟡 NOUVELLE';
         state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
 
         const d = parseOrderDate(order.date);
@@ -1174,121 +956,139 @@ TOTAL : ${total} dt
       state.analytics.avgCustomerValue = state.analytics.totalOrders > 0 ? state.analytics.totalRevenue / (state.analytics.totalOrders * 0.7) : 0;
     }
 
-    function updateUI() {
-      $("totalRevenue").textContent = formatPrice(state.analytics.totalRevenue);
-      $("totalOrders").textContent = state.analytics.totalOrders;
-      $("avgOrderValue").textContent = formatPrice(state.analytics.avgOrderValue);
+    function getFilteredOrders() {
+      const q = safeText($('searchInput')?.value).trim().toLowerCase();
+      const statut = $('tableStatusFilter')?.value || '';
+      const sortMode = $('tableSortMode')?.value || 'date_desc';
 
-      const selectedStatut = $("statusSelector").value;
+      let rows = [...state.orders];
+
+      if (q) {
+        rows = rows.filter(order => {
+          const hay = [order.date, order.nom, order.telephone, order.adresse, order.commande_id, order.articles, order.total, order.statut]
+            .map(safeText)
+            .join(' ')
+            .toLowerCase();
+          return hay.includes(q);
+        });
+      }
+
+      if (statut) rows = rows.filter(order => safeText(order.statut) === statut);
+
+      rows.sort((a,b) => {
+        const da = parseOrderDate(a.date)?.getTime() || 0;
+        const db = parseOrderDate(b.date)?.getTime() || 0;
+        const ta = num(a.total);
+        const tb = num(b.total);
+        const na = safeText(a.nom).localeCompare(safeText(b.nom), 'fr', { sensitivity:'base' });
+
+        switch (sortMode) {
+          case 'date_asc': return da - db;
+          case 'total_desc': return tb - ta;
+          case 'total_asc': return ta - tb;
+          case 'name_asc': return na;
+          case 'date_desc':
+          default: return db - da;
+        }
+      });
+
+      return rows;
+    }
+
+    function updateUI() {
+      $('totalRevenue').textContent = formatPrice(state.analytics.totalRevenue);
+      $('totalOrders').textContent = state.analytics.totalOrders;
+      $('avgOrderValue').textContent = formatPrice(state.analytics.avgOrderValue);
+
+      const selectedStatut = $('statusSelector').value;
       const count = state.analytics.statusDistribution[selectedStatut] || 0;
-      $("selectedStatusCount").textContent = count;
-      $("selectedStatusLabel").textContent = selectedStatut;
+      $('selectedStatusCount').textContent = count;
+      $('selectedStatusLabel').textContent = selectedStatut;
 
       if (state.analytics.topProduct) {
         const totalQuantity = state.topProducts.reduce((sum, p) => sum + num(p.quantity), 0);
         const percentage = totalQuantity > 0 ? Math.round((num(state.analytics.topProduct.quantity) / totalQuantity) * 100) : 0;
 
-        $("topProductName").textContent = state.analytics.topProduct.name;
-        $("topProductQty").textContent = num(state.analytics.topProduct.quantity);
-        $("topProductRevenue").textContent = formatPrice(state.analytics.topProduct.revenue);
-        $("topProductPercentage").textContent = percentage + "%";
-        $("topProductCard").style.display = "block";
+        $('topProductName').textContent = state.analytics.topProduct.name;
+        $('topProductQty').textContent = num(state.analytics.topProduct.quantity);
+        $('topProductRevenue').textContent = formatPrice(state.analytics.topProduct.revenue);
+        $('topProductPercentage').textContent = percentage + '%';
+        $('topProductCard').style.display = 'block';
       } else {
-        $("topProductCard").style.display = "none";
+        $('topProductCard').style.display = 'none';
       }
 
-      $("conversionRate").textContent = state.analytics.conversionRate + "%";
-      $("avgCustomerValue").textContent = formatPrice(state.analytics.avgCustomerValue);
-      $("ordersToday").textContent = state.analytics.ordersToday;
-      $("revenueToday").textContent = formatPrice(state.analytics.revenueToday);
+      $('conversionRate').textContent = state.analytics.conversionRate + '%';
+      $('avgCustomerValue').textContent = formatPrice(state.analytics.avgCustomerValue);
+      $('ordersToday').textContent = state.analytics.ordersToday;
+      $('revenueToday').textContent = formatPrice(state.analytics.revenueToday);
 
-      const allOrdersBody = $("allOrdersBody");
-      allOrdersBody.innerHTML = "";
+      const allOrdersBody = $('allOrdersBody');
+      allOrdersBody.innerHTML = '';
 
-      const sortedOrders = [...state.orders].sort((a, b) => {
-        const da = parseOrderDate(a.date) || new Date(0);
-        const db = parseOrderDate(b.date) || new Date(0);
-        return db - da;
-      });
+      const filteredOrders = getFilteredOrders();
+      state.filteredOrders = filteredOrders;
+      $('visibleCount').textContent = filteredOrders.length;
 
-      if (sortedOrders.length === 0) {
+      if (filteredOrders.length === 0) {
         allOrdersBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted)">Aucune commande</td></tr>`;
       } else {
-        sortedOrders.slice(0, 50).forEach(order => {
-          const statut = order.statut || "🟡 NOUVELLE";
-          const articlesText = order.articles ? safeText(order.articles).replace(/\n/g, '<br>') : '';
-          
+        filteredOrders.slice(0, 100).forEach(order => {
+          const statut = order.statut || '🟡 NOUVELLE';
+          const articlesText = escapeHtml(order.articles).replace(/\n/g, '<br>');
+
           const d = parseOrderDate(order.date);
-          const dateStr = d ? d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : safeText(order.date);
+          const dateStr = d
+            ? d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+            : safeText(order.date);
 
           const addressText = safeText(order.adresse);
-let addressLink = addressText;
+          let addressLink = escapeHtml(addressText);
+          const mapsUrl = buildGoogleMapsLink(addressText);
 
-const gpsMatch = addressText.match(/GPS:\s*([0-9.-]+)\s*,\s*([0-9.-]+)/i);
+          if (mapsUrl && addressText.length > 3) {
+            addressLink = `
+              <a href="${mapsUrl}"
+                 target="_blank"
+                 class="address-link"
+                 onclick="event.stopPropagation()"
+                 title="Localiser le client sur Google Maps">
+                 <i class="fas fa-map-marker-alt"></i> ${escapeHtml(addressText.substring(0,40))}
+              </a>`;
+          }
 
-if (gpsMatch) {
-  const lat = gpsMatch[1];
-  const lng = gpsMatch[2];
-
-  addressLink = `
-  <a href="https://www.google.com/maps?q=${lat},${lng}"
-     target="_blank"
-     class="address-link"
-     onclick="event.stopPropagation()"
-     title="Localiser le client sur Google Maps">
-     <i class="fas fa-map-marker-alt"></i> ${addressText.substring(0,40)}
-  </a>`;
-}
-else if (addressText && addressText.length > 3) {
-
-  const query = encodeURIComponent(addressText);
-
-  addressLink = `
-  <a href="https://www.google.com/maps/search/?api=1&query=${query}"
-     target="_blank"
-     class="address-link"
-     onclick="event.stopPropagation()"
-     title="Rechercher l'adresse sur Google Maps">
-     <i class="fas fa-map-marker-alt"></i> ${addressText.substring(0,40)}
-  </a>`;
-}
-
-          const tr = document.createElement("tr");
-          tr.className = "clickable-order-row";
-          tr.title = "Cliquer pour envoyer cette commande vers WhatsApp";
+          const tr = document.createElement('tr');
+          tr.className = 'clickable-order-row';
+          tr.title = 'Cliquer pour envoyer cette commande vers WhatsApp';
 
           tr.innerHTML = `
-            <td>${dateStr}</td>
-            <td><strong>${safeText(order.nom).substring(0,15)}</strong></td>
-            <td>${safeText(order.telephone)}</td>
+            <td>${escapeHtml(dateStr)}</td>
+            <td><strong>${escapeHtml(safeText(order.nom).substring(0,15))}</strong></td>
+            <td>${escapeHtml(normalizeClientPhoneForDisplay(order.telephone) || order.telephone)}</td>
             <td>${addressLink}</td>
-            <td><strong>${safeText(order.commande_id) || 'N/A'}</strong></td>
+            <td><strong>${escapeHtml(safeText(order.commande_id) || 'N/A')}</strong></td>
             <td class="articles-cell">${articlesText}</td>
             <td><strong>${formatPrice(order.total)}</strong></td>
             <td>
               <select class="statut-select">
-                ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${s.substring(0,8)}</option>`).join("")}
+                ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${escapeHtml(s.substring(0,8))}</option>`).join('')}
               </select>
             </td>
           `;
 
-          const select = tr.querySelector(".statut-select");
-          select.addEventListener("click", function(e) {
-            e.stopPropagation();
-          });
-          select.addEventListener("change", function(e) {
+          const select = tr.querySelector('.statut-select');
+          select.addEventListener('click', e => e.stopPropagation());
+          select.addEventListener('change', function(e) {
             e.stopPropagation();
             updateOrderStatus(order.commande_id, this.value);
           });
 
-          const addressAnchor = tr.querySelector(".address-link");
+          const addressAnchor = tr.querySelector('.address-link');
           if (addressAnchor) {
-            addressAnchor.addEventListener("click", function(e) {
-              e.stopPropagation();
-            });
+            addressAnchor.addEventListener('click', e => e.stopPropagation());
           }
 
-          tr.addEventListener("click", function() {
+          tr.addEventListener('click', function() {
             sendOrderToWhatsApp({
               date: dateStr,
               nom: order.nom,
@@ -1305,17 +1105,17 @@ else if (addressText && addressText.length > 3) {
         });
       }
 
-      const topProductsBody = $("topProductsBody");
-      topProductsBody.innerHTML = "";
+      const topProductsBody = $('topProductsBody');
+      topProductsBody.innerHTML = '';
       if (state.topProducts.length === 0) {
         topProductsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:var(--muted)">Aucune donnée</td></tr>`;
       } else {
         state.topProducts.forEach((product, index) => {
-          const tr = document.createElement("tr");
+          const tr = document.createElement('tr');
           const name = safeText(product.name);
           tr.innerHTML = `
             <td style="text-align:center; font-weight:900;">${index + 1}</td>
-            <td><div style="font-weight:900">${name.substring(0, 25)}${name.length > 25 ? '...' : ''}</div></td>
+            <td><div style="font-weight:900">${escapeHtml(name.length > 45 ? name.substring(0,45) + '...' : name)}</div></td>
             <td style="font-weight:900; color:var(--blue); text-align:center">${num(product.quantity)}</td>
             <td style="font-weight:900; color:var(--green)">${formatPrice(product.revenue)}</td>
           `;
@@ -1323,44 +1123,66 @@ else if (addressText && addressText.length > 3) {
         });
       }
 
-      $("lastUpdate").textContent = new Date().toLocaleString("fr-FR");
+      $('lastUpdate').textContent = new Date().toLocaleString('fr-FR');
+    }
+
+    function chartCommonOptions() {
+      return {
+        responsive:true,
+        maintainAspectRatio:false,
+        scales: {
+          x: { ticks:{ color:'#f0f6fc', font:{ size:10 } }, grid:{ color:'rgba(255,255,255,.08)' } },
+          y: { ticks:{ color:'#f0f6fc', font:{ size:10 } }, grid:{ color:'rgba(255,255,255,.08)' } }
+        },
+        plugins: {
+          legend: { labels: { color:'#f0f6fc', font:{ size:11 } } }
+        }
+      };
     }
 
     function initCharts() {
-      const salesCtx = $("salesChart").getContext("2d");
+      const salesCtx = $('salesChart').getContext('2d');
       state.charts.sales = new Chart(salesCtx, {
-        type: "line",
-        data: { labels: [], datasets: [{ label: "CA (dt)", data: [], borderWidth: 2, fill: true, tension: 0.4 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#f0f6fc", font: { size: 11 } } } } }
+        type:'line',
+        data:{ labels:[], datasets:[{ label:'CA (dt)', data:[], borderWidth:2, fill:true, tension:.35, backgroundColor:'rgba(0,212,255,0.15)', borderColor:'#00d4ff' }] },
+        options: chartCommonOptions()
       });
 
-      const statusCtx = $("statusChart").getContext("2d");
+      const statusCtx = $('statusChart').getContext('2d');
       state.charts.status = new Chart(statusCtx, {
-        type: "doughnut",
-        data: { labels: [], datasets: [{ data: [], borderWidth: 1, backgroundColor: [
-          "rgba(255, 204, 0, 0.8)","rgba(255, 153, 0, 0.8)","rgba(0, 102, 204, 0.8)",
-          "rgba(255, 102, 0, 0.8)","rgba(0, 170, 0, 0.8)","rgba(204, 0, 0, 0.8)"
-        ]}]},
-        options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: "right", labels: { color: "#f0f6fc", font: { size: 11 } } } } }
+        type:'doughnut',
+        data:{ labels:[], datasets:[{ data:[], borderWidth:1, backgroundColor:[
+          'rgba(255, 204, 0, 0.8)','rgba(255, 153, 0, 0.8)','rgba(0, 102, 204, 0.8)',
+          'rgba(255, 102, 0, 0.8)','rgba(0, 170, 0, 0.8)','rgba(204, 0, 0, 0.8)'
+        ] }] },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          cutout:'60%',
+          plugins:{ legend:{ position:'right', labels:{ color:'#f0f6fc', font:{ size:11 } } } }
+        }
       });
 
-      const productsCtx = $("productsChart").getContext("2d");
+      const productsCtx = $('productsChart').getContext('2d');
       state.charts.products = new Chart(productsCtx, {
-        type: "bar",
-        data: { labels: [], datasets: [{ label: "Quantité", data: [] }] },
-        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 11 } } } } }
+        type:'bar',
+        data:{ labels:[], datasets:[{ label:'Quantité', data:[], backgroundColor:'rgba(0,255,136,0.6)', borderColor:'#00ff88', borderWidth:1 }] },
+        options:{
+          ...chartCommonOptions(),
+          indexAxis:'y'
+        }
       });
 
-      const hourlyCtx = $("hourlyChart").getContext("2d");
+      const hourlyCtx = $('hourlyChart').getContext('2d');
       state.charts.hourly = new Chart(hourlyCtx, {
-        type: "bar",
-        data: { labels: [], datasets: [{ label: "Commandes", data: [] }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 11 } } } } }
+        type:'bar',
+        data:{ labels:[], datasets:[{ label:'Commandes', data:[], backgroundColor:'rgba(156,39,176,0.5)', borderColor:'#9c27b0', borderWidth:1 }] },
+        options: chartCommonOptions()
       });
     }
 
     function updateCharts() {
-      const period = parseInt($("salesPeriod").value || 30, 10);
+      const period = parseInt($('salesPeriod').value || 30, 10);
       updateSalesChart(period);
       updateStatusChart();
       updateProductsChart();
@@ -1376,7 +1198,7 @@ else if (addressText && addressText.length > 3) {
         const date = new Date(today);
         date.setDate(date.getDate() - i);
         const dateKey = date.toISOString().substring(0, 10);
-        labels.push(date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }));
+        labels.push(date.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' }));
         data.push(num(state.analytics.salesByDay[dateKey] || 0));
       }
 
@@ -1386,7 +1208,7 @@ else if (addressText && addressText.length > 3) {
     }
 
     function updateStatusChart() {
-      const order = ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
+      const order = ['🟡 NOUVELLE','⏳ EN ATTENTE','🔵 EN PRÉPARATION','🟠 EN LIVRAISON','✅ LIVRÉE','❌ ANNULÉE'];
       const labels = [];
       const data = [];
 
@@ -1402,7 +1224,7 @@ else if (addressText && addressText.length > 3) {
 
     function updateProductsChart() {
       const top10 = state.topProducts.slice(0, 10);
-      const labels = top10.map(p => p.name.length > 12 ? p.name.substring(0, 12) + '...' : p.name);
+      const labels = top10.map(p => p.name.length > 18 ? p.name.substring(0, 18) + '...' : p.name);
       const data = top10.map(p => num(p.quantity));
 
       state.charts.products.data.labels = labels;
@@ -1411,9 +1233,9 @@ else if (addressText && addressText.length > 3) {
     }
 
     function updateActivityChart() {
-      const mode = $("activityMode").value;
+      const mode = $('activityMode').value;
 
-      if (mode === "hour") {
+      if (mode === 'hour') {
         const labels = [];
         const data = [];
         for (let h = 0; h < 24; h++) {
@@ -1435,7 +1257,7 @@ else if (addressText && addressText.length > 3) {
         const date = new Date(today);
         date.setDate(date.getDate() - i);
         const key = date.toISOString().slice(0,10);
-        labels.push(date.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit" }));
+        labels.push(date.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' }));
         data.push(num(state.analytics.ordersByDay[key] || 0));
       }
 
@@ -1446,17 +1268,17 @@ else if (addressText && addressText.length > 3) {
 
     async function updateOrderStatus(commandeId, nouveauStatut) {
       try {
-        showToast(`⏳ Mise à jour...`, "info");
+        showToast('⏳ Mise à jour...', 'info');
         state.statusUpdateInProgress = true;
         state.statusUpdateForId = commandeId;
 
         if (state.apiStatus === 'demo') return;
 
         const url = `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`;
-        const response = await fetch(url, { cache:"no-store" });
+        const response = await fetch(url, { cache:'no-store' });
         const result = await response.json();
 
-        if (!result.success) throw new Error(result.error || "Erreur API");
+        if (!result.success) throw new Error(result.error || 'Erreur API');
 
         const i = state.orders.findIndex(o => o.commande_id === commandeId);
         if (i !== -1) state.orders[i].statut = nouveauStatut;
@@ -1464,11 +1286,10 @@ else if (addressText && addressText.length > 3) {
         calculateAnalytics();
         updateUI();
         updateCharts();
-        showToast(`✅ Statut mis à jour`, "success");
-
+        showToast('✅ Statut mis à jour', 'success');
       } catch (e) {
         console.error(e);
-        showToast(`❌ ${e.message}`, "error");
+        showToast(`❌ ${e.message}`, 'error');
       } finally {
         setTimeout(() => {
           state.statusUpdateInProgress = false;
@@ -1479,32 +1300,31 @@ else if (addressText && addressText.length > 3) {
 
     async function createTestOrder() {
       try {
-        showToast("⏳ Création test...", "info");
+        showToast('⏳ Création test...', 'info');
 
         const payload = new URLSearchParams({
-          method: "saveOrder",
-          nom_client: "TEST ADMIN",
-          telephone: "+216 20000000",
-          adresse: "Adresse test | GPS: 36.858546, 10.301467",
-          articles: "2x PRODUIT TEST A\n1x PRODUIT TEST B",
-          total: "30.000"
+          method:'saveOrder',
+          nom_client:'TEST ADMIN',
+          telephone:'+216 20000000',
+          adresse:'Adresse test | GPS: 36.858546, 10.301467',
+          articles:'2x PRODUIT TEST A\n1x PRODUIT TEST B',
+          total:'30.000'
         });
 
         const resp = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type":"application/x-www-form-urlencoded" },
-          body: payload.toString()
+          method:'POST',
+          headers:{ 'Content-Type':'application/x-www-form-urlencoded' },
+          body:payload.toString()
         });
 
         const data = await resp.json();
-        if (!data.success) throw new Error(data.error || "Erreur API");
+        if (!data.success) throw new Error(data.error || 'Erreur API');
 
-        showToast(`✅ Test créé`, "success");
+        showToast('✅ Test créé', 'success');
         setTimeout(() => refreshAll(true), 900);
-
       } catch (e) {
         console.error(e);
-        showToast(`❌ ${e.message}`, "error");
+        showToast(`❌ ${e.message}`, 'error');
       }
     }
 
@@ -1512,44 +1332,46 @@ else if (addressText && addressText.length > 3) {
       if (!force && state.statusUpdateInProgress) return;
 
       try {
-        $("btnRefresh").disabled = true;
-        $("btnRefresh").innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
+        $('btnRefresh').disabled = true;
+        $('btnRefresh').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
 
         await loadData();
         calculateAnalytics();
         updateUI();
         updateCharts();
 
-        showToast("✅ Données actualisées", "success");
-
+        showToast('✅ Données actualisées', 'success');
       } catch (e) {
         console.error(e);
-        showToast("❌ Erreur chargement", "error");
+        showToast('❌ Erreur chargement', 'error');
       } finally {
-        $("btnRefresh").disabled = false;
-        $("btnRefresh").innerHTML = '<i class="fas fa-sync-alt"></i> Actualiser';
+        $('btnRefresh').disabled = false;
+        $('btnRefresh').innerHTML = '<i class="fas fa-sync-alt"></i> Actualiser';
       }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener('DOMContentLoaded', () => {
       initCharts();
-      
-      $("statusSelector").addEventListener("change", () => {
-        const selectedStatut = $("statusSelector").value;
+
+      $('statusSelector').addEventListener('change', () => {
+        const selectedStatut = $('statusSelector').value;
         const count = state.analytics.statusDistribution[selectedStatut] || 0;
-        $("selectedStatusCount").textContent = count;
-        $("selectedStatusLabel").textContent = selectedStatut;
+        $('selectedStatusCount').textContent = count;
+        $('selectedStatusLabel').textContent = selectedStatut;
       });
-      
-      $("salesPeriod").addEventListener("change", () => updateCharts());
-      $("activityMode").addEventListener("change", () => updateCharts());
-      $("btnRefresh").addEventListener("click", () => refreshAll(true));
-      $("btnCreateTest").addEventListener("click", () => createTestOrder());
+
+      $('salesPeriod').addEventListener('change', updateCharts);
+      $('activityMode').addEventListener('change', updateCharts);
+      $('searchInput').addEventListener('input', updateUI);
+      $('tableStatusFilter').addEventListener('change', updateUI);
+      $('tableSortMode').addEventListener('change', updateUI);
+      $('btnRefresh').addEventListener('click', () => refreshAll(true));
+      $('btnCreateTest').addEventListener('click', () => createTestOrder());
       window.updateOrderStatus = updateOrderStatus;
 
       refreshAll(true);
       setInterval(() => refreshAll(false), 30000);
-      document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshAll(true); });
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshAll(true); });
     });
   </script>
 </body>
