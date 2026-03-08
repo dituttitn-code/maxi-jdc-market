@@ -1157,17 +1157,36 @@ TOTAL: ${total} dt
           const dateStr = d ? d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : safeText(order.date);
 
           const addressText = safeText(order.adresse);
-          let addressLink = addressText;
-          
-          const gpsMatch = addressText.match(/GPS:\s*([0-9.-]+)[,\s]+([0-9.-]+)/i);
-          if (gpsMatch) {
-            const lat = gpsMatch[1];
-            const lng = gpsMatch[2];
-            addressLink = `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="address-link" title="Voir sur Google Maps"><i class="fas fa-map-marker-alt"></i> ${addressText.substring(0,30)}...</a>`;
-          } else if (addressText && addressText.length > 5) {
-            const query = encodeURIComponent(addressText);
-            addressLink = `<a href="https://www.google.com/maps/search/?api=1&query=${query}" target="_blank" class="address-link" title="Voir sur Google Maps"><i class="fas fa-map-marker-alt"></i> ${addressText.substring(0,30)}...</a>`;
-          }
+let addressLink = addressText;
+
+const gpsMatch = addressText.match(/GPS:\s*([0-9.-]+)\s*,\s*([0-9.-]+)/i);
+
+if (gpsMatch) {
+  const lat = gpsMatch[1];
+  const lng = gpsMatch[2];
+
+  addressLink = `
+  <a href="https://www.google.com/maps?q=${lat},${lng}"
+     target="_blank"
+     class="address-link"
+     onclick="event.stopPropagation()"
+     title="Localiser le client sur Google Maps">
+     <i class="fas fa-map-marker-alt"></i> ${addressText.substring(0,40)}
+  </a>`;
+}
+else if (addressText && addressText.length > 3) {
+
+  const query = encodeURIComponent(addressText);
+
+  addressLink = `
+  <a href="https://www.google.com/maps/search/?api=1&query=${query}"
+     target="_blank"
+     class="address-link"
+     onclick="event.stopPropagation()"
+     title="Rechercher l'adresse sur Google Maps">
+     <i class="fas fa-map-marker-alt"></i> ${addressText.substring(0,40)}
+  </a>`;
+}
 
           const tr = document.createElement("tr");
           tr.className = "clickable-order-row";
