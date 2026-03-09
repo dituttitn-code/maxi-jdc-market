@@ -4573,30 +4573,90 @@
 
   <script>
     // ===================== CONFIGURATION =====================
-    const CONFIG = {
-      minOrder: 15,
-      freeShipping: 100,
-      shippingFee: 3,
-      whatsappNumber: "21625600978",
-      itemsPerPage: 24,
-      localStorageKey: 'maxi_jdc_market_app_v42',
-      imagesBasePath: 'images/products/',
-      historyRetentionYears: 2,
-      adminPasswordKey: 'maxi_jdc_admin_password',
-      syncStorageKey: 'maxi_jdc_sync_data',
-      qrCodeUrl: window.location.href,
-      adminPassword: "admin123",
-      storeLocation: {
-        lat: 36.851234,
-        lng: 10.301234
-      },
-      syncInterval: 30000,
-      dashboardUrl: 'tools/tableau-de-bord.html',
-      trackingUrl: 'tools/suivi-commandes.html',
-      googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
-      commandeApiUrl: "https://script.google.com/macros/s/AKfycbz9ztyd8kQz8VC4r9RKZqDU8rz79nRwZsYDuY26Os0wjZLdn70xTZX7N52FaUCptw9q/exec",
-    };
+const CONFIG = {
+  minOrder: 15,
+  freeShipping: 100,
+  shippingFee: 3,
+  whatsappNumber: "21625600978",
+  itemsPerPage: 24,
+  localStorageKey: 'maxi_jdc_market_app_v42',
+  imagesBasePath: 'images/products/',
+  historyRetentionYears: 2,
+  adminPasswordKey: 'maxi_jdc_admin_password',
+  syncStorageKey: 'maxi_jdc_sync_data',
+  qrCodeUrl: window.location.href,
+  adminPassword: "admin123",
+  storeLocation: {
+    lat: 36.851234,
+    lng: 10.301234
+  },
+  syncInterval: 20000, // 20 secondes
+  dashboardUrl: 'tools/tableau-de-bord.html',
+  trackingUrl: 'tools/suivi-commandes.html',
+  googleSheetsUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTd3iOI9ehmZmPWcn9z7BKU7hsf3K33LjaBISm9_Y-bk_Zrj146jShFjxCjnpwrEgUJiELpX3BDV2Bl/pub?gid=0&single=true&output=csv",
+  commandeApiUrl: "https://script.google.com/macros/s/AKfycbz9ztyd8kQz8VC4r9RKZqDU8rz79nRwZsYDuY26Os0wjZLdn70xTZX7N52FaUCptw9q/exec",
+};
 
+
+// ===================== ACTUALISATION AUTOMATIQUE SUIVI COMMANDE =====================
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  async function refreshOrderStatus() {
+
+    const orderDetails = document.getElementById("orderDetails");
+
+    // si le modal n'est pas ouvert on ne fait rien
+    if (!orderDetails) return;
+
+    try {
+
+      const text = orderDetails.textContent || "";
+
+      // récupérer numéro commande
+      const match = text.match(/CMD-[A-Z0-9-]+/i);
+
+      if (!match) return;
+
+      const orderId = match[0];
+
+      // appel Apps Script
+      const url = `${CONFIG.commandeApiUrl}?orderId=${encodeURIComponent(orderId)}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!data) return;
+
+      // mise à jour du modal
+      if (typeof openOrderModal === "function") {
+
+        openOrderModal(data);
+
+      } else if (typeof showOrderDetails === "function") {
+
+        showOrderDetails(data);
+
+      } else {
+
+        orderDetails.textContent = JSON.stringify(data, null, 2);
+
+      }
+
+      console.log("Suivi commande actualisé automatiquement");
+
+    } catch (err) {
+
+      console.error("Erreur actualisation commande :", err);
+
+    }
+
+  }
+
+  // actualisation automatique toutes les 20 secondes
+  setInterval(refreshOrderStatus, CONFIG.syncInterval);
+
+});
     // ===================== STATUTS =====================
     const ORDER_STATUSES = {
       "🟡 NOUVELLE": { emoji: "🟡", label: "Nouvelle" },
@@ -7782,6 +7842,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
