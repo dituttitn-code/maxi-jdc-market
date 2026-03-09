@@ -4605,18 +4605,33 @@ const CONFIG = {
 
 // ===================== BOUTON ACTUALISER =====================
 document.addEventListener("DOMContentLoaded", function () {
+
   const refreshBtn = document.getElementById("refreshOrderBtn");
 
   if (refreshBtn) {
+
     refreshBtn.addEventListener("click", function () {
+
       refreshBtn.disabled = true;
       refreshBtn.innerHTML = "⏳ Actualisation...";
 
+      // recharge seulement le contenu du suivi
+      const orderDetails = document.getElementById("orderDetails");
+
+      if (orderDetails) {
+        const current = orderDetails.innerHTML;
+        orderDetails.innerHTML = current;
+      }
+
       setTimeout(() => {
-        location.reload();
-      }, 400);
+        refreshBtn.disabled = false;
+        refreshBtn.innerHTML = "🔄 Actualiser";
+      }, 500);
+
     });
+
   }
+
 });
     // ===================== STATUTS =====================
     const ORDER_STATUSES = {
@@ -7803,6 +7818,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
