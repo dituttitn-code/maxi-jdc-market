@@ -4605,33 +4605,76 @@ const CONFIG = {
 
 // ===================== BOUTON ACTUALISER =====================
 document.addEventListener("DOMContentLoaded", function () {
-
   const refreshBtn = document.getElementById("refreshOrderBtn");
 
   if (refreshBtn) {
-
-    refreshBtn.addEventListener("click", function () {
-
-      refreshBtn.disabled = true;
-      refreshBtn.innerHTML = "⏳ Actualisation...";
-
-      // recharge seulement le contenu du suivi
+    refreshBtn.addEventListener("click", async function () {
+      const btn = refreshBtn;
       const orderDetails = document.getElementById("orderDetails");
 
-      if (orderDetails) {
-        const current = orderDetails.innerHTML;
-        orderDetails.innerHTML = current;
+      if (!orderDetails) return;
+
+      btn.disabled = true;
+      btn.innerHTML = "⏳ Actualisation...";
+
+      try {
+        // récupère à nouveau les données locales
+        const savedData = JSON.parse(localStorage.getItem(CONFIG.localStorageKey) || "{}");
+        const orders = savedData.orders || [];
+
+        // essaie de retrouver le numéro de commande affiché dans le modal
+        const currentText = orderDetails.textContent || "";
+        const match = currentText.match(/CMD-[A-Z0-9-]+/i);
+
+        if (!match) {
+          btn.innerHTML = "⚠️ Introuvable";
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = "🔄 Actualiser";
+          }, 1200);
+          return;
+        }
+
+        const currentOrderId = match[0];
+
+        // retrouve la commande correspondante
+        const order = orders.find(o =>
+          (o.orderId && o.orderId === currentOrderId) ||
+          (o.id && o.id === currentOrderId) ||
+          (o.code && o.code === currentOrderId)
+        );
+
+        if (!order) {
+          btn.innerHTML = "⚠️ Introuvable";
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = "🔄 Actualiser";
+          }, 1200);
+          return;
+        }
+
+        // si tu as déjà une fonction d'ouverture de détail, utilise-la
+        if (typeof openOrderModal === "function") {
+          openOrderModal(order);
+        } else if (typeof showOrderDetails === "function") {
+          showOrderDetails(order);
+        } else {
+          // secours minimal : réinjecte le contenu du détail
+          orderDetails.textContent = JSON.stringify(order, null, 2);
+        }
+
+        btn.innerHTML = "✅ Actualisé";
+      } catch (error) {
+        console.error("Erreur actualisation :", error);
+        btn.innerHTML = "❌ Erreur";
       }
 
       setTimeout(() => {
-        refreshBtn.disabled = false;
-        refreshBtn.innerHTML = "🔄 Actualiser";
-      }, 500);
-
+        btn.disabled = false;
+        btn.innerHTML = "🔄 Actualiser";
+      }, 1200);
     });
-
   }
-
 });
     // ===================== STATUTS =====================
     const ORDER_STATUSES = {
@@ -7818,6 +7861,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
