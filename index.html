@@ -4578,7 +4578,7 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <script>
- // ===================== CONFIGURATION =====================
+// ===================== CONFIGURATION =====================
 const CONFIG = {
   minOrder: 15,
   freeShipping: 100,
@@ -4603,72 +4603,20 @@ const CONFIG = {
   commandeApiUrl: "https://script.google.com/macros/s/AKfycbz9ztyd8kQz8VC4r9RKZqDU8rz79nRwZsYDuY26Os0wjZLdn70xTZX7N52FaUCptw9q/exec",
 };
 
-
 // ===================== BOUTON ACTUALISER =====================
 document.addEventListener("DOMContentLoaded", function () {
-
   const refreshBtn = document.getElementById("refreshOrderBtn");
 
-  if (!refreshBtn) return;
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", function () {
+      refreshBtn.disabled = true;
+      refreshBtn.innerHTML = "⏳ Actualisation...";
 
-  refreshBtn.addEventListener("click", async function () {
-
-    const btn = refreshBtn;
-    const orderDetails = document.getElementById("orderDetails");
-
-    btn.disabled = true;
-    btn.innerHTML = "⏳ Actualisation...";
-
-    try {
-
-      // récupère le texte affiché dans le modal
-      const text = orderDetails ? orderDetails.textContent : "";
-
-      // extrait le numéro de commande
-      const match = text.match(/CMD-[A-Z0-9-]+/i);
-
-      if (!match) throw new Error("Commande introuvable");
-
-      const orderId = match[0];
-
-      // appel Google Apps Script
-      const url = `${CONFIG.commandeApiUrl}?orderId=${encodeURIComponent(orderId)}`;
-
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (!data) throw new Error("Aucune donnée");
-
-      // si ton site a une fonction pour afficher la commande
-      if (typeof openOrderModal === "function") {
-        openOrderModal(data);
-      } 
-      else if (typeof showOrderDetails === "function") {
-        showOrderDetails(data);
-      }
-      else {
-        // secours : affiche les données brutes
-        if (orderDetails) {
-          orderDetails.textContent = JSON.stringify(data, null, 2);
-        }
-      }
-
-      btn.innerHTML = "✅ Actualisé";
-
-    } catch (err) {
-
-      console.error(err);
-      btn.innerHTML = "❌ Erreur";
-
-    }
-
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.innerHTML = "🔄 Actualiser";
-    }, 1200);
-
-  });
-
+      setTimeout(() => {
+        location.reload();
+      }, 400);
+    });
+  }
 });
     // ===================== STATUTS =====================
     const ORDER_STATUSES = {
@@ -7855,6 +7803,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
