@@ -7780,8 +7780,61 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
       }
     });
   </script>
+  <!-- synchronisation produits Google Sheets -->
+<script type="module">
+
+import { autoSyncProducts } from "./tools/stock-sync.js";
+
+function renderProducts(products) {
+
+  const container = document.querySelector("#products-container");
+
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  products.forEach(p => {
+
+    const promoBadge = p.promo
+      ? `<div class="promo-badge">${p.promo.value}% OFF</div>`
+      : "";
+
+    const oldPrice = p.promo
+      ? `<div class="old-price">${p.originalPrice} DT</div>`
+      : "";
+
+    const stock = p.stock > 0
+      ? `<div class="stock">Stock: ${p.stock}</div>`
+      : `<div class="stock rupture">Rupture</div>`;
+
+    const card = `
+      <div class="product-card">
+
+        ${promoBadge}
+
+        <div class="product-name">${p.name}</div>
+
+        <div class="product-price">${p.price} DT</div>
+
+        ${oldPrice}
+
+        ${stock}
+
+      </div>
+    `;
+
+    container.innerHTML += card;
+
+  });
+
+}
+
+autoSyncProducts(renderProducts);
+
+</script>
 </body>
 </html>
+
 
 
 
