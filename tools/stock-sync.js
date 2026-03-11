@@ -1,5 +1,5 @@
 const STOCK_API_URL =
-  "https://script.google.com/macros/s/AKfycbx1T7J7RRslouJ3l03rXY7VPVloW-MUrvV_mbj5GlRWRxSv8XnR2osWYydwnfKo05YISA/exec";
+  "https://script.google.com/macros/s/AKfycbwBKZWZU3_yD6uy1DamW3wMqqjImMwoX0rPdpEQtq3vPYcZ8dLPOh0XxVAZA5Se7wHInA/exec";
 
 /* charger les produits */
 export async function loadProducts() {
