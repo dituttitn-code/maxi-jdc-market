@@ -7800,7 +7800,7 @@ function renderProducts(products) {
       : "";
 
     const oldPrice = p.promo
-      ? `<div class="product-old-price">${p.originalPrice} DT</div>`
+      ? `<div class="product-old-price">${Number(p.originalPrice || 0).toFixed(3)} DT</div>`
       : "";
 
     const stock = p.stock > 0
@@ -7817,7 +7817,7 @@ function renderProducts(products) {
 
           <div class="product-price-container">
             ${oldPrice}
-            <div class="product-price">${p.price} DT</div>
+            <div class="product-price">${Number(p.price || 0).toFixed(3)} DT</div>
           </div>
 
           ${stock}
@@ -7837,6 +7837,7 @@ autoSyncProducts(renderProducts);
 </script>
 </body>
 </html>
+
 
 
 
