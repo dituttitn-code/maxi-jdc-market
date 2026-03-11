@@ -1,29 +1,38 @@
-const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbx1T7J7RRslouJ3l03rXY7VPVloW-MUrvV_mbj5GlRWRxSv8XnR2osWYydwnfKo05YISA/exec";
+const STOCK_API_URL =
+  "https://script.google.com/macros/s/AKfycbx1T7J7RRslouJ3l03rXY7VPVloW-MUrvV_mbj5GlRWRxSv8XnR2osWYydwnfKo05YISA/exec";
 
+/* charger les produits */
 export async function loadProducts() {
   try {
-    const response = await fetch(`${STOCK_API_URL}?mode=all`);
+    const response = await fetch(STOCK_API_URL + "?mode=all");
     const data = await response.json();
 
     if (!data.ok) {
-      throw new Error(data.error || "Erreur API stock");
+      console.error("API erreur", data);
+      return [];
     }
 
+    console.log("Produits chargés :", data.total);
+
     return data.items || [];
-  } catch (error) {
-    console.error("Erreur chargement produits:", error);
+
+  } catch (err) {
+    console.error("Erreur API stock", err);
     return [];
   }
 }
 
+/* synchronisation automatique */
 export async function autoSyncProducts(renderFunction) {
-  async function refresh() {
+
+  async function sync() {
     const products = await loadProducts();
-    if (typeof renderFunction === "function") {
-      renderFunction(products);
-    }
+    renderFunction(products);
   }
 
-  await refresh();
-  setInterval(refresh, 30000);
+  /* premier chargement */
+  await sync();
+
+  /* refresh toutes les 30 secondes */
+  setInterval(sync, 30000);
 }
