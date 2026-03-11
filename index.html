@@ -7763,28 +7763,37 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
     }
 
     function saveState() {
-      const data = {
-        user: state.user,
-        cart: state.cart,
-        orderHistory: state.orderHistory,
-        version: '42.0'
-      };
-      localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
-    }
+  const data = {
+    user: state.user,
+    cart: state.cart,
+    orderHistory: state.orderHistory,
+    version: '42.0'
+  };
 
-    document.addEventListener('DOMContentLoaded', init);
+  localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
+}
 
-    window.addEventListener('beforeunload', () => {
-      if (state.syncTimer) {
-        clearInterval(state.syncTimer);
-      }
-    });
-  </script>
-  <!-- synchronisation produits Google Sheets -->
+/* initialisation */
+document.addEventListener('DOMContentLoaded', init);
+
+/* nettoyage sync timer */
+window.addEventListener('beforeunload', () => {
+  if (state.syncTimer) {
+    clearInterval(state.syncTimer);
+  }
+});
+</script>
+
+
+<!-- ===================================== -->
+<!-- SYNCHRONISATION PRODUITS GOOGLE SHEETS -->
+<!-- ===================================== -->
+
 <script type="module">
 
 import { autoSyncProducts } from "./tools/stock-sync.js";
 
+/* affichage produits */
 function renderProducts(products) {
 
   const container = document.querySelector(".products-grid");
@@ -7813,14 +7822,21 @@ function renderProducts(products) {
         ${promoBadge}
 
         <div class="product-info">
+
           <div class="product-name">${p.name}</div>
 
           <div class="product-price-container">
+
             ${oldPrice}
-            <div class="product-price">${Number(p.price || 0).toFixed(3)} DT</div>
+
+            <div class="product-price">
+              ${Number(p.price || 0).toFixed(3)} DT
+            </div>
+
           </div>
 
           ${stock}
+
         </div>
 
       </div>
@@ -7832,14 +7848,13 @@ function renderProducts(products) {
 
 }
 
+/* synchronisation automatique */
 autoSyncProducts(renderProducts);
 
 </script>
+
 </body>
 </html>
-
-
-
 
 
 
