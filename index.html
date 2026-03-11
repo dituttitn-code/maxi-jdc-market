@@ -7787,7 +7787,7 @@ import { autoSyncProducts } from "./tools/stock-sync.js";
 
 function renderProducts(products) {
 
-  const container = document.querySelector("#products-container");
+  const container = document.querySelector(".products-grid");
 
   if (!container) return;
 
@@ -7796,29 +7796,32 @@ function renderProducts(products) {
   products.forEach(p => {
 
     const promoBadge = p.promo
-      ? `<div class="promo-badge">${p.promo.value}% OFF</div>`
+      ? `<div class="product-discount">${p.promo.value}% OFF</div>`
       : "";
 
     const oldPrice = p.promo
-      ? `<div class="old-price">${p.originalPrice} DT</div>`
+      ? `<div class="product-old-price">${p.originalPrice} DT</div>`
       : "";
 
     const stock = p.stock > 0
-      ? `<div class="stock">Stock: ${p.stock}</div>`
-      : `<div class="stock rupture">Rupture</div>`;
+      ? `<div class="product-stock-tag ok">Stock ${p.stock}</div>`
+      : `<div class="product-stock-tag out">Rupture</div>`;
 
     const card = `
       <div class="product-card">
 
         ${promoBadge}
 
-        <div class="product-name">${p.name}</div>
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
 
-        <div class="product-price">${p.price} DT</div>
+          <div class="product-price-container">
+            ${oldPrice}
+            <div class="product-price">${p.price} DT</div>
+          </div>
 
-        ${oldPrice}
-
-        ${stock}
+          ${stock}
+        </div>
 
       </div>
     `;
@@ -7834,6 +7837,7 @@ autoSyncProducts(renderProducts);
 </script>
 </body>
 </html>
+
 
 
 
