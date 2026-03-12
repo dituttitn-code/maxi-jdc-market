@@ -7773,15 +7773,30 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
 }
 
-/* initialisation */
-document.addEventListener('DOMContentLoaded', init);
+<!-- ===================================== -->
+<!-- INITIALISATION APPLICATION -->
+<!-- ===================================== -->
 
-/* nettoyage sync timer */
+<script>
+
+/* initialisation du catalogue */
+document.addEventListener('DOMContentLoaded', () => {
+
+  if (typeof initCatalogue === "function") {
+    initCatalogue();
+  }
+
+});
+
+/* nettoyage du timer de synchronisation */
 window.addEventListener('beforeunload', () => {
-  if (state.syncTimer) {
+
+  if (typeof state !== "undefined" && state.syncTimer) {
     clearInterval(state.syncTimer);
   }
+
 });
+
 </script>
 
 
@@ -7793,7 +7808,11 @@ window.addEventListener('beforeunload', () => {
 
 import { autoSyncProducts } from "./tools/stock-sync.js";
 
-/* affichage produits */
+
+/* ===================================== */
+/* AFFICHAGE DES PRODUITS */
+/* ===================================== */
+
 function renderProducts(products) {
 
   const container = document.querySelector(".products-grid");
@@ -7823,7 +7842,9 @@ function renderProducts(products) {
 
         <div class="product-info">
 
-          <div class="product-name">${p.name}</div>
+          <div class="product-name">
+            ${p.name || ""}
+          </div>
 
           <div class="product-price-container">
 
@@ -7842,23 +7863,23 @@ function renderProducts(products) {
       </div>
     `;
 
-    container.innerHTML += card;
+    container.insertAdjacentHTML("beforeend", card);
 
   });
 
 }
 
-/* synchronisation automatique */
+
+/* ===================================== */
+/* SYNCHRONISATION AUTOMATIQUE PRODUITS */
+/* ===================================== */
+
 autoSyncProducts(renderProducts);
 
 </script>
 
 </body>
 </html>
-
-
-
-
 
 
 
