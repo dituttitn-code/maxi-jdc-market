@@ -7778,105 +7778,119 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
 <!-- ===================================== -->
 
 <script>
+/* reconstruction du catalogue depuis state.allProducts */
+function rebuildCatalogFromState() {
+  try {
+    state.categoryProducts = {};
+    state.productsByCategory = {};
+    state.promotionProducts = [];
+
+    if (!Array.isArray(state.allProducts)) {
+      state.allProducts = [];
+    }
+
+    const allProducts = state.allProducts.map(product => {
+      if (typeof enrichProduct === "function") {
+        return enrichProduct(product);
+      }
+      return product;
+    });
+
+    for (const category of CATEGORIES) {
+      const items = allProducts.filter(p => p.categoryKey === category.key);
+      state.categoryProducts[category.key] = items;
+      state.productsByCategory[category.key] = items;
+    }
+
+    state.promotionProducts = allProducts.filter(
+      p => p.isPromotion === true || !!p.promo
+    );
+
+    if (typeof updateCategoryCounts === "function") {
+      updateCategoryCounts();
+    }
+
+    if (typeof renderCategories === "function") {
+      renderCategories();
+    }
+
+    if (typeof renderProducts === "function") {
+      renderProducts();
+    }
+
+    console.log("Catalogue reconstruit depuis entrée automatique");
+    console.log("Total produits =", allProducts.length);
+    console.log("Promotions =", state.promotionProducts.length);
+  } catch (error) {
+    console.error("Erreur rebuildCatalogFromState:", error);
+  }
+}
 
 /* initialisation du catalogue */
-document.addEventListener('DOMContentLoaded', () => {
-
+document.addEventListener("DOMContentLoaded", () => {
   if (typeof initCatalogue === "function") {
     initCatalogue();
   }
-
 });
 
 /* nettoyage du timer de synchronisation */
-window.addEventListener('beforeunload', () => {
-
+window.addEventListener("beforeunload", () => {
   if (typeof state !== "undefined" && state.syncTimer) {
     clearInterval(state.syncTimer);
   }
-
 });
-
 </script>
-
 
 <!-- ===================================== -->
 <!-- SYNCHRONISATION PRODUITS GOOGLE SHEETS -->
 <!-- ===================================== -->
 
 <script type="module">
-
 import { autoSyncProducts } from "./tools/stock-sync.js";
 
-/* affichage produits */
-function renderProducts(products) {
-
-  const container = document.querySelector(".products-grid");
-
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  products.forEach(p => {
-
-    const promoBadge = p.promo
-      ? `<div class="product-discount">${p.promo.value}% OFF</div>`
-      : "";
-
-    const oldPrice = p.promo
-      ? `<div class="product-old-price">${Number(p.originalPrice || 0).toFixed(3)} DT</div>`
-      : "";
-
-    const stock = p.stock > 0
-      ? `<div class="product-stock-tag ok">Stock ${p.stock}</div>`
-      : `<div class="product-stock-tag out">Rupture</div>`;
-
-    const card = `
-      <div class="product-card">
-
-        ${promoBadge}
-
-        <div class="product-info">
-
-          <div class="product-name">
-            ${p.name || ""}
-          </div>
-
-          <div class="product-price-container">
-
-            ${oldPrice}
-
-            <div class="product-price">
-              ${Number(p.price || 0).toFixed(3)} DT
-            </div>
-
-          </div>
-
-          ${stock}
-
-        </div>
-
-      </div>
-    `;
-
-    container.insertAdjacentHTML("beforeend", card);
-
-  });
-
+function normalizeIncomingProduct(p) {
+  return {
+    ...p,
+    code: String(p.code || p.id || "").trim(),
+    name: String(p.name || p.nom || "").trim(),
+    price: Number(p.price || p.prix || 0),
+    stock: Number(p.stock || 0),
+    promo: p.promo || null,
+    isPromotion: !!p.promo
+  };
 }
 
-/* synchronisation automatique */
-autoSyncProducts(renderProducts);
+function applyAutoProductsToInterface(products) {
+  if (!Array.isArray(products)) return;
 
+  const normalized = products
+    .map(normalizeIncomingProduct)
+    .filter(p => p.code && p.name);
+
+  state.allProducts = normalized;
+
+  if (typeof rebuildCatalogFromState === "function") {
+    rebuildCatalogFromState();
+    return;
+  }
+
+  if (typeof renderCategories === "function") {
+    renderCategories();
+  }
+
+  if (typeof renderProducts === "function") {
+    renderProducts();
+  }
+}
+
+/* synchronisation automatique sans casser l'interface existante */
+autoSyncProducts((products) => {
+  applyAutoProductsToInterface(products);
+});
 </script>
 
 </body>
 </html>
-
-
-
-
-
 
 
 
