@@ -4791,34 +4791,71 @@
       }
     };
 
-    // Catégories
-    const CATEGORIES = [
-      { key: "promotions", label: "🔥 PROMOTIONS", file: "data/PROMOTIONS.csv", isPromo: true },
-      { key: "cafe", label: "☕ Café & Thés", file: "data/cafe.csv" },
-      { key: "animaux_compagnie", label: "🐶 Animaux de Compagnie", file: "data/animaux_compagnie.csv" },
-      { key: "bebe_maman", label: "👶 Bébé & Maman", file: "data/bebe_maman.csv" },
-      { key: "boulangerie_patisserie", label: "🥖 Boulangerie & Pâtisserie", file: "data/boulangerie_patisserie.csv" },
-      { key: "chips_snacks", label: "🥔 Chips & Snacks", file: "data/chips_snacks.csv" },
-      { key: "chocolats_biscuits", label: "🍫 Chocolats & Biscuits", file: "data/chocolats_biscuits.csv" },
-      { key: "conserves", label: "🥫 Conserves & Bocaux", file: "data/conserves.csv" },
-      { key: "cuisine_monde", label: "🌍 Cuisine du Monde", file: "data/cuisine_monde.csv" },
-      { key: "eaux", label: "💧 Eaux & Boissons", file: "data/eaux.csv" },
-      { key: "epicerie_salee", label: "🧂 Épicerie Salée", file: "data/epicerie_salee.csv" },
-      { key: "epicerie_sucree", label: "🍬 Épicerie Sucrée", file: "data/epicerie_sucree.csv" },
-      { key: "fromage_charcuterie", label: "🧀 Fromages & Charcuteries", file: "data/fromage_charcuterie.csv" },
-      { key: "fruits_legumes", label: "🍎 Fruits & Légumes", file: "data/fruits_legumes.csv" },
-      { key: "fruits_secs_noix", label: "🌰 Fruits Secs & Noix", file: "data/fruits_secs_noix.csv" },
-      { key: "hygiene_entretien", label: "🧼 Hygiène & Entretien", file: "data/hygiene_entretien.csv" },
-      { key: "hygiene_soins", label: "🧴 Soins & Beauté", file: "data/hygiene_soins.csv" },
-      { key: "jus_boissons", label: "🧃 Jus & Boissons", file: "data/jus_boissons.csv" },
-      { key: "lait_oeufs_produits_frais", label: "🥛 Lait & Œufs Frais", file: "data/lait_oeufs_produits_frais.csv" },
-      { key: "pates", label: "🍝 Pâtes & Riz", file: "data/pates.csv" },
-      { key: "produits_surgeles", label: "🧊 Produits Surgelés", file: "data/produits_surgeles.csv" },
-      { key: "vipa_selections", label: "⭐ Sélections VIP", file: "data/vipa_selections.csv" }
-    ];
+  // Catégories
+const CATEGORIES = [
+  { key: "promotions", label: "🔥 PROMOTIONS", file: "data/PROMOTIONS.csv", isPromo: true },
+  { key: "cafe", label: "☕ Café & Thés", file: "data/cafe.csv" },
+  { key: "animaux_compagnie", label: "🐶 Animaux de Compagnie", file: "data/animaux_compagnie.csv" },
+  { key: "bebe_maman", label: "👶 Bébé & Maman", file: "data/bebe_maman.csv" },
+  { key: "boulangerie_patisserie", label: "🥖 Boulangerie & Pâtisserie", file: "data/boulangerie_patisserie.csv" },
+  { key: "chips_snacks", label: "🥔 Chips & Snacks", file: "data/chips_snacks.csv" },
+  { key: "chocolats_biscuits", label: "🍫 Chocolats & Biscuits", file: "data/chocolats_biscuits.csv" },
+  { key: "conserves", label: "🥫 Conserves & Bocaux", file: "data/conserves.csv" },
+  { key: "cuisine_monde", label: "🌍 Cuisine du Monde", file: "data/cuisine_monde.csv" },
+  { key: "eaux", label: "💧 Eaux & Boissons", file: "data/eaux.csv" },
+  { key: "epicerie_salee", label: "🧂 Épicerie Salée", file: "data/epicerie_salee.csv" },
+  { key: "epicerie_sucree", label: "🍬 Épicerie Sucrée", file: "data/epicerie_sucree.csv" },
+  { key: "fromage_charcuterie", label: "🧀 Fromages & Charcuteries", file: "data/fromage_charcuterie.csv" },
+  { key: "fruits_legumes", label: "🍎 Fruits & Légumes", file: "data/fruits_legumes.csv" },
+  { key: "fruits_secs_noix", label: "🌰 Fruits Secs & Noix", file: "data/fruits_secs_noix.csv" },
+  { key: "hygiene_entretien", label: "🧼 Hygiène & Entretien", file: "data/hygiene_entretien.csv" },
+  { key: "hygiene_soins", label: "🧴 Soins & Beauté", file: "data/hygiene_soins.csv" },
+  { key: "jus_boissons", label: "🧃 Jus & Boissons", file: "data/jus_boissons.csv" },
+  { key: "lait_oeufs_produits_frais", label: "🥛 Lait & Œufs Frais", file: "data/lait_oeufs_produits_frais.csv" },
+  { key: "pates", label: "🍝 Pâtes & Riz", file: "data/pates.csv" },
+  { key: "produits_surgeles", label: "🧊 Produits Surgelés", file: "data/produits_surgeles.csv" },
+  { key: "vipa_selections", label: "⭐ Sélections VIP", file: "data/vipa_selections.csv" }
+];
 
-    // ===================== ÉTAT GLOBAL =====================
-  const state = {
+const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbwBKZWZU3_yD6uy1DamW3wMqqjImMwoX0rPdpEQtq3vPYcZ8dLPOh0XxVAZA5Se7wHInA/exec";
+
+const SHEET_CATEGORY_MAP = {
+  "Café & Thés": "cafe",
+  "Animaux de Compagnie": "animaux_compagnie",
+  "Bébé & Maman": "bebe_maman",
+  "Boulangerie & Pâtisserie": "boulangerie_patisserie",
+  "Chips & Snacks": "chips_snacks",
+  "Chocolats & Biscuits": "chocolats_biscuits",
+  "Conserves & Bocaux": "conserves",
+  "Cuisine du Monde": "cuisine_monde",
+  "Eaux & Boissons": "eaux",
+  "Épicerie Salée": "epicerie_salee",
+  "Epicerie Salée": "epicerie_salee",
+  "Épicerie Sucrée": "epicerie_sucree",
+  "Epicerie Sucrée": "epicerie_sucree",
+  "Fromages & Charcuteries": "fromage_charcuterie",
+  "Fruits & Légumes": "fruits_legumes",
+  "Fruits Secs & Noix": "fruits_secs_noix",
+  "Hygiène & Entretien": "hygiene_entretien",
+  "Hygiene & Entretien": "hygiene_entretien",
+  "Soins & Beauté": "hygiene_soins",
+  "Jus & Boissons": "jus_boissons",
+  "Lait & Œufs Frais": "lait_oeufs_produits_frais",
+  "Lait & Oeufs Frais": "lait_oeufs_produits_frais",
+  "Pâtes & Riz": "pates",
+  "Pates & Riz": "pates",
+  "Produits Surgelés": "produits_surgeles",
+  "Produits Surgeles": "produits_surgeles",
+  "Sélections VIP": "vipa_selections",
+  "Selections VIP": "vipa_selections"
+};
+
+function getCategoryKeyFromSheetCategory(categoryName) {
+  return SHEET_CATEGORY_MAP[String(categoryName || "").trim()] || null;
+}
+
+// ===================== ÉTAT GLOBAL =====================
+const state = {
   user: null,
   products: new Map(),
   cart: {},
@@ -7859,6 +7896,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
