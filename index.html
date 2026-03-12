@@ -5567,16 +5567,15 @@ async function loadAllProducts() {
       $('promoBanner').style.display = 'flex';
     }
 
-    function renderCategories() {
+  function renderCategories() {
   const container = $('categoriesContainer');
   container.innerHTML = '';
 
-  const allButton = document.createElement('button');
-  allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
   const allProductsCount = getFilteredProducts().length;
 
+  const allButton = document.createElement('button');
+  allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
   allButton.innerHTML = `🌐 Tous <span class="cat-count">${allProductsCount}</span>`;
-
   allButton.onclick = () => {
     state.showAllCategories = true;
     state.activeCategory = null;
@@ -5587,25 +5586,19 @@ async function loadAllProducts() {
     renderProducts();
 
     $('activeCategoryLabel').textContent = "Tous";
-    $('activeCategoryMeta').textContent =
-      `${allProductsCount} articles disponibles`;
+    $('activeCategoryMeta').textContent = `${getFilteredProducts().length} articles disponibles`;
   };
-
   container.appendChild(allButton);
 
   CATEGORIES.forEach(category => {
     const products = state.products.get(category.key) || [];
-
     const button = document.createElement('button');
 
     button.className = `cat-btn ${category.isPromo ? 'promo' : ''} ${
-      !state.showAllCategories && state.activeCategory === category.key
-        ? 'active'
-        : ''
+      !state.showAllCategories && state.activeCategory === category.key ? 'active' : ''
     }`;
 
-    button.innerHTML =
-      `${category.label} <span class="cat-count">${products.length}</span>`;
+    button.innerHTML = `${category.label} <span class="cat-count">${products.length}</span>`;
 
     button.onclick = () => {
       state.showAllCategories = false;
@@ -5622,32 +5615,35 @@ async function loadAllProducts() {
 }
 
     function updateCategoriesUI() {
-      const buttons = $('categoriesContainer').querySelectorAll('.cat-btn');
-      buttons.forEach(button => button.classList.remove('active'));
-      
-      if (state.showAllCategories) {
-        buttons[0].classList.add('active');
-        $('activeCategoryLabel').textContent = "Tous";
-        $('activeCategoryMeta').textContent = `${getFilteredProducts().length} articles disponibles`;
+  const buttons = $('categoriesContainer').querySelectorAll('.cat-btn');
+  buttons.forEach(button => button.classList.remove('active'));
+
+  if (state.showAllCategories) {
+    if (buttons[0]) buttons[0].classList.add('active');
+    $('activeCategoryLabel').textContent = "Tous";
+    $('activeCategoryMeta').textContent = `${getFilteredProducts().length} articles disponibles`;
+  } else {
+    const category = CATEGORIES.find(c => c.key === state.activeCategory);
+    if (category) {
+      const index = CATEGORIES.findIndex(c => c.key === state.activeCategory) + 1;
+      if (buttons[index]) buttons[index].classList.add('active');
+
+      $('activeCategoryLabel').textContent = category.label;
+
+      const count = (state.products.get(state.activeCategory) || []).length;
+
+      if (category.isPromo) {
+        $('activeCategoryMeta').innerHTML = count > 0
+          ? `<span style="color:#ffcc00;font-weight:700;">🔥 ${count} articles en promotion !</span>`
+          : `0 article`;
       } else {
-        const category = CATEGORIES.find(c => c.key === state.activeCategory);
-        if (category) {
-          const index = CATEGORIES.findIndex(c => c.key === state.activeCategory) + 1;
-          if (buttons[index]) buttons[index].classList.add('active');
-          $('activeCategoryLabel').textContent = category.label;
-          if (category.isPromo) {
-            const promoCount = state.products.get('promotions')?.length || 0;
-            $('activeCategoryMeta').innerHTML = promoCount > 0
-              ? `<span style="color:#ffcc00;font-weight:700;">🔥 ${promoCount} articles en promotion !</span>`
-              : `${category.key}.csv`;
-          } else {
-            $('activeCategoryMeta').textContent = `${category.key}.csv`;
-          }
-        }
+        $('activeCategoryMeta').textContent = `${count} articles disponibles`;
       }
     }
+  }
+}
 
-    function getFilteredProducts() {
+   function getFilteredProducts() {
   let products = [];
 
   if (state.showAllCategories) {
@@ -5659,17 +5655,16 @@ async function loadAllProducts() {
   if (state.searchQuery) {
     const query = state.searchQuery.toLowerCase();
     products = products.filter(p =>
-      String(p.name || "").toLowerCase().includes(query) ||
-      String(p.code || "").toLowerCase().includes(query) ||
-      String(p.category || "").toLowerCase().includes(query)
+      String(p.name || '').toLowerCase().includes(query) ||
+      String(p.code || '').toLowerCase().includes(query) ||
+      String(p.category || '').toLowerCase().includes(query)
     );
   }
 
   return products.sort((a, b) =>
-    String(a.name || "").localeCompare(String(b.name || ""))
+    String(a.name || '').localeCompare(String(b.name || ''))
   );
 }
-
     // ===================== FONCTION RENDERPRODUCTS (avec ouverture du catalogue sur l'article cliqué) =====================
     function renderProducts() {
       state.filteredProducts = getFilteredProducts();
@@ -7897,6 +7892,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
