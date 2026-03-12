@@ -5490,7 +5490,7 @@
 
   const allButton = document.createElement('button');
   allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
-  const allProductsCount = state.allProducts.length;
+  const allProductsCount = getFilteredProducts().length;
 
   allButton.innerHTML = `🌐 Tous <span class="cat-count">${allProductsCount}</span>`;
 
@@ -5545,7 +5545,7 @@
       if (state.showAllCategories) {
         buttons[0].classList.add('active');
         $('activeCategoryLabel').textContent = "Tous";
-        $('activeCategoryMeta').textContent = `${state.allProducts.length} articles disponibles`;
+        $('activeCategoryMeta').textContent = `${getFilteredProducts().length} articles disponibles`;
       } else {
         const category = CATEGORIES.find(c => c.key === state.activeCategory);
         if (category) {
@@ -7815,6 +7815,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
