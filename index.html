@@ -5401,60 +5401,47 @@
       }
     }
 
-    async function loadAllProducts() {
-  try {
-    await loadGoogleSheetsStock();
+   async function loadAllProducts() {
+  await loadGoogleSheetsStock();
 
-    state.products.clear();
-    state.promotions = [];
+  state.products.clear();
+  state.promotions = [];
+  state.allProducts = [];
+  state.currentPage = 1;
 
-    const allProducts = [];
+  const allProducts = [];
 
-    for (const category of CATEGORIES) {
-      if (category.key === 'promotions') continue;
+  for (const category of CATEGORIES) {
+    if (category.key === 'promotions') continue;
 
-      const products = await loadCategoryData(category.key);
+    const products = await loadCategoryData(category.key);
 
-      if (products.length > 0) {
-        state.products.set(category.key, products);
-        allProducts.push(...products);
-      }
+    if (products.length > 0) {
+      state.products.set(category.key, products);
+      allProducts.push(...products);
     }
-
-    const promotions = await loadPromotionsData();
-
-    if (promotions.length > 0) {
-      state.products.set('promotions', promotions);
-      state.promotions = promotions;
-      applyPromotions(allProducts, promotions);
-      showPromoBanner(promotions);
-    }
-
-    state.allProducts = allProducts;
-
-    // IMPORTANT
-    state.showAllCategories = true;
-    state.activeCategory = null;
-    state.currentPage = 1;
-    state.filteredProducts = allProducts;
-
-    renderCategories();
-
-    if (typeof updateCategoriesUI === 'function') {
-      updateCategoriesUI();
-    }
-
-    renderProducts();
-
-    if (typeof updatePageInfo === 'function') {
-      updatePageInfo();
-    }
-
-    showToast('✅ Produits chargés avec succès');
-  } catch (error) {
-    console.error('Erreur loadAllProducts:', error);
-    showToast('❌ Erreur lors du chargement des produits');
   }
+
+  const promotions = await loadPromotionsData();
+
+  if (promotions.length > 0) {
+    state.products.set('promotions', promotions);
+    state.promotions = promotions;
+    applyPromotions(allProducts, promotions);
+    showPromoBanner(promotions);
+  }
+
+  state.allProducts = allProducts;
+
+  state.showAllCategories = true;
+  state.activeCategory = null;
+  state.filteredProducts = [...state.allProducts];
+
+  renderCategories();
+  updateCategoriesUI();
+  renderProducts();
+
+  showToast(`✅ ${state.allProducts.length} produits chargés`);
 }
 
     function applyPromotions(allProducts, promotions) {
@@ -5498,43 +5485,58 @@
     }
 
     function renderCategories() {
-      const container = $('categoriesContainer');
-      container.innerHTML = '';
-      
-      const allButton = document.createElement('button');
-      allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
-      const allProductsCount = state.allProducts.length;
-      allButton.innerHTML = `🌐 Tous <span class="cat-count">${allProductsCount}</span>`;
-      allButton.onclick = () => {
-        state.showAllCategories = true;
-        state.activeCategory = null;
-        state.currentPage = 1;
-        state.filteredProducts = state.allProducts;
-        renderProducts();
-        updateCategoriesUI();
-        $('activeCategoryLabel').textContent = "Tous";
-        $('activeCategoryMeta').textContent = `${allProductsCount} articles disponibles`;
-      };
-      container.appendChild(allButton);
-      
-      CATEGORIES.forEach(category => {
-        const products = state.products.get(category.key) || [];
-        const button = document.createElement('button');
-        button.className = `cat-btn ${category.isPromo ? 'promo' : ''} ${
-          !state.showAllCategories && state.activeCategory === category.key ? 'active' : ''
-          }`;
-        button.innerHTML = `${category.label} <span class="cat-count">${products.length}</span>`;
-        button.onclick = () => {
-          state.showAllCategories = false;
-          state.activeCategory = category.key;
-          state.currentPage = 1;
-          state.filteredProducts = products;
-          renderProducts();
-          updateCategoriesUI();
-        };
-        container.appendChild(button);
-      });
-    }
+  const container = $('categoriesContainer');
+  container.innerHTML = '';
+
+  const allButton = document.createElement('button');
+  allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
+  const allProductsCount = state.allProducts.length;
+
+  allButton.innerHTML = `🌐 Tous <span class="cat-count">${allProductsCount}</span>`;
+
+  allButton.onclick = () => {
+    state.showAllCategories = true;
+    state.activeCategory = null;
+    state.currentPage = 1;
+    state.filteredProducts = [...state.allProducts];
+
+    updateCategoriesUI();
+    renderProducts();
+
+    $('activeCategoryLabel').textContent = "Tous";
+    $('activeCategoryMeta').textContent =
+      `${allProductsCount} articles disponibles`;
+  };
+
+  container.appendChild(allButton);
+
+  CATEGORIES.forEach(category => {
+    const products = state.products.get(category.key) || [];
+
+    const button = document.createElement('button');
+
+    button.className = `cat-btn ${category.isPromo ? 'promo' : ''} ${
+      !state.showAllCategories && state.activeCategory === category.key
+        ? 'active'
+        : ''
+    }`;
+
+    button.innerHTML =
+      `${category.label} <span class="cat-count">${products.length}</span>`;
+
+    button.onclick = () => {
+      state.showAllCategories = false;
+      state.activeCategory = category.key;
+      state.currentPage = 1;
+      state.filteredProducts = [...products];
+
+      updateCategoriesUI();
+      renderProducts();
+    };
+
+    container.appendChild(button);
+  });
+}
 
     function updateCategoriesUI() {
       const buttons = $('categoriesContainer').querySelectorAll('.cat-btn');
@@ -7813,6 +7815,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
