@@ -5402,48 +5402,93 @@
     }
 
    async function loadAllProducts() {
-  await loadGoogleSheetsStock();
+  try {
+    state.products.clear();
+    state.promotions = [];
+    state.allProducts = [];
+    state.filteredProducts = [];
+    state.currentPage = 1;
 
-  state.products.clear();
-  state.promotions = [];
-  state.allProducts = [];
-  state.currentPage = 1;
+    const response = await fetch(`${STOCK_API_URL}?mode=all`, {
+      method: "GET",
+      cache: "no-store"
+    });
 
-  const allProducts = [];
-
-  for (const category of CATEGORIES) {
-    if (category.key === 'promotions') continue;
-
-    const products = await loadCategoryData(category.key);
-
-    if (products.length > 0) {
-      state.products.set(category.key, products);
-      allProducts.push(...products);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
+
+    const data = await response.json();
+    const items = Array.isArray(data.items) ? data.items : [];
+
+    const allProducts = [];
+
+    for (const raw of items) {
+      const code = String(raw.code || raw.Article || "").trim();
+      const name = String(raw.name || raw.Produits || "").trim();
+      const categoryName = String(raw.category || raw.Categorie || "").trim();
+
+      let price = Number(String(raw.price || raw.Prix || 0).replace(",", "."));
+      let stock = Number(String(raw.stock || raw.Stock || 0).replace(",", "."));
+
+      const actifValue = String(raw.active || raw.Actif || "").trim().toLowerCase();
+      const isActive = actifValue === "oui" || actifValue === "true" || actifValue === "1" || actifValue === "";
+
+      if (!code || !name) continue;
+      if (!Number.isFinite(price)) price = 0;
+      if (!Number.isFinite(stock)) stock = 0;
+      if (!isActive) continue;
+
+      const categoryKey = getCategoryKeyFromSheetCategory(categoryName);
+      if (!categoryKey) continue;
+
+      const categoryConfig = CATEGORIES.find(c => c.key === categoryKey);
+
+      const product = {
+        code,
+        name,
+        price,
+        stock,
+        originalStock: stock,
+        category: categoryName,
+        categoryKey,
+        isPromotion: false,
+        oldPrice: null,
+        discountPercent: 0
+      };
+
+      if (!state.products.has(categoryKey)) {
+        state.products.set(categoryKey, []);
+      }
+
+      state.products.get(categoryKey).push(product);
+      allProducts.push(product);
+    }
+
+    const promotions = await loadPromotionsData();
+
+    if (promotions.length > 0) {
+      state.products.set("promotions", promotions);
+      state.promotions = promotions;
+      applyPromotions(allProducts, promotions);
+      showPromoBanner(promotions);
+    }
+
+    state.allProducts = allProducts;
+    state.showAllCategories = true;
+    state.activeCategory = null;
+    state.filteredProducts = [...state.allProducts];
+
+    renderCategories();
+    updateCategoriesUI();
+    renderProducts();
+
+    showToast(`✅ ${state.allProducts.length} produits chargés`);
+  } catch (error) {
+    console.error("Erreur loadAllProducts:", error);
+    showToast("❌ Erreur lors du chargement des produits");
   }
-
-  const promotions = await loadPromotionsData();
-
-  if (promotions.length > 0) {
-    state.products.set('promotions', promotions);
-    state.promotions = promotions;
-    applyPromotions(allProducts, promotions);
-    showPromoBanner(promotions);
-  }
-
-  state.allProducts = allProducts;
-
-  state.showAllCategories = true;
-  state.activeCategory = null;
-  state.filteredProducts = [...state.allProducts];
-
-  renderCategories();
-  updateCategoriesUI();
-  renderProducts();
-
-  showToast(`✅ ${state.allProducts.length} produits chargés`);
 }
-
     function applyPromotions(allProducts, promotions) {
       console.log('Application des promotions...');
       const promoMap = new Map();
@@ -5565,28 +5610,27 @@
     }
 
     function getFilteredProducts() {
-      let products = [];
-      if (state.showAllCategories) {
-        products = state.allProducts;
-      } else {
-        products = state.products.get(state.activeCategory) || [];
-      }
-      if (state.searchQuery) {
-        const query = state.searchQuery.toLowerCase();
-        products = products.filter(p =>
-          p.name.toLowerCase().includes(query) ||
-          p.code.toLowerCase().includes(query) ||
-          p.category.toLowerCase().includes(query)
-        );
-      }
-      const seen = new Set();
-      return products.filter(p => {
-        const key = `${p.code}_${p.name}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      }).sort((a, b) => a.name.localeCompare(b.name));
-    }
+  let products = [];
+
+  if (state.showAllCategories) {
+    products = [...state.allProducts];
+  } else {
+    products = [...(state.products.get(state.activeCategory) || [])];
+  }
+
+  if (state.searchQuery) {
+    const query = state.searchQuery.toLowerCase();
+    products = products.filter(p =>
+      String(p.name || "").toLowerCase().includes(query) ||
+      String(p.code || "").toLowerCase().includes(query) ||
+      String(p.category || "").toLowerCase().includes(query)
+    );
+  }
+
+  return products.sort((a, b) =>
+    String(a.name || "").localeCompare(String(b.name || ""))
+  );
+}
 
     // ===================== FONCTION RENDERPRODUCTS (avec ouverture du catalogue sur l'article cliqué) =====================
     function renderProducts() {
@@ -7815,6 +7859,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
