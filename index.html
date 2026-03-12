@@ -5438,7 +5438,7 @@ const state = {
       }
     }
 
-   async function loadAllProducts() {
+async function loadAllProducts() {
   try {
     state.products.clear();
     state.promotions = [];
@@ -5469,17 +5469,18 @@ const state = {
       let stock = Number(String(raw.stock || raw.Stock || 0).replace(",", "."));
 
       const actifValue = String(raw.active || raw.Actif || "").trim().toLowerCase();
-      const isActive = actifValue === "oui" || actifValue === "true" || actifValue === "1" || actifValue === "";
+      const isActive =
+        actifValue === "oui" ||
+        actifValue === "true" ||
+        actifValue === "1";
 
       if (!code || !name) continue;
+      if (!isActive) continue;
       if (!Number.isFinite(price)) price = 0;
       if (!Number.isFinite(stock)) stock = 0;
-      if (!isActive) continue;
 
       const categoryKey = getCategoryKeyFromSheetCategory(categoryName);
       if (!categoryKey) continue;
-
-      const categoryConfig = CATEGORIES.find(c => c.key === categoryKey);
 
       const product = {
         code,
@@ -7896,6 +7897,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
