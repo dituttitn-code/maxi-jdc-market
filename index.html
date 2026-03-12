@@ -5254,66 +5254,66 @@
     }
 
     async function loadCategoryData(categoryKey) {
-  try {
-    const category = CATEGORIES.find(c => c.key === categoryKey);
-    if (!category) return [];
-
-    // On ne recharge plus aucun fichier local ici.
-    // On filtre uniquement les produits déjà présents en mémoire.
-    const sourceProducts = Array.isArray(state.allProducts)
-      ? state.allProducts
-      : [];
-
-    const products = sourceProducts
-      .filter(product => {
-        if (!product) return false;
-
-        // priorite au categoryKey exact
-        if (product.categoryKey === categoryKey) return true;
-
-        // secours si certains produits n'ont que le label
-        if (
-          product.category &&
-          category.label &&
-          String(product.category).trim().toLowerCase() ===
-            String(category.label).trim().toLowerCase()
-        ) {
-          return true;
+      try {
+        const category = CATEGORIES.find(c => c.key === categoryKey);
+        if (!category) return [];
+        const response = await fetch(category.file);
+        if (!response.ok) {
+          console.warn(`Fichier non trouvé: ${category.file}`);
+          return [];
         }
-
-        return false;
-      })
-      .map(product => {
-        const code = String(product.code || '').trim();
-        const name = String(product.name || '').trim();
-        const googleStock = getStockFromGoogleSheets(code);
-
-        return {
-          ...product,
-          code,
-          name,
-          category: category.label,
-          categoryKey: category.key,
-          stock: googleStock,
-          originalStock: googleStock
-        };
-      })
-      .filter(product => product.code && product.name);
-
-    for (const product of products) {
-      const stockKey = `${category.key}_${product.code}`;
-      if (!state.productStocks.has(stockKey)) {
-        state.productStocks.set(stockKey, product.stock ?? 0);
+        const text = await response.text();
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length === 0) return [];
+        const separator = lines[0].includes(';') ? ';' : '\t';
+        const products = [];
+        const seen = new Set();
+        lines.slice(1).forEach((line, index) => {
+          const parts = line.split(separator).map(field => field.trim());
+          if (parts.length < 3) {
+            console.warn(`Ligne ${index + 2} incomplète dans ${categoryKey}: ${line}`);
+            return;
+          }
+          const code = parts[0];
+          const name = parts[1];
+          let priceStr = parts[2];
+          if (!code || !name) return;
+          const productKey = `${code}_${name}`;
+          if (seen.has(productKey)) return;
+          seen.add(productKey);
+          priceStr = priceStr.replace(',', '.').replace(/[^\d.]/g, '');
+          const price = parseFloat(priceStr);
+          if (isNaN(price) || price <= 0) {
+            console.warn(`Prix invalide dans ${categoryKey}: ${code} - ${name} - ${priceStr}`);
+            return;
+          }
+          const googleStock = getStockFromGoogleSheets(code);
+          const product = {
+            code,
+            name,
+            price: price,
+            category: category.label,
+            categoryKey: category.key,
+            isPromotion: false,
+            stock: googleStock,
+            originalStock: googleStock,
+            oldPrice: null,
+            discountPercent: 0
+          };
+          products.push(product);
+          const stockKey = `${category.key}_${code}`;
+          if (!state.productStocks.has(stockKey)) {
+            state.productStocks.set(stockKey, googleStock);
+          }
+        });
+        console.log(`${categoryKey}: ${products.length} produits chargés`);
+        return products;
+      } catch (error) {
+        console.error(`Erreur chargement ${categoryKey}:`, error);
+        return [];
       }
     }
 
-    console.log(`${categoryKey}: ${products.length} produits chargés depuis state.allProducts`);
-    return products;
-  } catch (error) {
-    console.error(`Erreur chargement ${categoryKey}:`, error);
-    return [];
-  }
-}
     async function loadPromotionsData() {
       try {
         const response = await fetch('data/PROMOTIONS.csv');
@@ -7763,134 +7763,31 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
     }
 
     function saveState() {
-  const data = {
-    user: state.user,
-    cart: state.cart,
-    orderHistory: state.orderHistory,
-    version: '42.0'
-  };
-
-  localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
-}
-
-<!-- ===================================== -->
-<!-- INITIALISATION APPLICATION -->
-<!-- ===================================== -->
-
-<script>
-/* reconstruction du catalogue depuis state.allProducts */
-function rebuildCatalogFromState() {
-  try {
-    state.categoryProducts = {};
-    state.productsByCategory = {};
-    state.promotionProducts = [];
-
-    if (!Array.isArray(state.allProducts)) {
-      state.allProducts = [];
+      const data = {
+        user: state.user,
+        cart: state.cart,
+        orderHistory: state.orderHistory,
+        version: '42.0'
+      };
+      localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
     }
 
-    const allProducts = state.allProducts.map(product => {
-      if (typeof enrichProduct === "function") {
-        return enrichProduct(product);
+    document.addEventListener('DOMContentLoaded', init);
+
+    window.addEventListener('beforeunload', () => {
+      if (state.syncTimer) {
+        clearInterval(state.syncTimer);
       }
-      return product;
     });
-
-    for (const category of CATEGORIES) {
-      const items = allProducts.filter(p => p.categoryKey === category.key);
-      state.categoryProducts[category.key] = items;
-      state.productsByCategory[category.key] = items;
-    }
-
-    state.promotionProducts = allProducts.filter(
-      p => p.isPromotion === true || !!p.promo
-    );
-
-    if (typeof updateCategoryCounts === "function") {
-      updateCategoryCounts();
-    }
-
-    if (typeof renderCategories === "function") {
-      renderCategories();
-    }
-
-    if (typeof renderProducts === "function") {
-      renderProducts();
-    }
-
-    console.log("Catalogue reconstruit depuis entrée automatique");
-    console.log("Total produits =", allProducts.length);
-    console.log("Promotions =", state.promotionProducts.length);
-  } catch (error) {
-    console.error("Erreur rebuildCatalogFromState:", error);
-  }
-}
-
-/* initialisation du catalogue */
-document.addEventListener("DOMContentLoaded", () => {
-  if (typeof initCatalogue === "function") {
-    initCatalogue();
-  }
-});
-
-/* nettoyage du timer de synchronisation */
-window.addEventListener("beforeunload", () => {
-  if (typeof state !== "undefined" && state.syncTimer) {
-    clearInterval(state.syncTimer);
-  }
-});
-</script>
-
-<!-- ===================================== -->
-<!-- SYNCHRONISATION PRODUITS GOOGLE SHEETS -->
-<!-- ===================================== -->
-
-<script type="module">
-import { autoSyncProducts } from "./tools/stock-sync.js";
-
-function normalizeIncomingProduct(p) {
-  return {
-    ...p,
-    code: String(p.code || p.id || "").trim(),
-    name: String(p.name || p.nom || "").trim(),
-    price: Number(p.price || p.prix || 0),
-    stock: Number(p.stock || 0),
-    promo: p.promo || null,
-    isPromotion: !!p.promo
-  };
-}
-
-function applyAutoProductsToInterface(products) {
-  if (!Array.isArray(products)) return;
-
-  const normalized = products
-    .map(normalizeIncomingProduct)
-    .filter(p => p.code && p.name);
-
-  state.allProducts = normalized;
-
-  if (typeof rebuildCatalogFromState === "function") {
-    rebuildCatalogFromState();
-    return;
-  }
-
-  if (typeof renderCategories === "function") {
-    renderCategories();
-  }
-
-  if (typeof renderProducts === "function") {
-    renderProducts();
-  }
-}
-
-/* synchronisation automatique sans casser l'interface existante */
-autoSyncProducts((products) => {
-  applyAutoProductsToInterface(products);
-});
-</script>
-
+  </script>
 </body>
 </html>
+
+
+
+
+
+
 
 
 
