@@ -1,5 +1,5 @@
 const STOCK_API_URL =
-  "https://script.google.com/macros/s/AKfycbyMbsFo2Ko-eSjoo9knUwj1232kRByYEyp5ONtnfSBJIp4HYocHnSFDy8Zj0Bk3H6czBg/exec";
+  "https://script.google.com/macros/s/AKfycbwXtfM9sioMEZ5_x3V-Z_OT0WTkEC9oc848vtxNh3uVxswNi5wya5uzg1Sr0Cnp7pKZRg/exec";
 
 const SYNC_INTERVAL_MS = 30000;
 
