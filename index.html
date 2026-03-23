@@ -5576,12 +5576,13 @@ function showPromoBanner(promotions) {
 
 function renderCategories() {
   const container = $('categoriesContainer');
+  if (!container) return;
+
   container.innerHTML = '';
 
-  const getStockValue = (product) => Number(product?.stock ?? product?.Stock ?? 0);
   const isInStock = (product) => {
     if (typeof product?.inStock === 'boolean') return product.inStock;
-    return getStockValue(product) > 0;
+    return getAvailableStock(product) > 0;
   };
 
   const allProducts = Array.isArray(state.allProducts) ? state.allProducts : [];
@@ -5603,7 +5604,10 @@ function renderCategories() {
   container.appendChild(allButton);
 
   CATEGORIES.forEach(category => {
-    const categoryProducts = state.products.get(category.key) || [];
+    const categoryProducts = allProducts.filter(product =>
+      (product.categoryKey ?? product.category ?? '') === category.key
+    );
+
     const visibleCategoryProducts = categoryProducts.filter(isInStock);
     const count = visibleCategoryProducts.length;
 
