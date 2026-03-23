@@ -5475,44 +5475,43 @@ async function loadAllProducts() {
 
     const allProducts = [];
 
-    for (const raw of items) {
-      const code = String(raw.Article || raw.code || "").trim();
-      const name = String(raw.Produits || raw.name || "").trim();
-      const categoryName = String(raw.Categorie || raw.category || "").trim();
+   for (const raw of items) {
+  const code = String(raw.Article || raw.code || "").trim();
+  const name = String(raw.Produits || raw.name || "").trim();
+  const categoryName = String(raw.Categorie || raw.category || "").trim();
 
-      let price = Number(String(raw.Prix ?? raw.price ?? 0).replace(",", "."));
-      let stock = Number(String(raw.Stock ?? raw.stock ?? 0).replace(",", "."));
+  let price = Number(String(raw.Prix ?? raw.price ?? 0).replace(",", "."));
+  let stock = Number(String(raw.Stock ?? raw.stock ?? 0).replace(",", "."));
 
-      const actifValue = String(raw.Actif || raw.active || "oui").trim().toLowerCase();
-      const isActive =
-        actifValue === "oui" ||
-        actifValue === "true" ||
-        actifValue === "1";
+  const actifValue = String(raw.Actif || raw.active || "oui").trim().toLowerCase();
+  const isActive =
+    actifValue === "oui" ||
+    actifValue === "true" ||
+    actifValue === "1";
 
-      if (!code || !name) continue;
-      if (!isActive) continue;
-      if (!Number.isFinite(price)) price = 0;
-      if (!Number.isFinite(stock)) stock = 0;
+  if (!code || !name) continue;
+  if (!isActive) continue;
+  if (!Number.isFinite(price)) price = 0;
+  if (!Number.isFinite(stock)) stock = 0;
 
-      const categoryKey = getCategoryKeyFromSheetCategory(categoryName);
-      if (!categoryKey) {
-        console.warn("Catégorie non reconnue :", categoryName, raw);
-        continue;
-      }
+  const categoryKey = getCategoryKeyFromSheetCategory(categoryName);
+  if (!categoryKey) {
+    console.warn("Catégorie non reconnue :", categoryName, raw);
+    continue;
+  }
 
-      const product = {
-        code,
-        name,
-        price,
-        stock,
-        originalStock: stock,
-        category: categoryName,
-        categoryKey,
-        isPromotion: false,
-        oldPrice: null,
-        discountPercent: 0
-      };
-
+  const product = {
+    code,
+    name,
+    price,
+    stock,
+    originalStock: stock,
+    category: categoryName,
+    categoryKey,
+    isPromotion: false,
+    oldPrice: null,
+    discountPercent: 0
+  };
       if (!state.products.has(categoryKey)) {
         state.products.set(categoryKey, []);
       }
