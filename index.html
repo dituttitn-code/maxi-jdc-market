@@ -5647,26 +5647,29 @@ async function loadAllProducts() {
   }
 }
    function getFilteredProducts() {
-  let products = [];
+    let products = [];
 
-  if (state.showAllCategories) {
-    products = [...state.allProducts];
-  } else {
-    products = [...(state.products.get(state.activeCategory) || [])];
-  }
+    if (state.showAllCategories) {
+        products = [...state.allProducts];
+    } else {
+        products = [...(state.products.get(state.activeCategory) || [])];
+    }
 
-  if (state.searchQuery) {
-    const query = state.searchQuery.toLowerCase();
-    products = products.filter(p =>
-      String(p.name || '').toLowerCase().includes(query) ||
-      String(p.code || '').toLowerCase().includes(query) ||
-      String(p.category || '').toLowerCase().includes(query)
+    if (state.searchQuery) {
+        const query = state.searchQuery.toLowerCase();
+
+        products = products.filter(p => {
+            const name = String(p.name ?? p.Produits ?? '').toLowerCase();
+            const code = String(p.code ?? p.Code ?? '').toLowerCase();
+            const category = String(p.category ?? p.Categorie ?? p.categoryKey ?? '').toLowerCase();
+
+            return name.includes(query) || code.includes(query) || category.includes(query);
+        });
+    }
+
+    return products.sort((a, b) =>
+        String(a.name ?? a.Produits ?? '').localeCompare(String(b.name ?? b.Produits ?? ''))
     );
-  }
-
-  return products.sort((a, b) =>
-    String(a.name || '').localeCompare(String(b.name || ''))
-  );
 }
     // ===================== FONCTION RENDERPRODUCTS (avec ouverture du catalogue sur l'article cliqué) =====================
     function renderProducts() {
