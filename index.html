@@ -5439,6 +5439,18 @@ const state = {
       }
     }
 
+// ===== UTILS =====
+function normalizeCategory(str) {
+  return String(str || '')
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+    
 async function loadAllProducts() {
   try {
     state.products.clear();
