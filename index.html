@@ -5457,7 +5457,19 @@ function normalizeCategory(str) {
     .replace(/^-+|-+$/g, '');
 }
 
-    
+function getCategoryKeyFromSheetCategory(categoryName) {
+  const normalized = normalizeCategory(categoryName);
+
+  const category = CATEGORIES.find(cat =>
+    normalizeCategory(cat.label) === normalized ||
+    normalizeCategory(cat.key) === normalized
+  );
+
+  return category ? category.key : null;
+}
+
+
+// ===== LOAD PRODUCTS =====
 async function loadAllProducts() {
   try {
     state.products.clear();
