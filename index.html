@@ -5010,17 +5010,18 @@ const state = {
     }
 
     function getStockStatus(stock) {
-      if (stock <= 0) {
-        return { class: 'out', text: 'Rupture de stock', available: false };
-      } else if (stock === 1) {
-        return { class: 'low', text: 'Dernier article !', available: true };
-      } else if (stock <= 5) {
-        return { class: 'low', text: `${stock} en stock`, available: true };
-      } else {
-        return { class: 'ok', text: 'En stock', available: true };
-      }
-    }
+    const stockValue = Number(stock ?? 0);
 
+    if (stockValue <= 0) {
+        return { class: 'out', text: 'Rupture de stock', available: false };
+    } else if (stockValue === 1) {
+        return { class: 'low', text: 'Dernier article !', available: true };
+    } else if (stockValue <= 5) {
+        return { class: 'low', text: `${stockValue} en stock`, available: true };
+    } else {
+        return { class: 'ok', text: 'En stock', available: true };
+    }
+}
     function createAddressLink(addressText) {
       const gpsMatch = addressText.match(/GPS:\s*([-+]?\d*\.\d+),\s*([-+]?\d*\.\d+)/i);
       
