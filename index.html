@@ -5861,44 +5861,61 @@ function openCatalogueForProduct(targetProduct) {
   document.body.style.overflow = 'hidden';
 }
     
-      // Placer le produit ciblé en tête de liste, suivi des autres triés par nom
-      const otherProducts = products.filter(p => p.code !== targetProduct.code || p.name !== targetProduct.name);
-      otherProducts.sort((a, b) => a.name.localeCompare(b.name));
-      
-      state.catalogueProducts = [targetProduct, ...otherProducts];
-      state.catalogueSearchQuery = '';
-      $('catalogueTitle').textContent = category.label;
-      $('catalogueSearchInput').value = '';
-      
-      state.catalogueQuantityPicks = {};
-      
-      renderCatalogue();
-      $('catalogueModal').classList.add('open');
-      document.body.style.overflow = 'hidden';
-    }
+   // Placer le produit ciblé en tête de liste, suivi des autres triés par nom
+const otherProducts = products.filter(p => {
+  const pCode = p.code ?? p.Code ?? '';
+  const pName = p.name ?? p.Produits ?? '';
+  const targetCode = targetProduct.code ?? targetProduct.Code ?? '';
+  const targetName = targetProduct.name ?? targetProduct.Produits ?? '';
 
-    function renderCatalogue() {
-      const grid = $('catalogueGrid');
-      const empty = $('catalogueEmpty');
-      
-      let filteredProducts = state.catalogueProducts;
-      if (state.catalogueSearchQuery) {
-        const query = state.catalogueSearchQuery.toLowerCase();
-        filteredProducts = filteredProducts.filter(p =>
-          p.name.toLowerCase().includes(query) ||
-          p.code.toLowerCase().includes(query)
-        );
-      }
-      
-      if (filteredProducts.length === 0) {
-        grid.style.display = 'none';
-        empty.style.display = 'block';
-        return;
-      }
-      
-      grid.style.display = 'grid';
-      empty.style.display = 'none';
-      grid.innerHTML = '';
+  return pCode !== targetCode || pName !== targetName;
+});
+
+otherProducts.sort((a, b) =>
+  String(a.name ?? a.Produits ?? '').localeCompare(
+    String(b.name ?? b.Produits ?? '')
+  )
+);
+
+state.catalogueProducts = [targetProduct, ...otherProducts];
+state.catalogueSearchQuery = '';
+$('catalogueTitle').textContent = category.label;
+$('catalogueSearchInput').value = '';
+
+state.catalogueQuantityPicks = {};
+
+renderCatalogue();
+$('catalogueModal').classList.add('open');
+document.body.style.overflow = 'hidden';
+}
+
+function renderCatalogue() {
+  const grid = $('catalogueGrid');
+  const empty = $('catalogueEmpty');
+
+  let filteredProducts = Array.isArray(state.catalogueProducts)
+    ? [...state.catalogueProducts]
+    : [];
+
+  if (state.catalogueSearchQuery) {
+    const query = state.catalogueSearchQuery.toLowerCase();
+
+    filteredProducts = filteredProducts.filter(p => {
+      const name = String(p.name ?? p.Produits ?? '').toLowerCase();
+      const code = String(p.code ?? p.Code ?? '').toLowerCase();
+      return name.includes(query) || code.includes(query);
+    });
+  }
+
+  if (filteredProducts.length === 0) {
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+
+  grid.style.display = 'grid';
+  empty.style.display = 'none';
+  grid.innerHTML = '';
       
       filteredProducts.forEach(product => {
         const productId = generateProductId(product);
