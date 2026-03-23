@@ -4851,7 +4851,14 @@ const SHEET_CATEGORY_MAP = {
 };
 
 function getCategoryKeyFromSheetCategory(categoryName) {
-  return SHEET_CATEGORY_MAP[String(categoryName || "").trim()] || null;
+  const normalized = normalizeCategory(categoryName);
+
+  const category = CATEGORIES.find(cat =>
+    normalizeCategory(cat.label) === normalized ||
+    normalizeCategory(cat.key) === normalized
+  );
+
+  return category ? category.key : null;
 }
 
 // ===================== ÉTAT GLOBAL =====================
