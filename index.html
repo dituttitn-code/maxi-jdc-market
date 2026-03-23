@@ -5564,17 +5564,17 @@ async function loadAllProducts() {
       console.log('Promotions appliquées avec succès');
     }
 
-    function showPromoBanner(promotions) {
-      if (promotions.length === 0) {
-        $('promoBanner').style.display = 'none';
-        return;
-      }
-      $('promoTitle').textContent = `🔥 ${promotions.length} PRODUITS EN PROMOTION`;
-      $('promoDesc').textContent = 'Profitez de nos offres spéciales !';
-      $('promoBanner').style.display = 'flex';
-    }
+function showPromoBanner(promotions) {
+  if (promotions.length === 0) {
+    $('promoBanner').style.display = 'none';
+    return;
+  }
+  $('promoTitle').textContent = `🔥 ${promotions.length} PRODUITS EN PROMOTION`;
+  $('promoDesc').textContent = 'Profitez de nos offres spéciales !';
+  $('promoBanner').style.display = 'flex';
+}
 
- function renderCategories() {
+function renderCategories() {
   const container = $('categoriesContainer');
   container.innerHTML = '';
 
@@ -5627,6 +5627,7 @@ async function loadAllProducts() {
     container.appendChild(button);
   });
 }
+
 function updateCategoriesUI() {
   const buttons = $('categoriesContainer').querySelectorAll('.cat-btn');
   buttons.forEach(button => button.classList.remove('active'));
@@ -5808,34 +5809,59 @@ function renderProducts() {
       </div>
     `;
 
+    card.addEventListener('click', () => {
+      if (stockStatus.available) {
+        openCatalogueForProduct(product);
+      } else {
+        showToast('❌ Ce produit est en rupture de stock', 'error');
+      }
+    });
+
     grid.appendChild(card);
   });
 }
-        
-        // ✅ Le catalogue s'ouvre sur l'article cliqué
-        card.addEventListener('click', () => {
-          if (stockStatus.available) {
-            openCatalogueForProduct(product);
-          } else {
-            showToast('❌ Ce produit est en rupture de stock', 'error');
-          }
-        });
-        
-        grid.appendChild(card);
-      });
-    }
 
-    // ✅ Nouvelle fonction : Ouvre le catalogue et affiche le produit spécifique en tête de liste
-    function openCatalogueForProduct(targetProduct) {
-      const category = CATEGORIES.find(c => c.key === targetProduct.categoryKey);
-      if (!category) return;
-      
-      const products = state.products.get(targetProduct.categoryKey) || [];
-      if (products.length === 0) {
-        showToast('⚠️ Aucun produit dans cette catégorie', 'warning');
-        return;
-      }
-      
+// ✅ Nouvelle fonction : ouvre le catalogue sur le produit cliqué
+function openCatalogueForProduct(targetProduct) {
+  const targetCategoryKey = targetProduct.categoryKey ?? targetProduct.category ?? '';
+  const targetCode = targetProduct.code ?? targetProduct.Code ?? '';
+  const targetName = targetProduct.name ?? targetProduct.Produits ?? '';
+
+  const category = CATEGORIES.find(c => c.key === targetCategoryKey);
+  if (!category) return;
+
+  const products = state.products.get(targetCategoryKey) || [];
+
+  if (products.length === 0) {
+    showToast('⚠️ Aucun produit dans cette catégorie', 'warning');
+    return;
+  }
+
+  const otherProducts = products.filter(p => {
+    const pCode = p.code ?? p.Code ?? '';
+    const pName = p.name ?? p.Produits ?? '';
+    return pCode !== targetCode || pName !== targetName;
+  });
+
+  otherProducts.sort((a, b) =>
+    String(a.name ?? a.Produits ?? '').localeCompare(
+      String(b.name ?? b.Produits ?? '')
+    )
+  );
+
+  state.catalogueProducts = [targetProduct, ...otherProducts];
+  state.catalogueSearchQuery = '';
+
+  $('catalogueTitle').textContent = category.label;
+  $('catalogueSearchInput').value = '';
+
+  state.catalogueQuantityPicks = {};
+
+  renderCatalogue();
+  $('catalogueModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+    
       // Placer le produit ciblé en tête de liste, suivi des autres triés par nom
       const otherProducts = products.filter(p => p.code !== targetProduct.code || p.name !== targetProduct.name);
       otherProducts.sort((a, b) => a.name.localeCompare(b.name));
