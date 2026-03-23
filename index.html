@@ -5627,138 +5627,190 @@ async function loadAllProducts() {
     container.appendChild(button);
   });
 }
-   function updateCategoriesUI() {
+function updateCategoriesUI() {
   const buttons = $('categoriesContainer').querySelectorAll('.cat-btn');
   buttons.forEach(button => button.classList.remove('active'));
 
+  const getStockValue = (product) => Number(product?.stock ?? product?.Stock ?? 0);
+  const isInStock = (product) => {
+    if (typeof product?.inStock === 'boolean') return product.inStock;
+    return getStockValue(product) > 0;
+  };
+
+  const safeAllProducts = Array.isArray(state.allProducts) ? state.allProducts : [];
+  const visibleAllProducts = safeAllProducts.filter(isInStock);
+
   if (state.showAllCategories) {
     if (buttons[0]) buttons[0].classList.add('active');
-    $('activeCategoryLabel').textContent = "Tous";
-    $('activeCategoryMeta').textContent = `${getFilteredProducts().length} articles disponibles`;
+    $('activeCategoryLabel').textContent = 'Tous';
+    $('activeCategoryMeta').textContent = `${visibleAllProducts.length} articles disponibles`;
+    return;
+  }
+
+  const category = CATEGORIES.find(c => c.key === state.activeCategory);
+
+  if (!category) {
+    if (buttons[0]) buttons[0].classList.add('active');
+    $('activeCategoryLabel').textContent = 'Tous';
+    $('activeCategoryMeta').textContent = `${visibleAllProducts.length} articles disponibles`;
+    return;
+  }
+
+  const index = CATEGORIES.findIndex(c => c.key === state.activeCategory) + 1;
+  if (buttons[index]) buttons[index].classList.add('active');
+
+  $('activeCategoryLabel').textContent = category.label;
+
+  const categoryProducts = state.products.get(category.key) || [];
+  const visibleCategoryProducts = categoryProducts.filter(isInStock);
+  const count = visibleCategoryProducts.length;
+
+  if (category.isPromo) {
+    $('activeCategoryMeta').innerHTML = count > 0
+      ? `<span style="color:#ffcc00;font-weight:700;">🔥 ${count} articles en promotion !</span>`
+      : '0 article';
   } else {
-    const category = CATEGORIES.find(c => c.key === state.activeCategory);
-    if (category) {
-      const index = CATEGORIES.findIndex(c => c.key === state.activeCategory) + 1;
-      if (buttons[index]) buttons[index].classList.add('active');
-
-      $('activeCategoryLabel').textContent = category.label;
-
-      const count = getFilteredProducts().length;
-
-      if (category.isPromo) {
-        $('activeCategoryMeta').innerHTML = count > 0
-          ? `<span style="color:#ffcc00;font-weight:700;">🔥 ${count} articles en promotion !</span>`
-          : `0 article`;
-      } else {
-        $('activeCategoryMeta').textContent = `${count} articles disponibles`;
-      }
-    }
+    $('activeCategoryMeta').textContent = `${count} articles disponibles`;
   }
 }
-   function getFilteredProducts() {
-    let products = [];
 
-    if (state.showAllCategories) {
-        products = [...state.allProducts];
-    } else {
-        products = [...(state.products.get(state.activeCategory) || [])];
-    }
+function getFilteredProducts() {
+  const getStockValue = (product) => Number(product?.stock ?? product?.Stock ?? 0);
+  const isInStock = (product) => {
+    if (typeof product?.inStock === 'boolean') return product.inStock;
+    return getStockValue(product) > 0;
+  };
 
-    if (state.searchQuery) {
-        const query = state.searchQuery.toLowerCase();
+  let products = [];
 
-        products = products.filter(p => {
-            const name = String(p.name ?? p.Produits ?? '').toLowerCase();
-            const code = String(p.code ?? p.Code ?? '').toLowerCase();
-            const category = String(p.category ?? p.Categorie ?? p.categoryKey ?? '').toLowerCase();
+  if (state.showAllCategories) {
+    products = Array.isArray(state.allProducts) ? [...state.allProducts] : [];
+  } else {
+    products = [...(state.products.get(state.activeCategory) || [])];
+  }
 
-            return name.includes(query) || code.includes(query) || category.includes(query);
-        });
-    }
+  products = products.filter(isInStock);
 
-    return products.sort((a, b) =>
-        String(a.name ?? a.Produits ?? '').localeCompare(String(b.name ?? b.Produits ?? ''))
-    );
+  if (state.searchQuery) {
+    const query = state.searchQuery.toLowerCase();
+
+    products = products.filter(p => {
+      const name = String(p.name ?? p.Produits ?? '').toLowerCase();
+      const code = String(p.code ?? p.Code ?? '').toLowerCase();
+      const category = String(p.category ?? p.Categorie ?? p.categoryKey ?? '').toLowerCase();
+
+      return name.includes(query) || code.includes(query) || category.includes(query);
+    });
+  }
+
+  return products.sort((a, b) =>
+    String(a.name ?? a.Produits ?? '').localeCompare(
+      String(b.name ?? b.Produits ?? '')
+    )
+  );
 }
-    // ===================== FONCTION RENDERPRODUCTS (avec ouverture du catalogue sur l'article cliqué) =====================
-    function renderProducts() {
-      state.filteredProducts = getFilteredProducts();
-      const totalPages = Math.ceil(state.filteredProducts.length / CONFIG.itemsPerPage) || 1;
-      if (state.currentPage > totalPages) state.currentPage = totalPages || 1;
-      updatePageInfo();
-      $('prevPageBtn').disabled = state.currentPage === 1;
-      $('nextPageBtn').disabled = state.currentPage === totalPages;
-      $('prevPageBottomBtn').disabled = state.currentPage === 1;
-      $('nextPageBottomBtn').disabled = state.currentPage === totalPages;
-      $('paginationBottom').style.display = totalPages > 1 ? 'flex' : 'none';
-      const start = (state.currentPage - 1) * CONFIG.itemsPerPage;
-      const end = start + CONFIG.itemsPerPage;
-      const productsToShow = state.filteredProducts.slice(start, end);
-      const grid = $('productsGrid');
-      grid.innerHTML = '';
-      
-      if (productsToShow.length === 0) {
-        const t = TRANSLATIONS[state.currentLanguage];
-        grid.innerHTML = `
-          <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">
-            <div style="font-size:48px;margin-bottom:15px;">🔍</div>
-            <h3 style="margin-bottom:10px;color:var(--text);">${t.noProductsFound}</h3>
-            <p>Essayez de modifier votre recherche ou sélectionnez une autre catégorie</p>
-          </div>
-        `;
-        return;
+
+// ===================== FONCTION RENDERPRODUCTS (avec ouverture du catalogue sur l'article cliqué) =====================
+function renderProducts() {
+  state.filteredProducts = getFilteredProducts();
+
+  const totalPages = Math.ceil(state.filteredProducts.length / CONFIG.itemsPerPage) || 1;
+  if (state.currentPage > totalPages) state.currentPage = totalPages || 1;
+
+  updatePageInfo();
+  $('prevPageBtn').disabled = state.currentPage === 1;
+  $('nextPageBtn').disabled = state.currentPage === totalPages;
+  $('prevPageBottomBtn').disabled = state.currentPage === 1;
+  $('nextPageBottomBtn').disabled = state.currentPage === totalPages;
+  $('paginationBottom').style.display = totalPages > 1 ? 'flex' : 'none';
+
+  const start = (state.currentPage - 1) * CONFIG.itemsPerPage;
+  const end = start + CONFIG.itemsPerPage;
+  const productsToShow = state.filteredProducts.slice(start, end);
+
+  const grid = $('productsGrid');
+  grid.innerHTML = '';
+
+  if (productsToShow.length === 0) {
+    const t = TRANSLATIONS[state.currentLanguage];
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">
+        <div style="font-size:48px;margin-bottom:15px;">🔍</div>
+        <h3 style="margin-bottom:10px;color:var(--text);">${t.noProductsFound}</h3>
+        <p>Essayez de modifier votre recherche ou sélectionnez une autre catégorie</p>
+      </div>
+    `;
+    return;
+  }
+
+  productsToShow.forEach(product => {
+    const code = product.code ?? product.Code ?? '';
+    const name = product.name ?? product.Produits ?? 'Produit sans nom';
+    const category = product.category ?? product.Categorie ?? product.categoryKey ?? '';
+    const stockValue = Number(product.stock ?? product.Stock ?? 0);
+    const priceValue = Number(product.price ?? product.Prix ?? 0);
+
+    const imgSrc = `${CONFIG.imagesBasePath}${code}.jpg`;
+    const stockStatus = getStockStatus(stockValue);
+
+    const card = document.createElement('div');
+    card.className = `product-card ${product.isPromotion ? 'promo-card' : ''}`;
+
+    let imagePromoBadge = '';
+    let discountBadge = '';
+
+    if (product.isPromotion && product.discountPercent > 0) {
+      imagePromoBadge = '<div class="image-promo-badge">PROMO</div>';
+
+      let discountText = `-${product.discountPercent}%`;
+      if (product.promoType === 'prix') {
+        discountText = `-${product.discountPercent}%`;
+      } else if (product.promoType === 'pourcentage') {
+        discountText = `${product.discountPercent}% OFF`;
       }
-      
-      productsToShow.forEach(product => {
-        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-        const stockStatus = getStockStatus(product.stock ?? product.Stock ?? 0);
-        const card = document.createElement('div');
-        card.className = `product-card ${product.isPromotion ? 'promo-card' : ''}`;
-        let imagePromoBadge = '';
-        let discountBadge = '';
-        if (product.isPromotion && product.discountPercent > 0) {
-          imagePromoBadge = '<div class="image-promo-badge">PROMO</div>';
-          let discountText = `-${product.discountPercent}%`;
-          if (product.promoType === 'prix') {
-            discountText = `-${product.discountPercent}%`;
-          } else if (product.promoType === 'pourcentage') {
-            discountText = `${product.discountPercent}% OFF`;
-          }
-          discountBadge = `<div class="product-discount">${discountText}</div>`;
-        }
-        const priceDisplay = product.isPromotion && product.oldPrice && product.oldPrice > product.price
-          ? `<div class="product-price-container">
-              <div class="product-old-price">${formatPrice(product.oldPrice)}</div>
-              <div class="product-price">${formatPrice(product.price)}</div>
-            </div>`
-          : `<div class="product-price-container">
-              <div class="product-price">${formatPrice(product.price)}</div>
-            </div>`;
-        
-        card.innerHTML = `
-          <div class="product-image">
-            <img src="${imgSrc}"
-              alt="${product.name}"
-              loading="lazy"
-              onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
-              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-            <div class="no-photo">${product.code}</div>
-            ${imagePromoBadge}
-            ${discountBadge}
-          </div>
-          <div class="product-info">
-            <div class="product-name">${product.name}</div>
-            <div class="product-meta">
-              <div>Code: ${product.code}</div>
-              <div>${product.category}</div>
-              ${product.isPromotion && product.promoType ? `<div style="color:#ffcc00;font-size:8px;font-weight:700;">Promo: ${product.promoType}</div>` : ''}
-            </div>
-            ${priceDisplay}
-          </div>
-          <div class="product-stock-tag ${stockStatus.class}">
-            ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
-          </div>
-        `;
+
+      discountBadge = `<div class="product-discount">${discountText}</div>`;
+    }
+
+    const oldPriceValue = Number(product.oldPrice ?? product.originalPrice ?? 0);
+
+    const priceDisplay = product.isPromotion && oldPriceValue > priceValue
+      ? `<div class="product-price-container">
+          <div class="product-old-price">${formatPrice(oldPriceValue)}</div>
+          <div class="product-price">${formatPrice(priceValue)}</div>
+        </div>`
+      : `<div class="product-price-container">
+          <div class="product-price">${formatPrice(priceValue)}</div>
+        </div>`;
+
+    card.innerHTML = `
+      <div class="product-image">
+        <img src="${imgSrc}"
+          alt="${name}"
+          loading="lazy"
+          onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="no-photo">${code}</div>
+        ${imagePromoBadge}
+        ${discountBadge}
+      </div>
+      <div class="product-info">
+        <div class="product-name">${name}</div>
+        <div class="product-meta">
+          <div>Code: ${code}</div>
+          <div>${category}</div>
+          ${product.isPromotion && product.promoType ? `<div style="color:#ffcc00;font-size:8px;font-weight:700;">Promo: ${product.promoType}</div>` : ''}
+        </div>
+        ${priceDisplay}
+      </div>
+      <div class="product-stock-tag ${stockStatus.class}">
+        ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+}
         
         // ✅ Le catalogue s'ouvre sur l'article cliqué
         card.addEventListener('click', () => {
