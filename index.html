@@ -5446,7 +5446,7 @@ async function loadAllProducts() {
     state.filteredProducts = [];
     state.currentPage = 1;
 
-    const response = await fetch(`${STOCK_API_URL}?mode=all`, {
+    const response = await fetch(`${STOCK_API_URL}?action=getProducts&t=${Date.now()}`, {
       method: "GET",
       cache: "no-store"
     });
@@ -5456,19 +5456,21 @@ async function loadAllProducts() {
     }
 
     const data = await response.json();
-    const items = Array.isArray(data.items) ? data.items : [];
+    console.log("API produits reçue :", data);
+
+    const items = Array.isArray(data.products) ? data.products : [];
 
     const allProducts = [];
 
     for (const raw of items) {
-      const code = String(raw.code || raw.Article || "").trim();
-      const name = String(raw.name || raw.Produits || "").trim();
-      const categoryName = String(raw.category || raw.Categorie || "").trim();
+      const code = String(raw.Article || raw.code || "").trim();
+      const name = String(raw.Produits || raw.name || "").trim();
+      const categoryName = String(raw.Categorie || raw.category || "").trim();
 
-      let price = Number(String(raw.price || raw.Prix || 0).replace(",", "."));
-      let stock = Number(String(raw.stock || raw.Stock || 0).replace(",", "."));
+      let price = Number(String(raw.Prix ?? raw.price ?? 0).replace(",", "."));
+      let stock = Number(String(raw.Stock ?? raw.stock ?? 0).replace(",", "."));
 
-      const actifValue = String(raw.active || raw.Actif || "").trim().toLowerCase();
+      const actifValue = String(raw.Actif || raw.active || "oui").trim().toLowerCase();
       const isActive =
         actifValue === "oui" ||
         actifValue === "true" ||
@@ -5480,7 +5482,10 @@ async function loadAllProducts() {
       if (!Number.isFinite(stock)) stock = 0;
 
       const categoryKey = getCategoryKeyFromSheetCategory(categoryName);
-      if (!categoryKey) continue;
+      if (!categoryKey) {
+        console.warn("Catégorie non reconnue :", categoryName, raw);
+        continue;
+      }
 
       const product = {
         code,
@@ -5521,6 +5526,7 @@ async function loadAllProducts() {
     updateCategoriesUI();
     renderProducts();
 
+    console.log("Produits chargés :", state.allProducts.length);
     showToast(`✅ ${state.allProducts.length} produits chargés`);
   } catch (error) {
     console.error("Erreur loadAllProducts:", error);
@@ -5571,11 +5577,11 @@ async function loadAllProducts() {
   const container = $('categoriesContainer');
   container.innerHTML = '';
 
-  const allProductsCount = getFilteredProducts().length;
+  const allCount = state.allProducts.length;
 
   const allButton = document.createElement('button');
   allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
-  allButton.innerHTML = `🌐 Tous <span class="cat-count">${allProductsCount}</span>`;
+  allButton.innerHTML = `🌐 Tous <span class="cat-count">${allCount}</span>`;
   allButton.onclick = () => {
     state.showAllCategories = true;
     state.activeCategory = null;
@@ -5584,21 +5590,19 @@ async function loadAllProducts() {
 
     updateCategoriesUI();
     renderProducts();
-
-    $('activeCategoryLabel').textContent = "Tous";
-    $('activeCategoryMeta').textContent = `${getFilteredProducts().length} articles disponibles`;
   };
   container.appendChild(allButton);
 
   CATEGORIES.forEach(category => {
     const products = state.products.get(category.key) || [];
-    const button = document.createElement('button');
+    const count = products.length;
 
+    const button = document.createElement('button');
     button.className = `cat-btn ${category.isPromo ? 'promo' : ''} ${
       !state.showAllCategories && state.activeCategory === category.key ? 'active' : ''
     }`;
 
-    button.innerHTML = `${category.label} <span class="cat-count">${products.length}</span>`;
+    button.innerHTML = `${category.label} <span class="cat-count">${count}</span>`;
 
     button.onclick = () => {
       state.showAllCategories = false;
@@ -5613,8 +5617,7 @@ async function loadAllProducts() {
     container.appendChild(button);
   });
 }
-
-    function updateCategoriesUI() {
+   function updateCategoriesUI() {
   const buttons = $('categoriesContainer').querySelectorAll('.cat-btn');
   buttons.forEach(button => button.classList.remove('active'));
 
@@ -5630,7 +5633,7 @@ async function loadAllProducts() {
 
       $('activeCategoryLabel').textContent = category.label;
 
-      const count = (state.products.get(state.activeCategory) || []).length;
+      const count = getFilteredProducts().length;
 
       if (category.isPromo) {
         $('activeCategoryMeta').innerHTML = count > 0
@@ -5642,7 +5645,6 @@ async function loadAllProducts() {
     }
   }
 }
-
    function getFilteredProducts() {
   let products = [];
 
@@ -7662,16 +7664,16 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
         $('searchInput').focus();
       };
 
-      $('showAllBtn').onclick = () => {
-        state.showAllCategories = true;
-        state.activeCategory = null;
-        state.currentPage = 1;
-        state.filteredProducts = state.allProducts;
-        renderProducts();
-        updateCategoriesUI();
-        $('activeCategoryLabel').textContent = "Tous";
-        $('activeCategoryMeta').textContent = `${state.allProducts.length} articles disponibles`;
-      };
+   $('showAllBtn').addEventListener('click', () => {
+  $('searchInput').value = '';
+  state.searchQuery = '';
+  state.showAllCategories = true;
+  state.activeCategory = null;
+  state.currentPage = 1;
+  state.filteredProducts = [...state.allProducts];
+  renderProducts();
+  updateCategoriesUI();
+});
 
       $('viewPromosBtn').onclick = () => {
         state.showAllCategories = false;
