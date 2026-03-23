@@ -5699,7 +5699,7 @@ async function loadAllProducts() {
       
       productsToShow.forEach(product => {
         const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-        const stockStatus = getStockStatus(product.stock);
+        const stockStatus = getStockStatus(product.stock ?? product.Stock ?? 0);
         const card = document.createElement('div');
         card.className = `product-card ${product.isPromotion ? 'promo-card' : ''}`;
         let imagePromoBadge = '';
