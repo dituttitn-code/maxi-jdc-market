@@ -4853,10 +4853,12 @@ const SHEET_CATEGORY_MAP = {
 function getCategoryKeyFromSheetCategory(categoryName) {
   const normalized = normalizeCategory(categoryName);
 
-  const category = CATEGORIES.find(cat =>
-    normalizeCategory(cat.label) === normalized ||
-    normalizeCategory(cat.key) === normalized
-  );
+  const category = CATEGORIES.find(cat => {
+    const normalizedLabel = normalizeCategory(cat.label);
+    const normalizedKey = normalizeCategory(cat.key.replace(/_/g, '-'));
+
+    return normalizedLabel === normalized || normalizedKey === normalized;
+  });
 
   return category ? category.key : null;
 }
