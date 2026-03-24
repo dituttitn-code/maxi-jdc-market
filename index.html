@@ -5291,65 +5291,68 @@ const state = {
     }
 
     async function loadCategoryData(categoryKey) {
-      try {
-        const category = CATEGORIES.find(c => c.key === categoryKey);
-        if (!category) return [];
-        const response = await fetch(category.file);
-        if (!response.ok) {
-          console.warn(`Fichier non trouvé: ${category.file}`);
-          return [];
-        }
-        const text = await response.text();
-        const lines = text.split('\n').filter(line => line.trim());
-        if (lines.length === 0) return [];
-        const separator = lines[0].includes(';') ? ';' : '\t';
-        const products = [];
-        const seen = new Set();
-        lines.slice(1).forEach((line, index) => {
-          const parts = line.split(separator).map(field => field.trim());
-          if (parts.length < 3) {
-            console.warn(`Ligne ${index + 2} incomplète dans ${categoryKey}: ${line}`);
-            return;
-          }
-          const code = parts[0];
-          const name = parts[1];
-          let priceStr = parts[2];
-          if (!code || !name) return;
-          const productKey = `${code}_${name}`;
-          if (seen.has(productKey)) return;
-          seen.add(productKey);
-          priceStr = priceStr.replace(',', '.').replace(/[^\d.]/g, '');
-          const price = parseFloat(priceStr);
-          if (isNaN(price) || price <= 0) {
-            console.warn(`Prix invalide dans ${categoryKey}: ${code} - ${name} - ${priceStr}`);
-            return;
-          }
-          const googleStock = getStockFromGoogleSheets(code);
-          const product = {
-            code,
-            name,
-            price: price,
-            category: category.label,
-            categoryKey: category.key,
-            isPromotion: false,
-            stock: googleStock,
-            originalStock: googleStock,
-            oldPrice: null,
-            discountPercent: 0
-          };
-          products.push(product);
-          const stockKey = `${category.key}_${code}`;
-          if (!state.productStocks.has(stockKey)) {
-            state.productStocks.set(stockKey, googleStock);
-          }
-        });
-        console.log(`${categoryKey}: ${products.length} produits chargés`);
-        return products;
-      } catch (error) {
-        console.error(`Erreur chargement ${categoryKey}:`, error);
-        return [];
-      }
+  try {
+    const category = CATEGORIES.find(c => c.key === categoryKey);
+    if (!category) return [];
+
+    // 👉 API GOOGLE (remplace CSV)
+    const response = await fetch(API_URL);
+
+    if (!response.ok) {
+      console.error("Erreur API");
+      return [];
     }
+
+    const data = await response.json();
+
+    console.log("DATA API =", data);
+
+    let products = data.products || [];
+
+    console.log("Produits API total :", products.length);
+
+    // 👉 Garde seulement les produits actifs
+    products = products.filter(p => p.Actif === "oui");
+
+    // 👉 Filtrer par catégorie
+    products = products.filter(p => p.Categorie === category.label);
+
+    const finalProducts = [];
+
+    products.forEach(p => {
+
+      const googleStock = parseInt(p.Stock) || 0;
+
+      const product = {
+        code: p.Article,
+        name: p.Produits,
+        price: parseFloat(p.Prix) || 0,
+        category: p.Categorie,
+        categoryKey: category.key,
+        isPromotion: false,
+        stock: googleStock,
+        originalStock: googleStock,
+        oldPrice: null,
+        discountPercent: 0
+      };
+
+      finalProducts.push(product);
+
+      const stockKey = `${category.key}_${p.Article}`;
+      if (!state.productStocks.has(stockKey)) {
+        state.productStocks.set(stockKey, googleStock);
+      }
+    });
+
+    console.log(`${categoryKey}: ${finalProducts.length} produits chargés`);
+
+    return finalProducts;
+
+  } catch (error) {
+    console.error(`Erreur chargement ${categoryKey}:`, error);
+    return [];
+  }
+}
 
     async function loadPromotionsData() {
       try {
