@@ -4851,16 +4851,7 @@ const SHEET_CATEGORY_MAP = {
 };
 
 function getCategoryKeyFromSheetCategory(categoryName) {
-  const normalized = normalizeCategory(categoryName);
-
-  const category = CATEGORIES.find(cat => {
-    const normalizedLabel = normalizeCategory(cat.label);
-    const normalizedKey = normalizeCategory(cat.key.replace(/_/g, '-'));
-
-    return normalizedLabel === normalized || normalizedKey === normalized;
-  });
-
-  return category ? category.key : null;
+  return SHEET_CATEGORY_MAP[String(categoryName || "").trim()] || null;
 }
 
 // ===================== ÉTAT GLOBAL =====================
@@ -5448,30 +5439,6 @@ const state = {
       }
     }
 
-// ===== UTILS =====
-function normalizeCategory(str) {
-  return String(str || '')
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/&/g, 'and')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function getCategoryKeyFromSheetCategory(categoryName) {
-  const normalized = normalizeCategory(categoryName);
-
-  const category = CATEGORIES.find(cat =>
-    normalizeCategory(cat.label) === normalized ||
-    normalizeCategory(cat.key) === normalized
-  );
-
-  return category ? category.key : null;
-}
-
-
-// ===== LOAD PRODUCTS =====
 async function loadAllProducts() {
   try {
     state.products.clear();
@@ -5496,42 +5463,44 @@ async function loadAllProducts() {
 
     const allProducts = [];
 
-   for (const raw of items) {
- const code = String(raw.Article || raw.code || "").trim();
-const name = String(raw.Produits || raw.name || "").trim();
-const categoryName = String(raw.Categorie || raw.category || "").trim();
+    for (const raw of items) {
+      const code = String(raw.Article || raw.code || "").trim();
+      const name = String(raw.Produits || raw.name || "").trim();
+      const categoryName = String(raw.Categorie || raw.category || "").trim();
 
-let price = Number(String(raw.Prix ?? raw.price ?? 0).replace(",", "."));
-let stock = Number(String(raw.Stock ?? raw.stock ?? 0).replace(",", "."));
+      let price = Number(String(raw.Prix ?? raw.price ?? 0).replace(",", "."));
+      let stock = Number(String(raw.Stock ?? raw.stock ?? 0).replace(",", "."));
 
-const actifValue = String(raw.Actif || raw.active || "oui").trim().toLowerCase();
-const isActive =
-  actifValue === "oui" ||
-  actifValue === "true" ||
-  actifValue === "1";
+      const actifValue = String(raw.Actif || raw.active || "oui").trim().toLowerCase();
+      const isActive =
+        actifValue === "oui" ||
+        actifValue === "true" ||
+        actifValue === "1";
 
-if (!code || !name) continue;
-if (!isActive) continue;
-if (!Number.isFinite(price)) price = 0;
-if (!Number.isFinite(stock)) stock = 0;
+      if (!code || !name) continue;
+      if (!isActive) continue;
+      if (!Number.isFinite(price)) price = 0;
+      if (!Number.isFinite(stock)) stock = 0;
 
-let categoryKey = getCategoryKeyFromSheetCategory(categoryName);
-if (!categoryKey) {
-  categoryKey = "epicerie_salee";
-}
+      const categoryKey = getCategoryKeyFromSheetCategory(categoryName);
+      if (!categoryKey) {
+        console.warn("Catégorie non reconnue :", categoryName, raw);
+        continue;
+      }
 
-const product = {
-  code,
-  name,
-  price,
-  stock,
-  originalStock: stock,
-  category: categoryName || "Épicerie Salée",
-  categoryKey,
-  isPromotion: false,
-  oldPrice: null,
-  discountPercent: 0
-};
+      const product = {
+        code,
+        name,
+        price,
+        stock,
+        originalStock: stock,
+        category: categoryName,
+        categoryKey,
+        isPromotion: false,
+        oldPrice: null,
+        discountPercent: 0
+      };
+
       if (!state.products.has(categoryKey)) {
         state.products.set(categoryKey, []);
       }
@@ -5611,8 +5580,14 @@ function renderCategories() {
 
   container.innerHTML = '';
 
+  const isInStock = (product) => {
+    if (typeof product?.inStock === 'boolean') return product.inStock;
+    return getAvailableStock(product) > 0;
+  };
+
   const allProducts = Array.isArray(state.allProducts) ? state.allProducts : [];
-  const allCount = allProducts.length;
+  const visibleAllProducts = allProducts.filter(isInStock);
+  const allCount = visibleAllProducts.length;
 
   const allButton = document.createElement('button');
   allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
@@ -5621,7 +5596,7 @@ function renderCategories() {
     state.showAllCategories = true;
     state.activeCategory = null;
     state.currentPage = 1;
-    state.filteredProducts = [...allProducts];
+    state.filteredProducts = [...visibleAllProducts];
 
     updateCategoriesUI();
     renderProducts();
@@ -5629,8 +5604,12 @@ function renderCategories() {
   container.appendChild(allButton);
 
   CATEGORIES.forEach(category => {
-    const categoryProducts = allProducts.filter(product => product.categoryKey === category.key);
-    const count = categoryProducts.length;
+    const categoryProducts = allProducts.filter(product =>
+      (product.categoryKey ?? product.category ?? '') === category.key
+    );
+
+    const visibleCategoryProducts = categoryProducts.filter(isInStock);
+    const count = visibleCategoryProducts.length;
 
     const button = document.createElement('button');
     button.className = `cat-btn ${category.isPromo ? 'promo' : ''} ${
@@ -5643,7 +5622,7 @@ function renderCategories() {
       state.showAllCategories = false;
       state.activeCategory = category.key;
       state.currentPage = 1;
-      state.filteredProducts = [...categoryProducts];
+      state.filteredProducts = [...visibleCategoryProducts];
 
       updateCategoriesUI();
       renderProducts();
@@ -5652,6 +5631,7 @@ function renderCategories() {
     container.appendChild(button);
   });
 }
+
 function updateCategoriesUI() {
   const buttons = $('categoriesContainer').querySelectorAll('.cat-btn');
   buttons.forEach(button => button.classList.remove('active'));
@@ -7998,5 +7978,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
+
 
 
