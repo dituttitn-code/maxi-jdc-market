@@ -5497,42 +5497,41 @@ async function loadAllProducts() {
     const allProducts = [];
 
    for (const raw of items) {
-  const code = String(raw.Article || raw.code || "").trim();
-  const name = String(raw.Produits || raw.name || "").trim();
-  const categoryName = String(raw.Categorie || raw.category || "").trim();
+ const code = String(raw.Article || raw.code || "").trim();
+const name = String(raw.Produits || raw.name || "").trim();
+const categoryName = String(raw.Categorie || raw.category || "").trim();
 
-  let price = Number(String(raw.Prix ?? raw.price ?? 0).replace(",", "."));
-  let stock = Number(String(raw.Stock ?? raw.stock ?? 0).replace(",", "."));
+let price = Number(String(raw.Prix ?? raw.price ?? 0).replace(",", "."));
+let stock = Number(String(raw.Stock ?? raw.stock ?? 0).replace(",", "."));
 
-  const actifValue = String(raw.Actif || raw.active || "oui").trim().toLowerCase();
-  const isActive =
-    actifValue === "oui" ||
-    actifValue === "true" ||
-    actifValue === "1";
+const actifValue = String(raw.Actif || raw.active || "oui").trim().toLowerCase();
+const isActive =
+  actifValue === "oui" ||
+  actifValue === "true" ||
+  actifValue === "1";
 
-  if (!code || !name) continue;
-  if (!isActive) continue;
-  if (!Number.isFinite(price)) price = 0;
-  if (!Number.isFinite(stock)) stock = 0;
+if (!code || !name) continue;
+if (!isActive) continue;
+if (!Number.isFinite(price)) price = 0;
+if (!Number.isFinite(stock)) stock = 0;
 
-  let categoryKey = getCategoryKeyFromSheetCategory(categoryName);
-
+let categoryKey = getCategoryKeyFromSheetCategory(categoryName);
 if (!categoryKey) {
   categoryKey = "epicerie_salee";
 }
 
-  const product = {
-    code,
-    name,
-    price,
-    stock,
-    originalStock: stock,
-    category: categoryName,
-    categoryKey,
-    isPromotion: false,
-    oldPrice: null,
-    discountPercent: 0
-  };
+const product = {
+  code,
+  name,
+  price,
+  stock,
+  originalStock: stock,
+  category: categoryName || "Épicerie Salée",
+  categoryKey,
+  isPromotion: false,
+  oldPrice: null,
+  discountPercent: 0
+};
       if (!state.products.has(categoryKey)) {
         state.products.set(categoryKey, []);
       }
@@ -5612,14 +5611,8 @@ function renderCategories() {
 
   container.innerHTML = '';
 
-  const isInStock = (product) => {
-    if (typeof product?.inStock === 'boolean') return product.inStock;
-    return getAvailableStock(product) > 0;
-  };
-
   const allProducts = Array.isArray(state.allProducts) ? state.allProducts : [];
-  const visibleAllProducts = allProducts.filter(isInStock);
-  const allCount = visibleAllProducts.length;
+  const allCount = allProducts.length;
 
   const allButton = document.createElement('button');
   allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
@@ -5628,7 +5621,7 @@ function renderCategories() {
     state.showAllCategories = true;
     state.activeCategory = null;
     state.currentPage = 1;
-    state.filteredProducts = [...visibleAllProducts];
+    state.filteredProducts = [...allProducts];
 
     updateCategoriesUI();
     renderProducts();
@@ -5636,12 +5629,8 @@ function renderCategories() {
   container.appendChild(allButton);
 
   CATEGORIES.forEach(category => {
-    const categoryProducts = allProducts.filter(product =>
-      (product.categoryKey ?? product.category ?? '') === category.key
-    );
-
-    const visibleCategoryProducts = categoryProducts.filter(isInStock);
-    const count = visibleCategoryProducts.length;
+    const categoryProducts = allProducts.filter(product => product.categoryKey === category.key);
+    const count = categoryProducts.length;
 
     const button = document.createElement('button');
     button.className = `cat-btn ${category.isPromo ? 'promo' : ''} ${
@@ -5654,7 +5643,7 @@ function renderCategories() {
       state.showAllCategories = false;
       state.activeCategory = category.key;
       state.currentPage = 1;
-      state.filteredProducts = [...visibleCategoryProducts];
+      state.filteredProducts = [...categoryProducts];
 
       updateCategoriesUI();
       renderProducts();
@@ -5663,7 +5652,6 @@ function renderCategories() {
     container.appendChild(button);
   });
 }
-
 function updateCategoriesUI() {
   const buttons = $('categoriesContainer').querySelectorAll('.cat-btn');
   buttons.forEach(button => button.classList.remove('active'));
