@@ -4918,69 +4918,104 @@ const state = {
       return num.toFixed(3).replace('.', ',') + ' dt';
     }
 
-    // ===================== TRADUCTION =====================
-    function setLanguage(lang) {
-      if (!TRANSLATIONS[lang]) return;
-      state.currentLanguage = lang;
-      
-      const t = TRANSLATIONS[lang];
-      
-      $('appTitle').textContent = t.appTitle;
-      $('appSubtitle').textContent = t.appSubtitle;
-      $('langHeaderLabel').textContent = lang.toUpperCase();
-      $('searchInput').placeholder = t.searchPlaceholder;
-      $('clearSearchBtn').textContent = t.searchClear;
-      $('showAllBtn').textContent = t.searchAll;
-      $('drawerTitle').textContent = t.cartTitle;
-      $('cartEmptyTitle').textContent = t.cartEmptyTitle;
-      $('cartEmptyText').textContent = t.cartEmptyText;
-      $('cartSectionTitle').textContent = t.cartSectionTitle;
-      $('subtotalLabel').textContent = t.subtotalLabel;
-      $('shippingLabel').textContent = t.shippingLabel;
-      $('totalLabel').textContent = t.totalLabel;
-      $('savingsLabel').textContent = t.savingsLabel;
-      $('percentageLabel').textContent = t.percentageLabel;
-      
-      $('minOrderText').innerHTML = `${t.minOrderText} <strong>15 dt</strong>`;
-      $('shippingFeeText').innerHTML = `${t.shippingFeeText} <strong>3 dt</strong>`;
-      $('freeShippingText').innerHTML = `${t.freeShippingText} <strong>100 dt</strong>`;
-      
-      $('clearCartBtn').textContent = t.clearCartBtn;
-      $('placeOrderBtn').textContent = t.placeOrderBtn;
-      $('toggleClientSpaceBtn').textContent = t.toggleClientSpace;
-      $('closeClientSpaceBtn').textContent = t.closeClientSpace;
-      $('clientSpaceSection h4').textContent = t.clientSpaceTitle;
-      $('clientAccountBtn .admin-label').textContent = t.clientAccountBtn;
-      $('clientCombinedBtn .admin-label').textContent = t.clientCombinedBtn;
-      $('accountDetailsSection h4').textContent = t.accountTitle;
-      $('clientName').previousElementSibling.textContent = t.nameLabel;
-      $('clientPhone').parentElement.previousElementSibling.textContent = t.phoneLabel;
-      $('clientAddress').previousElementSibling.textContent = t.addressLabel;
-      $('clientLat').previousElementSibling.textContent = t.latLabel;
-      $('clientLng').previousElementSibling.textContent = t.lngLabel;
-      $('tel-hint').textContent = t.phoneHint;
-      $('getLocationBtn').textContent = t.locationBtn;
-      $('mapPreview span').textContent = t.mapPreviewText;
-      $('saveAccountBtn').textContent = t.saveAccountBtn;
-      $('editAccountBtn').textContent = t.editAccountBtn;
-      $('historySearchSection h4').textContent = t.historyTitle;
-      $('searchHistoryPhone').parentElement.previousElementSibling.textContent = t.historySearchLabel;
-      $('searchHistoryBtn').textContent = t.searchHistoryBtn;
-      $('orderHistorySection h4').textContent = t.ordersTitle;
-      $('historyEmptyMessage').textContent = t.noOrdersText;
-      $('activeCategoryLabel').textContent = t.productsTitle;
-      $('activeCategoryMeta').textContent = t.selectCategory;
-      
-      document.querySelectorAll('.lang-option').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.lang === lang) {
-          btn.classList.add('active');
-        }
-      });
-      
-      localStorage.setItem('maxi_jdc_language', lang);
-      updatePageInfo();
+// ===================== TRADUCTION =====================
+function setLanguage(lang) {
+  if (!TRANSLATIONS[lang]) return;
+  state.currentLanguage = lang;
+
+  const t = TRANSLATIONS[lang];
+
+  const setText = (selector, value) => {
+    const el = $(selector);
+    if (el) el.textContent = value;
+  };
+
+  const setHTML = (selector, value) => {
+    const el = $(selector);
+    if (el) el.innerHTML = value;
+  };
+
+  setText('appTitle', t.appTitle);
+  setText('appSubtitle', t.appSubtitle);
+  setText('langHeaderLabel', lang.toUpperCase());
+
+  if ($('searchInput')) $('searchInput').placeholder = t.searchPlaceholder;
+
+  setText('clearSearchBtn', t.searchClear);
+  setText('showAllBtn', t.searchAll);
+  setText('drawerTitle', t.cartTitle);
+  setText('cartEmptyTitle', t.cartEmptyTitle);
+  setText('cartEmptyText', t.cartEmptyText);
+  setText('cartSectionTitle', t.cartSectionTitle);
+  setText('subtotalLabel', t.subtotalLabel);
+  setText('shippingLabel', t.shippingLabel);
+  setText('totalLabel', t.totalLabel);
+  setText('savingsLabel', t.savingsLabel);
+  setText('percentageLabel', t.percentageLabel);
+
+  setHTML('minOrderText', `${t.minOrderText} <strong>15 dt</strong>`);
+  setHTML('shippingFeeText', `${t.shippingFeeText} <strong>3 dt</strong>`);
+  setHTML('freeShippingText', `${t.freeShippingText} <strong>100 dt</strong>`);
+
+  setText('clearCartBtn', t.clearCartBtn);
+  setText('placeOrderBtn', t.placeOrderBtn);
+  setText('toggleClientSpaceBtn', t.toggleClientSpace);
+  setText('closeClientSpaceBtn', t.closeClientSpace);
+
+  setText('clientSpaceSection h4', t.clientSpaceTitle);
+  setText('clientAccountBtn .admin-label', t.clientAccountBtn);
+  setText('clientCombinedBtn .admin-label', t.clientCombinedBtn);
+  setText('accountDetailsSection h4', t.accountTitle);
+
+  if ($('clientName')?.previousElementSibling) {
+    $('clientName').previousElementSibling.textContent = t.nameLabel;
+  }
+
+  if ($('clientPhone')?.parentElement?.previousElementSibling) {
+    $('clientPhone').parentElement.previousElementSibling.textContent = t.phoneLabel;
+  }
+
+  if ($('clientAddress')?.previousElementSibling) {
+    $('clientAddress').previousElementSibling.textContent = t.addressLabel;
+  }
+
+  if ($('clientLat')?.previousElementSibling) {
+    $('clientLat').previousElementSibling.textContent = t.latLabel;
+  }
+
+  if ($('clientLng')?.previousElementSibling) {
+    $('clientLng').previousElementSibling.textContent = t.lngLabel;
+  }
+
+  setText('tel-hint', t.phoneHint);
+  setText('getLocationBtn', t.locationBtn);
+  setText('mapPreview span', t.mapPreviewText);
+
+  setText('saveAccountBtn', t.saveAccountBtn);
+  setText('editAccountBtn', t.editAccountBtn);
+
+  setText('historySearchSection h4', t.historyTitle);
+
+  if ($('searchHistoryPhone')?.parentElement?.previousElementSibling) {
+    $('searchHistoryPhone').parentElement.previousElementSibling.textContent = t.historySearchLabel;
+  }
+
+  setText('searchHistoryBtn', t.searchHistoryBtn);
+  setText('orderHistorySection h4', t.ordersTitle);
+  setText('historyEmptyMessage', t.noOrdersText);
+  setText('activeCategoryLabel', t.productsTitle);
+  setText('activeCategoryMeta', t.selectCategory);
+
+  document.querySelectorAll('.lang-option').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.lang === lang) {
+      btn.classList.add('active');
     }
+  });
+
+  localStorage.setItem('maxi_jdc_language', lang);
+  updatePageInfo();
+}
 
     function updatePageInfo() {
       const t = TRANSLATIONS[state.currentLanguage];
