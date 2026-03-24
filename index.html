@@ -5010,18 +5010,17 @@ const state = {
     }
 
     function getStockStatus(stock) {
-    const stockValue = Number(stock ?? 0);
-
-    if (stockValue <= 0) {
+      if (stock <= 0) {
         return { class: 'out', text: 'Rupture de stock', available: false };
-    } else if (stockValue === 1) {
+      } else if (stock === 1) {
         return { class: 'low', text: 'Dernier article !', available: true };
-    } else if (stockValue <= 5) {
-        return { class: 'low', text: `${stockValue} en stock`, available: true };
-    } else {
+      } else if (stock <= 5) {
+        return { class: 'low', text: `${stock} en stock`, available: true };
+      } else {
         return { class: 'ok', text: 'En stock', available: true };
+      }
     }
-}
+
     function createAddressLink(addressText) {
       const gpsMatch = addressText.match(/GPS:\s*([-+]?\d*\.\d+),\s*([-+]?\d*\.\d+)/i);
       
@@ -5447,7 +5446,7 @@ async function loadAllProducts() {
     state.filteredProducts = [];
     state.currentPage = 1;
 
-    const response = await fetch(`${STOCK_API_URL}?action=getProducts&t=${Date.now()}`, {
+    const response = await fetch(`${STOCK_API_URL}?mode=all`, {
       method: "GET",
       cache: "no-store"
     });
@@ -5457,21 +5456,19 @@ async function loadAllProducts() {
     }
 
     const data = await response.json();
-    console.log("API produits reçue :", data);
-
-    const items = Array.isArray(data.products) ? data.products : [];
+    const items = Array.isArray(data.items) ? data.items : [];
 
     const allProducts = [];
 
     for (const raw of items) {
-      const code = String(raw.Article || raw.code || "").trim();
-      const name = String(raw.Produits || raw.name || "").trim();
-      const categoryName = String(raw.Categorie || raw.category || "").trim();
+      const code = String(raw.code || raw.Article || "").trim();
+      const name = String(raw.name || raw.Produits || "").trim();
+      const categoryName = String(raw.category || raw.Categorie || "").trim();
 
-      let price = Number(String(raw.Prix ?? raw.price ?? 0).replace(",", "."));
-      let stock = Number(String(raw.Stock ?? raw.stock ?? 0).replace(",", "."));
+      let price = Number(String(raw.price || raw.Prix || 0).replace(",", "."));
+      let stock = Number(String(raw.stock || raw.Stock || 0).replace(",", "."));
 
-      const actifValue = String(raw.Actif || raw.active || "oui").trim().toLowerCase();
+      const actifValue = String(raw.active || raw.Actif || "").trim().toLowerCase();
       const isActive =
         actifValue === "oui" ||
         actifValue === "true" ||
@@ -5483,10 +5480,7 @@ async function loadAllProducts() {
       if (!Number.isFinite(stock)) stock = 0;
 
       const categoryKey = getCategoryKeyFromSheetCategory(categoryName);
-      if (!categoryKey) {
-        console.warn("Catégorie non reconnue :", categoryName, raw);
-        continue;
-      }
+      if (!categoryKey) continue;
 
       const product = {
         code,
@@ -5527,7 +5521,6 @@ async function loadAllProducts() {
     updateCategoriesUI();
     renderProducts();
 
-    console.log("Produits chargés :", state.allProducts.length);
     showToast(`✅ ${state.allProducts.length} produits chargés`);
   } catch (error) {
     console.error("Erreur loadAllProducts:", error);
@@ -5564,65 +5557,54 @@ async function loadAllProducts() {
       console.log('Promotions appliquées avec succès');
     }
 
-function showPromoBanner(promotions) {
-  if (promotions.length === 0) {
-    $('promoBanner').style.display = 'none';
-    return;
-  }
-  $('promoTitle').textContent = `🔥 ${promotions.length} PRODUITS EN PROMOTION`;
-  $('promoDesc').textContent = 'Profitez de nos offres spéciales !';
-  $('promoBanner').style.display = 'flex';
-}
+    function showPromoBanner(promotions) {
+      if (promotions.length === 0) {
+        $('promoBanner').style.display = 'none';
+        return;
+      }
+      $('promoTitle').textContent = `🔥 ${promotions.length} PRODUITS EN PROMOTION`;
+      $('promoDesc').textContent = 'Profitez de nos offres spéciales !';
+      $('promoBanner').style.display = 'flex';
+    }
 
-function renderCategories() {
+  function renderCategories() {
   const container = $('categoriesContainer');
-  if (!container) return;
-
   container.innerHTML = '';
 
-  const isInStock = (product) => {
-    if (typeof product?.inStock === 'boolean') return product.inStock;
-    return getAvailableStock(product) > 0;
-  };
-
-  const allProducts = Array.isArray(state.allProducts) ? state.allProducts : [];
-  const visibleAllProducts = allProducts.filter(isInStock);
-  const allCount = visibleAllProducts.length;
+  const allProductsCount = getFilteredProducts().length;
 
   const allButton = document.createElement('button');
   allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
-  allButton.innerHTML = `🌐 Tous <span class="cat-count">${allCount}</span>`;
+  allButton.innerHTML = `🌐 Tous <span class="cat-count">${allProductsCount}</span>`;
   allButton.onclick = () => {
     state.showAllCategories = true;
     state.activeCategory = null;
     state.currentPage = 1;
-    state.filteredProducts = [...visibleAllProducts];
+    state.filteredProducts = [...state.allProducts];
 
     updateCategoriesUI();
     renderProducts();
+
+    $('activeCategoryLabel').textContent = "Tous";
+    $('activeCategoryMeta').textContent = `${getFilteredProducts().length} articles disponibles`;
   };
   container.appendChild(allButton);
 
   CATEGORIES.forEach(category => {
-    const categoryProducts = allProducts.filter(product =>
-      (product.categoryKey ?? product.category ?? '') === category.key
-    );
-
-    const visibleCategoryProducts = categoryProducts.filter(isInStock);
-    const count = visibleCategoryProducts.length;
-
+    const products = state.products.get(category.key) || [];
     const button = document.createElement('button');
+
     button.className = `cat-btn ${category.isPromo ? 'promo' : ''} ${
       !state.showAllCategories && state.activeCategory === category.key ? 'active' : ''
     }`;
 
-    button.innerHTML = `${category.label} <span class="cat-count">${count}</span>`;
+    button.innerHTML = `${category.label} <span class="cat-count">${products.length}</span>`;
 
     button.onclick = () => {
       state.showAllCategories = false;
       state.activeCategory = category.key;
       state.currentPage = 1;
-      state.filteredProducts = [...visibleCategoryProducts];
+      state.filteredProducts = [...products];
 
       updateCategoriesUI();
       renderProducts();
@@ -5632,337 +5614,269 @@ function renderCategories() {
   });
 }
 
-function updateCategoriesUI() {
+    function updateCategoriesUI() {
   const buttons = $('categoriesContainer').querySelectorAll('.cat-btn');
   buttons.forEach(button => button.classList.remove('active'));
 
-  const getStockValue = (product) => Number(product?.stock ?? product?.Stock ?? 0);
-  const isInStock = (product) => {
-    if (typeof product?.inStock === 'boolean') return product.inStock;
-    return getStockValue(product) > 0;
-  };
-
-  const safeAllProducts = Array.isArray(state.allProducts) ? state.allProducts : [];
-  const visibleAllProducts = safeAllProducts.filter(isInStock);
-
   if (state.showAllCategories) {
     if (buttons[0]) buttons[0].classList.add('active');
-    $('activeCategoryLabel').textContent = 'Tous';
-    $('activeCategoryMeta').textContent = `${visibleAllProducts.length} articles disponibles`;
-    return;
-  }
-
-  const category = CATEGORIES.find(c => c.key === state.activeCategory);
-
-  if (!category) {
-    if (buttons[0]) buttons[0].classList.add('active');
-    $('activeCategoryLabel').textContent = 'Tous';
-    $('activeCategoryMeta').textContent = `${visibleAllProducts.length} articles disponibles`;
-    return;
-  }
-
-  const index = CATEGORIES.findIndex(c => c.key === state.activeCategory) + 1;
-  if (buttons[index]) buttons[index].classList.add('active');
-
-  $('activeCategoryLabel').textContent = category.label;
-
-  const categoryProducts = state.products.get(category.key) || [];
-  const visibleCategoryProducts = categoryProducts.filter(isInStock);
-  const count = visibleCategoryProducts.length;
-
-  if (category.isPromo) {
-    $('activeCategoryMeta').innerHTML = count > 0
-      ? `<span style="color:#ffcc00;font-weight:700;">🔥 ${count} articles en promotion !</span>`
-      : '0 article';
+    $('activeCategoryLabel').textContent = "Tous";
+    $('activeCategoryMeta').textContent = `${getFilteredProducts().length} articles disponibles`;
   } else {
-    $('activeCategoryMeta').textContent = `${count} articles disponibles`;
+    const category = CATEGORIES.find(c => c.key === state.activeCategory);
+    if (category) {
+      const index = CATEGORIES.findIndex(c => c.key === state.activeCategory) + 1;
+      if (buttons[index]) buttons[index].classList.add('active');
+
+      $('activeCategoryLabel').textContent = category.label;
+
+      const count = (state.products.get(state.activeCategory) || []).length;
+
+      if (category.isPromo) {
+        $('activeCategoryMeta').innerHTML = count > 0
+          ? `<span style="color:#ffcc00;font-weight:700;">🔥 ${count} articles en promotion !</span>`
+          : `0 article`;
+      } else {
+        $('activeCategoryMeta').textContent = `${count} articles disponibles`;
+      }
+    }
   }
 }
 
-function getFilteredProducts() {
-  const getStockValue = (product) => Number(product?.stock ?? product?.Stock ?? 0);
-  const isInStock = (product) => {
-    if (typeof product?.inStock === 'boolean') return product.inStock;
-    return getStockValue(product) > 0;
-  };
-
+   function getFilteredProducts() {
   let products = [];
 
   if (state.showAllCategories) {
-    products = Array.isArray(state.allProducts) ? [...state.allProducts] : [];
+    products = [...state.allProducts];
   } else {
     products = [...(state.products.get(state.activeCategory) || [])];
   }
 
-  products = products.filter(isInStock);
-
   if (state.searchQuery) {
     const query = state.searchQuery.toLowerCase();
-
-    products = products.filter(p => {
-      const name = String(p.name ?? p.Produits ?? '').toLowerCase();
-      const code = String(p.code ?? p.Code ?? '').toLowerCase();
-      const category = String(p.category ?? p.Categorie ?? p.categoryKey ?? '').toLowerCase();
-
-      return name.includes(query) || code.includes(query) || category.includes(query);
-    });
+    products = products.filter(p =>
+      String(p.name || '').toLowerCase().includes(query) ||
+      String(p.code || '').toLowerCase().includes(query) ||
+      String(p.category || '').toLowerCase().includes(query)
+    );
   }
 
   return products.sort((a, b) =>
-    String(a.name ?? a.Produits ?? '').localeCompare(
-      String(b.name ?? b.Produits ?? '')
-    )
+    String(a.name || '').localeCompare(String(b.name || ''))
   );
 }
-
-// ===================== FONCTION RENDERPRODUCTS (avec ouverture du catalogue sur l'article cliqué) =====================
-function renderProducts() {
-  state.filteredProducts = getFilteredProducts();
-
-  const totalPages = Math.ceil(state.filteredProducts.length / CONFIG.itemsPerPage) || 1;
-  if (state.currentPage > totalPages) state.currentPage = totalPages || 1;
-
-  updatePageInfo();
-  $('prevPageBtn').disabled = state.currentPage === 1;
-  $('nextPageBtn').disabled = state.currentPage === totalPages;
-  $('prevPageBottomBtn').disabled = state.currentPage === 1;
-  $('nextPageBottomBtn').disabled = state.currentPage === totalPages;
-  $('paginationBottom').style.display = totalPages > 1 ? 'flex' : 'none';
-
-  const start = (state.currentPage - 1) * CONFIG.itemsPerPage;
-  const end = start + CONFIG.itemsPerPage;
-  const productsToShow = state.filteredProducts.slice(start, end);
-
-  const grid = $('productsGrid');
-  grid.innerHTML = '';
-
-  if (productsToShow.length === 0) {
-    const t = TRANSLATIONS[state.currentLanguage];
-    grid.innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">
-        <div style="font-size:48px;margin-bottom:15px;">🔍</div>
-        <h3 style="margin-bottom:10px;color:var(--text);">${t.noProductsFound}</h3>
-        <p>Essayez de modifier votre recherche ou sélectionnez une autre catégorie</p>
-      </div>
-    `;
-    return;
-  }
-
-  productsToShow.forEach(product => {
-    const code = product.code ?? product.Code ?? '';
-    const name = product.name ?? product.Produits ?? 'Produit sans nom';
-    const category = product.category ?? product.Categorie ?? product.categoryKey ?? '';
-    const stockValue = Number(product.stock ?? product.Stock ?? 0);
-    const priceValue = Number(product.price ?? product.Prix ?? 0);
-
-    const imgSrc = `${CONFIG.imagesBasePath}${code}.jpg`;
-    const stockStatus = getStockStatus(stockValue);
-
-    const card = document.createElement('div');
-    card.className = `product-card ${product.isPromotion ? 'promo-card' : ''}`;
-
-    let imagePromoBadge = '';
-    let discountBadge = '';
-
-    if (product.isPromotion && product.discountPercent > 0) {
-      imagePromoBadge = '<div class="image-promo-badge">PROMO</div>';
-
-      let discountText = `-${product.discountPercent}%`;
-      if (product.promoType === 'prix') {
-        discountText = `-${product.discountPercent}%`;
-      } else if (product.promoType === 'pourcentage') {
-        discountText = `${product.discountPercent}% OFF`;
-      }
-
-      discountBadge = `<div class="product-discount">${discountText}</div>`;
-    }
-
-    const oldPriceValue = Number(product.oldPrice ?? product.originalPrice ?? 0);
-
-    const priceDisplay = product.isPromotion && oldPriceValue > priceValue
-      ? `<div class="product-price-container">
-          <div class="product-old-price">${formatPrice(oldPriceValue)}</div>
-          <div class="product-price">${formatPrice(priceValue)}</div>
-        </div>`
-      : `<div class="product-price-container">
-          <div class="product-price">${formatPrice(priceValue)}</div>
-        </div>`;
-
-    card.innerHTML = `
-      <div class="product-image">
-        <img src="${imgSrc}"
-          alt="${name}"
-          loading="lazy"
-          onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-        <div class="no-photo">${code}</div>
-        ${imagePromoBadge}
-        ${discountBadge}
-      </div>
-      <div class="product-info">
-        <div class="product-name">${name}</div>
-        <div class="product-meta">
-          <div>Code: ${code}</div>
-          <div>${category}</div>
-          ${product.isPromotion && product.promoType ? `<div style="color:#ffcc00;font-size:8px;font-weight:700;">Promo: ${product.promoType}</div>` : ''}
-        </div>
-        ${priceDisplay}
-      </div>
-      <div class="product-stock-tag ${stockStatus.class}">
-        ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
-      </div>
-    `;
-
-       card.addEventListener('click', () => {
-      if (stockStatus.available) {
-        openCatalogueForProduct(product);
-      } else {
-        showToast('❌ Ce produit est en rupture de stock', 'error');
-      }
-    });
-
-    grid.appendChild(card);
-  });
-}
-
-function openCatalogueForProduct(targetProduct) {
-  const targetCategoryKey = targetProduct.categoryKey ?? targetProduct.category ?? '';
-  const targetCode = targetProduct.code ?? targetProduct.Code ?? '';
-  const targetName = targetProduct.name ?? targetProduct.Produits ?? '';
-
-  const category = CATEGORIES.find(c => c.key === targetCategoryKey);
-  if (!category) return;
-
-  const products = state.products.get(targetCategoryKey) || [];
-
-  if (products.length === 0) {
-    showToast('⚠️ Aucun produit dans cette catégorie', 'warning');
-    return;
-  }
-
-  // Placer le produit ciblé en tête de liste, suivi des autres triés par nom
-  const otherProducts = products.filter(p => {
-    const pCode = p.code ?? p.Code ?? '';
-    const pName = p.name ?? p.Produits ?? '';
-    return pCode !== targetCode || pName !== targetName;
-  });
-
-  otherProducts.sort((a, b) =>
-    String(a.name ?? a.Produits ?? '').localeCompare(
-      String(b.name ?? b.Produits ?? '')
-    )
-  );
-
-  state.catalogueProducts = [targetProduct, ...otherProducts];
-  state.catalogueSearchQuery = '';
-
-  $('catalogueTitle').textContent = category.label;
-  $('catalogueSearchInput').value = '';
-
-  state.catalogueQuantityPicks = {};
-
-  renderCatalogue();
-  $('catalogueModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function renderCatalogue() {
-  const grid = $('catalogueGrid');
-  const empty = $('catalogueEmpty');
-
-  let filteredProducts = Array.isArray(state.catalogueProducts)
-    ? [...state.catalogueProducts]
-    : [];
-
-  if (state.catalogueSearchQuery) {
-    const query = state.catalogueSearchQuery.toLowerCase();
-
-    filteredProducts = filteredProducts.filter(p => {
-      const name = String(p.name ?? p.Produits ?? '').toLowerCase();
-      const code = String(p.code ?? p.Code ?? '').toLowerCase();
-      return name.includes(query) || code.includes(query);
-    });
-  }
-
-  if (filteredProducts.length === 0) {
-    grid.style.display = 'none';
-    empty.style.display = 'block';
-    return;
-  }
-
-  grid.style.display = 'grid';
-  empty.style.display = 'none';
-  grid.innerHTML = '';
-
-  filteredProducts.forEach(product => {
-    const productId = generateProductId(product);
-    const quantity = state.catalogueQuantityPicks[productId] || 0;
-    const availableStock = getAvailableStock(product);
-    const stockStatus = getStockStatus(availableStock);
-    const isOutOfStock = availableStock <= 0;
-    const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-
-    const item = document.createElement('div');
-    item.className = `catalogue-item ${isOutOfStock ? 'stock-out' : ''}`;
-
-    let stockOutBadge = '';
-    if (isOutOfStock) {
-      stockOutBadge = '<div class="stock-out-badge">⚠️ RUPTURE</div>';
-    }
-
-    let stockAlert = '';
-    if (!isOutOfStock && availableStock <= 3) {
-      stockAlert = `<span class="catalogue-stock-alert">⚠️ Plus que ${availableStock} en stock</span>`;
-    }
-
-    item.innerHTML = `
-      ${stockOutBadge}
-      <div class="catalogue-item-header">
-        <div class="catalogue-item-image">
-          <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
-        </div>
-        <div class="catalogue-item-info">
-          <div class="catalogue-item-name">${product.name}</div>
-          <div class="catalogue-item-code">Code: ${product.code}</div>
-          <div class="catalogue-item-price">
-            ${product.isPromotion && product.oldPrice && product.oldPrice > product.price
-              ? `<span class="catalogue-item-old-price">${formatPrice(product.oldPrice)}</span>`
-              : ''}
-            <span>${formatPrice(product.price)}</span>
+    // ===================== FONCTION RENDERPRODUCTS (avec ouverture du catalogue sur l'article cliqué) =====================
+    function renderProducts() {
+      state.filteredProducts = getFilteredProducts();
+      const totalPages = Math.ceil(state.filteredProducts.length / CONFIG.itemsPerPage) || 1;
+      if (state.currentPage > totalPages) state.currentPage = totalPages || 1;
+      updatePageInfo();
+      $('prevPageBtn').disabled = state.currentPage === 1;
+      $('nextPageBtn').disabled = state.currentPage === totalPages;
+      $('prevPageBottomBtn').disabled = state.currentPage === 1;
+      $('nextPageBottomBtn').disabled = state.currentPage === totalPages;
+      $('paginationBottom').style.display = totalPages > 1 ? 'flex' : 'none';
+      const start = (state.currentPage - 1) * CONFIG.itemsPerPage;
+      const end = start + CONFIG.itemsPerPage;
+      const productsToShow = state.filteredProducts.slice(start, end);
+      const grid = $('productsGrid');
+      grid.innerHTML = '';
+      
+      if (productsToShow.length === 0) {
+        const t = TRANSLATIONS[state.currentLanguage];
+        grid.innerHTML = `
+          <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">
+            <div style="font-size:48px;margin-bottom:15px;">🔍</div>
+            <h3 style="margin-bottom:10px;color:var(--text);">${t.noProductsFound}</h3>
+            <p>Essayez de modifier votre recherche ou sélectionnez une autre catégorie</p>
           </div>
-          <div style="font-size:11px;margin-top:2px;${isOutOfStock ? 'color: var(--danger);' : 'color: var(--muted);'}">
-            Stock: ${stockStatus.text}
-            ${stockAlert}
+        `;
+        return;
+      }
+      
+      productsToShow.forEach(product => {
+        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+        const stockStatus = getStockStatus(product.stock);
+        const card = document.createElement('div');
+        card.className = `product-card ${product.isPromotion ? 'promo-card' : ''}`;
+        let imagePromoBadge = '';
+        let discountBadge = '';
+        if (product.isPromotion && product.discountPercent > 0) {
+          imagePromoBadge = '<div class="image-promo-badge">PROMO</div>';
+          let discountText = `-${product.discountPercent}%`;
+          if (product.promoType === 'prix') {
+            discountText = `-${product.discountPercent}%`;
+          } else if (product.promoType === 'pourcentage') {
+            discountText = `${product.discountPercent}% OFF`;
+          }
+          discountBadge = `<div class="product-discount">${discountText}</div>`;
+        }
+        const priceDisplay = product.isPromotion && product.oldPrice && product.oldPrice > product.price
+          ? `<div class="product-price-container">
+              <div class="product-old-price">${formatPrice(product.oldPrice)}</div>
+              <div class="product-price">${formatPrice(product.price)}</div>
+            </div>`
+          : `<div class="product-price-container">
+              <div class="product-price">${formatPrice(product.price)}</div>
+            </div>`;
+        
+        card.innerHTML = `
+          <div class="product-image">
+            <img src="${imgSrc}"
+              alt="${product.name}"
+              loading="lazy"
+              onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="no-photo">${product.code}</div>
+            ${imagePromoBadge}
+            ${discountBadge}
           </div>
-        </div>
-      </div>
-      <div class="catalogue-item-actions">
-        <div class="catalogue-qty-controls">
-          <button class="catalogue-qty-btn" data-action="decrease" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>−</button>
-          <input type="number" class="catalogue-qty-input"
-            data-id="${productId}"
-            value="${quantity}"
-            min="0"
-            max="${availableStock}"
-            step="1"
-            ${isOutOfStock ? 'disabled' : ''}>
-          <button class="catalogue-qty-btn" data-action="increase" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>+</button>
-        </div>
-        <button class="catalogue-add-btn ${quantity > 0 ? 'has-qty' : ''}"
+          <div class="product-info">
+            <div class="product-name">${product.name}</div>
+            <div class="product-meta">
+              <div>Code: ${product.code}</div>
+              <div>${product.category}</div>
+              ${product.isPromotion && product.promoType ? `<div style="color:#ffcc00;font-size:8px;font-weight:700;">Promo: ${product.promoType}</div>` : ''}
+            </div>
+            ${priceDisplay}
+          </div>
+          <div class="product-stock-tag ${stockStatus.class}">
+            ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
+          </div>
+        `;
+        
+        // ✅ Le catalogue s'ouvre sur l'article cliqué
+        card.addEventListener('click', () => {
+          if (stockStatus.available) {
+            openCatalogueForProduct(product);
+          } else {
+            showToast('❌ Ce produit est en rupture de stock', 'error');
+          }
+        });
+        
+        grid.appendChild(card);
+      });
+    }
+
+    // ✅ Nouvelle fonction : Ouvre le catalogue et affiche le produit spécifique en tête de liste
+    function openCatalogueForProduct(targetProduct) {
+      const category = CATEGORIES.find(c => c.key === targetProduct.categoryKey);
+      if (!category) return;
+      
+      const products = state.products.get(targetProduct.categoryKey) || [];
+      if (products.length === 0) {
+        showToast('⚠️ Aucun produit dans cette catégorie', 'warning');
+        return;
+      }
+      
+      // Placer le produit ciblé en tête de liste, suivi des autres triés par nom
+      const otherProducts = products.filter(p => p.code !== targetProduct.code || p.name !== targetProduct.name);
+      otherProducts.sort((a, b) => a.name.localeCompare(b.name));
+      
+      state.catalogueProducts = [targetProduct, ...otherProducts];
+      state.catalogueSearchQuery = '';
+      $('catalogueTitle').textContent = category.label;
+      $('catalogueSearchInput').value = '';
+      
+      state.catalogueQuantityPicks = {};
+      
+      renderCatalogue();
+      $('catalogueModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function renderCatalogue() {
+      const grid = $('catalogueGrid');
+      const empty = $('catalogueEmpty');
+      
+      let filteredProducts = state.catalogueProducts;
+      if (state.catalogueSearchQuery) {
+        const query = state.catalogueSearchQuery.toLowerCase();
+        filteredProducts = filteredProducts.filter(p =>
+          p.name.toLowerCase().includes(query) ||
+          p.code.toLowerCase().includes(query)
+        );
+      }
+      
+      if (filteredProducts.length === 0) {
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+      
+      grid.style.display = 'grid';
+      empty.style.display = 'none';
+      grid.innerHTML = '';
+      
+      filteredProducts.forEach(product => {
+        const productId = generateProductId(product);
+        const quantity = state.catalogueQuantityPicks[productId] || 0;
+        const availableStock = getAvailableStock(product);
+        const stockStatus = getStockStatus(availableStock);
+        const isOutOfStock = availableStock <= 0;
+        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+        
+        const item = document.createElement('div');
+        item.className = `catalogue-item ${isOutOfStock ? 'stock-out' : ''}`;
+        
+        let stockOutBadge = '';
+        if (isOutOfStock) {
+          stockOutBadge = '<div class="stock-out-badge">⚠️ RUPTURE</div>';
+        }
+        
+        let stockAlert = '';
+        if (!isOutOfStock && availableStock <= 3) {
+          stockAlert = `<span class="catalogue-stock-alert">⚠️ Plus que ${availableStock} en stock</span>`;
+        }
+        
+        item.innerHTML = `
+          ${stockOutBadge}
+          <div class="catalogue-item-header">
+            <div class="catalogue-item-image">
+              <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
+            </div>
+            <div class="catalogue-item-info">
+              <div class="catalogue-item-name">${product.name}</div>
+              <div class="catalogue-item-code">Code: ${product.code}</div>
+              <div class="catalogue-item-price">
+                ${product.isPromotion && product.oldPrice && product.oldPrice > product.price
+                  ? `<span class="catalogue-item-old-price">${formatPrice(product.oldPrice)}</span>`
+                  : ''}
+                <span>${formatPrice(product.price)}</span>
+              </div>
+              <div style="font-size:11px;margin-top:2px;${isOutOfStock ? 'color: var(--danger);' : 'color: var(--muted);'}">
+                Stock: ${stockStatus.text}
+                ${stockAlert}
+              </div>
+            </div>
+          </div>
+          <div class="catalogue-item-actions">
+            <div class="catalogue-qty-controls">
+              <button class="catalogue-qty-btn" data-action="decrease" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>−</button>
+              <input type="number" class="catalogue-qty-input" 
                 data-id="${productId}"
-                ${stockStatus.available ? '' : 'disabled'}>
-          ${isOutOfStock
-            ? '❌ RUPTURE'
-            : `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`}
-        </button>
-      </div>
-    `;
-
-    grid.appendChild(item);
-  });
-
-  setupCatalogueEvents();
-}
+                value="${quantity}"
+                min="0"
+                max="${availableStock}"
+                step="1"
+                ${isOutOfStock ? 'disabled' : ''}>
+              <button class="catalogue-qty-btn" data-action="increase" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>+</button>
+            </div>
+            <button class="catalogue-add-btn ${quantity > 0 ? 'has-qty' : ''}" 
+                    data-id="${productId}"
+                    ${stockStatus.available ? '' : 'disabled'}>
+              ${isOutOfStock 
+                ? '❌ RUPTURE' 
+                : `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`}
+            </button>
+          </div>
+        `;
+        
+        grid.appendChild(item);
+      });
+      
+      setupCatalogueEvents();
+    }
 
     function setupCatalogueEvents() {
       document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
@@ -7748,16 +7662,16 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
         $('searchInput').focus();
       };
 
-   $('showAllBtn').addEventListener('click', () => {
-  $('searchInput').value = '';
-  state.searchQuery = '';
-  state.showAllCategories = true;
-  state.activeCategory = null;
-  state.currentPage = 1;
-  state.filteredProducts = [...state.allProducts];
-  renderProducts();
-  updateCategoriesUI();
-});
+      $('showAllBtn').onclick = () => {
+        state.showAllCategories = true;
+        state.activeCategory = null;
+        state.currentPage = 1;
+        state.filteredProducts = state.allProducts;
+        renderProducts();
+        updateCategoriesUI();
+        $('activeCategoryLabel').textContent = "Tous";
+        $('activeCategoryMeta').textContent = `${state.allProducts.length} articles disponibles`;
+      };
 
       $('viewPromosBtn').onclick = () => {
         state.showAllCategories = false;
@@ -7978,6 +7892,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
 
 
 
