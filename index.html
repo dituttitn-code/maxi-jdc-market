@@ -5515,11 +5515,11 @@ async function loadAllProducts() {
   if (!Number.isFinite(price)) price = 0;
   if (!Number.isFinite(stock)) stock = 0;
 
-  const categoryKey = getCategoryKeyFromSheetCategory(categoryName);
-  if (!categoryKey) {
-    console.warn("Catégorie non reconnue :", categoryName, raw);
-    continue;
-  }
+  let categoryKey = getCategoryKeyFromSheetCategory(categoryName);
+
+if (!categoryKey) {
+  categoryKey = "epicerie_salee";
+}
 
   const product = {
     code,
