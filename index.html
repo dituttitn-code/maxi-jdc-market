@@ -5478,47 +5478,47 @@ function setLanguage(lang) {
 
 async function loadAllProducts() {
   try {
-    state.products.clear();
-    state.promotions = [];
-    state.allProducts = [];
-    state.filteredProducts = [];
-    state.currentPage = 1;
+    console.log('Chargement du stock depuis Google Sheets...');
 
-    const response = await fetch(`${STOCK_API_URL}?mode=all`, {
-      method: "GET",
-      cache: "no-store"
-    });
-
+    const response = await fetch(`${STOCK_API_URL}?action=getProducts`);
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      throw new Error(`Erreur HTTP ${response.status}`);
     }
 
     const data = await response.json();
-    const items = Array.isArray(data.items) ? data.items : [];
+    console.log('DATA Google Sheets =', data);
+
+    const rows = Array.isArray(data.products) ? data.products : [];
+
+    state.products = new Map();
+    state.allProducts = [];
+    state.promotions = [];
 
     const allProducts = [];
 
-    for (const raw of items) {
-      const code = String(raw.code || raw.Article || "").trim();
-      const name = String(raw.name || raw.Produits || "").trim();
-      const categoryName = String(raw.category || raw.Categorie || "").trim();
+    for (const raw of rows) {
+      const code = String(raw.Article || raw.Code || '').trim();
+      const name = String(raw.Produits || raw.Désignation || '').trim();
+      const categoryName = String(raw.Categorie || raw.Catégorie || '').trim();
+      let price = Number(String(raw.Prix || raw['PU.V.TTC'] || 0).replace(',', '.'));
+      let stock = Number(String(raw.Stock || raw.STOCKGlobal || 0).replace(',', '.'));
 
-      let price = Number(String(raw.price || raw.Prix || 0).replace(",", "."));
-      let stock = Number(String(raw.stock || raw.Stock || 0).replace(",", "."));
-
-      const actifValue = String(raw.active || raw.Actif || "").trim().toLowerCase();
+      const actifValue = String(raw.Actif || raw.active || 'oui').trim().toLowerCase();
       const isActive =
-        actifValue === "oui" ||
-        actifValue === "true" ||
-        actifValue === "1";
+        actifValue === 'oui' ||
+        actifValue === 'true' ||
+        actifValue === '1';
 
       if (!code || !name) continue;
       if (!isActive) continue;
       if (!Number.isFinite(price)) price = 0;
       if (!Number.isFinite(stock)) stock = 0;
 
-      const categoryKey = getCategoryKeyFromSheetCategory(categoryName);
-      if (!categoryKey) continue;
+      const categoryKey = SHEET_CATEGORY_MAP[categoryName];
+      if (!categoryKey) {
+        console.warn('Catégorie non mappée :', categoryName, 'pour le produit', code, name);
+        continue;
+      }
 
       const product = {
         code,
@@ -5539,12 +5539,17 @@ async function loadAllProducts() {
 
       state.products.get(categoryKey).push(product);
       allProducts.push(product);
+
+      const stockKey = `${categoryKey}_${code}`;
+      if (!state.productStocks.has(stockKey)) {
+        state.productStocks.set(stockKey, stock);
+      }
     }
 
     const promotions = await loadPromotionsData();
 
     if (promotions.length > 0) {
-      state.products.set("promotions", promotions);
+      state.products.set('promotions', promotions);
       state.promotions = promotions;
       applyPromotions(allProducts, promotions);
       showPromoBanner(promotions);
@@ -5554,15 +5559,17 @@ async function loadAllProducts() {
     state.showAllCategories = true;
     state.activeCategory = null;
     state.filteredProducts = [...state.allProducts];
+    state.currentPage = 1;
 
     renderCategories();
     updateCategoriesUI();
     renderProducts();
 
+    console.log(`${state.allProducts.length} produits chargés depuis Google Sheets`);
     showToast(`✅ ${state.allProducts.length} produits chargés`);
   } catch (error) {
-    console.error("Erreur loadAllProducts:", error);
-    showToast("❌ Erreur lors du chargement des produits");
+    console.error('Erreur loadAllProducts:', error);
+    showToast('❌ Erreur lors du chargement des produits');
   }
 }
     function applyPromotions(allProducts, promotions) {
