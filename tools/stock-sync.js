@@ -1,17 +1,30 @@
 const STOCK_API_URL =
-  "https://script.google.com/macros/s/AKfycbziH-sLBmTksNcSookG2XZtFo5ltPx8pojVO02nbPrjt-KB4uJQYwLoAOKDZ-yZiH9_IA/exec";
+  "https://script.google.com/macros/s/AKfycbziH-sLBmTksNcSookG2XZtFo5ltPx8pojVO02nbPrjt-KB4uJQYwLoAOKDZ-yZiH9_IA/exec?action=getProducts";
 
 const SYNC_INTERVAL_MS = 30000;
+const DEFAULT_CATEGORY = "Épicerie Salée";
+
+function cleanText(value) {
+  if (value === null || value === undefined) return "";
+  return String(value).trim();
+}
 
 function toNumber(value, fallback = 0) {
-  const n = Number(String(value ?? "").trim().replace(",", "."));
+  if (value === null || value === undefined || value === "") return fallback;
+
+  const normalized = String(value)
+    .trim()
+    .replace(/\s/g, "")
+    .replace(",", ".");
+
+  const n = Number(normalized);
   return Number.isFinite(n) ? n : fallback;
 }
 
 function normalizePrice(value) {
   let price = toNumber(value, 0);
 
-  // Sécurité : si jamais une source envoie encore des millimes
+  // Sécurité : si une source envoie encore des millimes
   // ex: 4300 => 4.300 dt
   if (price > 1000) {
     price = price / 1000;
@@ -21,34 +34,94 @@ function normalizePrice(value) {
 }
 
 function normalizeStock(value) {
-  const stock = toNumber(value, 0);
+  const stock = Math.floor(toNumber(value, 0));
   return stock >= 0 ? stock : 0;
 }
 
-function normalizeProduct(raw, index) {
-  const code = String(raw.code || raw.Article || "").trim();
-  const name = String(raw.name || raw.Produits || "").trim();
-  const category = String(raw.category || raw.Categorie || "Non classé").trim();
+function normalizeActive(value) {
+  const v = cleanText(value).toLowerCase();
 
-  const price = normalizePrice(raw.price ?? raw.Prix ?? 0);
-  const stock = normalizeStock(raw.stock ?? raw.Stock ?? 0);
+  if (["non", "false", "0", "inactif", "inactive"].includes(v)) {
+    return false;
+  }
+
+  return true;
+}
+
+function normalizeCategory(value) {
+  const category = cleanText(value);
+  return category || DEFAULT_CATEGORY;
+}
+
+function normalizeProduct(raw, index) {
+  const code = cleanText(
+    raw.code ??
+    raw.Code ??
+    raw.Article ??
+    raw.article ??
+    ""
+  );
+
+  const name = cleanText(
+    raw.name ??
+    raw.Name ??
+    raw.Produits ??
+    raw.Produit ??
+    raw["Désignation"] ??
+    raw.Designation ??
+    raw.designation ??
+    ""
+  );
+
+  const category = normalizeCategory(
+    raw.category ??
+    raw.Category ??
+    raw.Categorie ??
+    raw.categorie ??
+    raw["Catégorie"] ??
+    ""
+  );
+
+  const price = normalizePrice(
+    raw.price ??
+    raw.Price ??
+    raw.Prix ??
+    raw["PU.V.TTC"] ??
+    0
+  );
+
+  const stock = normalizeStock(
+    raw.stock ??
+    raw.Stock ??
+    raw.STOCKGlobal ??
+    0
+  );
+
+  const active = normalizeActive(
+    raw.active ??
+    raw.Active ??
+    raw.Actif ??
+    raw.actif ??
+    "oui"
+  );
 
   return {
-    id: raw.id || index + 1,
-    code: code,
-    name: name,
-    category: category,
-    price: price,
-    stock: stock,
+    id: raw.id || code || index + 1,
+    code,
+    name,
+    category,
+    price,
+    stock,
     image: raw.image || `images/products/${code}.jpg`,
-    active: raw.active !== false,
-    inStock: stock > 0
+    active,
+    inStock: stock > 0,
+    raw
   };
 }
 
 export async function loadProducts() {
   try {
-    const response = await fetch(`${STOCK_API_URL}?mode=all`, {
+    const response = await fetch(STOCK_API_URL, {
       method: "GET",
       cache: "no-store"
     });
@@ -58,16 +131,18 @@ export async function loadProducts() {
     }
 
     const data = await response.json();
+    console.log("DATA Google Sheets =", data);
 
-    if (!data.ok) {
-      throw new Error("API error");
-    }
+    // Compatible avec ton Code.gs actuel
+    const rows = Array.isArray(data.products)
+      ? data.products
+      : Array.isArray(data.items)
+        ? data.items
+        : [];
 
-    const items = Array.isArray(data.items) ? data.items : [];
-
-    return items
+    return rows
       .map(normalizeProduct)
-      .filter(p => p.code && p.name && p.price > 0 && p.active);
+      .filter((p) => p.code && p.name && p.active);
 
   } catch (err) {
     console.error("Erreur loadProducts", err);
@@ -83,7 +158,14 @@ export async function autoSyncProducts(renderFunction) {
     const products = await loadProducts();
 
     const signature = JSON.stringify(
-      products.map(p => [p.code, p.price, p.stock, p.category, p.active])
+      products.map((p) => [
+        p.code,
+        p.name,
+        p.price,
+        p.stock,
+        p.category,
+        p.active
+      ])
     );
 
     if (signature !== lastSignature) {
@@ -98,4 +180,26 @@ export async function autoSyncProducts(renderFunction) {
   return () => {
     if (timer) clearInterval(timer);
   };
+}
+
+export function countProductsByCategory(products) {
+  const counts = {};
+
+  for (const product of products) {
+    const category = normalizeCategory(product.category || product.Categorie);
+    counts[category] = (counts[category] || 0) + 1;
+  }
+
+  return counts;
+}
+
+export function filterProductsByCategory(products, selectedCategory) {
+  if (!selectedCategory || selectedCategory === "Tous") {
+    return products;
+  }
+
+  return products.filter((product) => {
+    const category = normalizeCategory(product.category || product.Categorie);
+    return category === selectedCategory;
+  });
 }
