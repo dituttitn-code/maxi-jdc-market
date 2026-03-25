@@ -1,5 +1,5 @@
 const STOCK_API_URL =
-  "https://script.google.com/macros/s/AKfycbzvrDMk1KXkKWjxIsutdPdFvodrW_OY5MNQEjrll8AyiOUWa6Mk8v4owmKUUPRwUJnKcQ/exec";
+  "https://script.google.com/macros/s/AKfycbzvrDMk1KXkKWjxIsutdPdFvodrW_OY5MNQEjrll8AyiOUWa6Mk8v4owmKUUPRwUJnKcQ/exec?action=getProducts";
 
 const SYNC_INTERVAL_MS = 30000;
 const DEFAULT_CATEGORY = "Épicerie Salée";
@@ -24,8 +24,6 @@ function toNumber(value, fallback = 0) {
 function normalizePrice(value) {
   let price = toNumber(value, 0);
 
-  // Sécurité : si une source envoie encore des millimes
-  // ex: 4300 => 4.300 dt
   if (price > 1000) {
     price = price / 1000;
   }
@@ -133,7 +131,6 @@ export async function loadProducts() {
     const data = await response.json();
     console.log("DATA Google Sheets =", data);
 
-    // Compatible avec ton Code.gs actuel
     const rows = Array.isArray(data.products)
       ? data.products
       : Array.isArray(data.items)
@@ -186,7 +183,7 @@ export function countProductsByCategory(products) {
   const counts = {};
 
   for (const product of products) {
-    const category = normalizeCategory(product.category || product.Categorie);
+    const category = normalizeCategory(product.category);
     counts[category] = (counts[category] || 0) + 1;
   }
 
@@ -199,7 +196,7 @@ export function filterProductsByCategory(products, selectedCategory) {
   }
 
   return products.filter((product) => {
-    const category = normalizeCategory(product.category || product.Categorie);
+    const category = normalizeCategory(product.category);
     return category === selectedCategory;
   });
 }
