@@ -1,5 +1,5 @@
 const STOCK_API_URL =
-  "https://script.google.com/macros/s/AKfycbzvrDMk1KXkKWjxIsutdPdFvodrW_OY5MNQEjrll8AyiOUWa6Mk8v4owmKUUPRwUJnKcQ/exec";
+  "https://script.google.com/macros/s/AKfycbzs6ZnSqKmm3K1F5XhIKI9x13-TUi3W87sqP-mtumOC7rHoceRhf8hjtLNYddGL_snAOw/exec?action=getProducts";
 
 const SYNC_INTERVAL_MS = 30000;
 const DEFAULT_CATEGORY = "Épicerie Salée";
@@ -23,11 +23,7 @@ function toNumber(value, fallback = 0) {
 
 function normalizePrice(value) {
   let price = toNumber(value, 0);
-
-  if (price > 1000) {
-    price = price / 1000;
-  }
-
+  if (price > 1000) price = price / 1000;
   return Number(price.toFixed(3));
 }
 
@@ -38,12 +34,7 @@ function normalizeStock(value) {
 
 function normalizeActive(value) {
   const v = cleanText(value).toLowerCase();
-
-  if (["non", "false", "0", "inactif", "inactive"].includes(v)) {
-    return false;
-  }
-
-  return true;
+  return !["non", "false", "0", "inactif", "inactive"].includes(v);
 }
 
 function normalizeCategory(value) {
@@ -56,7 +47,6 @@ function normalizeProduct(raw, index) {
     raw.code ??
     raw.Code ??
     raw.Article ??
-    raw.article ??
     ""
   );
 
@@ -67,7 +57,6 @@ function normalizeProduct(raw, index) {
     raw.Produit ??
     raw["Désignation"] ??
     raw.Designation ??
-    raw.designation ??
     ""
   );
 
@@ -76,7 +65,6 @@ function normalizeProduct(raw, index) {
     raw.Category ??
     raw.Categorie ??
     raw.categorie ??
-    raw["Catégorie"] ??
     ""
   );
 
@@ -99,7 +87,6 @@ function normalizeProduct(raw, index) {
     raw.active ??
     raw.Active ??
     raw.Actif ??
-    raw.actif ??
     "oui"
   );
 
@@ -131,11 +118,7 @@ export async function loadProducts() {
     const data = await response.json();
     console.log("DATA Google Sheets =", data);
 
-    const rows = Array.isArray(data.products)
-      ? data.products
-      : Array.isArray(data.items)
-        ? data.items
-        : [];
+    const rows = Array.isArray(data.products) ? data.products : [];
 
     return rows
       .map(normalizeProduct)
@@ -196,7 +179,6 @@ export function filterProductsByCategory(products, selectedCategory) {
   }
 
   return products.filter((product) => {
-    const category = normalizeCategory(product.category);
-    return category === selectedCategory;
+    return normalizeCategory(product.category) === selectedCategory;
   });
 }
