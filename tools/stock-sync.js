@@ -1,5 +1,5 @@
 const STOCK_API_URL =
-  "https://script.google.com/macros/s/AKfycbwA4nNtNpJAy2NRM1TNdLXKtkeJmalblQr-W8Zdh0r5SjD_bDcHOqcQkm0TqytphNKURQ/exec";
+  "https://script.google.com/macros/s/AKfycbxlxs7w9ZKqsm74COtsPjvatUZi7-cbvi848Cwu0axc8SQNimjaH4FTAOmx4HtuOCkzAQ/exec";
 
 const SYNC_INTERVAL_MS = 30000;
 const DEFAULT_CATEGORY = "Épicerie Salée";
