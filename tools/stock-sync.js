@@ -3,7 +3,7 @@ const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbwO238N5IQfqtl0uo
 const SYNC_INTERVAL_MS = 30000;
 
 /**
- * Nettoyage et Normalisation
+ * Fonctions de nettoyage et sécurité
  */
 function cleanText(value) {
   if (value === null || value === undefined) return "";
@@ -19,6 +19,7 @@ function toNumber(value, fallback = 0) {
 
 function normalizePrice(value) {
   let price = toNumber(value, 0);
+  // Correction automatique si le prix est en millimes (ex: 9300 au lieu de 9.3)
   if (price > 1000) price = price / 1000;
   return Number(price.toFixed(3));
 }
@@ -30,39 +31,47 @@ function normalizeStock(value) {
 
 function normalizeActive(value) {
   const v = cleanText(value).toLowerCase();
-  return !["non", "false", "0", "inactif", "inactive"].includes(v);
+  // Par défaut, si ce n'est pas explicitement "non", on considère que c'est actif
+  return !["non", "false", "0", "inactif"].includes(v);
 }
 
 /**
- * NORMALISATION INTELLIGENTE
- * Capable de lire un Objet {code, name...} OU un Tableau [A, B, C, D, E, F]
+ * NORMALISATION ROBUSTE
+ * Cette fonction répare les données manquantes (comme les noms vides)
  */
 function normalizeProduct(raw, index) {
   const isArray = Array.isArray(raw);
 
-  // Mappage des colonnes Google Sheets : A=0, B=1, C=2, D=3, E=4, F=5
-  const code = cleanText(isArray ? raw[0] : (raw.code || raw.Code || raw.Article || ""));
-  const name = cleanText(isArray ? raw[1] : (raw.name || raw.Produits || raw.Designation || ""));
+  // Mappage par index (A=0, B=1, C=2, D=3, E=4, F=5) ou par nom de propriété
+  const code = cleanText(isArray ? raw[0] : (raw.code || raw.Article || ""));
+  
+  // SÉCURITÉ : Si le nom est vide, on utilise le code pour que le produit ne disparaisse pas
+  let name = cleanText(isArray ? raw[1] : (raw.name || raw.Produits || ""));
+  if (!name && code) {
+    name = "Produit " + code; 
+  }
+
   const stock = normalizeStock(isArray ? raw[2] : (raw.stock || raw.Stock || 0));
-  const price = normalizePrice(isArray ? raw[3] : (raw.price || raw.Prix || raw["PU.V.TTC"] || 0));
+  const price = normalizePrice(isArray ? raw[3] : (raw.price || raw.Prix || 0));
   const category = cleanText(isArray ? raw[4] : (raw.category || raw.Categorie || ""));
-  const active = normalizeActive(isArray ? raw[5] : (raw.actif || raw.Actif || "oui"));
+  const active = normalizeActive(isArray ? raw[5] : (raw.active || raw.Actif || "oui"));
 
   return {
-    id: code || `idx-${index}`,
+    id: code || `item-${index}`,
     code,
     name,
-    category: category || "Épicerie Salée", // Valeur par défaut pour éviter les trous
+    category: category || "Épicerie Salée", // Catégorie par défaut
     price,
     stock,
     image: `images/products/${code}.jpg`,
     active,
-    inStock: stock > 0
+    inStock: stock > 0,
+    rawData: raw // Garde une trace pour le debug
   };
 }
 
 /**
- * Chargement des données
+ * Chargement et Filtrage des données
  */
 export async function loadProducts() {
   try {
@@ -71,36 +80,37 @@ export async function loadProducts() {
       cache: "no-store"
     });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) throw new Error(`Erreur Serveur: ${response.status}`);
 
     const data = await response.json();
     
-    // Détection de la structure de réponse
+    // On extrait les lignes peu importe la structure du JSON (Array simple ou Objet .products)
     const rows = Array.isArray(data) ? data : (data.products || []);
 
-    // Filtrage : On garde uniquement ce qui a un code, un nom et qui est actif
+    // FILTRE FINAL : On n'affiche que les produits qui ont au moins un code et qui sont actifs
     const products = rows
       .map((row, idx) => normalizeProduct(row, idx))
-      .filter(p => p.code !== "" && p.name !== "" && p.active === true);
+      .filter(p => p.code !== "" && p.active === true);
 
-    console.log("Sync terminée :", products.length, "produits chargés.");
+    console.log(`✅ ${products.length} produits synchronisés avec succès.`);
     return products;
 
   } catch (err) {
-    console.error("Erreur loadProducts:", err);
+    console.error("❌ Erreur lors du chargement des produits:", err);
     return [];
   }
 }
 
 /**
- * Synchronisation automatique
+ * Synchronisation automatique en arrière-plan
  */
 export async function autoSyncProducts(renderFunction) {
   let lastSignature = "";
 
   async function sync() {
     const products = await loadProducts();
-    const signature = JSON.stringify(products);
+    // On ne rafraîchit l'affichage que si les données ont réellement changé
+    const signature = JSON.stringify(products.map(p => [p.code, p.stock, p.price]));
 
     if (signature !== lastSignature) {
       lastSignature = signature;
@@ -114,7 +124,7 @@ export async function autoSyncProducts(renderFunction) {
 }
 
 /**
- * Fonctions de filtrage
+ * Utilitaires pour l'interface
  */
 export function countProductsByCategory(products) {
   const counts = {};
