@@ -4795,8 +4795,7 @@
 const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbwuuDr-WfsxEj7SJUMnMBsmUlKeinz6FUL3teZLawXuRz_sfUVREofObEclNHL8wOn05A/exec";
 
 const CATEGORIES = [
-  { key: "tous", label: "📦 TOUS LES PRODUITS", isAll: true },
-  { key: "promotions", label: "🔥 PROMOTIONS", isPromo: true },
+  { key: "promotions", label: "🔥 PROMOTIONS", file: "data/PROMOTIONS.csv", isPromo: true },
   { key: "cafe", label: "☕ Café & Thés" },
   { key: "animaux_compagnie", label: "🐶 Animaux de Compagnie" },
   { key: "bebe_maman", label: "👶 Bébé & Maman" },
@@ -4805,7 +4804,10 @@ const CATEGORIES = [
   { key: "chocolats_biscuits", label: "🍫 Chocolats & Biscuits" },
   { key: "conserves", label: "🥫 Conserves & Bocaux" },
   { key: "cuisine_monde", label: "🌍 Cuisine du Monde" },
-  { key: "eaux", label: "💧 Eaux & Boissons" },
+  // NOUVEAUX NOMS ICI :
+  { key: "eaux", label: "💧 Eaux Minérales & Pétillantes" },
+  { key: "jus_boissons", label: "🧃 Jus & Boissons Rafraîchissantes" },
+  
   { key: "epicerie_salee", label: "🧂 Épicerie Salée" },
   { key: "epicerie_sucree", label: "🍬 Épicerie Sucrée" },
   { key: "fromage_charcuterie", label: "🧀 Fromages & Charcuteries" },
@@ -4813,7 +4815,6 @@ const CATEGORIES = [
   { key: "fruits_secs_noix", label: "🌰 Fruits Secs & Noix" },
   { key: "hygiene_entretien", label: "🧼 Hygiène & Entretien" },
   { key: "hygiene_soins", label: "🧴 Soins & Beauté" },
-  { key: "jus_boissons", label: "🧃 Jus & Boissons" },
   { key: "lait_oeufs_produits_frais", label: "🥛 Lait & Œufs Frais" },
   { key: "pates", label: "🍝 Pâtes & Riz" },
   { key: "produits_surgeles", label: "🧊 Produits Surgelés" },
@@ -4829,7 +4830,10 @@ const SHEET_CATEGORY_MAP = {
   "Chocolats & Biscuits": "chocolats_biscuits",
   "Conserves & Bocaux": "conserves",
   "Cuisine du Monde": "cuisine_monde",
+  // Correspondance avec votre Google Sheets (laissez les noms simples du Sheets ici) :
   "Eaux & Boissons": "eaux",
+  "Jus & Boissons": "jus_boissons",
+  
   "Épicerie Salée": "epicerie_salee",
   "Epicerie Salée": "epicerie_salee",
   "Épicerie Sucrée": "epicerie_sucree",
@@ -4840,7 +4844,6 @@ const SHEET_CATEGORY_MAP = {
   "Hygiène & Entretien": "hygiene_entretien",
   "Hygiene & Entretien": "hygiene_entretien",
   "Soins & Beauté": "hygiene_soins",
-  "Jus & Boissons": "jus_boissons",
   "Lait & Œufs Frais": "lait_oeufs_produits_frais",
   "Lait & Oeufs Frais": "lait_oeufs_produits_frais",
   "Pâtes & Riz": "pates",
@@ -4850,7 +4853,6 @@ const SHEET_CATEGORY_MAP = {
   "Sélections VIP": "vipa_selections",
   "Selections VIP": "vipa_selections"
 };
-
 const state = {
   user: null,
   products: new Map(),
