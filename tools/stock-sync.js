@@ -2,7 +2,6 @@ const STOCK_API_URL =
   "https://script.google.com/macros/s/AKfycbzYQG0qjx1yE3vXgF-_j_53jBkU-CpTdPVW8Uf2Ws0UVg4Tjf_KqcH9SoVfpSGuDjk9GQ/exec";
 
 const SYNC_INTERVAL_MS = 30000;
-const DEFAULT_CATEGORY = "Épicerie Salée";
 
 function cleanText(value) {
   if (value === null || value === undefined) return "";
@@ -38,14 +37,14 @@ function normalizeActive(value) {
 }
 
 function normalizeCategory(value) {
-  const category = cleanText(value);
-  return category || DEFAULT_CATEGORY;
+  return cleanText(value);
 }
 
 function normalizeProduct(raw, index) {
   const code = cleanText(
     raw.code ??
     raw.Code ??
+    raw.article ??
     raw.Article ??
     ""
   );
@@ -53,7 +52,9 @@ function normalizeProduct(raw, index) {
   const name = cleanText(
     raw.name ??
     raw.Name ??
+    raw.produits ??
     raw.Produits ??
+    raw.produit ??
     raw.Produit ??
     raw["Désignation"] ??
     raw.Designation ??
@@ -63,14 +64,15 @@ function normalizeProduct(raw, index) {
   const category = normalizeCategory(
     raw.category ??
     raw.Category ??
-    raw.Categorie ??
     raw.categorie ??
+    raw.Categorie ??
     ""
   );
 
   const price = normalizePrice(
     raw.price ??
     raw.Price ??
+    raw.prix ??
     raw.Prix ??
     raw["PU.V.TTC"] ??
     0
@@ -79,14 +81,15 @@ function normalizeProduct(raw, index) {
   const stock = normalizeStock(
     raw.stock ??
     raw.Stock ??
-    raw.STOCKGlobal ??
+    raw.STOCK ??
     0
   );
 
   const active = normalizeActive(
+    raw.actif ??
+    raw.Actif ??
     raw.active ??
     raw.Active ??
-    raw.Actif ??
     "oui"
   );
 
@@ -106,7 +109,7 @@ function normalizeProduct(raw, index) {
 
 export async function loadProducts() {
   try {
-    const response = await fetch(STOCK_API_URL, {
+    const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`, {
       method: "GET",
       cache: "no-store"
     });
@@ -118,11 +121,22 @@ export async function loadProducts() {
     const data = await response.json();
     console.log("DATA Google Sheets =", data);
 
-    const rows = Array.isArray(data.products) ? data.products : [];
+    // IMPORTANT :
+    // Code.gs renvoie directement un tableau
+    // mais on accepte aussi { products: [...] } si jamais ça change
+    const rows = Array.isArray(data)
+      ? data
+      : Array.isArray(data.products)
+        ? data.products
+        : [];
 
-    return rows
+    const products = rows
       .map(normalizeProduct)
       .filter((p) => p.code && p.name && p.active);
+
+    console.log("Produits normalisés =", products.length, products);
+
+    return products;
 
   } catch (err) {
     console.error("Erreur loadProducts", err);
@@ -166,7 +180,7 @@ export function countProductsByCategory(products) {
   const counts = {};
 
   for (const product of products) {
-    const category = normalizeCategory(product.category);
+    const category = cleanText(product.category) || "Non classé";
     counts[category] = (counts[category] || 0) + 1;
   }
 
@@ -178,7 +192,11 @@ export function filterProductsByCategory(products, selectedCategory) {
     return products;
   }
 
+  if (selectedCategory === "Non classé") {
+    return products.filter((product) => !cleanText(product.category));
+  }
+
   return products.filter((product) => {
-    return normalizeCategory(product.category) === selectedCategory;
+    return cleanText(product.category) === selectedCategory;
   });
 }
