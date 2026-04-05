@@ -5477,7 +5477,7 @@ async function loadAllProducts() {
   try {
     console.log('Chargement du stock depuis Google Sheets...');
 
-    // 1. Appel à l'API Google Sheets
+    // 1. Appel à l'API Google Sheets avec timestamp anti-cache
     const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`);
     if (!response.ok) {
       throw new Error(`Erreur HTTP ${response.status}`);
@@ -5486,47 +5486,59 @@ async function loadAllProducts() {
     const data = await response.json();
     console.log('Données reçues de Google Sheets :', data);
 
-    // Support de différents formats de réponse (Array direct ou objet avec propriété products)
+    // Support des différents formats de réponse
     const rows = Array.isArray(data) ? data : (Array.isArray(data.products) ? data.products : []);
 
-    // Réinitialisation de l'état
+    // Réinitialisation de l'état global
     state.products = new Map();
     state.allProducts = [];
     state.promotions = [];
     state.productStocks = new Map();
     const allProducts = [];
 
-    // 2. Traitement des produits reçus
+    // 2. Traitement des produits avec sécurités Prix et Stock
     for (const raw of rows) {
-      // Lecture flexible des noms de colonnes (majuscules/minuscules)
       const code = String(raw.code || raw.Article || raw.Code || '').trim();
       const name = String(raw.name || raw.Produits || raw.Désignation || '').trim();
       const categoryName = String(raw.category || raw.Categorie || raw.Catégorie || '').trim();
       
-      let price = Number(String(raw.price || raw.Prix || raw['PU.V.TTC'] || 0).replace(',', '.'));
-      let stock = Number(String(raw.stock || raw.Stock || raw.STOCKGlobal || 0).replace(',', '.'));
+      // Lecture brute des valeurs
+      let rawPrice = String(raw.price || raw.Prix || raw['PU.V.TTC'] || '0').replace(',', '.');
+      let rawStock = String(raw.stock || raw.Stock || raw.STOCKGlobal || '0').replace(',', '.');
+
+      let price = parseFloat(rawPrice);
+      let stock = parseFloat(rawStock);
 
       const actifValue = String(raw.actif || raw.Actif || raw.active || 'oui').trim().toLowerCase();
       const isActive = ['oui', 'true', '1', 'active'].includes(actifValue);
 
-      // Sécurité : ignorer si données essentielles manquantes ou produit inactif
+      // Sécurité de base
       if (!code || !name || !isActive) continue;
 
-      if (!Number.isFinite(price)) price = 0;
-      if (!Number.isFinite(stock)) stock = 0;
-
-      // Attribution de la catégorie (Repli sur 'epicerie_salee' si inconnu)
-      let categoryKey = SHEET_CATEGORY_MAP[categoryName];
-      if (!categoryKey) {
-        console.warn(`Catégorie non mappée : "${categoryName}" pour ${name}. Repli sur epicerie_salee.`);
-        categoryKey = "epicerie_salee";
+      // ==========================================
+      // LOGIQUE DE RUPTURE FORCÉE (Prix/Stock vides)
+      // ==========================================
+      
+      // Si le prix est absent, 0 ou non numérique : on force le stock à 0
+      if (isNaN(price) || price <= 0) {
+        console.warn(`Prix invalide pour ${name}. Rupture de stock forcée.`);
+        stock = 0; 
       }
+
+      // Si le stock est absent, vide ou négatif : on force à 0 (Rupture)
+      if (isNaN(stock) || rawStock.trim() === '' || stock < 0) {
+        stock = 0;
+      }
+      // ==========================================
+
+      let categoryKey = SHEET_CATEGORY_MAP[categoryName] || "epicerie_salee";
 
       const product = {
         code,
         name,
-        price: price > 1000 ? price / 1000 : price, // Correction millimes automatique
-        stock,
+        // Conversion millimes (ex: 4500 -> 4.500)
+        price: price > 1000 ? price / 1000 : price,
+        stock: stock,
         originalStock: stock,
         category: categoryName || "Épicerie Salée",
         categoryKey,
@@ -5536,7 +5548,7 @@ async function loadAllProducts() {
         image: `images/products/${code}.jpg`
       };
 
-      // Organisation par catégorie dans la Map
+      // Organisation par catégorie
       if (!state.products.has(categoryKey)) {
         state.products.set(categoryKey, []);
       }
@@ -5544,11 +5556,11 @@ async function loadAllProducts() {
       
       allProducts.push(product);
 
-      // Mise à jour de la Map globale des stocks
+      // Enregistrement du stock final (0 si rupture forcée)
       state.productStocks.set(code, stock);
     }
 
-    // 3. Gestion des Promotions (si la fonction existe)
+    // 3. Gestion des Promotions
     if (typeof loadPromotionsData === 'function') {
       try {
         const promos = await loadPromotionsData();
@@ -5559,10 +5571,34 @@ async function loadAllProducts() {
           if (typeof showPromoBanner === 'function') showPromoBanner(promos);
         }
       } catch (e) {
-        console.warn("Info: Pas de promotions chargées ou fonction manquante.");
+        console.warn("Info: Pas de promotions chargées.");
       }
     }
 
+    // 4. Mise à jour finale de l'état et de l'interface
+    state.allProducts = allProducts;
+    state.filteredProducts = [...allProducts];
+    state.activeCategory = 'tous'; 
+    state.currentPage = 1;
+
+    if (typeof renderCategories === 'function') renderCategories();
+    if (typeof updateCategoriesUI === 'function') updateCategoriesUI();
+    
+    // Appel du rendu final
+    if (typeof filterAndRender === 'function') {
+      filterAndRender();
+    } else if (typeof renderProducts === 'function') {
+      renderProducts();
+    }
+
+    console.log(`✅ Synchronisation terminée : ${allProducts.length} articles.`);
+    if (typeof showToast === 'function') showToast(`✅ ${allProducts.length} produits chargés`);
+
+  } catch (error) {
+    console.error('❌ Erreur critique loadAllProducts:', error);
+    if (typeof showToast === 'function') showToast('❌ Erreur de chargement des produits');
+  }
+}
     // 4. Mise à jour finale de l'état global
     state.allProducts = allProducts;
     state.filteredProducts = [...allProducts];
