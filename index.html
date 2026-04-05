@@ -5388,92 +5388,110 @@ function setLanguage(lang) {
 }
 
     async function loadPromotionsData() {
-      try {
-        const response = await fetch('data/PROMOTIONS.csv');
-        if (!response.ok) {
-          console.warn('Fichier PROMOTIONS.csv non trouvé');
-          return [];
-        }
-        const text = await response.text();
-        const lines = text.split('\n').filter(line => line.trim());
-        if (lines.length === 0) {
-          console.warn('Fichier PROMOTIONS.csv vide');
-          return [];
-        }
-        const separator = lines[0].includes(';') ? ';' : (lines[0].includes('\t') ? '\t' : ',');
-        const promotions = [];
-        const seen = new Set();
-        lines.slice(1).forEach((line, index) => {
-          const parts = line.split(separator).map(field => field.trim());
-          if (parts.length < 5) {
-            console.warn(`Ligne ${index + 2} incomplète dans PROMOTIONS: ${line}`);
-            return;
-          }
-          const code = parts[0];
-          const name = parts[1];
-          const originalPriceStr = parts[2];
-          const promoPriceStr = parts[3];
-          const promoType = parts[4];
-          if (!code || !name) return;
-          const productKey = `${code}_${name}`;
-          if (seen.has(productKey)) return;
-          seen.add(productKey);
-          const cleanPrice = (priceStr) => {
-            return parseFloat(priceStr.replace(',', '.').replace(/[^\d.]/g, ''));
-          };
-          const originalPrice = cleanPrice(originalPriceStr);
-          const promoPrice = cleanPrice(promoPriceStr);
-          if (isNaN(originalPrice) || originalPrice <= 0) {
-            console.warn(`Prix origine invalide: ${code} - ${name} - ${originalPriceStr}`);
-            return;
-          }
-          let finalPrice = promoPrice;
-          let discountPercent = 0;
-          if (promoType.toLowerCase() === 'pourcentage') {
-            discountPercent = promoPrice;
-            finalPrice = originalPrice * (1 - discountPercent / 100);
-          } else if (promoType.toLowerCase() === 'prix') {
-            finalPrice = promoPrice;
-            discountPercent = Math.round((1 - finalPrice / originalPrice) * 100);
-          } else {
-            console.warn(`Type de promotion non reconnu: ${promoType} pour ${code}`);
-            finalPrice = originalPrice;
-            discountPercent = 0;
-          }
-          if (isNaN(finalPrice) || finalPrice <= 0) {
-            console.warn(`Prix final invalide: ${code} - ${name} - ${finalPrice}`);
-            finalPrice = originalPrice;
-            discountPercent = 0;
-          }
-          const googleStock = getStockFromGoogleSheets(code);
-          const product = {
-            code,
-            name,
-            price: finalPrice,
-            stock: googleStock,
-            originalStock: googleStock,
-            category: '🔥 PROMOTIONS',
-            categoryKey: 'promotions',
-            isPromotion: true,
-            oldPrice: originalPrice,
-            discountPercent: discountPercent,
-            promoType: promoType,
-            originalPrice: originalPrice
-          };
-          promotions.push(product);
-          const stockKey = `promotions_${code}`;
-          if (!state.productStocks.has(stockKey)) {
-            state.productStocks.set(stockKey, googleStock);
-          }
-        });
-        console.log(`${promotions.length} promotions chargées`);
-        return promotions;
-      } catch (error) {
-        console.error('Erreur chargement promotions:', error);
-        return [];
-      }
+  try {
+    // 1. Récupération du fichier CSV
+    const response = await fetch('data/PROMOTIONS.csv');
+    if (!response.ok) {
+      console.warn('Fichier PROMOTIONS.csv non trouvé');
+      return [];
     }
 
+    const text = await response.text();
+    const lines = text.split('\n').filter(line => line.trim());
+    if (lines.length <= 1) { // Vérifie s'il y a plus que l'en-tête
+      console.warn('Fichier PROMOTIONS.csv vide ou sans données');
+      return [];
+    }
+
+    // Détection automatique du séparateur (virgule, point-virgule ou tabulation)
+    const separator = lines[0].includes(';') ? ';' : (lines[0].includes('\t') ? '\t' : ',');
+    const promotions = [];
+    const seen = new Set();
+
+    // Fonction de nettoyage des prix robuste
+    const cleanPrice = (priceStr) => {
+      if (!priceStr) return 0;
+      // Remplace la virgule par un point, enlève tout ce qui n'est pas chiffre ou point
+      const cleaned = priceStr.toString().replace(',', '.').replace(/[^\d.]/g, '');
+      return parseFloat(cleaned) || 0;
+    };
+
+    // 2. Analyse des lignes (on saute l'en-tête)
+    lines.slice(1).forEach((line, index) => {
+      const parts = line.split(separator).map(field => field.trim());
+      
+      if (parts.length < 5) {
+        console.warn(`Ligne ${index + 2} incomplète dans PROMOTIONS: ${line}`);
+        return;
+      }
+
+      const code = parts[0];
+      const name = parts[1];
+      const originalPriceStr = parts[2];
+      const promoValueStr = parts[3]; // Valeur (soit le nouveau prix, soit le %)
+      const promoType = parts[4].toLowerCase();
+
+      if (!code || !name) return;
+
+      // Éviter les doublons
+      if (seen.has(code)) return;
+      seen.add(code);
+
+      const originalPrice = cleanPrice(originalPriceStr);
+      const promoValue = cleanPrice(promoValueStr);
+
+      if (originalPrice <= 0) {
+        console.warn(`Prix origine invalide pour ${code}: ${originalPriceStr}`);
+        return;
+      }
+
+      let finalPrice = 0;
+      let discountPercent = 0;
+
+      // 3. Calcul du prix promo selon le type
+      if (promoType === 'pourcentage' || promoType === '%') {
+        discountPercent = promoValue;
+        finalPrice = originalPrice * (1 - discountPercent / 100);
+      } else if (promoType === 'prix' || promoType === 'fixe') {
+        finalPrice = promoValue;
+        discountPercent = Math.round((1 - finalPrice / originalPrice) * 100);
+      } else {
+        console.warn(`Type de promo inconnu (${promoType}) pour ${code}. Utilisation prix fixe.`);
+        finalPrice = promoValue;
+      }
+
+      // 4. Synchronisation du Stock avec Google Sheets
+      // On cherche si le produit existe déjà dans les données chargées de Google
+      const productInStore = state.allProducts.find(p => p.code === code);
+      const currentStock = productInStore ? productInStore.stock : 0;
+
+      const product = {
+        code: code,
+        name: name,
+        price: finalPrice, // Prix après réduction
+        oldPrice: originalPrice, // Ancien prix pour l'affichage barré
+        stock: currentStock,
+        category: 'promotions', // Clé technique
+        label: '🔥 PROMOTIONS', // Label affiché
+        isPromotion: true,
+        discountPercent: discountPercent,
+        promoType: promoType
+      };
+
+      promotions.push(product);
+
+      // Mise à jour de la Map globale des stocks
+      state.productStocks.set(`promotions_${code}`, currentStock);
+    });
+
+    console.log(`✅ ${promotions.length} promotions chargées avec succès`);
+    return promotions;
+
+  } catch (error) {
+    console.error('❌ Erreur lors du chargement des promotions:', error);
+    return [];
+  }
+}
 // =========================================================
 // CHARGEMENT ET SYNC DES PRODUITS
 // =========================================================
