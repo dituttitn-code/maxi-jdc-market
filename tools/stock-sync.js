@@ -121,9 +121,6 @@ export async function loadProducts() {
     const data = await response.json();
     console.log("DATA Google Sheets =", data);
 
-    // IMPORTANT :
-    // Code.gs renvoie directement un tableau
-    // mais on accepte aussi { products: [...] } si jamais ça change
     const rows = Array.isArray(data)
       ? data
       : Array.isArray(data.products)
