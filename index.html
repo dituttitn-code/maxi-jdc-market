@@ -4791,7 +4791,7 @@
       }
     };
 
-  // Catégories
+  // ===================== CONFIGURATION & CATEGORIES =====================
 const CATEGORIES = [
   { key: "promotions", label: "🔥 PROMOTIONS", file: "data/PROMOTIONS.csv", isPromo: true },
   { key: "cafe", label: "☕ Café & Thés", file: "data/cafe.csv" },
@@ -4851,7 +4851,10 @@ const SHEET_CATEGORY_MAP = {
 };
 
 function getCategoryKeyFromSheetCategory(categoryName) {
-  return SHEET_CATEGORY_MAP[String(categoryName || "").trim()] || null;
+  const name = String(categoryName || "").trim();
+  // Correction : si la catégorie n'est pas trouvée, on met "epicerie_salee" par défaut 
+  // pour éviter que l'article disparaisse de l'affichage.
+  return SHEET_CATEGORY_MAP[name] || "epicerie_salee";
 }
 
 // ===================== ÉTAT GLOBAL =====================
@@ -4860,7 +4863,7 @@ const state = {
   products: new Map(),
   cart: {},
   searchQuery: '',
-  activeCategory: null,
+  activeCategory: 'Tous', // IMPORTANT : mis à 'Tous' au lieu de null pour forcer l'affichage initial
   showAllCategories: true,
   currentPage: 1,
   currentModalProduct: null,
@@ -4886,11 +4889,10 @@ const state = {
   catalogueQuantityPicks: {},
   isSendingOrder: false,
   addressLinksEnabled: true,
-  allProducts: [],
+  allProducts: [], // Sera rempli par l'appel API
   currentOrderNumber: 0,
   lastGeneratedOrderId: null
 };
-
     // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
     function genererNumeroCommande() {
       const now = new Date();
