@@ -1,5 +1,5 @@
 // REMPLACEZ CETTE URL par votre URL de déploiement la plus récente
-const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbzAT1hKBZlpwJSnP83rWxuq1pu7OXDgEwLcBAIp3lvz9iaKwpzEK3a-gvftlWnJ2W36vQ/exec";
+const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbxHMMCWH44NIk0NJT1eBONciTJ-xLVUf3mCkbVdPHW3hn-PWpl8-sWYZPOfaoi_YDrr/exec";
 
 const SYNC_INTERVAL_MS = 30000;
 
