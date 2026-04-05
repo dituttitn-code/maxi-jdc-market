@@ -4791,9 +4791,11 @@
       }
     };
 
- // ===================== CONFIGURATION & CATEGORIES =====================
+// ===================== CONFIGURATION & CATEGORIES =====================
+const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbwuuDr-WfsxEj7SJUMnMBsmUlKeinz6FUL3teZLawXuRz_sfUVREofObEclNHL8wOn05A/exec";
+
 const CATEGORIES = [
-  { key: "tous", label: "📦 TOUS LES PRODUITS", isAll: true }, // Ajouté pour débloquer l'affichage
+  { key: "tous", label: "📦 TOUS LES PRODUITS", isAll: true },
   { key: "promotions", label: "🔥 PROMOTIONS", isPromo: true },
   { key: "cafe", label: "☕ Café & Thés" },
   { key: "animaux_compagnie", label: "🐶 Animaux de Compagnie" },
@@ -4817,8 +4819,6 @@ const CATEGORIES = [
   { key: "produits_surgeles", label: "🧊 Produits Surgelés" },
   { key: "vipa_selections", label: "⭐ Sélections VIP" }
 ];
-
-const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbwuuDr-WfsxEj7SJUMnMBsmUlKeinz6FUL3teZLawXuRz_sfUVREofObEclNHL8wOn05A/exec";
 
 const SHEET_CATEGORY_MAP = {
   "Café & Thés": "cafe",
@@ -4851,17 +4851,12 @@ const SHEET_CATEGORY_MAP = {
   "Selections VIP": "vipa_selections"
 };
 
-function getCategoryKeyFromSheetCategory(categoryName) {
-  const name = String(categoryName || "").trim();
-  return SHEET_CATEGORY_MAP[name] || "epicerie_salee";
-}
-
 const state = {
   user: null,
   products: new Map(),
   cart: {},
   searchQuery: '',
-  activeCategory: 'tous', // Forcé sur 'tous' pour voir les articles
+  activeCategory: 'tous', // Changé pour forcer l'affichage
   showAllCategories: true,
   currentPage: 1,
   currentModalProduct: null,
@@ -5480,7 +5475,7 @@ async function loadAllProducts() {
   try {
     console.log('Chargement du stock depuis Google Sheets...');
 
-    // Ajout d'un timestamp pour éviter le cache navigateur
+    // 1. Appel à l'API Google Sheets
     const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`);
     if (!response.ok) {
       throw new Error(`Erreur HTTP ${response.status}`);
@@ -5489,16 +5484,19 @@ async function loadAllProducts() {
     const data = await response.json();
     console.log('Données reçues de Google Sheets :', data);
 
-    // On accepte soit data direct, soit data.products
+    // Support de différents formats de réponse (Array direct ou objet avec propriété products)
     const rows = Array.isArray(data) ? data : (Array.isArray(data.products) ? data.products : []);
 
+    // Réinitialisation de l'état
     state.products = new Map();
     state.allProducts = [];
     state.promotions = [];
+    state.productStocks = new Map();
     const allProducts = [];
 
+    // 2. Traitement des produits reçus
     for (const raw of rows) {
-      // Nettoyage des données avec support de plusieurs noms de colonnes
+      // Lecture flexible des noms de colonnes (majuscules/minuscules)
       const code = String(raw.code || raw.Article || raw.Code || '').trim();
       const name = String(raw.name || raw.Produits || raw.Désignation || '').trim();
       const categoryName = String(raw.category || raw.Categorie || raw.Catégorie || '').trim();
@@ -5509,27 +5507,23 @@ async function loadAllProducts() {
       const actifValue = String(raw.actif || raw.Actif || raw.active || 'oui').trim().toLowerCase();
       const isActive = ['oui', 'true', '1', 'active'].includes(actifValue);
 
-      // SECURITÉ 1 : Si pas de code ou pas de nom, on ignore
-      if (!code || !name) continue;
-      
-      // SECURITÉ 2 : On ignore si l'article est marqué inactif
-      if (!isActive) continue;
+      // Sécurité : ignorer si données essentielles manquantes ou produit inactif
+      if (!code || !name || !isActive) continue;
 
       if (!Number.isFinite(price)) price = 0;
       if (!Number.isFinite(stock)) stock = 0;
 
-      // SECURITÉ 3 : Gestion des catégories (Le point critique)
+      // Attribution de la catégorie (Repli sur 'epicerie_salee' si inconnu)
       let categoryKey = SHEET_CATEGORY_MAP[categoryName];
-      
       if (!categoryKey) {
-        console.warn('Catégorie non reconnue :', categoryName, '- On place dans epicerie_salee');
-        categoryKey = "epicerie_salee"; // Force l'affichage même si la catégorie est mal écrite
+        console.warn(`Catégorie non mappée : "${categoryName}" pour ${name}. Repli sur epicerie_salee.`);
+        categoryKey = "epicerie_salee";
       }
 
       const product = {
         code,
         name,
-        price: price > 1000 ? price / 1000 : price, // Correction automatique des millimes
+        price: price > 1000 ? price / 1000 : price, // Correction millimes automatique
         stock,
         originalStock: stock,
         category: categoryName || "Épicerie Salée",
@@ -5540,59 +5534,57 @@ async function loadAllProducts() {
         image: `images/products/${code}.jpg`
       };
 
-      // Organisation dans la Map par catégorie
+      // Organisation par catégorie dans la Map
       if (!state.products.has(categoryKey)) {
         state.products.set(categoryKey, []);
       }
       state.products.get(categoryKey).push(product);
       
-      // Ajout à la liste globale
       allProducts.push(product);
 
-      // Mise à jour de la Map des stocks pour l'interface
-      // Utilisation d'une clé simple (code) pour la cohérence avec le reste du code
+      // Mise à jour de la Map globale des stocks
       state.productStocks.set(code, stock);
     }
 
-    state.allProducts = allProducts;
-    console.log(`✅ Synchronisation réussie : ${allProducts.length} articles chargés.`);
+    // 3. Gestion des Promotions (si la fonction existe)
+    if (typeof loadPromotionsData === 'function') {
+      try {
+        const promos = await loadPromotionsData();
+        if (promos && promos.length > 0) {
+          state.promotions = promos;
+          state.products.set('promotions', promos);
+          if (typeof applyPromotions === 'function') applyPromotions(allProducts, promos);
+          if (typeof showPromoBanner === 'function') showPromoBanner(promos);
+        }
+      } catch (e) {
+        console.warn("Info: Pas de promotions chargées ou fonction manquante.");
+      }
+    }
 
-    // On force l'affichage
+    // 4. Mise à jour finale de l'état global
+    state.allProducts = allProducts;
+    state.filteredProducts = [...allProducts];
+    state.showAllCategories = true;
+    state.activeCategory = 'tous'; // On affiche 'tous' par défaut pour éviter le 0 articles
+    state.currentPage = 1;
+
+    // 5. Mise à jour de l'interface
+    if (typeof renderCategories === 'function') renderCategories();
+    if (typeof updateCategoriesUI === 'function') updateCategoriesUI();
+    
+    // Appel de la fonction de rendu (supporte vos deux noms possibles)
     if (typeof filterAndRender === 'function') {
       filterAndRender();
     } else if (typeof renderProducts === 'function') {
       renderProducts();
     }
 
-  } catch (err) {
-    console.error('❌ Erreur lors du chargement des produits :', err);
-    if (typeof showToast === 'function') showToast('Erreur de connexion au stock');
-  }
-}
-    const promotions = await loadPromotionsData();
+    console.log(`✅ Succès : ${allProducts.length} produits affichés.`);
+    if (typeof showToast === 'function') showToast(`✅ ${allProducts.length} produits chargés`);
 
-    if (promotions.length > 0) {
-      state.products.set('promotions', promotions);
-      state.promotions = promotions;
-      applyPromotions(allProducts, promotions);
-      showPromoBanner(promotions);
-    }
-
-    state.allProducts = allProducts;
-    state.showAllCategories = true;
-    state.activeCategory = null;
-    state.filteredProducts = [...state.allProducts];
-    state.currentPage = 1;
-
-    renderCategories();
-    updateCategoriesUI();
-    renderProducts();
-
-    console.log(`${state.allProducts.length} produits chargés depuis Google Sheets`);
-    showToast(`✅ ${state.allProducts.length} produits chargés`);
   } catch (error) {
-    console.error('Erreur loadAllProducts:', error);
-    showToast('❌ Erreur lors du chargement des produits');
+    console.error('❌ Erreur critique loadAllProducts:', error);
+    if (typeof showToast === 'function') showToast('❌ Erreur de connexion aux données');
   }
 }
     function applyPromotions(allProducts, promotions) {
