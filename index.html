@@ -4795,7 +4795,8 @@
 const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbxHMMCWH44NIk0NJT1eBONciTJ-xLVUf3mCkbVdPHW3hn-PWpl8-sWYZPOfaoi_YDrr/exec";
 
 const CATEGORIES = [
-  { key: "promotions", label: "🔥 PROMOTIONS", file: "data/PROMOTIONS.csv", isPromo: true },
+  { key: "tous", label: "📦 Tous les Articles" },
+  { key: "promotions", label: "🔥 PROMOTIONS", isPromo: true },
   { key: "cafe", label: "☕ Café & Thés" },
   { key: "animaux_compagnie", label: "🐶 Animaux de Compagnie" },
   { key: "bebe_maman", label: "👶 Bébé & Maman" },
@@ -4804,10 +4805,8 @@ const CATEGORIES = [
   { key: "chocolats_biscuits", label: "🍫 Chocolats & Biscuits" },
   { key: "conserves", label: "🥫 Conserves & Bocaux" },
   { key: "cuisine_monde", label: "🌍 Cuisine du Monde" },
-  // NOUVEAUX NOMS ICI :
   { key: "eaux", label: "💧 Eaux Minérales & Pétillantes" },
   { key: "jus_boissons", label: "🧃 Jus & Boissons Rafraîchissantes" },
-  
   { key: "epicerie_salee", label: "🧂 Épicerie Salée" },
   { key: "epicerie_sucree", label: "🍬 Épicerie Sucrée" },
   { key: "fromage_charcuterie", label: "🧀 Fromages & Charcuteries" },
@@ -4822,6 +4821,10 @@ const CATEGORIES = [
 ];
 
 const SHEET_CATEGORY_MAP = {
+  "💧 Eaux Minérales & Pétillantes": "eaux",
+  "🧃 Jus & Boissons Rafraîchissantes": "jus_boissons",
+  "Eaux & Boissons": "eaux",
+  "Jus & Boissons": "jus_boissons",
   "Café & Thés": "cafe",
   "Animaux de Compagnie": "animaux_compagnie",
   "Bébé & Maman": "bebe_maman",
@@ -4830,15 +4833,6 @@ const SHEET_CATEGORY_MAP = {
   "Chocolats & Biscuits": "chocolats_biscuits",
   "Conserves & Bocaux": "conserves",
   "Cuisine du Monde": "cuisine_monde",
-  
-  // --- NOUVEAUX NOMS AVEC EMOJIS (CORRIGÉS) ---
-  "💧 Eaux Minérales & Pétillantes": "eaux",
-  "🧃 Jus & Boissons Rafraîchissantes": "jus_boissons",
-  
-  // Gardez aussi les anciens noms au cas où
-  "Eaux & Boissons": "eaux",
-  "Jus & Boissons": "jus_boissons",
-  
   "Épicerie Salée": "epicerie_salee",
   "Epicerie Salée": "epicerie_salee",
   "Épicerie Sucrée": "epicerie_sucree",
@@ -4858,12 +4852,13 @@ const SHEET_CATEGORY_MAP = {
   "Sélections VIP": "vipa_selections",
   "Selections VIP": "vipa_selections"
 };
+
 const state = {
   user: null,
   products: new Map(),
   cart: {},
   searchQuery: '',
-  activeCategory: 'tous', // Changé pour forcer l'affichage
+  activeCategory: 'tous', 
   showAllCategories: true,
   currentPage: 1,
   currentModalProduct: null,
@@ -4893,32 +4888,32 @@ const state = {
   currentOrderNumber: 0,
   lastGeneratedOrderId: null
 };
-    // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
-    function genererNumeroCommande() {
-      const now = new Date();
-      const datePart = now.getFullYear() + 
-                      String(now.getMonth() + 1).padStart(2, '0') + 
-                      String(now.getDate()).padStart(2, '0');
-      
-      const lastOrderKey = `last_order_number_${datePart}`;
-      let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
-      
-      lastOrderNumber++;
-      localStorage.setItem(lastOrderKey, lastOrderNumber);
-      
-      const sequencePart = String(lastOrderNumber).padStart(3, '0');
-      
-      const orderId = `CMD-MAXI-${datePart}-${sequencePart}`;
-      state.lastGeneratedOrderId = orderId;
-      return orderId;
-    }
 
-    // ===================== FONCTION DE FORMATAGE DES PRIX (3 DÉCIMALES) =====================
-    function formatPrice(amount) {
-      const num = Number(amount);
-      if (isNaN(num)) return '0,000 dt';
-      return num.toFixed(3).replace('.', ',') + ' dt';
-    }
+// ===================== GESTION DU COMPTEUR DE COMMANDES =====================
+function genererNumeroCommande() {
+  const now = new Date();
+  const datePart = now.getFullYear() + 
+                  String(now.getMonth() + 1).padStart(2, '0') + 
+                  String(now.getDate()).padStart(2, '0');
+  
+  const lastOrderKey = `last_order_number_${datePart}`;
+  let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
+  
+  lastOrderNumber++;
+  localStorage.setItem(lastOrderKey, lastOrderNumber);
+  
+  const sequencePart = String(lastOrderNumber).padStart(3, '0');
+  
+  const orderId = `CMD-MAXI-${datePart}-${sequencePart}`;
+  state.lastGeneratedOrderId = orderId;
+  return orderId;
+}
+
+// ===================== FONCTION DE FORMATAGE DES PRIX (3 DÉCIMALES) =====================
+function formatPrix(prix) {
+  const p = parseFloat(prix) || 0;
+  return p.toFixed(3) + " DT";
+}
 
 // ===================== TRADUCTION =====================
 function setLanguage(lang) {
