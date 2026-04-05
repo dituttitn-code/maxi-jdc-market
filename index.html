@@ -5473,6 +5473,10 @@ function setLanguage(lang) {
       }
     }
 
+// =========================================================
+// CHARGEMENT ET SYNC DES PRODUITS
+// =========================================================
+
 async function loadAllProducts() {
   try {
     console.log('Chargement du stock depuis Google Sheets...');
@@ -5486,7 +5490,6 @@ async function loadAllProducts() {
     const data = await response.json();
     console.log('Données reçues de Google Sheets :', data);
 
-    // Support des différents formats de réponse
     const rows = Array.isArray(data) ? data : (Array.isArray(data.products) ? data.products : []);
 
     // Réinitialisation de l'état global
@@ -5502,9 +5505,8 @@ async function loadAllProducts() {
       const name = String(raw.name || raw.Produits || raw.Désignation || '').trim();
       const categoryName = String(raw.category || raw.Categorie || raw.Catégorie || '').trim();
       
-      // Lecture brute des valeurs
-      let rawPrice = String(raw.price || raw.Prix || raw['PU.V.TTC'] || '0').replace(',', '.');
-      let rawStock = String(raw.stock || raw.Stock || raw.STOCKGlobal || '0').replace(',', '.');
+      let rawPrice = String(raw.price || raw.Prix || raw['PU.V.TTC'] || '').trim().replace(',', '.');
+      let rawStock = String(raw.stock || raw.Stock || raw.STOCKGlobal || '').trim().replace(',', '.');
 
       let price = parseFloat(rawPrice);
       let stock = parseFloat(rawStock);
@@ -5512,32 +5514,23 @@ async function loadAllProducts() {
       const actifValue = String(raw.actif || raw.Actif || raw.active || 'oui').trim().toLowerCase();
       const isActive = ['oui', 'true', '1', 'active'].includes(actifValue);
 
-      // Sécurité de base
       if (!code || !name || !isActive) continue;
 
-      // ==========================================
-      // LOGIQUE DE RUPTURE FORCÉE (Prix/Stock vides)
-      // ==========================================
-      
-      // Si le prix est absent, 0 ou non numérique : on force le stock à 0
-      if (isNaN(price) || price <= 0) {
-        console.warn(`Prix invalide pour ${name}. Rupture de stock forcée.`);
+      // LOGIQUE DE RUPTURE FORCÉE (Si Prix ou Stock est vide/0)
+      if (!rawPrice || isNaN(price) || price <= 0) {
+        price = price || 0;
         stock = 0; 
       }
-
-      // Si le stock est absent, vide ou négatif : on force à 0 (Rupture)
-      if (isNaN(stock) || rawStock.trim() === '' || stock < 0) {
+      if (!rawStock || isNaN(stock) || stock < 0) {
         stock = 0;
       }
-      // ==========================================
 
       let categoryKey = SHEET_CATEGORY_MAP[categoryName] || "epicerie_salee";
 
       const product = {
         code,
         name,
-        // Conversion millimes (ex: 4500 -> 4.500)
-        price: price > 1000 ? price / 1000 : price,
+        price: price > 1000 ? price / 1000 : price, // Correction millimes
         stock: stock,
         originalStock: stock,
         category: categoryName || "Épicerie Salée",
@@ -5548,15 +5541,11 @@ async function loadAllProducts() {
         image: `images/products/${code}.jpg`
       };
 
-      // Organisation par catégorie
       if (!state.products.has(categoryKey)) {
         state.products.set(categoryKey, []);
       }
       state.products.get(categoryKey).push(product);
-      
       allProducts.push(product);
-
-      // Enregistrement du stock final (0 si rupture forcée)
       state.productStocks.set(code, stock);
     }
 
@@ -5567,50 +5556,25 @@ async function loadAllProducts() {
         if (promos && promos.length > 0) {
           state.promotions = promos;
           state.products.set('promotions', promos);
-          if (typeof applyPromotions === 'function') applyPromotions(allProducts, promos);
-          if (typeof showPromoBanner === 'function') showPromoBanner(promos);
+          applyPromotions(allProducts, promos);
+          showPromoBanner(promos);
         }
       } catch (e) {
         console.warn("Info: Pas de promotions chargées.");
       }
     }
 
-    // 4. Mise à jour finale de l'état et de l'interface
-    state.allProducts = allProducts;
-    state.filteredProducts = [...allProducts];
-    state.activeCategory = 'tous'; 
-    state.currentPage = 1;
-
-    if (typeof renderCategories === 'function') renderCategories();
-    if (typeof updateCategoriesUI === 'function') updateCategoriesUI();
-    
-    // Appel du rendu final
-    if (typeof filterAndRender === 'function') {
-      filterAndRender();
-    } else if (typeof renderProducts === 'function') {
-      renderProducts();
-    }
-
-    console.log(`✅ Synchronisation terminée : ${allProducts.length} articles.`);
-    if (typeof showToast === 'function') showToast(`✅ ${allProducts.length} produits chargés`);
-
-  } catch (error) {
-    console.error('❌ Erreur critique loadAllProducts:', error);
-    if (typeof showToast === 'function') showToast('❌ Erreur de chargement des produits');
-  }
-}
-    // 4. Mise à jour finale de l'état global
+    // 4. Mise à jour finale de l'état
     state.allProducts = allProducts;
     state.filteredProducts = [...allProducts];
     state.showAllCategories = true;
-    state.activeCategory = 'tous'; // On affiche 'tous' par défaut pour éviter le 0 articles
+    state.activeCategory = null; 
     state.currentPage = 1;
 
     // 5. Mise à jour de l'interface
-    if (typeof renderCategories === 'function') renderCategories();
-    if (typeof updateCategoriesUI === 'function') updateCategoriesUI();
+    renderCategories();
+    updateCategoriesUI();
     
-    // Appel de la fonction de rendu (supporte vos deux noms possibles)
     if (typeof filterAndRender === 'function') {
       filterAndRender();
     } else if (typeof renderProducts === 'function') {
@@ -5625,51 +5589,53 @@ async function loadAllProducts() {
     if (typeof showToast === 'function') showToast('❌ Erreur de connexion aux données');
   }
 }
-    function applyPromotions(allProducts, promotions) {
-      console.log('Application des promotions...');
-      const promoMap = new Map();
-      promotions.forEach(promo => {
-        promoMap.set(promo.code, promo);
-      });
-      for (const [catKey, products] of state.products.entries()) {
-        if (catKey === 'promotions') continue;
-        const updatedProducts = products.map(product => {
-          const promo = promoMap.get(product.code);
-          if (promo) {
-            if (product.name.toLowerCase().includes(promo.name.toLowerCase()) ||
-              promo.name.toLowerCase().includes(product.name.toLowerCase())) {
-              return {
-                ...product,
-                oldPrice: promo.originalPrice || product.price,
-                price: promo.price,
-                isPromotion: true,
-                discountPercent: promo.discountPercent,
-                promoType: promo.promoType
-              };
-            }
-          }
-          return product;
-        });
-        state.products.set(catKey, updatedProducts);
-      }
-      console.log('Promotions appliquées avec succès');
-    }
 
-    function showPromoBanner(promotions) {
-      if (promotions.length === 0) {
-        $('promoBanner').style.display = 'none';
-        return;
-      }
-      $('promoTitle').textContent = `🔥 ${promotions.length} PRODUITS EN PROMOTION`;
-      $('promoDesc').textContent = 'Profitez de nos offres spéciales !';
-      $('promoBanner').style.display = 'flex';
-    }
+// =========================================================
+// FONCTIONS COMPLÉMENTAIRES
+// =========================================================
 
-  function renderCategories() {
+function applyPromotions(allProducts, promotions) {
+  const promoMap = new Map();
+  promotions.forEach(promo => promoMap.set(promo.code, promo));
+
+  for (const [catKey, products] of state.products.entries()) {
+    if (catKey === 'promotions') continue;
+    const updatedProducts = products.map(product => {
+      const promo = promoMap.get(product.code);
+      if (promo) {
+        return {
+          ...product,
+          oldPrice: promo.originalPrice || product.price,
+          price: promo.price,
+          isPromotion: true,
+          discountPercent: promo.discountPercent,
+          promoType: promo.promoType
+        };
+      }
+      return product;
+    });
+    state.products.set(catKey, updatedProducts);
+  }
+}
+
+function showPromoBanner(promotions) {
+  const banner = $('promoBanner');
+  if (!banner) return;
+  if (promotions.length === 0) {
+    banner.style.display = 'none';
+    return;
+  }
+  if ($('promoTitle')) $('promoTitle').textContent = `🔥 ${promotions.length} PRODUITS EN PROMOTION`;
+  if ($('promoDesc')) $('promoDesc').textContent = 'Profitez de nos offres spéciales !';
+  banner.style.display = 'flex';
+}
+
+function renderCategories() {
   const container = $('categoriesContainer');
+  if (!container) return;
   container.innerHTML = '';
 
-  const allProductsCount = getFilteredProducts().length;
+  const allProductsCount = state.allProducts.length;
 
   const allButton = document.createElement('button');
   allButton.className = `cat-btn ${state.showAllCategories ? 'active' : ''}`;
@@ -5679,61 +5645,49 @@ async function loadAllProducts() {
     state.activeCategory = null;
     state.currentPage = 1;
     state.filteredProducts = [...state.allProducts];
-
     updateCategoriesUI();
     renderProducts();
-
-    $('activeCategoryLabel').textContent = "Tous";
-    $('activeCategoryMeta').textContent = `${getFilteredProducts().length} articles disponibles`;
   };
   container.appendChild(allButton);
 
   CATEGORIES.forEach(category => {
     const products = state.products.get(category.key) || [];
     const button = document.createElement('button');
-
     button.className = `cat-btn ${category.isPromo ? 'promo' : ''} ${
       !state.showAllCategories && state.activeCategory === category.key ? 'active' : ''
     }`;
-
     button.innerHTML = `${category.label} <span class="cat-count">${products.length}</span>`;
-
     button.onclick = () => {
       state.showAllCategories = false;
       state.activeCategory = category.key;
       state.currentPage = 1;
       state.filteredProducts = [...products];
-
       updateCategoriesUI();
       renderProducts();
     };
-
     container.appendChild(button);
   });
 }
 
-    function updateCategoriesUI() {
-  const buttons = $('categoriesContainer').querySelectorAll('.cat-btn');
+function updateCategoriesUI() {
+  const container = $('categoriesContainer');
+  if (!container) return;
+  const buttons = container.querySelectorAll('.cat-btn');
   buttons.forEach(button => button.classList.remove('active'));
 
   if (state.showAllCategories) {
     if (buttons[0]) buttons[0].classList.add('active');
     $('activeCategoryLabel').textContent = "Tous";
-    $('activeCategoryMeta').textContent = `${getFilteredProducts().length} articles disponibles`;
+    $('activeCategoryMeta').textContent = `${state.allProducts.length} articles disponibles`;
   } else {
     const category = CATEGORIES.find(c => c.key === state.activeCategory);
     if (category) {
       const index = CATEGORIES.findIndex(c => c.key === state.activeCategory) + 1;
       if (buttons[index]) buttons[index].classList.add('active');
-
       $('activeCategoryLabel').textContent = category.label;
-
       const count = (state.products.get(state.activeCategory) || []).length;
-
       if (category.isPromo) {
-        $('activeCategoryMeta').innerHTML = count > 0
-          ? `<span style="color:#ffcc00;font-weight:700;">🔥 ${count} articles en promotion !</span>`
-          : `0 article`;
+        $('activeCategoryMeta').innerHTML = `<span style="color:#ffcc00;font-weight:700;">🔥 ${count} articles en promotion !</span>`;
       } else {
         $('activeCategoryMeta').textContent = `${count} articles disponibles`;
       }
@@ -5741,14 +5695,8 @@ async function loadAllProducts() {
   }
 }
 
-   function getFilteredProducts() {
-  let products = [];
-
-  if (state.showAllCategories) {
-    products = [...state.allProducts];
-  } else {
-    products = [...(state.products.get(state.activeCategory) || [])];
-  }
+function getFilteredProducts() {
+  let products = state.showAllCategories ? [...state.allProducts] : [...(state.products.get(state.activeCategory) || [])];
 
   if (state.searchQuery) {
     const query = state.searchQuery.toLowerCase();
@@ -5758,10 +5706,7 @@ async function loadAllProducts() {
       String(p.category || '').toLowerCase().includes(query)
     );
   }
-
-  return products.sort((a, b) =>
-    String(a.name || '').localeCompare(String(b.name || ''))
-  );
+  return products.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
 }
     // ===================== FONCTION RENDERPRODUCTS (avec ouverture du catalogue sur l'article cliqué) =====================
     function renderProducts() {
