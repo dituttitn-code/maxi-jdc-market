@@ -4792,11 +4792,10 @@
     };
 
 // ===================== CONFIGURATION & CATEGORIES =====================
-const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbzGeNTYuDlLwtBtQ0Pua4LD-4Ae02x9VunS0y9aYVz8DSjuwjVLK2u4LuKpYko9gEKfRw/exec";
+const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbwuuDr-WfsxEj7SJUMnMBsmUlKeinz6FUL3teZLawXuRz_sfUVREofObEclNHL8wOn05A/exec";
 
 const CATEGORIES = [
-  { key: "tous", label: "📦 Tous les Articles" },
-  { key: "promotions", label: "🔥 PROMOTIONS", isPromo: true },
+  { key: "promotions", label: "🔥 PROMOTIONS", file: "data/PROMOTIONS.csv", isPromo: true },
   { key: "cafe", label: "☕ Café & Thés" },
   { key: "animaux_compagnie", label: "🐶 Animaux de Compagnie" },
   { key: "bebe_maman", label: "👶 Bébé & Maman" },
@@ -4805,8 +4804,10 @@ const CATEGORIES = [
   { key: "chocolats_biscuits", label: "🍫 Chocolats & Biscuits" },
   { key: "conserves", label: "🥫 Conserves & Bocaux" },
   { key: "cuisine_monde", label: "🌍 Cuisine du Monde" },
+  // NOUVEAUX NOMS ICI :
   { key: "eaux", label: "💧 Eaux Minérales & Pétillantes" },
   { key: "jus_boissons", label: "🧃 Jus & Boissons Rafraîchissantes" },
+  
   { key: "epicerie_salee", label: "🧂 Épicerie Salée" },
   { key: "epicerie_sucree", label: "🍬 Épicerie Sucrée" },
   { key: "fromage_charcuterie", label: "🧀 Fromages & Charcuteries" },
@@ -4821,51 +4822,48 @@ const CATEGORIES = [
 ];
 
 const SHEET_CATEGORY_MAP = {
-  // Mapping avec Emojis (exactement comme dans votre Google Sheets)
-  "💧 Eaux Minérales & Pétillantes": "eaux",
-  "🧃 Jus & Boissons Rafraîchissantes": "jus_boissons",
-  "☕ Café & Thés": "cafe",
-  "🐶 Animaux de Compagnie": "animaux_compagnie",
-  "👶 Bébé & Maman": "bebe_maman",
-  "🥖 Boulangerie & Pâtisserie": "boulangerie_patisserie",
-  "🥔 Chips & Snacks": "chips_snacks",
-  "🍫 Chocolats & Biscuits": "chocolats_biscuits",
-  "🥫 Conserves & Bocaux": "conserves",
-  "🌍 Cuisine du Monde": "cuisine_monde",
-  "🧂 Épicerie Salée": "epicerie_salee",
-  "🍬 Épicerie Sucrée": "epicerie_sucree",
-  "🧀 Fromages & Charcuteries": "fromage_charcuterie",
-  "🍎 Fruits & Légumes": "fruits_legumes",
-  "🌰 Fruits Secs & Noix": "fruits_secs_noix",
-  "🧼 Hygiène & Entretien": "hygiene_entretien",
-  "🧴 Soins & Beauté": "hygiene_soins",
-  "🥛 Lait & Œufs Frais": "lait_oeufs_produits_frais",
-  "🍝 Pâtes & Riz": "pates",
-  "🧊 Produits Surgelés": "produits_surgeles",
-  "⭐ Sélections VIP": "vipa_selections",
-
-  // Variantes sans Emojis (Sécurité si vous les enlevez du Sheets)
-  "Eaux Minérales & Pétillantes": "eaux",
-  "Jus & Boissons Rafraîchissantes": "jus_boissons",
   "Café & Thés": "cafe",
+  "Animaux de Compagnie": "animaux_compagnie",
+  "Bébé & Maman": "bebe_maman",
+  "Boulangerie & Pâtisserie": "boulangerie_patisserie",
+  "Chips & Snacks": "chips_snacks",
+  "Chocolats & Biscuits": "chocolats_biscuits",
+  "Conserves & Bocaux": "conserves",
+  "Cuisine du Monde": "cuisine_monde",
+  // Correspondance avec votre Google Sheets (laissez les noms simples du Sheets ici) :
+  "Eaux & Boissons": "eaux",
+  "Jus & Boissons": "jus_boissons",
+  
   "Épicerie Salée": "epicerie_salee",
   "Epicerie Salée": "epicerie_salee",
   "Épicerie Sucrée": "epicerie_sucree",
-  "Epicerie Sucrée": "epicerie_sucree"
+  "Epicerie Sucrée": "epicerie_sucree",
+  "Fromages & Charcuteries": "fromage_charcuterie",
+  "Fruits & Légumes": "fruits_legumes",
+  "Fruits Secs & Noix": "fruits_secs_noix",
+  "Hygiène & Entretien": "hygiene_entretien",
+  "Hygiene & Entretien": "hygiene_entretien",
+  "Soins & Beauté": "hygiene_soins",
+  "Lait & Œufs Frais": "lait_oeufs_produits_frais",
+  "Lait & Oeufs Frais": "lait_oeufs_produits_frais",
+  "Pâtes & Riz": "pates",
+  "Pates & Riz": "pates",
+  "Produits Surgelés": "produits_surgeles",
+  "Produits Surgeles": "produits_surgeles",
+  "Sélections VIP": "vipa_selections",
+  "Selections VIP": "vipa_selections"
 };
-
 const state = {
   user: null,
-  products: new Map(), // Map pour accès rapide
-  allProducts: [],     // Liste complète reçue
-  filteredProducts: [], // Liste à afficher
+  products: new Map(),
   cart: {},
   searchQuery: '',
-  activeCategory: 'tous',
+  activeCategory: 'tous', // Changé pour forcer l'affichage
   showAllCategories: true,
   currentPage: 1,
   currentModalProduct: null,
   quantityPicks: {},
+  filteredProducts: [],
   filteredProductsIndex: -1,
   orderHistory: [],
   promotions: [],
@@ -4886,35 +4884,36 @@ const state = {
   catalogueQuantityPicks: {},
   isSendingOrder: false,
   addressLinksEnabled: true,
+  allProducts: [],
   currentOrderNumber: 0,
   lastGeneratedOrderId: null
 };
+    // ===================== GESTION DU COMPTEUR DE COMMANDES =====================
+    function genererNumeroCommande() {
+      const now = new Date();
+      const datePart = now.getFullYear() + 
+                      String(now.getMonth() + 1).padStart(2, '0') + 
+                      String(now.getDate()).padStart(2, '0');
+      
+      const lastOrderKey = `last_order_number_${datePart}`;
+      let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
+      
+      lastOrderNumber++;
+      localStorage.setItem(lastOrderKey, lastOrderNumber);
+      
+      const sequencePart = String(lastOrderNumber).padStart(3, '0');
+      
+      const orderId = `CMD-MAXI-${datePart}-${sequencePart}`;
+      state.lastGeneratedOrderId = orderId;
+      return orderId;
+    }
 
-// ===================== GESTION DU COMPTEUR DE COMMANDES =====================
-function genererNumeroCommande() {
-  const now = new Date();
-  const datePart = now.getFullYear() + 
-                  String(now.getMonth() + 1).padStart(2, '0') + 
-                  String(now.getDate()).padStart(2, '0');
-  
-  const lastOrderKey = `last_order_number_${datePart}`;
-  let lastOrderNumber = parseInt(localStorage.getItem(lastOrderKey)) || 0;
-  
-  lastOrderNumber++;
-  localStorage.setItem(lastOrderKey, lastOrderNumber);
-  
-  const sequencePart = String(lastOrderNumber).padStart(3, '0');
-  const orderId = `CMD-MAXI-${datePart}-${sequencePart}`;
-  state.lastGeneratedOrderId = orderId;
-  return orderId;
-}
-
-// ===================== FONCTION DE FORMATAGE DES PRIX (3 DÉCIMALES) =====================
-function formatPrix(prix) {
-  const p = parseFloat(prix) || 0;
-  // Formatage spécifique pour le Dinar Tunisien (DT) à 3 décimales
-  return p.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + " DT";
-}
+    // ===================== FONCTION DE FORMATAGE DES PRIX (3 DÉCIMALES) =====================
+    function formatPrice(amount) {
+      const num = Number(amount);
+      if (isNaN(num)) return '0,000 dt';
+      return num.toFixed(3).replace('.', ',') + ' dt';
+    }
 
 // ===================== TRADUCTION =====================
 function setLanguage(lang) {
@@ -5085,273 +5084,395 @@ function setLanguage(lang) {
       return addressText;
     }
 
-    // =========================================================================
-// GESTION COMPLÈTE : STOCKS, SYNCHRONISATION ET PROMOTIONS
-// =========================================================================
-
-async function loadGoogleSheetsStock() {
-  try {
-    console.log('🔄 Synchronisation des stocks via API Google...');
-    const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`, {
-      cache: "no-store"
-    });
-
-    if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
-
-    const data = await response.json();
-    const products = data.products || data;
-
-    state.googleSheetsStock.clear();
-
-    products.forEach(p => {
-      const code = String(p.Article || p.code || p.Code || '').trim();
-      if (code) {
-        state.googleSheetsStock.set(code, {
-          stock: parseInt(p.Stock || p.stock || 0),
-          produit: String(p.Produits || p.name || '').trim(),
-          code: code
+    async function loadGoogleSheetsStock() {
+      try {
+        console.log('Chargement du stock depuis Google Sheets...');
+        const response = await fetch(CONFIG.googleSheetsUrl + "&t=" + Date.now(), {
+          cache: "no-store"
         });
-      }
-    });
-
-    console.log(`✅ ${state.googleSheetsStock.size} produits synchronisés depuis le Cloud`);
-    return true;
-  } catch (error) {
-    console.error('❌ Erreur synchro Google Sheets:', error);
-    return false;
-  }
-}
-
-function getStockFromGoogleSheets(code) {
-  const item = state.googleSheetsStock.get(String(code).trim());
-  return item ? (item.stock || 0) : 0;
-}
-
-function initializeSync() {
-  loadSyncData();
-  syncStocks();
-
-  state.syncTimer = setInterval(syncStocks, CONFIG.syncInterval || 300000);
-
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) syncStocks();
-  });
-}
-
-function loadSyncData() {
-  try {
-    const syncData = localStorage.getItem(CONFIG.syncStorageKey);
-    if (syncData) {
-      const data = JSON.parse(syncData);
-      if (data.productStocks) {
-        Object.entries(data.productStocks).forEach(([key, stock]) => {
-          state.productStocks.set(key, stock);
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        const text = await response.text();
+        const rows = parseCSV(text);
+        state.googleSheetsStock.clear();
+        rows.forEach(row => {
+          const code = String(row.Article || row.Code || '').trim();
+          const produit = String(row.Produits || row.Nom || '').trim();
+          const stock = parseInt(row.Stock || row.Quantite || 0);
+          if (code) {
+            state.googleSheetsStock.set(code, {
+              stock: stock,
+              produit: produit,
+              code: code
+            });
+          }
         });
+        console.log(`${state.googleSheetsStock.size} produits chargés depuis Google Sheets`);
+        return true;
+      } catch (error) {
+        console.error('Erreur chargement Google Sheets:', error);
+        return false;
       }
-      if (data.salesHistory) {
-        state.orderHistory = [...state.orderHistory, ...data.salesHistory]
-          .filter((order, index, self) => index === self.findIndex(o => o.id === order.id))
-          .sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [], field = "", inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        const next = text[i + 1];
+        if (c === '"' && inQuotes && next === '"') {
+          field += '"';
+          i++;
+          continue;
+        }
+        if (c === '"') {
+          inQuotes = !inQuotes;
+          continue;
+        }
+        if (c === ',' && !inQuotes) {
+          row.push(field);
+          field = "";
+          continue;
+        }
+        if ((c === '\n' || c === '\r') && !inQuotes) {
+          if (c === '\r' && next === '\n') i++;
+          row.push(field);
+          field = "";
+          if (row.length > 1 || row[0] !== "") rows.push(row);
+          row = [];
+          continue;
+        }
+        field += c;
       }
-      state.lastSyncTime = data.lastSyncTime || null;
-      console.log('📦 Données locales chargées');
+      row.push(field);
+      if (row.length > 1 || row[0] !== "") rows.push(row);
+      const headers = rows.shift().map(h => h.trim());
+      return rows
+        .filter(r => r.some(x => String(x).trim() !== ""))
+        .map(r => {
+          const obj = {};
+          headers.forEach((h, idx) => obj[h] = (r[idx] ?? "").trim());
+          return obj;
+        });
     }
-  } catch (error) {
-    console.error('Erreur chargement local:', error);
-  }
-}
 
-function saveSyncData() {
-  try {
-    const syncData = {
-      productStocks: Object.fromEntries(state.productStocks),
-      salesHistory: state.orderHistory,
-      lastSyncTime: new Date().toISOString(),
-      version: '1.0'
-    };
-    localStorage.setItem(CONFIG.syncStorageKey, JSON.stringify(syncData));
-  } catch (error) {
-    console.error('Erreur sauvegarde locale:', error);
-  }
-}
-
-function syncStocks() {
-  loadGoogleSheetsStock().then(success => {
-    if (success) {
-      updateAllProductStocks();
-      renderProducts();
+    function getStockFromGoogleSheets(code) {
+      const item = state.googleSheetsStock.get(code);
+      if (!item) return 0;
+      return item.stock || 0;
     }
-  });
 
-  const syncData = localStorage.getItem(CONFIG.syncStorageKey);
-  if (!syncData) return;
-
-  try {
-    const sharedData = JSON.parse(syncData);
-    if (sharedData.productStocks) {
-      Object.entries(sharedData.productStocks).forEach(([key, stock]) => {
-        const currentStock = state.productStocks.get(key) || 0;
-        if (stock < currentStock) state.productStocks.set(key, stock);
+    function initializeSync() {
+      loadSyncData();
+      state.syncTimer = setInterval(syncStocks, CONFIG.syncInterval);
+      setTimeout(syncStocks, 2000);
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          syncStocks();
+        }
       });
-      updateAllProductStocks();
-      renderProducts();
-      state.lastSyncTime = sharedData.lastSyncTime;
     }
-    if (state.pendingStockUpdates.size > 0) {
-      saveSyncData();
-      state.pendingStockUpdates.clear();
-    }
-  } catch (e) {
-    console.error("Erreur durant la synchro:", e);
-  }
-}
 
-function updateAllProductStocks() {
-  for (const [catKey, products] of state.products.entries()) {
-    const updatedProducts = products.map(product => {
-      const googleStock = getStockFromGoogleSheets(product.code);
+    function loadSyncData() {
+      try {
+        const syncData = localStorage.getItem(CONFIG.syncStorageKey);
+        if (syncData) {
+          const data = JSON.parse(syncData);
+          if (data.productStocks) {
+            Object.entries(data.productStocks).forEach(([key, stock]) => {
+              state.productStocks.set(key, stock);
+            });
+          }
+          if (data.salesHistory) {
+            state.orderHistory = [...state.orderHistory, ...data.salesHistory]
+              .filter((order, index, self) =>
+                index === self.findIndex(o => o.id === order.id)
+              )
+              .sort((a, b) => new Date(b.date) - new Date(a.date));
+          }
+          state.lastSyncTime = data.lastSyncTime || null;
+          console.log('Données de synchronisation chargées');
+        }
+      } catch (error) {
+        console.error('Erreur chargement données sync:', error);
+      }
+    }
+
+    function saveSyncData() {
+      try {
+        const syncData = {
+          productStocks: Object.fromEntries(state.productStocks),
+          salesHistory: state.orderHistory,
+          lastSyncTime: new Date().toISOString(),
+          version: '1.0'
+        };
+        localStorage.setItem(CONFIG.syncStorageKey, JSON.stringify(syncData));
+      } catch (error) {
+        console.error('Erreur sauvegarde données sync:', error);
+      }
+    }
+
+    function syncStocks() {
+      try {
+        loadGoogleSheetsStock().then(() => {
+          updateAllProductStocks();
+          renderProducts();
+          console.log('Stocks synchronisés avec Google Sheets');
+        });
+        const syncData = localStorage.getItem(CONFIG.syncStorageKey);
+        if (!syncData) return;
+        const sharedData = JSON.parse(syncData);
+        if (sharedData.productStocks) {
+          Object.entries(sharedData.productStocks).forEach(([key, stock]) => {
+            const currentStock = state.productStocks.get(key) || 0;
+            if (stock < currentStock) {
+              state.productStocks.set(key, stock);
+            }
+          });
+          updateAllProductStocks();
+          renderProducts();
+          state.lastSyncTime = sharedData.lastSyncTime;
+        }
+        if (state.pendingStockUpdates.size > 0) {
+          saveSyncData();
+          state.pendingStockUpdates.clear();
+        }
+      } catch (error) {
+        console.error('Erreur synchronisation:', error);
+      }
+    }
+
+    function updateAllProductStocks() {
+      for (const [catKey, products] of state.products.entries()) {
+        const updatedProducts = products.map(product => {
+          const stockKey = `${product.categoryKey}_${product.code}`;
+          const googleStock = getStockFromGoogleSheets(product.code);
+          const currentStock = state.productStocks.get(stockKey);
+          let finalStock = googleStock;
+          if (currentStock !== undefined && currentStock < googleStock) {
+            finalStock = currentStock;
+          }
+          if (finalStock <= 0) {
+            finalStock = 0;
+          }
+          return {
+            ...product,
+            stock: finalStock
+          };
+        });
+        state.products.set(catKey, updatedProducts);
+      }
+      state.allProducts = [...state.products.values()].flat();
+    }
+
+    function calculateItemSavings(item) {
+      if (!item.isPromotion || !item.oldPrice || item.oldPrice <= item.price) {
+        return 0;
+      }
+      const savingPerUnit = item.oldPrice - item.price;
+      return savingPerUnit * item.quantity;
+    }
+
+    function calculateTotalSavings() {
+      let totalSavings = 0;
+      let totalOriginalPrice = 0;
+      let totalCurrentPrice = 0;
+      Object.values(state.cart).forEach(item => {
+        if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
+          const saving = calculateItemSavings(item);
+          totalSavings += saving;
+          totalOriginalPrice += item.oldPrice * item.quantity;
+          totalCurrentPrice += item.price * item.quantity;
+        }
+      });
       return {
-        ...product,
-        stock: googleStock < 0 ? 0 : googleStock
+        totalSavings,
+        totalOriginalPrice,
+        totalCurrentPrice,
+        percentage: totalOriginalPrice > 0 ? Math.round((totalSavings / totalOriginalPrice) * 100) : 0
       };
-    });
-    state.products.set(catKey, updatedProducts);
-  }
-  state.allProducts = [...state.products.values()].flat();
+    }
 
-  if (state.promotions) {
-    state.promotions.forEach(p => {
-      p.stock = getStockFromGoogleSheets(p.code);
-    });
-  }
-}
+    function updateSavingsDisplay() {
+      const savings = calculateTotalSavings();
+      const savingsSection = $('cartSavingsSection');
+      const totalSavingsElement = $('totalSavings');
+      const savingsPercentageElement = $('savingsPercentage');
+      const savingsPercentageTextElement = $('savingsPercentageText');
 
-async function loadCategoryData(categoryKey) {
+      if (savings.totalSavings > 0) {
+        savingsSection.classList.add('visible');
+        totalSavingsElement.textContent = formatPrice(savings.totalSavings);
+        savingsPercentageElement.textContent = `${savings.percentage}%`;
+        let percentageText = '';
+        if (savings.percentage >= 50) {
+          percentageText = 'ÉNORME ÉCONOMIE !';
+        } else if (savings.percentage >= 30) {
+          percentageText = 'Super affaire !';
+        } else if (savings.percentage >= 15) {
+          percentageText = 'Bonne affaire';
+        } else {
+          percentageText = 'Économie';
+        }
+        savingsPercentageTextElement.textContent = percentageText;
+      } else {
+        savingsSection.classList.remove('visible');
+      }
+    }
+
+    async function loadCategoryData(categoryKey) {
   try {
     const category = CATEGORIES.find(c => c.key === categoryKey);
     if (!category) return [];
 
-    const response = await fetch(STOCK_API_URL);
+    // 👉 API GOOGLE (remplace CSV)
+   const response = await fetch(STOCK_API_URL);
+
+    if (!response.ok) {
+      console.error("Erreur API");
+      return [];
+    }
+
     const data = await response.json();
-    const products = data.products || data;
 
-    return products
-      .filter(p => (p.Actif || p.actif) === "oui")
-      .filter(p => {
-        const pCat = String(p.Categorie || p.category).trim();
-        return pCat === category.label || SHEET_CATEGORY_MAP[pCat] === categoryKey;
-      })
-      .map(p => {
-        const code = String(p.Article || p.code);
-        const googleStock = parseInt(p.Stock || p.stock) || 0;
-        state.productStocks.set(`${categoryKey}_${code}`, googleStock);
+    console.log("DATA API =", data);
 
-        return {
-          code: code,
-          name: p.Produits || p.name,
-          price: parseFloat(p.Prix || p.price) || 0,
-          category: category.label,
-          categoryKey: categoryKey,
-          isPromotion: false,
-          stock: googleStock,
-          oldPrice: null,
-          discountPercent: 0
-        };
-      });
-  } catch (error) {
-    console.error(`Erreur catégorie ${categoryKey}:`, error);
-    return [];
-  }
-}
+    let products = data.products || [];
 
-async function loadPromotionsData() {
-  try {
-    const response = await fetch('data/PROMOTIONS.csv');
-    if (!response.ok) return [];
+    console.log("Produits API total :", products.length);
 
-    const text = await response.text();
-    const lines = text.split('\n').filter(line => line.trim());
-    if (lines.length <= 1) return [];
+    // 👉 Garde seulement les produits actifs
+    products = products.filter(p => p.Actif === "oui");
 
-    const separator = lines[0].includes(';') ? ';' : ',';
-    const promotions = [];
-    const seen = new Set();
-    const cleanPrice = (s) => parseFloat(String(s).replace(',', '.').replace(/[^\d.]/g, '')) || 0;
+    // 👉 Filtrer par catégorie
+    products = products.filter(p => p.Categorie === category.label);
 
-    lines.slice(1).forEach(line => {
-      const parts = line.split(separator).map(f => f.trim());
-      if (parts.length < 5) return;
+    const finalProducts = [];
 
-      const code = parts[0];
-      if (seen.has(code)) return;
-      seen.add(code);
+    products.forEach(p => {
 
-      const originalPrice = cleanPrice(parts[2]);
-      const promoValue = cleanPrice(parts[3]);
-      const type = parts[4].toLowerCase();
+      const googleStock = parseInt(p.Stock) || 0;
 
-      let finalPrice = (type === 'pourcentage' || type === '%') 
-          ? originalPrice * (1 - promoValue / 100) 
-          : promoValue;
+      const product = {
+        code: p.Article,
+        name: p.Produits,
+        price: parseFloat(p.Prix) || 0,
+        category: p.Categorie,
+        categoryKey: category.key,
+        isPromotion: false,
+        stock: googleStock,
+        originalStock: googleStock,
+        oldPrice: null,
+        discountPercent: 0
+      };
 
-      const currentStock = getStockFromGoogleSheets(code);
+      finalProducts.push(product);
 
-      promotions.push({
-        code: code,
-        name: parts[1],
-        price: finalPrice,
-        oldPrice: originalPrice,
-        stock: currentStock,
-        category: 'promotions',
-        categoryKey: 'promotions',
-        label: '🔥 PROMOTIONS',
-        isPromotion: true,
-        discountPercent: Math.round((1 - finalPrice / originalPrice) * 100)
-      });
-
-      state.productStocks.set(`promotions_${code}`, currentStock);
+      const stockKey = `${category.key}_${p.Article}`;
+      if (!state.productStocks.has(stockKey)) {
+        state.productStocks.set(stockKey, googleStock);
+      }
     });
 
-    console.log(`✅ ${promotions.length} promotions prêtes`);
-    return promotions;
+    console.log(`${categoryKey}: ${finalProducts.length} produits chargés`);
+
+    return finalProducts;
+
   } catch (error) {
-    console.error('Erreur promotions:', error);
+    console.error(`Erreur chargement ${categoryKey}:`, error);
     return [];
   }
 }
 
-// --- Fonctions d'économies ---
-
-function calculateItemSavings(item) {
-  if (!item.isPromotion || !item.oldPrice || item.oldPrice <= item.price) return 0;
-  return (item.oldPrice - item.price) * item.quantity;
-}
-
-function calculateTotalSavings() {
-  let totalSavings = 0, totalOriginalPrice = 0;
-  Object.values(state.cart).forEach(item => {
-    if (item.isPromotion && item.oldPrice > item.price) {
-      totalSavings += calculateItemSavings(item);
-      totalOriginalPrice += item.oldPrice * item.quantity;
+    async function loadPromotionsData() {
+      try {
+        const response = await fetch('data/PROMOTIONS.csv');
+        if (!response.ok) {
+          console.warn('Fichier PROMOTIONS.csv non trouvé');
+          return [];
+        }
+        const text = await response.text();
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length === 0) {
+          console.warn('Fichier PROMOTIONS.csv vide');
+          return [];
+        }
+        const separator = lines[0].includes(';') ? ';' : (lines[0].includes('\t') ? '\t' : ',');
+        const promotions = [];
+        const seen = new Set();
+        lines.slice(1).forEach((line, index) => {
+          const parts = line.split(separator).map(field => field.trim());
+          if (parts.length < 5) {
+            console.warn(`Ligne ${index + 2} incomplète dans PROMOTIONS: ${line}`);
+            return;
+          }
+          const code = parts[0];
+          const name = parts[1];
+          const originalPriceStr = parts[2];
+          const promoPriceStr = parts[3];
+          const promoType = parts[4];
+          if (!code || !name) return;
+          const productKey = `${code}_${name}`;
+          if (seen.has(productKey)) return;
+          seen.add(productKey);
+          const cleanPrice = (priceStr) => {
+            return parseFloat(priceStr.replace(',', '.').replace(/[^\d.]/g, ''));
+          };
+          const originalPrice = cleanPrice(originalPriceStr);
+          const promoPrice = cleanPrice(promoPriceStr);
+          if (isNaN(originalPrice) || originalPrice <= 0) {
+            console.warn(`Prix origine invalide: ${code} - ${name} - ${originalPriceStr}`);
+            return;
+          }
+          let finalPrice = promoPrice;
+          let discountPercent = 0;
+          if (promoType.toLowerCase() === 'pourcentage') {
+            discountPercent = promoPrice;
+            finalPrice = originalPrice * (1 - discountPercent / 100);
+          } else if (promoType.toLowerCase() === 'prix') {
+            finalPrice = promoPrice;
+            discountPercent = Math.round((1 - finalPrice / originalPrice) * 100);
+          } else {
+            console.warn(`Type de promotion non reconnu: ${promoType} pour ${code}`);
+            finalPrice = originalPrice;
+            discountPercent = 0;
+          }
+          if (isNaN(finalPrice) || finalPrice <= 0) {
+            console.warn(`Prix final invalide: ${code} - ${name} - ${finalPrice}`);
+            finalPrice = originalPrice;
+            discountPercent = 0;
+          }
+          const googleStock = getStockFromGoogleSheets(code);
+          const product = {
+            code,
+            name,
+            price: finalPrice,
+            stock: googleStock,
+            originalStock: googleStock,
+            category: '🔥 PROMOTIONS',
+            categoryKey: 'promotions',
+            isPromotion: true,
+            oldPrice: originalPrice,
+            discountPercent: discountPercent,
+            promoType: promoType,
+            originalPrice: originalPrice
+          };
+          promotions.push(product);
+          const stockKey = `promotions_${code}`;
+          if (!state.productStocks.has(stockKey)) {
+            state.productStocks.set(stockKey, googleStock);
+          }
+        });
+        console.log(`${promotions.length} promotions chargées`);
+        return promotions;
+      } catch (error) {
+        console.error('Erreur chargement promotions:', error);
+        return [];
+      }
     }
-  });
-  return {
-    totalSavings,
-    percentage: totalOriginalPrice > 0 ? Math.round((totalSavings / totalOriginalPrice) * 100) : 0
-  };
-}
 
-function updateSavingsDisplay() {
-  const savings = calculateTotalSavings();
-  const section = $('cartSavingsSection');
-  if (section && savings.totalSavings > 0) {
-    section.classList.add('visible');
-    $('totalSavings').textContent = formatPrice(savings.totalSavings);
-    $('savingsPercentage').textContent = `${savings.percentage}%`;
-  } else if (section) {
-    section.classList.remove('visible');
-  }
-}
 // =========================================================
 // CHARGEMENT ET SYNC DES PRODUITS
 // =========================================================
@@ -7814,7 +7935,6 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
-
 
 
 
