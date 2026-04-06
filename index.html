@@ -5693,11 +5693,12 @@ function getFilteredProducts() {
         return;
       }
       
-    productsToShow.forEach(product => {
+   productsToShow.forEach(product => {
         const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
         const stockStatus = getStockStatus(product.stock);
         const card = document.createElement('div');
         
+        // Détection de la promotion
         const isPromo = product.isPromo || product.isPromotion;
         card.className = `product-card ${isPromo ? 'promo-card' : ''}`;
         
@@ -5713,7 +5714,7 @@ function getFilteredProducts() {
             padding: 4px 8px; 
             border-radius: 0 4px 4px 0;">PROMO</div>`;
           
-          // Badge de réduction (ex: -20%) circulaire ou stylisé en rouge
+          // Badge de réduction (ex: -20%) stylisé en rouge vif
           if (product.discountText) {
             discountBadge = `<div class="product-discount" style="
               background: #e63946 !important; 
@@ -5725,7 +5726,7 @@ function getFilteredProducts() {
           }
         }
 
-        // --- INTERFACE PRIX PROFESSIONNELLE ---
+        // --- INTERFACE PRIX PROFESSIONNELLE (Prix barré et prix rouge) ---
         let priceDisplay = '';
         if (isPromo && product.oldPrice && product.oldPrice > product.price) {
           priceDisplay = `
@@ -5772,10 +5773,14 @@ function getFilteredProducts() {
           </div>
         `;
         
-        // ✅ Le catalogue s'ouvre sur l'article cliqué
+        // ✅ Action au clic : Ouvre le catalogue ou affiche une erreur si rupture
         card.addEventListener('click', () => {
-          if (stockStatus.available) {
-            openCatalogueForProduct(product);
+          if (product.stock > 0) {
+            if (typeof openCatalogueForProduct === 'function') {
+              openCatalogueForProduct(product);
+            } else if (typeof openProductCatalog === 'function') {
+              openProductCatalog(product.code);
+            }
           } else {
             showToast('❌ Ce produit est en rupture de stock', 'error');
           }
