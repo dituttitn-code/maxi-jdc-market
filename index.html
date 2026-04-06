@@ -5420,26 +5420,7 @@ function setLanguage(lang) {
       }
     }
 
-// =========================================================
-// CHARGEMENT ET SYNC DES PRODUITS
-// =========================================================
-
-async function loadAllProducts() {
-  try {
-    console.log('Chargement du stock depuis Google Sheets...');
-
-    // 1. Appel à l'API Google Sheets avec timestamp anti-cache
-    const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`);
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Données reçues de Google Sheets :', data);
-
-    const rows = Array.isArray(data) ? data : (Array.isArray(data.products) ? data.products : []);
-
-    // Réinitialisation de l'état global
+// 1. Réinitialisation de l'état global
     state.products = new Map();
     state.allProducts = [];
     state.promotions = [];
@@ -5474,6 +5455,7 @@ async function loadAllProducts() {
 
       let categoryKey = SHEET_CATEGORY_MAP[categoryName] || "epicerie_salee";
 
+      // --- CRÉATION DE L'OBJET PRODUIT AVEC INFOS PROMO ---
       const product = {
         code,
         name,
@@ -5482,9 +5464,11 @@ async function loadAllProducts() {
         originalStock: stock,
         category: categoryName || "Épicerie Salée",
         categoryKey,
-        isPromotion: false,
-        oldPrice: null,
-        discountPercent: 0,
+        // Récupération des données promo de code.gs
+        isPromo: raw.isPromo === true || raw.isPromo === "true",
+        isPromotion: raw.isPromo === true || raw.isPromo === "true", // Double sécurité
+        oldPrice: raw.oldPrice ? parseFloat(raw.oldPrice) : null,
+        discountText: raw.discountText || "",
         image: `images/products/${code}.jpg`
       };
 
@@ -5496,31 +5480,40 @@ async function loadAllProducts() {
       state.productStocks.set(code, stock);
     }
 
-    // 3. Gestion des Promotions
+    // 3. Gestion des Promotions (Extraction automatique)
+    state.allProducts = allProducts; // On définit allProducts avant d'extraire les promos
+
     if (typeof loadPromotionsData === 'function') {
       try {
         const promos = await loadPromotionsData();
         if (promos && promos.length > 0) {
           state.promotions = promos;
           state.products.set('promotions', promos);
-          applyPromotions(allProducts, promos);
-          showPromoBanner(promos);
+          
+          // Affiche la bannière défilante si elle existe
+          if (typeof showPromoBanner === 'function') {
+            showPromoBanner(promos);
+          }
+          
+          // Applique les prix barrés sur la liste générale
+          if (typeof applyPromotions === 'function') {
+            applyPromotions(allProducts, promos);
+          }
         }
       } catch (e) {
-        console.warn("Info: Pas de promotions chargées.");
+        console.warn("Info: Pas de promotions détectées.");
       }
     }
 
     // 4. Mise à jour finale de l'état
-    state.allProducts = allProducts;
     state.filteredProducts = [...allProducts];
     state.showAllCategories = true;
     state.activeCategory = null; 
     state.currentPage = 1;
 
     // 5. Mise à jour de l'interface
-    renderCategories();
-    updateCategoriesUI();
+    if (typeof renderCategories === 'function') renderCategories();
+    if (typeof updateCategoriesUI === 'function') updateCategoriesUI();
     
     if (typeof filterAndRender === 'function') {
       filterAndRender();
@@ -5528,7 +5521,7 @@ async function loadAllProducts() {
       renderProducts();
     }
 
-    console.log(`✅ Succès : ${allProducts.length} produits affichés.`);
+    console.log(`✅ Succès : ${allProducts.length} produits affichés (dont ${state.promotions.length} promos).`);
     if (typeof showToast === 'function') showToast(`✅ ${allProducts.length} produits chargés`);
 
   } catch (error) {
@@ -5536,7 +5529,6 @@ async function loadAllProducts() {
     if (typeof showToast === 'function') showToast('❌ Erreur de connexion aux données');
   }
 }
-
 // =========================================================
 // FONCTIONS COMPLÉMENTAIRES
 // =========================================================
