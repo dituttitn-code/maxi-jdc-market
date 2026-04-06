@@ -5253,13 +5253,8 @@ function updateAllProductStocks() {
           if (currentStock !== undefined && currentStock < googleStock) {
             finalStock = currentStock;
           }
-          if (finalStock <= 0) {
-            finalStock = 0;
-          }
-          return {
-            ...product,
-            stock: finalStock
-          };
+          if (finalStock <= 0) finalStock = 0;
+          return { ...product, stock: finalStock };
         });
         state.products.set(catKey, updatedProducts);
       }
@@ -5267,31 +5262,20 @@ function updateAllProductStocks() {
     }
 
     function calculateItemSavings(item) {
-      if (!(item.isPromo || item.isPromotion) || !item.oldPrice || item.oldPrice <= item.price) {
-        return 0;
-      }
-      const savingPerUnit = item.oldPrice - item.price;
-      return savingPerUnit * item.quantity;
+      if (!(item.isPromo || item.isPromotion) || !item.oldPrice || item.oldPrice <= item.price) return 0;
+      return (item.oldPrice - item.price) * item.quantity;
     }
 
     function calculateTotalSavings() {
-      let totalSavings = 0;
-      let totalOriginalPrice = 0;
-      let totalCurrentPrice = 0;
-
+      let totalSavings = 0, totalOriginalPrice = 0;
       Object.values(state.cart).forEach(item => {
-        if ((item.isPromo || item.isPromotion) && item.oldPrice && item.oldPrice > item.price) {
-          const saving = calculateItemSavings(item);
-          totalSavings += saving;
+        if ((item.isPromo || item.isPromotion) && item.oldPrice > item.price) {
+          totalSavings += calculateItemSavings(item);
           totalOriginalPrice += item.oldPrice * item.quantity;
-          totalCurrentPrice += item.price * item.quantity;
         }
       });
-
       return {
         totalSavings,
-        totalOriginalPrice,
-        totalCurrentPrice,
         percentage: totalOriginalPrice > 0 ? Math.round((totalSavings / totalOriginalPrice) * 100) : 0
       };
     }
@@ -5299,25 +5283,10 @@ function updateAllProductStocks() {
     function updateSavingsDisplay() {
       const savings = calculateTotalSavings();
       const savingsSection = $('cartSavingsSection');
-      const totalSavingsElement = $('totalSavings');
-      const savingsPercentageElement = $('savingsPercentage');
-      const savingsPercentageTextElement = $('savingsPercentageText');
-
       if (savingsSection && savings.totalSavings > 0) {
         savingsSection.classList.add('visible');
-        totalSavingsElement.textContent = formatPrice(savings.totalSavings);
-        savingsPercentageElement.textContent = `${savings.percentage}%`;
-        let percentageText = '';
-        if (savings.percentage >= 50) {
-          percentageText = 'ÉNORME ÉCONOMIE !';
-        } else if (savings.percentage >= 30) {
-          percentageText = 'Super affaire !';
-        } else if (savings.percentage >= 15) {
-          percentageText = 'Bonne affaire';
-        } else {
-          percentageText = 'Économie';
-        }
-        savingsPercentageTextElement.textContent = percentageText;
+        $('totalSavings').textContent = formatPrice(savings.totalSavings);
+        $('savingsPercentage').textContent = `${savings.percentage}%`;
       } else if (savingsSection) {
         savingsSection.classList.remove('visible');
       }
@@ -5328,50 +5297,37 @@ function updateAllProductStocks() {
         const category = CATEGORIES.find(c => c.key === categoryKey);
         if (!category) return [];
 
-        const response = await fetch(`${STOCK_API_URL}?t=${new Date().getTime()}`); // ⚡ Force la mise à jour (anti-cache)
-        if (!response.ok) return [];
-
+        const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`);
         const data = await response.json();
-        let productsRaw = data.products || [];
+        const rawProducts = (data.products || []).filter(p => p.Actif === "oui" && p.Categorie === category.label);
 
-        productsRaw = productsRaw.filter(p => p.Actif === "oui" && p.Categorie === category.label);
-
-        const finalProducts = [];
-
-        productsRaw.forEach(p => {
-          const googleStock = parseInt(p.Stock) || 0;
-          let priceRaw = parseFloat(p.Prix) || 0;
-          let basePrice = priceRaw > 1000 ? priceRaw / 1000 : priceRaw;
-          
+        const processed = rawProducts.map(p => {
+          const basePrice = parseFloat(p.Prix) > 1000 ? parseFloat(p.Prix) / 1000 : parseFloat(p.Prix);
           let finalPrice = basePrice;
           let oldPrice = null;
           let isPromo = false;
-          let discountText = "";
+          let discText = "";
 
-          // --- LOGIQUE DE CALCUL FIXÉE ---
-          const promoRaw = (p.Promotion || p.promo || "").toString().trim();
-          
-          if (promoRaw !== "" && promoRaw !== "0") {
-            if (promoRaw.includes('%')) {
-              // ✅ Calcul 20% sur 7.000 -> 5.600 DT
-              const percent = parseFloat(promoRaw.replace('%', ''));
+          // --- FORCE LE CALCUL ICI ---
+          const promoVal = (p.Promotion || p.promo || "").toString().trim();
+          if (promoVal !== "" && promoVal !== "0") {
+            isPromo = true;
+            if (promoVal.includes('%')) {
+              const pct = parseFloat(promoVal.replace('%', ''));
+              finalPrice = basePrice - (basePrice * (pct / 100));
               oldPrice = basePrice;
-              finalPrice = basePrice - (basePrice * (percent / 100));
-              discountText = `-${percent}%`;
-              isPromo = true;
+              discText = `-${pct}%`;
             } else {
-              // ✅ Cas prix fixe (ex: 11)
-              const fixedValue = parseFloat(promoRaw.replace(',', '.'));
-              if (!isNaN(fixedValue) && fixedValue > 0 && fixedValue < basePrice) {
+              const fixed = parseFloat(promoVal.replace(',', '.'));
+              if (!isNaN(fixed) && fixed < basePrice) {
+                finalPrice = fixed;
                 oldPrice = basePrice;
-                finalPrice = fixedValue;
-                discountText = `-${Math.round(((basePrice - finalPrice) / basePrice) * 100)}%`;
-                isPromo = true;
+                discText = `-${Math.round(((basePrice - fixed) / basePrice) * 100)}%`;
               }
             }
           }
 
-          const product = {
+          return {
             code: p.Article,
             name: p.Produits,
             price: finalPrice,
@@ -5379,52 +5335,41 @@ function updateAllProductStocks() {
             categoryKey: category.key,
             isPromo: isPromo,
             isPromotion: isPromo,
-            stock: googleStock,
-            originalStock: googleStock,
+            stock: parseInt(p.Stock) || 0,
             oldPrice: oldPrice,
-            discountText: discountText
+            discountText: discText
           };
-
-          finalProducts.push(product);
-          state.productStocks.set(`${category.key}_${p.Article}`, googleStock);
         });
 
-        return finalProducts;
-      } catch (error) {
-        console.error(`Erreur chargement ${categoryKey}:`, error);
-        return [];
-      }
+        // Mise à jour du stock global
+        processed.forEach(p => state.productStocks.set(`${category.key}_${p.code}`, p.stock));
+        
+        // On sauvegarde dans l'état global pour loadPromotionsData
+        state.products.set(categoryKey, processed);
+        
+        return processed;
+      } catch (e) { console.error("Erreur:", e); return []; }
     }
 
     async function loadPromotionsData() {
-      try {
-        // ⚡ On récupère TOUS les produits de TOUTES les catégories stockés dans state.products
-        const allLoadedProducts = [];
-        for (const products of state.products.values()) {
-            allLoadedProducts.push(...products);
-        }
-        
-        // Filtrage strict sur isPromo
-        const promotions = allLoadedProducts.filter(p => p.isPromo === true);
+      // ⚡ IMPORTANT : On scanne TOUTES les catégories déjà chargées dans state.products
+      let allFound = [];
+      state.products.forEach((prods) => {
+        allFound.push(...prods.filter(p => p.isPromo === true));
+      });
 
-        const formattedPromos = promotions.map(p => ({
-          ...p,
-          categoryKey: 'promotions',
-          isPromotion: true 
-        }));
+      console.log("DEBUG PROMO:", allFound.length, "articles trouvés");
 
-        console.log("Promotions trouvées :", formattedPromos.length);
-        return formattedPromos;
-
-      } catch (error) {
-        console.error('Erreur promotions:', error);
-        return [];
-      }
+      return allFound.map(p => ({
+        ...p,
+        categoryKey: 'promotions',
+        category: '🔥 PROMOTIONS',
+        isPromotion: true
+      }));
     }
 // =========================================================
 // CHARGEMENT ET SYNC DES PRODUITS
 // =======================================================
-
 async function loadAllProducts() {
   try {
     console.log('Chargement du stock depuis Google Sheets...');
