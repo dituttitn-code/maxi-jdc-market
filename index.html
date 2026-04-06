@@ -5268,7 +5268,8 @@ function setLanguage(lang) {
     }
 
     function calculateItemSavings(item) {
-      if (!item.isPromotion || !item.oldPrice || item.oldPrice <= item.price) {
+      // Vérifie si l'article est en promo et si le prix d'origine est bien supérieur au prix actuel
+      if (!(item.isPromo || item.isPromotion) || !item.oldPrice || item.oldPrice <= item.price) {
         return 0;
       }
       const savingPerUnit = item.oldPrice - item.price;
@@ -5279,14 +5280,17 @@ function setLanguage(lang) {
       let totalSavings = 0;
       let totalOriginalPrice = 0;
       let totalCurrentPrice = 0;
+
       Object.values(state.cart).forEach(item => {
-        if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
+        // Calcule l'économie seulement si l'article est marqué en promotion
+        if ((item.isPromo || item.isPromotion) && item.oldPrice && item.oldPrice > item.price) {
           const saving = calculateItemSavings(item);
           totalSavings += saving;
           totalOriginalPrice += item.oldPrice * item.quantity;
           totalCurrentPrice += item.price * item.quantity;
         }
       });
+
       return {
         totalSavings,
         totalOriginalPrice,
@@ -5294,7 +5298,6 @@ function setLanguage(lang) {
         percentage: totalOriginalPrice > 0 ? Math.round((totalSavings / totalOriginalPrice) * 100) : 0
       };
     }
-
     function updateSavingsDisplay() {
       const savings = calculateTotalSavings();
       const savingsSection = $('cartSavingsSection');
@@ -5388,91 +5391,31 @@ function setLanguage(lang) {
 
     async function loadPromotionsData() {
       try {
-        const response = await fetch('data/PROMOTIONS.csv');
-        if (!response.ok) {
-          console.warn('Fichier PROMOTIONS.csv non trouvé');
+        // On vérifie si les produits sont déjà chargés dans l'état global
+        if (!state.allProducts || state.allProducts.length === 0) {
+          console.warn('Produits non chargés, impossible de filtrer les promotions');
           return [];
         }
-        const text = await response.text();
-        const lines = text.split('\n').filter(line => line.trim());
-        if (lines.length === 0) {
-          console.warn('Fichier PROMOTIONS.csv vide');
-          return [];
-        }
-        const separator = lines[0].includes(';') ? ';' : (lines[0].includes('\t') ? '\t' : ',');
-        const promotions = [];
-        const seen = new Set();
-        lines.slice(1).forEach((line, index) => {
-          const parts = line.split(separator).map(field => field.trim());
-          if (parts.length < 5) {
-            console.warn(`Ligne ${index + 2} incomplète dans PROMOTIONS: ${line}`);
-            return;
-          }
-          const code = parts[0];
-          const name = parts[1];
-          const originalPriceStr = parts[2];
-          const promoPriceStr = parts[3];
-          const promoType = parts[4];
-          if (!code || !name) return;
-          const productKey = `${code}_${name}`;
-          if (seen.has(productKey)) return;
-          seen.add(productKey);
-          const cleanPrice = (priceStr) => {
-            return parseFloat(priceStr.replace(',', '.').replace(/[^\d.]/g, ''));
-          };
-          const originalPrice = cleanPrice(originalPriceStr);
-          const promoPrice = cleanPrice(promoPriceStr);
-          if (isNaN(originalPrice) || originalPrice <= 0) {
-            console.warn(`Prix origine invalide: ${code} - ${name} - ${originalPriceStr}`);
-            return;
-          }
-          let finalPrice = promoPrice;
-          let discountPercent = 0;
-          if (promoType.toLowerCase() === 'pourcentage') {
-            discountPercent = promoPrice;
-            finalPrice = originalPrice * (1 - discountPercent / 100);
-          } else if (promoType.toLowerCase() === 'prix') {
-            finalPrice = promoPrice;
-            discountPercent = Math.round((1 - finalPrice / originalPrice) * 100);
-          } else {
-            console.warn(`Type de promotion non reconnu: ${promoType} pour ${code}`);
-            finalPrice = originalPrice;
-            discountPercent = 0;
-          }
-          if (isNaN(finalPrice) || finalPrice <= 0) {
-            console.warn(`Prix final invalide: ${code} - ${name} - ${finalPrice}`);
-            finalPrice = originalPrice;
-            discountPercent = 0;
-          }
-          const googleStock = getStockFromGoogleSheets(code);
-          const product = {
-            code,
-            name,
-            price: finalPrice,
-            stock: googleStock,
-            originalStock: googleStock,
-            category: '🔥 PROMOTIONS',
-            categoryKey: 'promotions',
-            isPromotion: true,
-            oldPrice: originalPrice,
-            discountPercent: discountPercent,
-            promoType: promoType,
-            originalPrice: originalPrice
-          };
-          promotions.push(product);
-          const stockKey = `promotions_${code}`;
-          if (!state.productStocks.has(stockKey)) {
-            state.productStocks.set(stockKey, googleStock);
-          }
-        });
-        console.log(`${promotions.length} promotions chargées`);
-        return promotions;
+
+        // On filtre uniquement les articles qui ont "isPromo" à true (venant de Google Sheets)
+        const promotions = state.allProducts.filter(p => p.isPromo === true);
+
+        // On formate les données pour l'onglet spécial PROMOTIONS
+        const formattedPromos = promotions.map(p => ({
+          ...p,
+          categoryKey: 'promotions',
+          category: '🔥 PROMOTIONS',
+          isPromotion: true 
+        }));
+
+        console.log(`${formattedPromos.length} promotions détectées via Google Sheets`);
+        return formattedPromos;
+
       } catch (error) {
-        console.error('Erreur chargement promotions:', error);
+        console.error('Erreur lors du traitement des promotions:', error);
         return [];
       }
     }
-
 // =========================================================
 // CHARGEMENT ET SYNC DES PRODUITS
 // =========================================================
@@ -5527,17 +5470,20 @@ async function loadAllProducts() {
 
       let categoryKey = SHEET_CATEGORY_MAP[categoryName] || "epicerie_salee";
 
-      const product = {
+    const product = {
         code,
         name,
-        price: price > 1000 ? price / 1000 : price, // Correction millimes
+        price: price > 1000 ? price / 1000 : price,
         stock: stock,
         originalStock: stock,
         category: categoryName || "Épicerie Salée",
         categoryKey,
-        isPromotion: false,
-        oldPrice: null,
-        discountPercent: 0,
+        // --- MODIFICATION ICI : Lecture des colonnes envoyées par code.gs ---
+        isPromo: raw.isPromo === true || raw.isPromo === "true",
+        isPromotion: raw.isPromo === true || raw.isPromo === "true",
+        oldPrice: raw.oldPrice ? parseFloat(raw.oldPrice) : null,
+        discountText: raw.discountText || "",
+        // -----------------------------------------------------------------
         image: `images/products/${code}.jpg`
       };
 
@@ -5549,18 +5495,28 @@ async function loadAllProducts() {
       state.productStocks.set(code, stock);
     }
 
-    // 3. Gestion des Promotions
+    // 3. Gestion des Promotions (Version sécurisée Google Sheets)
+    state.allProducts = allProducts; 
+
     if (typeof loadPromotionsData === 'function') {
       try {
         const promos = await loadPromotionsData();
         if (promos && promos.length > 0) {
           state.promotions = promos;
           state.products.set('promotions', promos);
-          applyPromotions(allProducts, promos);
-          showPromoBanner(promos);
+          
+          if (typeof applyPromotions === 'function') {
+            applyPromotions(allProducts, promos);
+          }
+          if (typeof showPromoBanner === 'function') {
+            showPromoBanner(promos);
+          }
+        } else {
+          state.promotions = [];
+          state.products.set('promotions', []);
         }
       } catch (e) {
-        console.warn("Info: Pas de promotions chargées.");
+        console.warn("Info: Pas de promotions chargées ou erreur de filtrage.");
       }
     }
 
