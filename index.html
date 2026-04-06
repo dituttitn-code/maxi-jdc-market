@@ -5693,11 +5693,12 @@ function getFilteredProducts() {
         return;
       }
       
-   productsToShow.forEach(product => {
+  productsToShow.forEach(product => {
         const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
         const stockStatus = getStockStatus(product.stock);
         const card = document.createElement('div');
         
+        // On vérifie si c'est une promo
         const isPromo = product.isPromo || product.isPromotion;
         card.className = `product-card ${isPromo ? 'promo-card' : ''}`;
         
@@ -5705,69 +5706,56 @@ function getFilteredProducts() {
         let discountBadge = '';
         
         if (isPromo) {
-          // Badge "PROMO" rectangulaire rouge en haut à gauche
-          imagePromoBadge = `<div class="image-promo-badge" style="
-            background: #e63946 !important; 
-            color: white; 
-            font-weight: bold; 
-            padding: 4px 8px; 
-            border-radius: 0 4px 4px 0;">PROMO</div>`;
+          // Badge "PROMO" en haut à gauche
+          imagePromoBadge = '<div class="image-promo-badge" style="background: #e63946 !important; font-weight: bold;">PROMO</div>';
           
-          // Badge de réduction (ex: -20%) circulaire ou stylisé en rouge
+          // Badge de réduction (ex: -20%) en rouge vif
           if (product.discountText) {
-            discountBadge = `<div class="product-discount" style="
-              background: #e63946 !important; 
-              color: white !important; 
-              font-weight: 800; 
-              box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-              ${product.discountText}
-            </div>`;
+            discountBadge = `<div class="product-discount" style="background: #e63946 !important; color: white !important; font-weight: 800;">${product.discountText}</div>`;
           }
         }
 
-        // --- INTERFACE PRIX PROFESSIONNELLE ---
+        // --- LOGIQUE D'AFFICHAGE DES PRIX ---
         let priceDisplay = '';
         if (isPromo && product.oldPrice && product.oldPrice > product.price) {
           priceDisplay = `
-            <div class="product-price-container" style="display: flex; flex-direction: column; gap: 2px;">
-              <span class="product-old-price" style="text-decoration: line-through; color: #999; font-size: 0.85em; font-weight: 400;">
+            <div class="product-price-container" style="display: flex; flex-direction: column; align-items: flex-start;">
+              <div class="product-old-price" style="text-decoration: line-through; color: #a0a0a0; font-size: 0.85em; margin-bottom: 0px;">
                 ${formatPrice(product.oldPrice)}
-              </span>
-              <span class="product-price" style="color: #e63946; font-weight: 800; font-size: 1.25em; letter-spacing: -0.5px;">
+              </div>
+              <div class="product-price" style="color: #e63946; font-weight: 900; font-size: 1.2em; margin-top: -2px;">
                 ${formatPrice(product.price)}
-              </span>
+              </div>
             </div>`;
         } else {
           priceDisplay = `
             <div class="product-price-container">
-              <span class="product-price" style="font-weight: 700; color: #2d3436;">${formatPrice(product.price)}</span>
+              <div class="product-price" style="font-weight: 700;">${formatPrice(product.price)}</div>
             </div>`;
         }
         
         card.innerHTML = `
-          <div class="product-image" style="position: relative; overflow: hidden;">
+          <div class="product-image">
             <img src="${imgSrc}"
               alt="${product.name}"
               loading="lazy"
               onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-            <div class="no-photo" style="background: #f8f9fa; color: #ccc;">${product.code}</div>
+            <div class="no-photo">${product.code}</div>
             ${imagePromoBadge}
             ${discountBadge}
           </div>
-          <div class="product-info" style="padding: 12px;">
-            <div class="product-name" style="font-weight: 600; color: #2d3436; font-size: 0.95em; line-height: 1.2; height: 2.4em; overflow: hidden;">
-              ${product.name}
+          <div class="product-info">
+            <div class="product-name" style="font-weight: 600; margin-bottom: 4px;">${product.name}</div>
+            <div class="product-meta" style="font-size: 0.8em; color: #666;">
+              <div>Code: ${product.code}</div>
+              <div style="text-transform: uppercase; letter-spacing: 0.5px;">${product.category}</div>
             </div>
-            <div class="product-meta" style="margin: 8px 0; font-size: 0.75em; color: #636e72; display: flex; justify-content: space-between;">
-              <span>Code: ${product.code}</span>
-              <span style="font-weight: bold; color: #0984e3;">${product.category}</span>
-            </div>
-            <div style="margin-top: 10px;">
+            <div style="margin-top: 8px;">
               ${priceDisplay}
             </div>
           </div>
-          <div class="product-stock-tag ${stockStatus.class}" style="font-size: 0.7em; padding: 4px 8px; border-radius: 20px;">
+          <div class="product-stock-tag ${stockStatus.class}">
             ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
           </div>
         `;
