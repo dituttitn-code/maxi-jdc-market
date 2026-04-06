@@ -5470,26 +5470,28 @@ async function loadAllProducts() {
 
       let categoryKey = SHEET_CATEGORY_MAP[categoryName] || "epicerie_salee";
 
-    // --- LOGIQUE DE CALCUL PROMO INTÉGRÉE ---
-      let finalPrice = price > 1000 ? price / 1000 : price; // Prix de base (ex: 7.000)
+  // --- LOGIQUE DE CHARGEMENT RÉPARÉE ---
+      let finalPrice = price > 1000 ? price / 1000 : price;
       let discountLabel = "";
       let isPromoActive = false;
       let originalPriceValue = null;
 
-      // On regarde ce qui arrive de Google Sheets (colonne G / promo)
-      if (raw.promo || raw.discountText) {
-        const promoVal = String(raw.promo || raw.discountText).trim();
+      // On récupère la valeur de la promotion (soit de raw.promo, soit de raw.isPromo)
+      let rawPromoValue = raw.promo || raw.Promotion || ""; 
+
+      if (rawPromoValue && rawPromoValue.toString().trim() !== "") {
+        const promoVal = rawPromoValue.toString().trim();
         
         if (promoVal.includes('%')) {
-          // ✅ CAS POURCENTAGE : Calcule 20% de 7.000 = 1.400, puis 7.000 - 1.400 = 5.600 DT
+          // ✅ CALCUL 20% -> 5.600 dt
           const percent = parseFloat(promoVal.replace('%', ''));
           const reduction = finalPrice * (percent / 100);
-          originalPriceValue = finalPrice; // On garde 7.000 pour l'affichage barré
-          finalPrice = finalPrice - reduction; // On fixe le nouveau prix à 5.600
+          originalPriceValue = finalPrice;
+          finalPrice = finalPrice - reduction;
           discountLabel = `-${percent}%`;
           isPromoActive = true;
         } else {
-          // ✅ CAS PRIX FIXE : Si vous écrivez "13" pour un article à 15 DT
+          // ✅ CAS PRIX FIXE (ex: 5)
           const fixedPrice = parseFloat(promoVal.replace(',', '.'));
           if (!isNaN(fixedPrice) && fixedPrice > 0 && fixedPrice < finalPrice) {
             originalPriceValue = finalPrice;
@@ -5504,17 +5506,32 @@ async function loadAllProducts() {
       const product = {
         code,
         name,
-        price: finalPrice, // Sera 5.600 DT
+        price: finalPrice,
         stock: stock,
         originalStock: stock,
         category: categoryName || "Épicerie Salée",
         categoryKey,
-        isPromo: isPromoActive,
+        isPromo: isPromoActive, // Crucial pour l'affichage dans l'onglet PROMOTIONS
         isPromotion: isPromoActive,
-        oldPrice: originalPriceValue, // Sera 7.000 DT (affiché barré)
+        oldPrice: originalPriceValue,
         discountText: discountLabel,
         image: `images/products/${code}.jpg`
       };
+
+      // Ajout aux listes
+      if (!state.products.has(categoryKey)) {
+        state.products.set(categoryKey, []);
+      }
+      state.products.get(categoryKey).push(product);
+      allProducts.push(product);
+      
+      // ✅ SÉCURITÉ : Forcer l'ajout dans l'onglet Promotion si isPromo est vrai
+      if (isPromoActive) {
+        if (!state.products.has('promotions')) {
+          state.products.set('promotions', []);
+        }
+        state.products.get('promotions').push(product);
+      }
 
       if (!state.products.has(categoryKey)) {
         state.products.set(categoryKey, []);
