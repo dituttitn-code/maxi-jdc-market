@@ -5243,12 +5243,10 @@ function setLanguage(lang) {
         console.error('Erreur synchronisation:', error);
       }
     }
-
-    function updateAllProductStocks() {
+function updateAllProductStocks() {
       for (const [catKey, products] of state.products.entries()) {
         const updatedProducts = products.map(product => {
           const stockKey = `${product.categoryKey}_${product.code}`;
-          // On récupère le stock frais depuis les données brutes si disponibles
           const googleStock = typeof getStockFromGoogleSheets === 'function' ? getStockFromGoogleSheets(product.code) : product.stock;
           const currentStock = state.productStocks.get(stockKey);
           let finalStock = googleStock;
@@ -5330,13 +5328,12 @@ function setLanguage(lang) {
         const category = CATEGORIES.find(c => c.key === categoryKey);
         if (!category) return [];
 
-        const response = await fetch(STOCK_API_URL);
+        const response = await fetch(`${STOCK_API_URL}?t=${new Date().getTime()}`); // ⚡ Force la mise à jour (anti-cache)
         if (!response.ok) return [];
 
         const data = await response.json();
         let productsRaw = data.products || [];
 
-        // Filtrage Actif et Catégorie
         productsRaw = productsRaw.filter(p => p.Actif === "oui" && p.Categorie === category.label);
 
         const finalProducts = [];
@@ -5351,27 +5348,24 @@ function setLanguage(lang) {
           let isPromo = false;
           let discountText = "";
 
-          // --- LOGIQUE DE CALCUL PROMO (Correction 20% et Prix Fixe) ---
+          // --- LOGIQUE DE CALCUL FIXÉE ---
           const promoRaw = (p.Promotion || p.promo || "").toString().trim();
           
-          if (promoRaw !== "") {
+          if (promoRaw !== "" && promoRaw !== "0") {
             if (promoRaw.includes('%')) {
-              // Cas Pourcentage (ex: 20%)
+              // ✅ Calcul 20% sur 7.000 -> 5.600 DT
               const percent = parseFloat(promoRaw.replace('%', ''));
-              if (!isNaN(percent)) {
-                oldPrice = basePrice;
-                finalPrice = basePrice - (basePrice * (percent / 100));
-                discountText = `-${percent}%`;
-                isPromo = true;
-              }
+              oldPrice = basePrice;
+              finalPrice = basePrice - (basePrice * (percent / 100));
+              discountText = `-${percent}%`;
+              isPromo = true;
             } else {
-              // Cas Prix Fixe (ex: 11)
-              const fixedPrice = parseFloat(promoRaw.replace(',', '.'));
-              if (!isNaN(fixedPrice) && fixedPrice > 0 && fixedPrice < basePrice) {
+              // ✅ Cas prix fixe (ex: 11)
+              const fixedValue = parseFloat(promoRaw.replace(',', '.'));
+              if (!isNaN(fixedValue) && fixedValue > 0 && fixedValue < basePrice) {
                 oldPrice = basePrice;
-                finalPrice = fixedPrice;
-                const calculatedPercent = Math.round(((basePrice - finalPrice) / basePrice) * 100);
-                discountText = `-${calculatedPercent}%`;
+                finalPrice = fixedValue;
+                discountText = `-${Math.round(((basePrice - finalPrice) / basePrice) * 100)}%`;
                 isPromo = true;
               }
             }
@@ -5392,9 +5386,7 @@ function setLanguage(lang) {
           };
 
           finalProducts.push(product);
-
-          const stockKey = `${category.key}_${p.Article}`;
-          state.productStocks.set(stockKey, googleStock);
+          state.productStocks.set(`${category.key}_${p.Article}`, googleStock);
         });
 
         return finalProducts;
@@ -5406,29 +5398,32 @@ function setLanguage(lang) {
 
     async function loadPromotionsData() {
       try {
-        // On récupère tous les produits de toutes les catégories déjà chargés
-        const allLoadedProducts = Array.from(state.products.values()).flat();
+        // ⚡ On récupère TOUS les produits de TOUTES les catégories stockés dans state.products
+        const allLoadedProducts = [];
+        for (const products of state.products.values()) {
+            allLoadedProducts.push(...products);
+        }
         
-        // On filtre ceux qui ont isPromo à true
+        // Filtrage strict sur isPromo
         const promotions = allLoadedProducts.filter(p => p.isPromo === true);
 
         const formattedPromos = promotions.map(p => ({
           ...p,
-          categoryKey: 'promotions', // Pour l'affichage dans l'onglet
+          categoryKey: 'promotions',
           isPromotion: true 
         }));
 
-        console.log(`${formattedPromos.length} promotions détectées`);
+        console.log("Promotions trouvées :", formattedPromos.length);
         return formattedPromos;
 
       } catch (error) {
-        console.error('Erreur lors du traitement des promotions:', error);
+        console.error('Erreur promotions:', error);
         return [];
       }
     }
 // =========================================================
 // CHARGEMENT ET SYNC DES PRODUITS
-// =========================================================
+// =======================================================
 
 async function loadAllProducts() {
   try {
