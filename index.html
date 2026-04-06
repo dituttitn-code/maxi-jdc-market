@@ -5391,87 +5391,31 @@ function setLanguage(lang) {
 
     async function loadPromotionsData() {
       try {
-        const response = await fetch('data/PROMOTIONS.csv');
-        if (!response.ok) {
-          console.warn('Fichier PROMOTIONS.csv non trouvé');
+        // On ne cherche plus de fichier CSV séparé.
+        // On utilise directement la liste globale des produits déjà chargée.
+        if (!state.allProducts || state.allProducts.length === 0) {
+          console.warn('Les produits ne sont pas encore chargés');
           return [];
         }
-        const text = await response.text();
-        const lines = text.split('\n').filter(line => line.trim());
-        if (lines.length === 0) {
-          console.warn('Fichier PROMOTIONS.csv vide');
-          return [];
-        }
-        const separator = lines[0].includes(';') ? ';' : (lines[0].includes('\t') ? '\t' : ',');
-        const promotions = [];
-        const seen = new Set();
-        lines.slice(1).forEach((line, index) => {
-          const parts = line.split(separator).map(field => field.trim());
-          if (parts.length < 5) {
-            console.warn(`Ligne ${index + 2} incomplète dans PROMOTIONS: ${line}`);
-            return;
-          }
-          const code = parts[0];
-          const name = parts[1];
-          const originalPriceStr = parts[2];
-          const promoPriceStr = parts[3];
-          const promoType = parts[4];
-          if (!code || !name) return;
-          const productKey = `${code}_${name}`;
-          if (seen.has(productKey)) return;
-          seen.add(productKey);
-          const cleanPrice = (priceStr) => {
-            return parseFloat(priceStr.replace(',', '.').replace(/[^\d.]/g, ''));
-          };
-          const originalPrice = cleanPrice(originalPriceStr);
-          const promoPrice = cleanPrice(promoPriceStr);
-          if (isNaN(originalPrice) || originalPrice <= 0) {
-            console.warn(`Prix origine invalide: ${code} - ${name} - ${originalPriceStr}`);
-            return;
-          }
-          let finalPrice = promoPrice;
-          let discountPercent = 0;
-          if (promoType.toLowerCase() === 'pourcentage') {
-            discountPercent = promoPrice;
-            finalPrice = originalPrice * (1 - discountPercent / 100);
-          } else if (promoType.toLowerCase() === 'prix') {
-            finalPrice = promoPrice;
-            discountPercent = Math.round((1 - finalPrice / originalPrice) * 100);
-          } else {
-            console.warn(`Type de promotion non reconnu: ${promoType} pour ${code}`);
-            finalPrice = originalPrice;
-            discountPercent = 0;
-          }
-          if (isNaN(finalPrice) || finalPrice <= 0) {
-            console.warn(`Prix final invalide: ${code} - ${name} - ${finalPrice}`);
-            finalPrice = originalPrice;
-            discountPercent = 0;
-          }
-          const googleStock = getStockFromGoogleSheets(code);
-          const product = {
-            code,
-            name,
-            price: finalPrice,
-            stock: googleStock,
-            originalStock: googleStock,
-            category: '🔥 PROMOTIONS',
+
+        // On filtre simplement les produits qui ont isPromo = true
+        const promotions = state.allProducts.filter(product => product.isPromo === true);
+
+        // On s'assure que chaque produit de promotion a les bonnes propriétés pour l'affichage
+        const finalPromotions = promotions.map(product => {
+          return {
+            ...product,
+            // On force la catégorie pour l'affichage dans l'onglet spécial
             categoryKey: 'promotions',
-            isPromotion: true,
-            oldPrice: originalPrice,
-            discountPercent: discountPercent,
-            promoType: promoType,
-            originalPrice: originalPrice
+            // On s'assure que isPromotion existe aussi si votre code l'utilise ailleurs
+            isPromotion: true 
           };
-          promotions.push(product);
-          const stockKey = `promotions_${code}`;
-          if (!state.productStocks.has(stockKey)) {
-            state.productStocks.set(stockKey, googleStock);
-          }
         });
-        console.log(`${promotions.length} promotions chargées`);
-        return promotions;
+
+        console.log(`${finalPromotions.length} promotions détectées depuis Google Sheets`);
+        return finalPromotions;
       } catch (error) {
-        console.error('Erreur chargement promotions:', error);
+        console.error('Erreur lors du filtrage des promotions:', error);
         return [];
       }
     }
