@@ -5697,23 +5697,32 @@ function getFilteredProducts() {
         const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
         const stockStatus = getStockStatus(product.stock);
         const card = document.createElement('div');
-        card.className = `product-card ${product.isPromotion ? 'promo-card' : ''}`;
+        
+        // Utilisation de isPromo (défini dans loadAllProducts)
+        const isPromo = product.isPromo || product.isPromotion;
+        card.className = `product-card ${isPromo ? 'promo-card' : ''}`;
+        
         let imagePromoBadge = '';
         let discountBadge = '';
-        if (product.isPromotion && product.discountPercent > 0) {
+        
+        if (isPromo) {
           imagePromoBadge = '<div class="image-promo-badge">PROMO</div>';
-          let discountText = `-${product.discountPercent}%`;
-          if (product.promoType === 'prix') {
-            discountText = `-${product.discountPercent}%`;
-          } else if (product.promoType === 'pourcentage') {
-            discountText = `${product.discountPercent}% OFF`;
+          
+          // Affiche le texte de réduction (ex: -20% ou -1.500 DT)
+          if (product.discountText) {
+            discountBadge = `<div class="product-discount">${product.discountText}</div>`;
           }
-          discountBadge = `<div class="product-discount">${discountText}</div>`;
         }
-        const priceDisplay = product.isPromotion && product.oldPrice && product.oldPrice > product.price
+
+        // Gestion de l'affichage du prix (Normal vs Promo avec prix barré)
+        const priceDisplay = isPromo && product.oldPrice && product.oldPrice > product.price
           ? `<div class="product-price-container">
-              <div class="product-old-price">${formatPrice(product.oldPrice)}</div>
-              <div class="product-price">${formatPrice(product.price)}</div>
+              <div class="product-old-price" style="text-decoration: line-through; color: #888; font-size: 0.85em; margin-bottom: 2px;">
+                ${formatPrice(product.oldPrice)}
+              </div>
+              <div class="product-price" style="color: #e63946; font-weight: bold;">
+                ${formatPrice(product.price)}
+              </div>
             </div>`
           : `<div class="product-price-container">
               <div class="product-price">${formatPrice(product.price)}</div>
@@ -5735,7 +5744,6 @@ function getFilteredProducts() {
             <div class="product-meta">
               <div>Code: ${product.code}</div>
               <div>${product.category}</div>
-              ${product.isPromotion && product.promoType ? `<div style="color:#ffcc00;font-size:8px;font-weight:700;">Promo: ${product.promoType}</div>` : ''}
             </div>
             ${priceDisplay}
           </div>
