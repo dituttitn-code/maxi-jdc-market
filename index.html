@@ -5268,7 +5268,8 @@ function setLanguage(lang) {
     }
 
     function calculateItemSavings(item) {
-      if (!item.isPromotion || !item.oldPrice || item.oldPrice <= item.price) {
+      // Changement de isPromotion vers isPromo pour correspondre au script Google
+      if (!item.isPromo || !item.oldPrice || item.oldPrice <= item.price) {
         return 0;
       }
       const savingPerUnit = item.oldPrice - item.price;
@@ -5279,14 +5280,17 @@ function setLanguage(lang) {
       let totalSavings = 0;
       let totalOriginalPrice = 0;
       let totalCurrentPrice = 0;
+      
       Object.values(state.cart).forEach(item => {
-        if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
+        // Utilisation de isPromo pour détecter si l'article est en réduction
+        if (item.isPromo && item.oldPrice && item.oldPrice > item.price) {
           const saving = calculateItemSavings(item);
           totalSavings += saving;
           totalOriginalPrice += item.oldPrice * item.quantity;
           totalCurrentPrice += item.price * item.quantity;
         }
       });
+      
       return {
         totalSavings,
         totalOriginalPrice,
@@ -5294,7 +5298,6 @@ function setLanguage(lang) {
         percentage: totalOriginalPrice > 0 ? Math.round((totalSavings / totalOriginalPrice) * 100) : 0
       };
     }
-
     function updateSavingsDisplay() {
       const savings = calculateTotalSavings();
       const savingsSection = $('cartSavingsSection');
