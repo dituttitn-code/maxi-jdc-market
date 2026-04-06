@@ -5325,85 +5325,94 @@ function setLanguage(lang) {
       }
     }
 
-  async function loadCategoryData(categoryKey) {
+    async function loadCategoryData(categoryKey) {
+  try {
+    const category = CATEGORIES.find(c => c.key === categoryKey);
+    if (!category) return [];
+
+    // 👉 API GOOGLE (remplace CSV)
+   const response = await fetch(STOCK_API_URL);
+
+    if (!response.ok) {
+      console.error("Erreur API");
+      return [];
+    }
+
+    const data = await response.json();
+
+    console.log("DATA API =", data);
+
+    let products = data.products || [];
+
+    console.log("Produits API total :", products.length);
+
+    // 👉 Garde seulement les produits actifs
+    products = products.filter(p => p.Actif === "oui");
+
+    // 👉 Filtrer par catégorie
+    products = products.filter(p => p.Categorie === category.label);
+
+    const finalProducts = [];
+
+    products.forEach(p => {
+
+      const googleStock = parseInt(p.Stock) || 0;
+
+      const product = {
+        code: p.Article,
+        name: p.Produits,
+        price: parseFloat(p.Prix) || 0,
+        category: p.Categorie,
+        categoryKey: category.key,
+        isPromotion: false,
+        stock: googleStock,
+        originalStock: googleStock,
+        oldPrice: null,
+        discountPercent: 0
+      };
+
+      finalProducts.push(product);
+
+      const stockKey = `${category.key}_${p.Article}`;
+      if (!state.productStocks.has(stockKey)) {
+        state.productStocks.set(stockKey, googleStock);
+      }
+    });
+
+    console.log(`${categoryKey}: ${finalProducts.length} produits chargés`);
+
+    return finalProducts;
+
+  } catch (error) {
+    console.error(`Erreur chargement ${categoryKey}:`, error);
+    return [];
+  }
+}
+
+    async function loadPromotionsData() {
       try {
-        const category = CATEGORIES.find(c => c.key === categoryKey);
-        if (!category) return [];
+        // On vérifie si les produits sont déjà chargés dans l'état global
+        if (!state.allProducts || state.allProducts.length === 0) {
+          console.warn('Produits non chargés, impossible de filtrer les promotions');
+          return [];
+        }
 
-        // 👉 FORCE LA MISE À JOUR (anti-cache)
-        const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`);
-        if (!response.ok) return [];
+        // On filtre uniquement les articles qui ont "isPromo" à true (venant de Google Sheets)
+        const promotions = state.allProducts.filter(p => p.isPromo === true);
 
-        const data = await response.json();
-        let productsRaw = (data.products || []).filter(p => p.Actif === "oui" && p.Categorie === category.label);
+        // On formate les données pour l'onglet spécial PROMOTIONS
+        const formattedPromos = promotions.map(p => ({
+          ...p,
+          categoryKey: 'promotions',
+          category: '🔥 PROMOTIONS',
+          isPromotion: true 
+        }));
 
-        const finalProducts = productsRaw.map(p => {
-          // 👉 Traitement du prix de base
-          let priceRaw = parseFloat(p.Prix) || 0;
-          let basePrice = priceRaw > 1000 ? priceRaw / 1000 : priceRaw;
-          
-          let finalPrice = basePrice;
-          let oldPrice = null;
-          let isPromo = false;
-          let discountText = "";
-
-          // 👉 LECTURE DE LA COLONNE G (Promotion)
-          const promoRaw = (p.Promotion || p.promo || "").toString().trim();
-
-          if (promoRaw !== "" && promoRaw !== "0") {
-            isPromo = true;
-            if (promoRaw.includes('%')) {
-              // ---------------------------------------------------------
-              // ✅ CALCUL CORRECT DU POURCENTAGE
-              // (ex: 20% sur 7.000 -> Remise: 1.400 -> Prix final: 5.600 DT)
-              const percent = parseFloat(promoRaw.replace('%', ''));
-              if (!isNaN(percent)) {
-                const reductionAmount = basePrice * (percent / 100);
-                finalPrice = basePrice - reductionAmount;
-                oldPrice = basePrice;
-                discountText = `-${percent}%`;
-              }
-              // ---------------------------------------------------------
-            } else {
-              // ✅ CAS PRIX FIXE (ex: vous écrivez 11 pour un article à 13 DT)
-              const fixedValue = parseFloat(promoRaw.replace(',', '.'));
-              if (!isNaN(fixedValue) && fixedValue < basePrice) {
-                finalPrice = fixedValue;
-                oldPrice = basePrice;
-                // Calcul automatique du pourcentage pour le badge
-                const calculatedPercent = Math.round(((basePrice - finalPrice) / basePrice) * 100);
-                discountText = `-${calculatedPercent}%`;
-              }
-            }
-          }
-
-          return {
-            code: p.Article,
-            name: p.Produits,
-            price: finalPrice, // ✅ Affichera maintenant 5.600 DT
-            category: p.Categorie,
-            categoryKey: category.key,
-            isPromo: isPromo,
-            isPromotion: isPromo, // Double sécurité
-            stock: parseInt(p.Stock) || 0,
-            originalStock: parseInt(p.Stock) || 0,
-            oldPrice: oldPrice, // ✅ Contient 7.000 (prix barré)
-            discountText: discountText // ✅ Contient "-20%" (rouge)
-          };
-        });
-
-        // Stockage dans l'état global
-        state.products.set(categoryKey, finalProducts);
-        
-        // Synchronisation des stocks
-        finalProducts.forEach(p => {
-          state.productStocks.set(`${category.key}_${p.code}`, p.stock);
-        });
-
-        return finalProducts;
+        console.log(`${formattedPromos.length} promotions détectées via Google Sheets`);
+        return formattedPromos;
 
       } catch (error) {
-        console.error(`Erreur API ${categoryKey}:`, error);
+        console.error('Erreur lors du traitement des promotions:', error);
         return [];
       }
     }
