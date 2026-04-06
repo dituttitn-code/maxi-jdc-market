@@ -5242,19 +5242,16 @@ function setLanguage(lang) {
       } catch (error) {
         console.error('Erreur synchronisation:', error);
       }
-    }
-function updateAllProductStocks() {
+    }function updateAllProductStocks() {
       for (const [catKey, products] of state.products.entries()) {
         const updatedProducts = products.map(product => {
           const stockKey = `${product.categoryKey}_${product.code}`;
-          const googleStock = typeof getStockFromGoogleSheets === 'function' ? getStockFromGoogleSheets(product.code) : product.stock;
           const currentStock = state.productStocks.get(stockKey);
-          let finalStock = googleStock;
-          if (currentStock !== undefined && currentStock < googleStock) {
+          let finalStock = product.originalStock || 0;
+          if (currentStock !== undefined && currentStock < finalStock) {
             finalStock = currentStock;
           }
-          if (finalStock <= 0) finalStock = 0;
-          return { ...product, stock: finalStock };
+          return { ...product, stock: Math.max(0, finalStock) };
         });
         state.products.set(catKey, updatedProducts);
       }
@@ -5262,15 +5259,16 @@ function updateAllProductStocks() {
     }
 
     function calculateItemSavings(item) {
-      if (!(item.isPromo || item.isPromotion) || !item.oldPrice || item.oldPrice <= item.price) return 0;
+      if (!item.isPromo || !item.oldPrice || item.oldPrice <= item.price) return 0;
       return (item.oldPrice - item.price) * item.quantity;
     }
 
     function calculateTotalSavings() {
-      let totalSavings = 0, totalOriginalPrice = 0;
+      let totalSavings = 0;
+      let totalOriginalPrice = 0;
       Object.values(state.cart).forEach(item => {
-        if ((item.isPromo || item.isPromotion) && item.oldPrice > item.price) {
-          totalSavings += calculateItemSavings(item);
+        if (item.isPromo && item.oldPrice > item.price) {
+          totalSavings += (item.oldPrice - item.price) * item.quantity;
           totalOriginalPrice += item.oldPrice * item.quantity;
         }
       });
@@ -5282,13 +5280,13 @@ function updateAllProductStocks() {
 
     function updateSavingsDisplay() {
       const savings = calculateTotalSavings();
-      const savingsSection = $('cartSavingsSection');
-      if (savingsSection && savings.totalSavings > 0) {
-        savingsSection.classList.add('visible');
+      const section = $('cartSavingsSection');
+      if (section && savings.totalSavings > 0) {
+        section.classList.add('visible');
         $('totalSavings').textContent = formatPrice(savings.totalSavings);
         $('savingsPercentage').textContent = `${savings.percentage}%`;
-      } else if (savingsSection) {
-        savingsSection.classList.remove('visible');
+      } else if (section) {
+        section.classList.remove('visible');
       }
     }
 
@@ -5299,30 +5297,31 @@ function updateAllProductStocks() {
 
         const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`);
         const data = await response.json();
-        const rawProducts = (data.products || []).filter(p => p.Actif === "oui" && p.Categorie === category.label);
+        const raw = (data.products || []).filter(p => p.Actif === "oui" && p.Categorie === category.label);
 
-        const processed = rawProducts.map(p => {
-          const basePrice = parseFloat(p.Prix) > 1000 ? parseFloat(p.Prix) / 1000 : parseFloat(p.Prix);
+        const processed = raw.map(p => {
+          let basePrice = parseFloat(p.Prix) || 0;
           let finalPrice = basePrice;
           let oldPrice = null;
           let isPromo = false;
           let discText = "";
 
-          // --- FORCE LE CALCUL ICI ---
-          const promoVal = (p.Promotion || p.promo || "").toString().trim();
-          if (promoVal !== "" && promoVal !== "0") {
+          // ON LIT LA COLONNE "Promotion" (G)
+          const valPromo = (p.Promotion || p.promo || "").toString().trim();
+
+          if (valPromo !== "" && valPromo !== "0") {
             isPromo = true;
-            if (promoVal.includes('%')) {
-              const pct = parseFloat(promoVal.replace('%', ''));
-              finalPrice = basePrice - (basePrice * (pct / 100));
+            if (valPromo.includes('%')) {
+              const reduction = parseFloat(valPromo.replace('%', ''));
+              finalPrice = basePrice - (basePrice * (reduction / 100));
               oldPrice = basePrice;
-              discText = `-${pct}%`;
+              discText = `-${reduction}%`;
             } else {
-              const fixed = parseFloat(promoVal.replace(',', '.'));
-              if (!isNaN(fixed) && fixed < basePrice) {
-                finalPrice = fixed;
+              const prixFixe = parseFloat(valPromo.replace(',', '.'));
+              if (!isNaN(prixFixe) && prixFixe > 0) {
+                finalPrice = prixFixe;
                 oldPrice = basePrice;
-                discText = `-${Math.round(((basePrice - fixed) / basePrice) * 100)}%`;
+                discText = "PROMO";
               }
             }
           }
@@ -5336,35 +5335,31 @@ function updateAllProductStocks() {
             isPromo: isPromo,
             isPromotion: isPromo,
             stock: parseInt(p.Stock) || 0,
+            originalStock: parseInt(p.Stock) || 0,
             oldPrice: oldPrice,
             discountText: discText
           };
         });
 
-        // Mise à jour du stock global
+        state.products.set(categoryKey, processed);
         processed.forEach(p => state.productStocks.set(`${category.key}_${p.code}`, p.stock));
         
-        // On sauvegarde dans l'état global pour loadPromotionsData
-        state.products.set(categoryKey, processed);
-        
         return processed;
-      } catch (e) { console.error("Erreur:", e); return []; }
+      } catch (e) { return []; }
     }
 
     async function loadPromotionsData() {
-      // ⚡ IMPORTANT : On scanne TOUTES les catégories déjà chargées dans state.products
-      let allFound = [];
-      state.products.forEach((prods) => {
-        allFound.push(...prods.filter(p => p.isPromo === true));
+      // SCAN DE TOUTES LES CATÉGORIES POUR REMPLIR L'ONGLET PROMO
+      let toutesLesPromos = [];
+      state.products.forEach(prods => {
+        const filtres = prods.filter(p => p.isPromo === true);
+        toutesLesPromos.push(...filtres);
       });
-
-      console.log("DEBUG PROMO:", allFound.length, "articles trouvés");
-
-      return allFound.map(p => ({
+      
+      return toutesLesPromos.map(p => ({
         ...p,
         categoryKey: 'promotions',
-        category: '🔥 PROMOTIONS',
-        isPromotion: true
+        category: '🔥 PROMOTIONS'
       }));
     }
 // =========================================================
