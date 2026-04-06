@@ -4792,7 +4792,7 @@
     };
 
 // ===================== CONFIGURATION & CATEGORIES =====================
-const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbzHAOQc5v5HlZyLBG_aNPupm__SGR6BUEDjd4Hbb0zNhz0A997xPOGbUmU_ux_h67uxOw/exec";
+const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbzGeNTYuDlLwtBtQ0Pua4LD-4Ae02x9VunS0y9aYVz8DSjuwjVLK2u4LuKpYko9gEKfRw/exec";
 
 const CATEGORIES = [
   { key: "promotions", label: "🔥 PROMOTIONS", file: "data/PROMOTIONS.csv", isPromo: true },
@@ -5268,8 +5268,7 @@ function setLanguage(lang) {
     }
 
     function calculateItemSavings(item) {
-      // Changement de isPromotion vers isPromo pour correspondre au script Google
-      if (!item.isPromo || !item.oldPrice || item.oldPrice <= item.price) {
+      if (!item.isPromotion || !item.oldPrice || item.oldPrice <= item.price) {
         return 0;
       }
       const savingPerUnit = item.oldPrice - item.price;
@@ -5280,17 +5279,14 @@ function setLanguage(lang) {
       let totalSavings = 0;
       let totalOriginalPrice = 0;
       let totalCurrentPrice = 0;
-      
       Object.values(state.cart).forEach(item => {
-        // Utilisation de isPromo pour détecter si l'article est en réduction
-        if (item.isPromo && item.oldPrice && item.oldPrice > item.price) {
+        if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
           const saving = calculateItemSavings(item);
           totalSavings += saving;
           totalOriginalPrice += item.oldPrice * item.quantity;
           totalCurrentPrice += item.price * item.quantity;
         }
       });
-      
       return {
         totalSavings,
         totalOriginalPrice,
@@ -5298,6 +5294,7 @@ function setLanguage(lang) {
         percentage: totalOriginalPrice > 0 ? Math.round((totalSavings / totalOriginalPrice) * 100) : 0
       };
     }
+
     function updateSavingsDisplay() {
       const savings = calculateTotalSavings();
       const savingsSection = $('cartSavingsSection');
@@ -5391,36 +5388,111 @@ function setLanguage(lang) {
 
     async function loadPromotionsData() {
       try {
-        // On ne cherche plus de fichier CSV séparé.
-        // On utilise directement la liste globale des produits déjà chargée.
-        if (!state.allProducts || state.allProducts.length === 0) {
-          console.warn('Les produits ne sont pas encore chargés');
+        const response = await fetch('data/PROMOTIONS.csv');
+        if (!response.ok) {
+          console.warn('Fichier PROMOTIONS.csv non trouvé');
           return [];
         }
-
-        // On filtre simplement les produits qui ont isPromo = true
-        const promotions = state.allProducts.filter(product => product.isPromo === true);
-
-        // On s'assure que chaque produit de promotion a les bonnes propriétés pour l'affichage
-        const finalPromotions = promotions.map(product => {
-          return {
-            ...product,
-            // On force la catégorie pour l'affichage dans l'onglet spécial
-            categoryKey: 'promotions',
-            // On s'assure que isPromotion existe aussi si votre code l'utilise ailleurs
-            isPromotion: true 
+        const text = await response.text();
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length === 0) {
+          console.warn('Fichier PROMOTIONS.csv vide');
+          return [];
+        }
+        const separator = lines[0].includes(';') ? ';' : (lines[0].includes('\t') ? '\t' : ',');
+        const promotions = [];
+        const seen = new Set();
+        lines.slice(1).forEach((line, index) => {
+          const parts = line.split(separator).map(field => field.trim());
+          if (parts.length < 5) {
+            console.warn(`Ligne ${index + 2} incomplète dans PROMOTIONS: ${line}`);
+            return;
+          }
+          const code = parts[0];
+          const name = parts[1];
+          const originalPriceStr = parts[2];
+          const promoPriceStr = parts[3];
+          const promoType = parts[4];
+          if (!code || !name) return;
+          const productKey = `${code}_${name}`;
+          if (seen.has(productKey)) return;
+          seen.add(productKey);
+          const cleanPrice = (priceStr) => {
+            return parseFloat(priceStr.replace(',', '.').replace(/[^\d.]/g, ''));
           };
+          const originalPrice = cleanPrice(originalPriceStr);
+          const promoPrice = cleanPrice(promoPriceStr);
+          if (isNaN(originalPrice) || originalPrice <= 0) {
+            console.warn(`Prix origine invalide: ${code} - ${name} - ${originalPriceStr}`);
+            return;
+          }
+          let finalPrice = promoPrice;
+          let discountPercent = 0;
+          if (promoType.toLowerCase() === 'pourcentage') {
+            discountPercent = promoPrice;
+            finalPrice = originalPrice * (1 - discountPercent / 100);
+          } else if (promoType.toLowerCase() === 'prix') {
+            finalPrice = promoPrice;
+            discountPercent = Math.round((1 - finalPrice / originalPrice) * 100);
+          } else {
+            console.warn(`Type de promotion non reconnu: ${promoType} pour ${code}`);
+            finalPrice = originalPrice;
+            discountPercent = 0;
+          }
+          if (isNaN(finalPrice) || finalPrice <= 0) {
+            console.warn(`Prix final invalide: ${code} - ${name} - ${finalPrice}`);
+            finalPrice = originalPrice;
+            discountPercent = 0;
+          }
+          const googleStock = getStockFromGoogleSheets(code);
+          const product = {
+            code,
+            name,
+            price: finalPrice,
+            stock: googleStock,
+            originalStock: googleStock,
+            category: '🔥 PROMOTIONS',
+            categoryKey: 'promotions',
+            isPromotion: true,
+            oldPrice: originalPrice,
+            discountPercent: discountPercent,
+            promoType: promoType,
+            originalPrice: originalPrice
+          };
+          promotions.push(product);
+          const stockKey = `promotions_${code}`;
+          if (!state.productStocks.has(stockKey)) {
+            state.productStocks.set(stockKey, googleStock);
+          }
         });
-
-        console.log(`${finalPromotions.length} promotions détectées depuis Google Sheets`);
-        return finalPromotions;
+        console.log(`${promotions.length} promotions chargées`);
+        return promotions;
       } catch (error) {
-        console.error('Erreur lors du filtrage des promotions:', error);
+        console.error('Erreur chargement promotions:', error);
         return [];
       }
     }
 
-// 1. Réinitialisation de l'état global
+// =========================================================
+// CHARGEMENT ET SYNC DES PRODUITS
+// =========================================================
+
+async function loadAllProducts() {
+  try {
+    console.log('Chargement du stock depuis Google Sheets...');
+
+    // 1. Appel à l'API Google Sheets avec timestamp anti-cache
+    const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`);
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Données reçues de Google Sheets :', data);
+
+    const rows = Array.isArray(data) ? data : (Array.isArray(data.products) ? data.products : []);
+
+    // Réinitialisation de l'état global
     state.products = new Map();
     state.allProducts = [];
     state.promotions = [];
@@ -5455,7 +5527,6 @@ function setLanguage(lang) {
 
       let categoryKey = SHEET_CATEGORY_MAP[categoryName] || "epicerie_salee";
 
-      // --- CRÉATION DE L'OBJET PRODUIT AVEC INFOS PROMO ---
       const product = {
         code,
         name,
@@ -5464,11 +5535,9 @@ function setLanguage(lang) {
         originalStock: stock,
         category: categoryName || "Épicerie Salée",
         categoryKey,
-        // Récupération des données promo de code.gs
-        isPromo: raw.isPromo === true || raw.isPromo === "true",
-        isPromotion: raw.isPromo === true || raw.isPromo === "true", // Double sécurité
-        oldPrice: raw.oldPrice ? parseFloat(raw.oldPrice) : null,
-        discountText: raw.discountText || "",
+        isPromotion: false,
+        oldPrice: null,
+        discountPercent: 0,
         image: `images/products/${code}.jpg`
       };
 
@@ -5480,40 +5549,31 @@ function setLanguage(lang) {
       state.productStocks.set(code, stock);
     }
 
-    // 3. Gestion des Promotions (Extraction automatique)
-    state.allProducts = allProducts; // On définit allProducts avant d'extraire les promos
-
+    // 3. Gestion des Promotions
     if (typeof loadPromotionsData === 'function') {
       try {
         const promos = await loadPromotionsData();
         if (promos && promos.length > 0) {
           state.promotions = promos;
           state.products.set('promotions', promos);
-          
-          // Affiche la bannière défilante si elle existe
-          if (typeof showPromoBanner === 'function') {
-            showPromoBanner(promos);
-          }
-          
-          // Applique les prix barrés sur la liste générale
-          if (typeof applyPromotions === 'function') {
-            applyPromotions(allProducts, promos);
-          }
+          applyPromotions(allProducts, promos);
+          showPromoBanner(promos);
         }
       } catch (e) {
-        console.warn("Info: Pas de promotions détectées.");
+        console.warn("Info: Pas de promotions chargées.");
       }
     }
 
     // 4. Mise à jour finale de l'état
+    state.allProducts = allProducts;
     state.filteredProducts = [...allProducts];
     state.showAllCategories = true;
     state.activeCategory = null; 
     state.currentPage = 1;
 
     // 5. Mise à jour de l'interface
-    if (typeof renderCategories === 'function') renderCategories();
-    if (typeof updateCategoriesUI === 'function') updateCategoriesUI();
+    renderCategories();
+    updateCategoriesUI();
     
     if (typeof filterAndRender === 'function') {
       filterAndRender();
@@ -5521,7 +5581,7 @@ function setLanguage(lang) {
       renderProducts();
     }
 
-    console.log(`✅ Succès : ${allProducts.length} produits affichés (dont ${state.promotions.length} promos).`);
+    console.log(`✅ Succès : ${allProducts.length} produits affichés.`);
     if (typeof showToast === 'function') showToast(`✅ ${allProducts.length} produits chargés`);
 
   } catch (error) {
@@ -5529,6 +5589,7 @@ function setLanguage(lang) {
     if (typeof showToast === 'function') showToast('❌ Erreur de connexion aux données');
   }
 }
+
 // =========================================================
 // FONCTIONS COMPLÉMENTAIRES
 // =========================================================
