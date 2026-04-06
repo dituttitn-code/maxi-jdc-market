@@ -5482,51 +5482,51 @@ async function loadAllProducts() {
 
       let categoryKey = SHEET_CATEGORY_MAP[categoryName] || "epicerie_salee";
 
-   // --- Prix de base (tel que lu dans la cellule "Prix" de Sheets) ---
-let basePrice = price > 1000 ? price / 1000 : price;
-let originalPrice = null;
-let finalPrice = basePrice;
-let isPromo = false;
-let discountPercent = 0;
+      // --- Prix de base (tel que lu dans la cellule "Prix" de Sheets) ---
+      let basePrice = price > 1000 ? price / 1000 : price;
+      let originalPrice = null;
+      let finalPrice = basePrice;
+      let isPromo = false;
+      let discountPercent = 0;
 
-// 1️⃣ Si une colonne "DiscountPercent" ou "Promo%" est présente
-let promoPercent = raw.discountPercent || raw.promoPercent || raw["Promotion (%)"];
-if (promoPercent && !isNaN(parseFloat(promoPercent))) {
-  discountPercent = parseFloat(promoPercent);
-  originalPrice = basePrice;                     // 7,000 DT
-  finalPrice = basePrice * (1 - discountPercent / 100); // 5,600 DT
-  isPromo = true;
-}
-// 2️⃣ Sinon, si oldPrice est déjà fourni
-else if (raw.oldPrice && !isNaN(parseFloat(raw.oldPrice))) {
-  originalPrice = parseFloat(raw.oldPrice);
-  // On considère que le prix lu est le prix promo
-  finalPrice = basePrice;
-  if (originalPrice > finalPrice) isPromo = true;
-  discountPercent = Math.round((1 - finalPrice / originalPrice) * 100);
-}
-// 3️⃣ Sinon, pas de promotion
-else {
-  finalPrice = basePrice;
-  originalPrice = null;
-  isPromo = false;
-}
+      // 1️⃣ Si une colonne "DiscountPercent" ou "Promo%" est présente
+      let promoPercent = raw.discountPercent || raw.promoPercent || raw["Promotion (%)"];
+      if (promoPercent && !isNaN(parseFloat(promoPercent))) {
+        discountPercent = parseFloat(promoPercent);
+        originalPrice = basePrice;                     // 7,000 DT
+        finalPrice = basePrice * (1 - discountPercent / 100); // 5,600 DT
+        isPromo = true;
+      }
+      // 2️⃣ Sinon, si oldPrice est déjà fourni
+      else if (raw.oldPrice && !isNaN(parseFloat(raw.oldPrice))) {
+        originalPrice = parseFloat(raw.oldPrice);
+        // On considère que le prix lu est le prix promo
+        finalPrice = basePrice;
+        if (originalPrice > finalPrice) isPromo = true;
+        discountPercent = Math.round((1 - finalPrice / originalPrice) * 100);
+      }
+      // 3️⃣ Sinon, pas de promotion
+      else {
+        finalPrice = basePrice;
+        originalPrice = null;
+        isPromo = false;
+      }
 
-const product = {
-  code,
-  name,
-  price: finalPrice,                // prix promo (ou normal)
-  oldPrice: originalPrice,          // prix barré (si promo)
-  stock: stock,
-  originalStock: stock,
-  category: categoryName || "Épicerie Salée",
-  categoryKey,
-  isPromo: isPromo,
-  isPromotion: isPromo,
-  discountPercent: discountPercent,
-  discountText: raw.discountText || (discountPercent ? `-${discountPercent}%` : ""),
-  image: `images/products/${code}.jpg`
-};
+      const product = {
+        code,
+        name,
+        price: finalPrice,                // prix promo (ou normal)
+        oldPrice: originalPrice,          // prix barré (si promo)
+        stock: stock,
+        originalStock: stock,
+        category: categoryName || "Épicerie Salée",
+        categoryKey,
+        isPromo: isPromo,
+        isPromotion: isPromo,
+        discountPercent: discountPercent,
+        discountText: raw.discountText || (discountPercent ? `-${discountPercent}%` : ""),
+        image: `images/products/${code}.jpg`
+      };
 
       if (!state.products.has(categoryKey)) {
         state.products.set(categoryKey, []);
