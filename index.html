@@ -5085,411 +5085,271 @@ function setLanguage(lang) {
       return addressText;
     }
 
-    async function loadGoogleSheetsStock() {
-      try {
-        console.log('Chargement du stock depuis Google Sheets...');
-        const response = await fetch(CONFIG.googleSheetsUrl + "&t=" + Date.now(), {
-          cache: "no-store"
+    // =========================================================================
+// GESTION COMPLÈTE : STOCKS, SYNCHRONISATION ET PROMOTIONS
+// =========================================================================
+
+async function loadGoogleSheetsStock() {
+  try {
+    console.log('🔄 Synchronisation des stocks via API Google...');
+    const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`, {
+      cache: "no-store"
+    });
+
+    if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+
+    const data = await response.json();
+    const products = data.products || data;
+
+    state.googleSheetsStock.clear();
+
+    products.forEach(p => {
+      const code = String(p.Article || p.code || p.Code || '').trim();
+      if (code) {
+        state.googleSheetsStock.set(code, {
+          stock: parseInt(p.Stock || p.stock || 0),
+          produit: String(p.Produits || p.name || '').trim(),
+          code: code
         });
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        const text = await response.text();
-        const rows = parseCSV(text);
-        state.googleSheetsStock.clear();
-        rows.forEach(row => {
-          const code = String(row.Article || row.Code || '').trim();
-          const produit = String(row.Produits || row.Nom || '').trim();
-          const stock = parseInt(row.Stock || row.Quantite || 0);
-          if (code) {
-            state.googleSheetsStock.set(code, {
-              stock: stock,
-              produit: produit,
-              code: code
-            });
-          }
-        });
-        console.log(`${state.googleSheetsStock.size} produits chargés depuis Google Sheets`);
-        return true;
-      } catch (error) {
-        console.error('Erreur chargement Google Sheets:', error);
-        return false;
       }
-    }
+    });
 
-    function parseCSV(text) {
-      const rows = [];
-      let row = [], field = "", inQuotes = false;
-      for (let i = 0; i < text.length; i++) {
-        const c = text[i];
-        const next = text[i + 1];
-        if (c === '"' && inQuotes && next === '"') {
-          field += '"';
-          i++;
-          continue;
-        }
-        if (c === '"') {
-          inQuotes = !inQuotes;
-          continue;
-        }
-        if (c === ',' && !inQuotes) {
-          row.push(field);
-          field = "";
-          continue;
-        }
-        if ((c === '\n' || c === '\r') && !inQuotes) {
-          if (c === '\r' && next === '\n') i++;
-          row.push(field);
-          field = "";
-          if (row.length > 1 || row[0] !== "") rows.push(row);
-          row = [];
-          continue;
-        }
-        field += c;
-      }
-      row.push(field);
-      if (row.length > 1 || row[0] !== "") rows.push(row);
-      const headers = rows.shift().map(h => h.trim());
-      return rows
-        .filter(r => r.some(x => String(x).trim() !== ""))
-        .map(r => {
-          const obj = {};
-          headers.forEach((h, idx) => obj[h] = (r[idx] ?? "").trim());
-          return obj;
+    console.log(`✅ ${state.googleSheetsStock.size} produits synchronisés depuis le Cloud`);
+    return true;
+  } catch (error) {
+    console.error('❌ Erreur synchro Google Sheets:', error);
+    return false;
+  }
+}
+
+function getStockFromGoogleSheets(code) {
+  const item = state.googleSheetsStock.get(String(code).trim());
+  return item ? (item.stock || 0) : 0;
+}
+
+function initializeSync() {
+  loadSyncData();
+  syncStocks();
+
+  state.syncTimer = setInterval(syncStocks, CONFIG.syncInterval || 300000);
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) syncStocks();
+  });
+}
+
+function loadSyncData() {
+  try {
+    const syncData = localStorage.getItem(CONFIG.syncStorageKey);
+    if (syncData) {
+      const data = JSON.parse(syncData);
+      if (data.productStocks) {
+        Object.entries(data.productStocks).forEach(([key, stock]) => {
+          state.productStocks.set(key, stock);
         });
+      }
+      if (data.salesHistory) {
+        state.orderHistory = [...state.orderHistory, ...data.salesHistory]
+          .filter((order, index, self) => index === self.findIndex(o => o.id === order.id))
+          .sort((a, b) => new Date(b.date) - new Date(a.date));
+      }
+      state.lastSyncTime = data.lastSyncTime || null;
+      console.log('📦 Données locales chargées');
     }
+  } catch (error) {
+    console.error('Erreur chargement local:', error);
+  }
+}
 
-    function getStockFromGoogleSheets(code) {
-      const item = state.googleSheetsStock.get(code);
-      if (!item) return 0;
-      return item.stock || 0;
+function saveSyncData() {
+  try {
+    const syncData = {
+      productStocks: Object.fromEntries(state.productStocks),
+      salesHistory: state.orderHistory,
+      lastSyncTime: new Date().toISOString(),
+      version: '1.0'
+    };
+    localStorage.setItem(CONFIG.syncStorageKey, JSON.stringify(syncData));
+  } catch (error) {
+    console.error('Erreur sauvegarde locale:', error);
+  }
+}
+
+function syncStocks() {
+  loadGoogleSheetsStock().then(success => {
+    if (success) {
+      updateAllProductStocks();
+      renderProducts();
     }
+  });
 
-    function initializeSync() {
-      loadSyncData();
-      state.syncTimer = setInterval(syncStocks, CONFIG.syncInterval);
-      setTimeout(syncStocks, 2000);
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-          syncStocks();
-        }
+  const syncData = localStorage.getItem(CONFIG.syncStorageKey);
+  if (!syncData) return;
+
+  try {
+    const sharedData = JSON.parse(syncData);
+    if (sharedData.productStocks) {
+      Object.entries(sharedData.productStocks).forEach(([key, stock]) => {
+        const currentStock = state.productStocks.get(key) || 0;
+        if (stock < currentStock) state.productStocks.set(key, stock);
       });
+      updateAllProductStocks();
+      renderProducts();
+      state.lastSyncTime = sharedData.lastSyncTime;
     }
-
-    function loadSyncData() {
-      try {
-        const syncData = localStorage.getItem(CONFIG.syncStorageKey);
-        if (syncData) {
-          const data = JSON.parse(syncData);
-          if (data.productStocks) {
-            Object.entries(data.productStocks).forEach(([key, stock]) => {
-              state.productStocks.set(key, stock);
-            });
-          }
-          if (data.salesHistory) {
-            state.orderHistory = [...state.orderHistory, ...data.salesHistory]
-              .filter((order, index, self) =>
-                index === self.findIndex(o => o.id === order.id)
-              )
-              .sort((a, b) => new Date(b.date) - new Date(a.date));
-          }
-          state.lastSyncTime = data.lastSyncTime || null;
-          console.log('Données de synchronisation chargées');
-        }
-      } catch (error) {
-        console.error('Erreur chargement données sync:', error);
-      }
+    if (state.pendingStockUpdates.size > 0) {
+      saveSyncData();
+      state.pendingStockUpdates.clear();
     }
+  } catch (e) {
+    console.error("Erreur durant la synchro:", e);
+  }
+}
 
-    function saveSyncData() {
-      try {
-        const syncData = {
-          productStocks: Object.fromEntries(state.productStocks),
-          salesHistory: state.orderHistory,
-          lastSyncTime: new Date().toISOString(),
-          version: '1.0'
-        };
-        localStorage.setItem(CONFIG.syncStorageKey, JSON.stringify(syncData));
-      } catch (error) {
-        console.error('Erreur sauvegarde données sync:', error);
-      }
-    }
-
-    function syncStocks() {
-      try {
-        loadGoogleSheetsStock().then(() => {
-          updateAllProductStocks();
-          renderProducts();
-          console.log('Stocks synchronisés avec Google Sheets');
-        });
-        const syncData = localStorage.getItem(CONFIG.syncStorageKey);
-        if (!syncData) return;
-        const sharedData = JSON.parse(syncData);
-        if (sharedData.productStocks) {
-          Object.entries(sharedData.productStocks).forEach(([key, stock]) => {
-            const currentStock = state.productStocks.get(key) || 0;
-            if (stock < currentStock) {
-              state.productStocks.set(key, stock);
-            }
-          });
-          updateAllProductStocks();
-          renderProducts();
-          state.lastSyncTime = sharedData.lastSyncTime;
-        }
-        if (state.pendingStockUpdates.size > 0) {
-          saveSyncData();
-          state.pendingStockUpdates.clear();
-        }
-      } catch (error) {
-        console.error('Erreur synchronisation:', error);
-      }
-    }
-
-    function updateAllProductStocks() {
-      for (const [catKey, products] of state.products.entries()) {
-        const updatedProducts = products.map(product => {
-          const stockKey = `${product.categoryKey}_${product.code}`;
-          const googleStock = getStockFromGoogleSheets(product.code);
-          const currentStock = state.productStocks.get(stockKey);
-          let finalStock = googleStock;
-          if (currentStock !== undefined && currentStock < googleStock) {
-            finalStock = currentStock;
-          }
-          if (finalStock <= 0) {
-            finalStock = 0;
-          }
-          return {
-            ...product,
-            stock: finalStock
-          };
-        });
-        state.products.set(catKey, updatedProducts);
-      }
-      state.allProducts = [...state.products.values()].flat();
-    }
-
-    function calculateItemSavings(item) {
-      if (!item.isPromotion || !item.oldPrice || item.oldPrice <= item.price) {
-        return 0;
-      }
-      const savingPerUnit = item.oldPrice - item.price;
-      return savingPerUnit * item.quantity;
-    }
-
-    function calculateTotalSavings() {
-      let totalSavings = 0;
-      let totalOriginalPrice = 0;
-      let totalCurrentPrice = 0;
-      Object.values(state.cart).forEach(item => {
-        if (item.isPromotion && item.oldPrice && item.oldPrice > item.price) {
-          const saving = calculateItemSavings(item);
-          totalSavings += saving;
-          totalOriginalPrice += item.oldPrice * item.quantity;
-          totalCurrentPrice += item.price * item.quantity;
-        }
-      });
+function updateAllProductStocks() {
+  for (const [catKey, products] of state.products.entries()) {
+    const updatedProducts = products.map(product => {
+      const googleStock = getStockFromGoogleSheets(product.code);
       return {
-        totalSavings,
-        totalOriginalPrice,
-        totalCurrentPrice,
-        percentage: totalOriginalPrice > 0 ? Math.round((totalSavings / totalOriginalPrice) * 100) : 0
+        ...product,
+        stock: googleStock < 0 ? 0 : googleStock
       };
-    }
+    });
+    state.products.set(catKey, updatedProducts);
+  }
+  state.allProducts = [...state.products.values()].flat();
 
-    function updateSavingsDisplay() {
-      const savings = calculateTotalSavings();
-      const savingsSection = $('cartSavingsSection');
-      const totalSavingsElement = $('totalSavings');
-      const savingsPercentageElement = $('savingsPercentage');
-      const savingsPercentageTextElement = $('savingsPercentageText');
+  if (state.promotions) {
+    state.promotions.forEach(p => {
+      p.stock = getStockFromGoogleSheets(p.code);
+    });
+  }
+}
 
-      if (savings.totalSavings > 0) {
-        savingsSection.classList.add('visible');
-        totalSavingsElement.textContent = formatPrice(savings.totalSavings);
-        savingsPercentageElement.textContent = `${savings.percentage}%`;
-        let percentageText = '';
-        if (savings.percentage >= 50) {
-          percentageText = 'ÉNORME ÉCONOMIE !';
-        } else if (savings.percentage >= 30) {
-          percentageText = 'Super affaire !';
-        } else if (savings.percentage >= 15) {
-          percentageText = 'Bonne affaire';
-        } else {
-          percentageText = 'Économie';
-        }
-        savingsPercentageTextElement.textContent = percentageText;
-      } else {
-        savingsSection.classList.remove('visible');
-      }
-    }
-
-    async function loadCategoryData(categoryKey) {
+async function loadCategoryData(categoryKey) {
   try {
     const category = CATEGORIES.find(c => c.key === categoryKey);
     if (!category) return [];
 
-    // 👉 API GOOGLE (remplace CSV)
-   const response = await fetch(STOCK_API_URL);
-
-    if (!response.ok) {
-      console.error("Erreur API");
-      return [];
-    }
-
+    const response = await fetch(STOCK_API_URL);
     const data = await response.json();
+    const products = data.products || data;
 
-    console.log("DATA API =", data);
+    return products
+      .filter(p => (p.Actif || p.actif) === "oui")
+      .filter(p => {
+        const pCat = String(p.Categorie || p.category).trim();
+        return pCat === category.label || SHEET_CATEGORY_MAP[pCat] === categoryKey;
+      })
+      .map(p => {
+        const code = String(p.Article || p.code);
+        const googleStock = parseInt(p.Stock || p.stock) || 0;
+        state.productStocks.set(`${categoryKey}_${code}`, googleStock);
 
-    let products = data.products || [];
-
-    console.log("Produits API total :", products.length);
-
-    // 👉 Garde seulement les produits actifs
-    products = products.filter(p => p.Actif === "oui");
-
-    // 👉 Filtrer par catégorie
-    products = products.filter(p => p.Categorie === category.label);
-
-    const finalProducts = [];
-
-    products.forEach(p => {
-
-      const googleStock = parseInt(p.Stock) || 0;
-
-      const product = {
-        code: p.Article,
-        name: p.Produits,
-        price: parseFloat(p.Prix) || 0,
-        category: p.Categorie,
-        categoryKey: category.key,
-        isPromotion: false,
-        stock: googleStock,
-        originalStock: googleStock,
-        oldPrice: null,
-        discountPercent: 0
-      };
-
-      finalProducts.push(product);
-
-      const stockKey = `${category.key}_${p.Article}`;
-      if (!state.productStocks.has(stockKey)) {
-        state.productStocks.set(stockKey, googleStock);
-      }
-    });
-
-    console.log(`${categoryKey}: ${finalProducts.length} produits chargés`);
-
-    return finalProducts;
-
+        return {
+          code: code,
+          name: p.Produits || p.name,
+          price: parseFloat(p.Prix || p.price) || 0,
+          category: category.label,
+          categoryKey: categoryKey,
+          isPromotion: false,
+          stock: googleStock,
+          oldPrice: null,
+          discountPercent: 0
+        };
+      });
   } catch (error) {
-    console.error(`Erreur chargement ${categoryKey}:`, error);
+    console.error(`Erreur catégorie ${categoryKey}:`, error);
     return [];
   }
 }
 
-    async function loadPromotionsData() {
+async function loadPromotionsData() {
   try {
-    // 1. Récupération du fichier CSV
     const response = await fetch('data/PROMOTIONS.csv');
-    if (!response.ok) {
-      console.warn('Fichier PROMOTIONS.csv non trouvé');
-      return [];
-    }
+    if (!response.ok) return [];
 
     const text = await response.text();
     const lines = text.split('\n').filter(line => line.trim());
-    if (lines.length <= 1) { // Vérifie s'il y a plus que l'en-tête
-      console.warn('Fichier PROMOTIONS.csv vide ou sans données');
-      return [];
-    }
+    if (lines.length <= 1) return [];
 
-    // Détection automatique du séparateur (virgule, point-virgule ou tabulation)
-    const separator = lines[0].includes(';') ? ';' : (lines[0].includes('\t') ? '\t' : ',');
+    const separator = lines[0].includes(';') ? ';' : ',';
     const promotions = [];
     const seen = new Set();
+    const cleanPrice = (s) => parseFloat(String(s).replace(',', '.').replace(/[^\d.]/g, '')) || 0;
 
-    // Fonction de nettoyage des prix robuste
-    const cleanPrice = (priceStr) => {
-      if (!priceStr) return 0;
-      // Remplace la virgule par un point, enlève tout ce qui n'est pas chiffre ou point
-      const cleaned = priceStr.toString().replace(',', '.').replace(/[^\d.]/g, '');
-      return parseFloat(cleaned) || 0;
-    };
-
-    // 2. Analyse des lignes (on saute l'en-tête)
-    lines.slice(1).forEach((line, index) => {
-      const parts = line.split(separator).map(field => field.trim());
-      
-      if (parts.length < 5) {
-        console.warn(`Ligne ${index + 2} incomplète dans PROMOTIONS: ${line}`);
-        return;
-      }
+    lines.slice(1).forEach(line => {
+      const parts = line.split(separator).map(f => f.trim());
+      if (parts.length < 5) return;
 
       const code = parts[0];
-      const name = parts[1];
-      const originalPriceStr = parts[2];
-      const promoValueStr = parts[3]; // Valeur (soit le nouveau prix, soit le %)
-      const promoType = parts[4].toLowerCase();
-
-      if (!code || !name) return;
-
-      // Éviter les doublons
       if (seen.has(code)) return;
       seen.add(code);
 
-      const originalPrice = cleanPrice(originalPriceStr);
-      const promoValue = cleanPrice(promoValueStr);
+      const originalPrice = cleanPrice(parts[2]);
+      const promoValue = cleanPrice(parts[3]);
+      const type = parts[4].toLowerCase();
 
-      if (originalPrice <= 0) {
-        console.warn(`Prix origine invalide pour ${code}: ${originalPriceStr}`);
-        return;
-      }
+      let finalPrice = (type === 'pourcentage' || type === '%') 
+          ? originalPrice * (1 - promoValue / 100) 
+          : promoValue;
 
-      let finalPrice = 0;
-      let discountPercent = 0;
+      const currentStock = getStockFromGoogleSheets(code);
 
-      // 3. Calcul du prix promo selon le type
-      if (promoType === 'pourcentage' || promoType === '%') {
-        discountPercent = promoValue;
-        finalPrice = originalPrice * (1 - discountPercent / 100);
-      } else if (promoType === 'prix' || promoType === 'fixe') {
-        finalPrice = promoValue;
-        discountPercent = Math.round((1 - finalPrice / originalPrice) * 100);
-      } else {
-        console.warn(`Type de promo inconnu (${promoType}) pour ${code}. Utilisation prix fixe.`);
-        finalPrice = promoValue;
-      }
-
-      // 4. Synchronisation du Stock avec Google Sheets
-      // On cherche si le produit existe déjà dans les données chargées de Google
-      const productInStore = state.allProducts.find(p => p.code === code);
-      const currentStock = productInStore ? productInStore.stock : 0;
-
-      const product = {
+      promotions.push({
         code: code,
-        name: name,
-        price: finalPrice, // Prix après réduction
-        oldPrice: originalPrice, // Ancien prix pour l'affichage barré
+        name: parts[1],
+        price: finalPrice,
+        oldPrice: originalPrice,
         stock: currentStock,
-        category: 'promotions', // Clé technique
-        label: '🔥 PROMOTIONS', // Label affiché
+        category: 'promotions',
+        categoryKey: 'promotions',
+        label: '🔥 PROMOTIONS',
         isPromotion: true,
-        discountPercent: discountPercent,
-        promoType: promoType
-      };
+        discountPercent: Math.round((1 - finalPrice / originalPrice) * 100)
+      });
 
-      promotions.push(product);
-
-      // Mise à jour de la Map globale des stocks
       state.productStocks.set(`promotions_${code}`, currentStock);
     });
 
-    console.log(`✅ ${promotions.length} promotions chargées avec succès`);
+    console.log(`✅ ${promotions.length} promotions prêtes`);
     return promotions;
-
   } catch (error) {
-    console.error('❌ Erreur lors du chargement des promotions:', error);
+    console.error('Erreur promotions:', error);
     return [];
+  }
+}
+
+// --- Fonctions d'économies ---
+
+function calculateItemSavings(item) {
+  if (!item.isPromotion || !item.oldPrice || item.oldPrice <= item.price) return 0;
+  return (item.oldPrice - item.price) * item.quantity;
+}
+
+function calculateTotalSavings() {
+  let totalSavings = 0, totalOriginalPrice = 0;
+  Object.values(state.cart).forEach(item => {
+    if (item.isPromotion && item.oldPrice > item.price) {
+      totalSavings += calculateItemSavings(item);
+      totalOriginalPrice += item.oldPrice * item.quantity;
+    }
+  });
+  return {
+    totalSavings,
+    percentage: totalOriginalPrice > 0 ? Math.round((totalSavings / totalOriginalPrice) * 100) : 0
+  };
+}
+
+function updateSavingsDisplay() {
+  const savings = calculateTotalSavings();
+  const section = $('cartSavingsSection');
+  if (section && savings.totalSavings > 0) {
+    section.classList.add('visible');
+    $('totalSavings').textContent = formatPrice(savings.totalSavings);
+    $('savingsPercentage').textContent = `${savings.percentage}%`;
+  } else if (section) {
+    section.classList.remove('visible');
   }
 }
 // =========================================================
