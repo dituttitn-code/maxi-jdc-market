@@ -5693,12 +5693,12 @@ function getFilteredProducts() {
         return;
       }
       
-      productsToShow.forEach(product => {
+    productsToShow.forEach(product => {
         const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
         const stockStatus = getStockStatus(product.stock);
         const card = document.createElement('div');
         
-        // Utilisation de isPromo (défini dans loadAllProducts)
+        // On vérifie si c'est une promo
         const isPromo = product.isPromo || product.isPromotion;
         card.className = `product-card ${isPromo ? 'promo-card' : ''}`;
         
@@ -5706,27 +5706,33 @@ function getFilteredProducts() {
         let discountBadge = '';
         
         if (isPromo) {
-          imagePromoBadge = '<div class="image-promo-badge">PROMO</div>';
+          // Badge "PROMO" en haut à gauche
+          imagePromoBadge = '<div class="image-promo-badge" style="background: #e63946 !important; font-weight: bold;">PROMO</div>';
           
-          // Affiche le texte de réduction (ex: -20% ou -1.500 DT)
+          // Badge de réduction (ex: -20%) en rouge vif
           if (product.discountText) {
-            discountBadge = `<div class="product-discount">${product.discountText}</div>`;
+            discountBadge = `<div class="product-discount" style="background: #e63946 !important; color: white !important; font-weight: 800;">${product.discountText}</div>`;
           }
         }
 
-        // Gestion de l'affichage du prix (Normal vs Promo avec prix barré)
-        const priceDisplay = isPromo && product.oldPrice && product.oldPrice > product.price
-          ? `<div class="product-price-container">
-              <div class="product-old-price" style="text-decoration: line-through; color: #888; font-size: 0.85em; margin-bottom: 2px;">
+        // --- LOGIQUE D'AFFICHAGE DES PRIX ---
+        let priceDisplay = '';
+        if (isPromo && product.oldPrice && product.oldPrice > product.price) {
+          priceDisplay = `
+            <div class="product-price-container" style="display: flex; flex-direction: column; align-items: flex-start;">
+              <div class="product-old-price" style="text-decoration: line-through; color: #a0a0a0; font-size: 0.85em; margin-bottom: 0px;">
                 ${formatPrice(product.oldPrice)}
               </div>
-              <div class="product-price" style="color: #e63946; font-weight: bold;">
+              <div class="product-price" style="color: #e63946; font-weight: 900; font-size: 1.2em; margin-top: -2px;">
                 ${formatPrice(product.price)}
               </div>
-            </div>`
-          : `<div class="product-price-container">
-              <div class="product-price">${formatPrice(product.price)}</div>
             </div>`;
+        } else {
+          priceDisplay = `
+            <div class="product-price-container">
+              <div class="product-price" style="font-weight: 700;">${formatPrice(product.price)}</div>
+            </div>`;
+        }
         
         card.innerHTML = `
           <div class="product-image">
@@ -5740,12 +5746,14 @@ function getFilteredProducts() {
             ${discountBadge}
           </div>
           <div class="product-info">
-            <div class="product-name">${product.name}</div>
-            <div class="product-meta">
+            <div class="product-name" style="font-weight: 600; margin-bottom: 4px;">${product.name}</div>
+            <div class="product-meta" style="font-size: 0.8em; color: #666;">
               <div>Code: ${product.code}</div>
-              <div>${product.category}</div>
+              <div style="text-transform: uppercase; letter-spacing: 0.5px;">${product.category}</div>
             </div>
-            ${priceDisplay}
+            <div style="margin-top: 8px;">
+              ${priceDisplay}
+            </div>
           </div>
           <div class="product-stock-tag ${stockStatus.class}">
             ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
