@@ -5242,7 +5242,8 @@ function setLanguage(lang) {
       } catch (error) {
         console.error('Erreur synchronisation:', error);
       }
-    }function updateAllProductStocks() {
+    }
+    function updateAllProductStocks() {
       for (const [catKey, products] of state.products.entries()) {
         const updatedProducts = products.map(product => {
           const stockKey = `${product.categoryKey}_${product.code}`;
@@ -5251,7 +5252,10 @@ function setLanguage(lang) {
           if (currentStock !== undefined && currentStock < finalStock) {
             finalStock = currentStock;
           }
-          return { ...product, stock: Math.max(0, finalStock) };
+          return {
+            ...product,
+            stock: Math.max(0, finalStock)
+          };
         });
         state.products.set(catKey, updatedProducts);
       }
@@ -5259,34 +5263,57 @@ function setLanguage(lang) {
     }
 
     function calculateItemSavings(item) {
-      if (!item.isPromo || !item.oldPrice || item.oldPrice <= item.price) return 0;
-      return (item.oldPrice - item.price) * item.quantity;
+      if (!(item.isPromo || item.isPromotion) || !item.oldPrice || item.oldPrice <= item.price) {
+        return 0;
+      }
+      const savingPerUnit = item.oldPrice - item.price;
+      return savingPerUnit * item.quantity;
     }
 
     function calculateTotalSavings() {
       let totalSavings = 0;
       let totalOriginalPrice = 0;
+
       Object.values(state.cart).forEach(item => {
-        if (item.isPromo && item.oldPrice > item.price) {
-          totalSavings += (item.oldPrice - item.price) * item.quantity;
+        if ((item.isPromo || item.isPromotion) && item.oldPrice && item.oldPrice > item.price) {
+          const saving = calculateItemSavings(item);
+          totalSavings += saving;
           totalOriginalPrice += item.oldPrice * item.quantity;
         }
       });
+
       return {
         totalSavings,
+        totalOriginalPrice,
         percentage: totalOriginalPrice > 0 ? Math.round((totalSavings / totalOriginalPrice) * 100) : 0
       };
     }
 
     function updateSavingsDisplay() {
       const savings = calculateTotalSavings();
-      const section = $('cartSavingsSection');
-      if (section && savings.totalSavings > 0) {
-        section.classList.add('visible');
-        $('totalSavings').textContent = formatPrice(savings.totalSavings);
-        $('savingsPercentage').textContent = `${savings.percentage}%`;
-      } else if (section) {
-        section.classList.remove('visible');
+      const savingsSection = $('cartSavingsSection');
+      const totalSavingsElement = $('totalSavings');
+      const savingsPercentageElement = $('savingsPercentage');
+      const savingsPercentageTextElement = $('savingsPercentageText');
+
+      if (savingsSection && savings.totalSavings > 0) {
+        savingsSection.classList.add('visible');
+        totalSavingsElement.textContent = formatPrice(savings.totalSavings);
+        savingsPercentageElement.textContent = `${savings.percentage}%`;
+        
+        let percentageText = '';
+        if (savings.percentage >= 50) {
+          percentageText = 'ÉNORME ÉCONOMIE !';
+        } else if (savings.percentage >= 30) {
+          percentageText = 'Super affaire !';
+        } else if (savings.percentage >= 15) {
+          percentageText = 'Bonne affaire';
+        } else {
+          percentageText = 'Économie';
+        }
+        savingsPercentageTextElement.textContent = percentageText;
+      } else if (savingsSection) {
+        savingsSection.classList.remove('visible');
       }
     }
 
@@ -5295,33 +5322,41 @@ function setLanguage(lang) {
         const category = CATEGORIES.find(c => c.key === categoryKey);
         if (!category) return [];
 
+        // Ajout d'un paramètre temporel pour forcer la mise à jour des données (anti-cache)
         const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`);
-        const data = await response.json();
-        const raw = (data.products || []).filter(p => p.Actif === "oui" && p.Categorie === category.label);
 
-        const processed = raw.map(p => {
+        if (!response.ok) return [];
+
+        const data = await response.json();
+        const rawProducts = (data.products || []).filter(p => p.Actif === "oui" && p.Categorie === category.label);
+
+        const finalProducts = rawProducts.map(p => {
+          const googleStock = parseInt(p.Stock) || 0;
           let basePrice = parseFloat(p.Prix) || 0;
+          
           let finalPrice = basePrice;
           let oldPrice = null;
           let isPromo = false;
-          let discText = "";
+          let discountLabel = "";
 
-          // ON LIT LA COLONNE "Promotion" (G)
-          const valPromo = (p.Promotion || p.promo || "").toString().trim();
+          // --- LOGIQUE DE DÉTECTION ET CALCUL DES PROMOTIONS (Colonne G) ---
+          const rawPromo = (p.Promotion || p.promo || "").toString().trim();
 
-          if (valPromo !== "" && valPromo !== "0") {
+          if (rawPromo !== "" && rawPromo !== "0") {
             isPromo = true;
-            if (valPromo.includes('%')) {
-              const reduction = parseFloat(valPromo.replace('%', ''));
-              finalPrice = basePrice - (basePrice * (reduction / 100));
+            if (rawPromo.includes('%')) {
+              // Cas "20%" : On calcule la réduction (ex: 7.000 - 20% = 5.600)
+              const percentage = parseFloat(rawPromo.replace('%', ''));
+              finalPrice = basePrice - (basePrice * (percentage / 100));
               oldPrice = basePrice;
-              discText = `-${reduction}%`;
+              discountLabel = `-${percentage}%`;
             } else {
-              const prixFixe = parseFloat(valPromo.replace(',', '.'));
-              if (!isNaN(prixFixe) && prixFixe > 0) {
-                finalPrice = prixFixe;
+              // Cas prix fixe (ex: "11")
+              const fixedPrice = parseFloat(rawPromo.replace(',', '.'));
+              if (!isNaN(fixedPrice) && fixedPrice < basePrice) {
+                finalPrice = fixedPrice;
                 oldPrice = basePrice;
-                discText = "PROMO";
+                discountLabel = "PROMO";
               }
             }
           }
@@ -5334,33 +5369,52 @@ function setLanguage(lang) {
             categoryKey: category.key,
             isPromo: isPromo,
             isPromotion: isPromo,
-            stock: parseInt(p.Stock) || 0,
-            originalStock: parseInt(p.Stock) || 0,
+            stock: googleStock,
+            originalStock: googleStock,
             oldPrice: oldPrice,
-            discountText: discText
+            discountText: discountLabel
           };
         });
 
-        state.products.set(categoryKey, processed);
-        processed.forEach(p => state.productStocks.set(`${category.key}_${p.code}`, p.stock));
-        
-        return processed;
-      } catch (e) { return []; }
+        // Stockage dans l'état global pour synchronisation
+        state.products.set(categoryKey, finalProducts);
+        finalProducts.forEach(p => {
+          state.productStocks.set(`${category.key}_${p.code}`, p.stock);
+        });
+
+        return finalProducts;
+
+      } catch (error) {
+        console.error(`Erreur chargement ${categoryKey}:`, error);
+        return [];
+      }
     }
 
     async function loadPromotionsData() {
-      // SCAN DE TOUTES LES CATÉGORIES POUR REMPLIR L'ONGLET PROMO
-      let toutesLesPromos = [];
-      state.products.forEach(prods => {
-        const filtres = prods.filter(p => p.isPromo === true);
-        toutesLesPromos.push(...filtres);
-      });
-      
-      return toutesLesPromos.map(p => ({
-        ...p,
-        categoryKey: 'promotions',
-        category: '🔥 PROMOTIONS'
-      }));
+      try {
+        let allPromos = [];
+        
+        // On scanne toutes les catégories chargées pour extraire les promos
+        state.products.forEach((products) => {
+          const promoItems = products.filter(p => p.isPromo === true);
+          allPromos.push(...promoItems);
+        });
+
+        // Formatage spécifique pour l'onglet PROMOTIONS
+        const formattedPromos = allPromos.map(p => ({
+          ...p,
+          categoryKey: 'promotions',
+          category: '🔥 PROMOTIONS',
+          isPromotion: true 
+        }));
+
+        console.log("Nombre de promotions chargées :", formattedPromos.length);
+        return formattedPromos;
+
+      } catch (error) {
+        console.error('Erreur lors du traitement des promotions:', error);
+        return [];
+      }
     }
 // =========================================================
 // CHARGEMENT ET SYNC DES PRODUITS
