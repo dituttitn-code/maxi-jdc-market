@@ -5243,26 +5243,32 @@ function setLanguage(lang) {
         console.error('Erreur synchronisation:', error);
       }
     }
+
     function updateAllProductStocks() {
       for (const [catKey, products] of state.products.entries()) {
         const updatedProducts = products.map(product => {
           const stockKey = `${product.categoryKey}_${product.code}`;
+          const googleStock = getStockFromGoogleSheets(product.code);
           const currentStock = state.productStocks.get(stockKey);
-          let finalStock = product.originalStock || 0;
-          if (currentStock !== undefined && currentStock < finalStock) {
+          let finalStock = googleStock;
+          if (currentStock !== undefined && currentStock < googleStock) {
             finalStock = currentStock;
+          }
+          if (finalStock <= 0) {
+            finalStock = 0;
           }
           return {
             ...product,
-            stock: Math.max(0, finalStock)
+            stock: finalStock
           };
         });
         state.products.set(catKey, updatedProducts);
       }
-      state.allProducts = Array.from(state.products.values()).flat();
+      state.allProducts = [...state.products.values()].flat();
     }
 
     function calculateItemSavings(item) {
+      // Vérifie si l'article est en promo et si le prix d'origine est bien supérieur au prix actuel
       if (!(item.isPromo || item.isPromotion) || !item.oldPrice || item.oldPrice <= item.price) {
         return 0;
       }
@@ -5273,22 +5279,25 @@ function setLanguage(lang) {
     function calculateTotalSavings() {
       let totalSavings = 0;
       let totalOriginalPrice = 0;
+      let totalCurrentPrice = 0;
 
       Object.values(state.cart).forEach(item => {
+        // Calcule l'économie seulement si l'article est marqué en promotion
         if ((item.isPromo || item.isPromotion) && item.oldPrice && item.oldPrice > item.price) {
           const saving = calculateItemSavings(item);
           totalSavings += saving;
           totalOriginalPrice += item.oldPrice * item.quantity;
+          totalCurrentPrice += item.price * item.quantity;
         }
       });
 
       return {
         totalSavings,
         totalOriginalPrice,
+        totalCurrentPrice,
         percentage: totalOriginalPrice > 0 ? Math.round((totalSavings / totalOriginalPrice) * 100) : 0
       };
     }
-
     function updateSavingsDisplay() {
       const savings = calculateTotalSavings();
       const savingsSection = $('cartSavingsSection');
@@ -5296,11 +5305,10 @@ function setLanguage(lang) {
       const savingsPercentageElement = $('savingsPercentage');
       const savingsPercentageTextElement = $('savingsPercentageText');
 
-      if (savingsSection && savings.totalSavings > 0) {
+      if (savings.totalSavings > 0) {
         savingsSection.classList.add('visible');
         totalSavingsElement.textContent = formatPrice(savings.totalSavings);
         savingsPercentageElement.textContent = `${savings.percentage}%`;
-        
         let percentageText = '';
         if (savings.percentage >= 50) {
           percentageText = 'ÉNORME ÉCONOMIE !';
@@ -5312,103 +5320,95 @@ function setLanguage(lang) {
           percentageText = 'Économie';
         }
         savingsPercentageTextElement.textContent = percentageText;
-      } else if (savingsSection) {
+      } else {
         savingsSection.classList.remove('visible');
       }
     }
 
     async function loadCategoryData(categoryKey) {
-      try {
-        const category = CATEGORIES.find(c => c.key === categoryKey);
-        if (!category) return [];
+  try {
+    const category = CATEGORIES.find(c => c.key === categoryKey);
+    if (!category) return [];
 
-        // Ajout d'un paramètre temporel pour forcer la mise à jour des données (anti-cache)
-        const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`);
+    // 👉 API GOOGLE (remplace CSV)
+   const response = await fetch(STOCK_API_URL);
 
-        if (!response.ok) return [];
-
-        const data = await response.json();
-        const rawProducts = (data.products || []).filter(p => p.Actif === "oui" && p.Categorie === category.label);
-
-        const finalProducts = rawProducts.map(p => {
-          const googleStock = parseInt(p.Stock) || 0;
-          let basePrice = parseFloat(p.Prix) || 0;
-          
-          let finalPrice = basePrice;
-          let oldPrice = null;
-          let isPromo = false;
-          let discountLabel = "";
-
-          // --- LOGIQUE DE DÉTECTION ET CALCUL DES PROMOTIONS (Colonne G) ---
-          const rawPromo = (p.Promotion || p.promo || "").toString().trim();
-
-          if (rawPromo !== "" && rawPromo !== "0") {
-            isPromo = true;
-            if (rawPromo.includes('%')) {
-              // Cas "20%" : On calcule la réduction (ex: 7.000 - 20% = 5.600)
-              const percentage = parseFloat(rawPromo.replace('%', ''));
-              finalPrice = basePrice - (basePrice * (percentage / 100));
-              oldPrice = basePrice;
-              discountLabel = `-${percentage}%`;
-            } else {
-              // Cas prix fixe (ex: "11")
-              const fixedPrice = parseFloat(rawPromo.replace(',', '.'));
-              if (!isNaN(fixedPrice) && fixedPrice < basePrice) {
-                finalPrice = fixedPrice;
-                oldPrice = basePrice;
-                discountLabel = "PROMO";
-              }
-            }
-          }
-
-          return {
-            code: p.Article,
-            name: p.Produits,
-            price: finalPrice,
-            category: p.Categorie,
-            categoryKey: category.key,
-            isPromo: isPromo,
-            isPromotion: isPromo,
-            stock: googleStock,
-            originalStock: googleStock,
-            oldPrice: oldPrice,
-            discountText: discountLabel
-          };
-        });
-
-        // Stockage dans l'état global pour synchronisation
-        state.products.set(categoryKey, finalProducts);
-        finalProducts.forEach(p => {
-          state.productStocks.set(`${category.key}_${p.code}`, p.stock);
-        });
-
-        return finalProducts;
-
-      } catch (error) {
-        console.error(`Erreur chargement ${categoryKey}:`, error);
-        return [];
-      }
+    if (!response.ok) {
+      console.error("Erreur API");
+      return [];
     }
+
+    const data = await response.json();
+
+    console.log("DATA API =", data);
+
+    let products = data.products || [];
+
+    console.log("Produits API total :", products.length);
+
+    // 👉 Garde seulement les produits actifs
+    products = products.filter(p => p.Actif === "oui");
+
+    // 👉 Filtrer par catégorie
+    products = products.filter(p => p.Categorie === category.label);
+
+    const finalProducts = [];
+
+    products.forEach(p => {
+
+      const googleStock = parseInt(p.Stock) || 0;
+
+      const product = {
+        code: p.Article,
+        name: p.Produits,
+        price: parseFloat(p.Prix) || 0,
+        category: p.Categorie,
+        categoryKey: category.key,
+        isPromotion: false,
+        stock: googleStock,
+        originalStock: googleStock,
+        oldPrice: null,
+        discountPercent: 0
+      };
+
+      finalProducts.push(product);
+
+      const stockKey = `${category.key}_${p.Article}`;
+      if (!state.productStocks.has(stockKey)) {
+        state.productStocks.set(stockKey, googleStock);
+      }
+    });
+
+    console.log(`${categoryKey}: ${finalProducts.length} produits chargés`);
+
+    return finalProducts;
+
+  } catch (error) {
+    console.error(`Erreur chargement ${categoryKey}:`, error);
+    return [];
+  }
+}
 
     async function loadPromotionsData() {
       try {
-        let allPromos = [];
-        
-        // On scanne toutes les catégories chargées pour extraire les promos
-        state.products.forEach((products) => {
-          const promoItems = products.filter(p => p.isPromo === true);
-          allPromos.push(...promoItems);
-        });
+        // On vérifie si les produits sont déjà chargés dans l'état global
+        if (!state.allProducts || state.allProducts.length === 0) {
+          console.warn('Produits non chargés, impossible de filtrer les promotions');
+          return [];
+        }
 
-        // Formatage spécifique pour l'onglet PROMOTIONS
-        const formattedPromos = allPromos.map(p => ({
+        // On filtre uniquement les articles qui ont "isPromo" à true (venant de Google Sheets)
+        const promotions = state.allProducts.filter(p => p.isPromo === true);
+
+        // On formate les données pour l'onglet spécial PROMOTIONS
+        const formattedPromos = promotions.map(p => ({
           ...p,
           categoryKey: 'promotions',
           category: '🔥 PROMOTIONS',
           isPromotion: true 
         }));
 
-        console.log("Nombre de promotions chargées :", formattedPromos.length);
+        console.log(`${formattedPromos.length} promotions détectées via Google Sheets`);
         return formattedPromos;
 
       } catch (error) {
@@ -5418,7 +5418,8 @@ function setLanguage(lang) {
     }
 // =========================================================
 // CHARGEMENT ET SYNC DES PRODUITS
-// =======================================================
+// =========================================================
+
 async function loadAllProducts() {
   try {
     console.log('Chargement du stock depuis Google Sheets...');
@@ -5469,68 +5470,22 @@ async function loadAllProducts() {
 
       let categoryKey = SHEET_CATEGORY_MAP[categoryName] || "epicerie_salee";
 
-  // --- LOGIQUE DE CHARGEMENT RÉPARÉE ---
-      let finalPrice = price > 1000 ? price / 1000 : price;
-      let discountLabel = "";
-      let isPromoActive = false;
-      let originalPriceValue = null;
-
-      // On récupère la valeur de la promotion (soit de raw.promo, soit de raw.isPromo)
-      let rawPromoValue = raw.promo || raw.Promotion || ""; 
-
-      if (rawPromoValue && rawPromoValue.toString().trim() !== "") {
-        const promoVal = rawPromoValue.toString().trim();
-        
-        if (promoVal.includes('%')) {
-          // ✅ CALCUL 20% -> 5.600 dt
-          const percent = parseFloat(promoVal.replace('%', ''));
-          const reduction = finalPrice * (percent / 100);
-          originalPriceValue = finalPrice;
-          finalPrice = finalPrice - reduction;
-          discountLabel = `-${percent}%`;
-          isPromoActive = true;
-        } else {
-          // ✅ CAS PRIX FIXE (ex: 5)
-          const fixedPrice = parseFloat(promoVal.replace(',', '.'));
-          if (!isNaN(fixedPrice) && fixedPrice > 0 && fixedPrice < finalPrice) {
-            originalPriceValue = finalPrice;
-            finalPrice = fixedPrice;
-            const percentSaved = Math.round(((originalPriceValue - finalPrice) / originalPriceValue) * 100);
-            discountLabel = `-${percentSaved}%`;
-            isPromoActive = true;
-          }
-        }
-      }
-
-      const product = {
+    const product = {
         code,
         name,
-        price: finalPrice,
+        price: price > 1000 ? price / 1000 : price,
         stock: stock,
         originalStock: stock,
         category: categoryName || "Épicerie Salée",
         categoryKey,
-        isPromo: isPromoActive, // Crucial pour l'affichage dans l'onglet PROMOTIONS
-        isPromotion: isPromoActive,
-        oldPrice: originalPriceValue,
-        discountText: discountLabel,
+        // --- MODIFICATION ICI : Lecture des colonnes envoyées par code.gs ---
+        isPromo: raw.isPromo === true || raw.isPromo === "true",
+        isPromotion: raw.isPromo === true || raw.isPromo === "true",
+        oldPrice: raw.oldPrice ? parseFloat(raw.oldPrice) : null,
+        discountText: raw.discountText || "",
+        // -----------------------------------------------------------------
         image: `images/products/${code}.jpg`
       };
-
-      // Ajout aux listes
-      if (!state.products.has(categoryKey)) {
-        state.products.set(categoryKey, []);
-      }
-      state.products.get(categoryKey).push(product);
-      allProducts.push(product);
-      
-      // ✅ SÉCURITÉ : Forcer l'ajout dans l'onglet Promotion si isPromo est vrai
-      if (isPromoActive) {
-        if (!state.products.has('promotions')) {
-          state.products.set('promotions', []);
-        }
-        state.products.get('promotions').push(product);
-      }
 
       if (!state.products.has(categoryKey)) {
         state.products.set(categoryKey, []);
@@ -5538,7 +5493,7 @@ async function loadAllProducts() {
       state.products.get(categoryKey).push(product);
       allProducts.push(product);
       state.productStocks.set(code, stock);
-    } // Fin de la boucle (ne pas oublier l'accolade)
+    }
 
     // 3. Gestion des Promotions (Version sécurisée Google Sheets)
     state.allProducts = allProducts; 
@@ -7936,6 +7891,5 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
-
 
 
