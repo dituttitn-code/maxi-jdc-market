@@ -5698,7 +5698,6 @@ function getFilteredProducts() {
         const stockStatus = getStockStatus(product.stock);
         const card = document.createElement('div');
         
-        // Détection de la promotion
         const isPromo = product.isPromo || product.isPromotion;
         card.className = `product-card ${isPromo ? 'promo-card' : ''}`;
         
@@ -5714,7 +5713,7 @@ function getFilteredProducts() {
             padding: 4px 8px; 
             border-radius: 0 4px 4px 0;">PROMO</div>`;
           
-          // Badge de réduction (ex: -20%) stylisé en rouge vif
+          // Badge de réduction (ex: -20%) circulaire ou stylisé en rouge
           if (product.discountText) {
             discountBadge = `<div class="product-discount" style="
               background: #e63946 !important; 
@@ -5726,7 +5725,7 @@ function getFilteredProducts() {
           }
         }
 
-        // --- INTERFACE PRIX PROFESSIONNELLE (Prix barré et prix rouge) ---
+        // --- INTERFACE PRIX PROFESSIONNELLE ---
         let priceDisplay = '';
         if (isPromo && product.oldPrice && product.oldPrice > product.price) {
           priceDisplay = `
@@ -5773,7 +5772,7 @@ function getFilteredProducts() {
           </div>
         `;
         
-        // ✅ Action au clic : Ouvre le catalogue ou affiche une erreur si rupture
+        // ✅ Le catalogue s'ouvre sur l'article cliqué
         card.addEventListener('click', () => {
           if (product.stock > 0) {
             if (typeof openCatalogueForProduct === 'function') {
