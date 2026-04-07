@@ -5825,6 +5825,15 @@ function openCatalogueForProduct(targetProduct) {
   document.body.style.overflow = 'hidden';
 }
 
+// Calcule le pourcentage de réduction si non fourni
+function getDiscountPercent(product) {
+  if (product.discountPercent && product.discountPercent > 0) return product.discountPercent;
+  if (product.oldPrice && product.price && product.oldPrice > product.price) {
+    return Math.round((1 - product.price / product.oldPrice) * 100);
+  }
+  return 0;
+}
+
 function renderCatalogue() {
   const grid = $('catalogueGrid');
   const empty = $('catalogueEmpty');
@@ -5852,7 +5861,6 @@ function renderCatalogue() {
     const productId = generateProductId(product);
     const quantity = state.catalogueQuantityPicks[productId] || 0;
     let availableStock = getAvailableStock(product);
-    // S'assurer que le stock est un nombre
     availableStock = typeof availableStock === 'number' ? availableStock : 0;
     const stockStatus = getStockStatus(availableStock);
     const isOutOfStock = availableStock <= 0;
@@ -5871,30 +5879,21 @@ function renderCatalogue() {
       stockAlert = `<span class="catalogue-stock-alert">⚠️ Plus que ${availableStock} en stock</span>`;
     }
     
-    // --- Déterminer si le produit est en promotion ---
-    // Utiliser isPromotion, isPromo, ou calculer à partir de oldPrice et price
-    let isPromo = product.isPromotion || product.isPromo || false;
-    let oldPrice = product.oldPrice ? parseFloat(product.oldPrice) : null;
-    let currentPrice = parseFloat(product.price);
-    let discountPercent = product.discountPercent || 0;
+    // --- Détection promotion ---
+    const isPromo = (product.isPromotion || product.isPromo) && 
+                    product.oldPrice && 
+                    product.oldPrice > product.price;
+    const discountPercent = getDiscountPercent(product);
     
-    // Si oldPrice existe et est supérieur au prix actuel, on force la promo
-    if (oldPrice && oldPrice > currentPrice) {
-      isPromo = true;
-      if (discountPercent === 0) {
-        discountPercent = Math.round((1 - currentPrice / oldPrice) * 100);
-      }
-    }
-    
-    // Badge de promotion (ex: -20%)
+    // Badge promotion
     let promoBadgeHtml = '';
-    if (isPromo && oldPrice && oldPrice > currentPrice && discountPercent > 0) {
+    if (isPromo && discountPercent > 0) {
       promoBadgeHtml = `<div class="product-discount" style="position:absolute; top:8px; left:8px; z-index:5; background: linear-gradient(135deg, #ff0000, #ff6b00); color:white; font-weight:900; font-size:10px; padding:3px 6px; border-radius:4px; box-shadow:0 2px 6px rgba(255,0,0,0.3);">-${discountPercent}%</div>`;
     }
     
-    // Construction du HTML avec prix barré si promo
-    const oldPriceHtml = (isPromo && oldPrice && oldPrice > currentPrice)
-      ? `<span class="catalogue-item-old-price" style="text-decoration: line-through; color: var(--muted); margin-right: 8px;">${formatPrice(oldPrice)}</span>`
+    // Prix barré + prix promo
+    const oldPriceHtml = isPromo
+      ? `<span class="catalogue-item-old-price" style="text-decoration: line-through; color: var(--muted); margin-right: 8px;">${formatPrice(product.oldPrice)}</span>`
       : '';
     
     item.innerHTML = `
@@ -5909,7 +5908,7 @@ function renderCatalogue() {
           <div class="catalogue-item-code">Code: ${product.code}</div>
           <div class="catalogue-item-price">
             ${oldPriceHtml}
-            <span style="color: var(--accent); font-weight: 900;">${formatPrice(currentPrice)}</span>
+            <span style="color: var(--accent); font-weight: 900;">${formatPrice(product.price)}</span>
           </div>
           <div style="font-size:11px;margin-top:2px;${isOutOfStock ? 'color: var(--danger);' : 'color: var(--muted);'}">
             Stock: ${stockStatus.text}
