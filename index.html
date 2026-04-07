@@ -5798,126 +5798,150 @@ function getFilteredProducts() {
       });
     }
 
-    // ✅ Nouvelle fonction : Ouvre le catalogue et affiche le produit spécifique en tête de liste
-    function openCatalogueForProduct(targetProduct) {
-      const category = CATEGORIES.find(c => c.key === targetProduct.categoryKey);
-      if (!category) return;
-      
-      const products = state.products.get(targetProduct.categoryKey) || [];
-      if (products.length === 0) {
-        showToast('⚠️ Aucun produit dans cette catégorie', 'warning');
-        return;
-      }
-      
-      // Placer le produit ciblé en tête de liste, suivi des autres triés par nom
-      const otherProducts = products.filter(p => p.code !== targetProduct.code || p.name !== targetProduct.name);
-      otherProducts.sort((a, b) => a.name.localeCompare(b.name));
-      
-      state.catalogueProducts = [targetProduct, ...otherProducts];
-      state.catalogueSearchQuery = '';
-      $('catalogueTitle').textContent = category.label;
-      $('catalogueSearchInput').value = '';
-      
-      state.catalogueQuantityPicks = {};
-      
-      renderCatalogue();
-      $('catalogueModal').classList.add('open');
-      document.body.style.overflow = 'hidden';
-    }
+// ✅ Nouvelle fonction : Ouvre le catalogue et affiche le produit spécifique en tête de liste
+function openCatalogueForProduct(targetProduct) {
+  const category = CATEGORIES.find(c => c.key === targetProduct.categoryKey);
+  if (!category) return;
+  
+  const products = state.products.get(targetProduct.categoryKey) || [];
+  if (products.length === 0) {
+    showToast('⚠️ Aucun produit dans cette catégorie', 'warning');
+    return;
+  }
+  
+  // Placer le produit ciblé en tête de liste, suivi des autres triés par nom
+  const otherProducts = products.filter(p => p.code !== targetProduct.code || p.name !== targetProduct.name);
+  otherProducts.sort((a, b) => a.name.localeCompare(b.name));
+  
+  state.catalogueProducts = [targetProduct, ...otherProducts];
+  state.catalogueSearchQuery = '';
+  $('catalogueTitle').textContent = category.label;
+  $('catalogueSearchInput').value = '';
+  
+  state.catalogueQuantityPicks = {};
+  
+  renderCatalogue();
+  $('catalogueModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
 
-    function renderCatalogue() {
-      const grid = $('catalogueGrid');
-      const empty = $('catalogueEmpty');
-      
-      let filteredProducts = state.catalogueProducts;
-      if (state.catalogueSearchQuery) {
-        const query = state.catalogueSearchQuery.toLowerCase();
-        filteredProducts = filteredProducts.filter(p =>
-          p.name.toLowerCase().includes(query) ||
-          p.code.toLowerCase().includes(query)
-        );
+function renderCatalogue() {
+  const grid = $('catalogueGrid');
+  const empty = $('catalogueEmpty');
+  
+  let filteredProducts = state.catalogueProducts;
+  if (state.catalogueSearchQuery) {
+    const query = state.catalogueSearchQuery.toLowerCase();
+    filteredProducts = filteredProducts.filter(p =>
+      p.name.toLowerCase().includes(query) ||
+      p.code.toLowerCase().includes(query)
+    );
+  }
+  
+  if (filteredProducts.length === 0) {
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  
+  grid.style.display = 'grid';
+  empty.style.display = 'none';
+  grid.innerHTML = '';
+  
+  filteredProducts.forEach(product => {
+    const productId = generateProductId(product);
+    const quantity = state.catalogueQuantityPicks[productId] || 0;
+    const availableStock = getAvailableStock(product);
+    const stockStatus = getStockStatus(availableStock);
+    const isOutOfStock = availableStock <= 0;
+    const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+    
+    const item = document.createElement('div');
+    item.className = `catalogue-item ${isOutOfStock ? 'stock-out' : ''}`;
+    
+    let stockOutBadge = '';
+    if (isOutOfStock) {
+      stockOutBadge = '<div class="stock-out-badge">⚠️ RUPTURE</div>';
+    }
+    
+    let stockAlert = '';
+    if (!isOutOfStock && availableStock <= 3) {
+      stockAlert = `<span class="catalogue-stock-alert">⚠️ Plus que ${availableStock} en stock</span>`;
+    }
+    
+    // --- Badge de promotion (ex: -20%) ---
+    let promoBadgeHtml = '';
+    const isPromo = product.isPromotion || product.isPromo;
+    if (isPromo && product.oldPrice && product.oldPrice > product.price) {
+      let discountPercent = product.discountPercent;
+      if (!discountPercent && product.oldPrice > 0) {
+        discountPercent = Math.round((1 - product.price / product.oldPrice) * 100);
       }
-      
-      if (filteredProducts.length === 0) {
-        grid.style.display = 'none';
-        empty.style.display = 'block';
-        return;
+      if (discountPercent > 0) {
+        promoBadgeHtml = `<div class="product-discount" style="position:absolute; top:8px; left:8px; z-index:5; background: linear-gradient(135deg, #ff0000, #ff6b00); color:white; font-weight:900; font-size:10px; padding:3px 6px; border-radius:4px;">-${discountPercent}%</div>`;
       }
-      
-      grid.style.display = 'grid';
-      empty.style.display = 'none';
-      grid.innerHTML = '';
-      
-      filteredProducts.forEach(product => {
-        const productId = generateProductId(product);
-        const quantity = state.catalogueQuantityPicks[productId] || 0;
-        const availableStock = getAvailableStock(product);
-        const stockStatus = getStockStatus(availableStock);
-        const isOutOfStock = availableStock <= 0;
-        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-        
-        const item = document.createElement('div');
-        item.className = `catalogue-item ${isOutOfStock ? 'stock-out' : ''}`;
-        
-        let stockOutBadge = '';
-        if (isOutOfStock) {
-          stockOutBadge = '<div class="stock-out-badge">⚠️ RUPTURE</div>';
-        }
-        
-        let stockAlert = '';
-        if (!isOutOfStock && availableStock <= 3) {
-          stockAlert = `<span class="catalogue-stock-alert">⚠️ Plus que ${availableStock} en stock</span>`;
-        }
-        
-        item.innerHTML = `
-          ${stockOutBadge}
-          <div class="catalogue-item-header">
-            <div class="catalogue-item-image">
-              <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
-            </div>
-            <div class="catalogue-item-info">
-              <div class="catalogue-item-name">${product.name}</div>
-              <div class="catalogue-item-code">Code: ${product.code}</div>
-              <div class="catalogue-item-price">
-                ${product.isPromotion && product.oldPrice && product.oldPrice > product.price
-                  ? `<span class="catalogue-item-old-price">${formatPrice(product.oldPrice)}</span>`
-                  : ''}
-                <span>${formatPrice(product.price)}</span>
-              </div>
-              <div style="font-size:11px;margin-top:2px;${isOutOfStock ? 'color: var(--danger);' : 'color: var(--muted);'}">
-                Stock: ${stockStatus.text}
-                ${stockAlert}
-              </div>
-            </div>
+    }
+    
+    item.innerHTML = `
+      ${stockOutBadge}
+      <div class="catalogue-item-header" style="position: relative;">
+        ${promoBadgeHtml}
+        <div class="catalogue-item-image">
+          <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
+        </div>
+        <div class="catalogue-item-info">
+          <div class="catalogue-item-name">${escapeHtml(product.name)}</div>
+          <div class="catalogue-item-code">Code: ${product.code}</div>
+          <div class="catalogue-item-price">
+            ${isPromo && product.oldPrice && product.oldPrice > product.price
+              ? `<span class="catalogue-item-old-price" style="text-decoration: line-through; color: var(--muted); margin-right: 8px;">${formatPrice(product.oldPrice)}</span>`
+              : ''}
+            <span style="color: var(--accent); font-weight: 900;">${formatPrice(product.price)}</span>
           </div>
-          <div class="catalogue-item-actions">
-            <div class="catalogue-qty-controls">
-              <button class="catalogue-qty-btn" data-action="decrease" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>−</button>
-              <input type="number" class="catalogue-qty-input" 
+          <div style="font-size:11px;margin-top:2px;${isOutOfStock ? 'color: var(--danger);' : 'color: var(--muted);'}">
+            Stock: ${stockStatus.text}
+            ${stockAlert}
+          </div>
+        </div>
+      </div>
+      <div class="catalogue-item-actions">
+        <div class="catalogue-qty-controls">
+          <button class="catalogue-qty-btn" data-action="decrease" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>−</button>
+          <input type="number" class="catalogue-qty-input" 
+            data-id="${productId}"
+            value="${quantity}"
+            min="0"
+            max="${availableStock}"
+            step="1"
+            ${isOutOfStock ? 'disabled' : ''}>
+          <button class="catalogue-qty-btn" data-action="increase" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>+</button>
+        </div>
+        <button class="catalogue-add-btn ${quantity > 0 ? 'has-qty' : ''}" 
                 data-id="${productId}"
-                value="${quantity}"
-                min="0"
-                max="${availableStock}"
-                step="1"
-                ${isOutOfStock ? 'disabled' : ''}>
-              <button class="catalogue-qty-btn" data-action="increase" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>+</button>
-            </div>
-            <button class="catalogue-add-btn ${quantity > 0 ? 'has-qty' : ''}" 
-                    data-id="${productId}"
-                    ${stockStatus.available ? '' : 'disabled'}>
-              ${isOutOfStock 
-                ? '❌ RUPTURE' 
-                : `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`}
-            </button>
-          </div>
-        `;
-        
-        grid.appendChild(item);
-      });
-      
-      setupCatalogueEvents();
-    }
+                ${stockStatus.available ? '' : 'disabled'}>
+          ${isOutOfStock 
+            ? '❌ RUPTURE' 
+            : `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`}
+        </button>
+      </div>
+    `;
+    
+    grid.appendChild(item);
+  });
+  
+  setupCatalogueEvents();
+}
 
+// Petite fonction utilitaire pour échapper le HTML (éviter les injections)
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
     function setupCatalogueEvents() {
       document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
         btn.addEventListener('click', (e) => {
