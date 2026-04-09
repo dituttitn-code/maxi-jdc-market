@@ -5956,17 +5956,31 @@ function escapeHtml(str) {
 }
 
 // ===================== GESTION CENTRALISÉE DES STOCKS =====================
-function updateProductStock(product, delta) {
-  // delta > 0 : retire du stock (ajout au panier)
-  // delta < 0 : ajoute au stock (retrait du panier)
+// Retourne le stock physique restant (hors panier)
+function getAvailableStock(product) {
+  if (!product) return 0;
   const stockKey = `${product.categoryKey}_${product.code}`;
-  const currentStock = getAvailableStock(product);
+  // Si la clé n'existe pas encore dans productStocks, on l'initialise avec product.stock
+  if (!state.productStocks.has(stockKey)) {
+    const initialStock = product.stock || 0;
+    state.productStocks.set(stockKey, initialStock);
+    state.pendingStockUpdates.set(stockKey, initialStock);
+    // On met à jour également le champ stock du produit pour cohérence
+    product.stock = initialStock;
+  }
+  return state.productStocks.get(stockKey);
+}
+
+// Met à jour le stock physique (delta positif = retrait, négatif = ajout)
+function updateProductStock(product, delta) {
+  const stockKey = `${product.categoryKey}_${product.code}`;
+  const currentStock = getAvailableStock(product); // utilise la fonction ci-dessus qui initialise si besoin
   const newStock = Math.max(0, currentStock - delta);
   
   state.productStocks.set(stockKey, newStock);
   state.pendingStockUpdates.set(stockKey, newStock);
 
-  // Mise à jour dans state.products (pour l'affichage)
+  // Synchroniser dans state.products (pour l'affichage des grilles)
   for (const [catKey, products] of state.products.entries()) {
     const index = products.findIndex(p => p.code === product.code);
     if (index !== -1) {
@@ -5974,22 +5988,33 @@ function updateProductStock(product, delta) {
       break;
     }
   }
+  
+  // Synchroniser également dans state.catalogueProducts (si le produit y est présent)
+  if (state.catalogueProducts) {
+    const idx = state.catalogueProducts.findIndex(p => p.code === product.code);
+    if (idx !== -1) state.catalogueProducts[idx].stock = newStock;
+  }
+  
+  // Mettre à jour directement la propriété stock de l'objet product passé
+  product.stock = newStock;
+  
   saveSyncData();
 }
 
 // ===================== AJOUT AU PANIER (un par un avec blocage strict) =====================
 function addToCart(productId, product, quantity = 1) {
   if (!product) return;
-  const currentInCart = state.cart[productId] ? state.cart[productId].quantity : 0;
+  // Récupérer le stock physique restant (synchronisé)
   const availableStock = getAvailableStock(product);
+  const currentInCart = state.cart[productId] ? state.cart[productId].quantity : 0;
   
-  // Blocage strict : on ne peut pas dépasser le stock total
+  // Blocage strict : on ne peut pas dépasser le stock physique
   if (currentInCart + quantity > availableStock) {
     showToast('❌ Stock limité', 'warning');
     return;
   }
 
-  // Retirer du stock (delta positif)
+  // Retirer du stock physique
   updateProductStock(product, quantity);
 
   if (state.cart[productId]) {
@@ -6008,16 +6033,14 @@ function removeFromCart(productId, quantity = 1) {
   if (!state.cart[productId]) return;
   const item = state.cart[productId];
   
-  // Ne pas retirer plus que ce qui est présent
   const qtyToRemove = Math.min(quantity, item.quantity);
   if (qtyToRemove <= 0) return;
 
-  // Restaurer le stock (delta négatif)
+  // Restaurer le stock physique (delta négatif)
   updateProductStock(item, -qtyToRemove);
 
   item.quantity -= qtyToRemove;
 
-  // Suppression si quantité atteint zéro
   if (item.quantity <= 0) {
     delete state.cart[productId];
     showToast(`🗑️ ${item.name} retiré`);
@@ -6041,8 +6064,9 @@ function setupCatalogueEvents() {
       let value = parseInt(input.value) || 0;
       
       if (action === 'increase') {
-        const availableStock = parseInt(input.max) || 0;
-        if (value < availableStock) {
+        // La valeur max affichée est déjà le stock restant (mis à jour par renderProducts)
+        const maxAllowed = parseInt(input.max) || 0;
+        if (value < maxAllowed) {
           value++;
         } else {
           showToast('❌ Stock limité', 'warning');
@@ -6190,11 +6214,6 @@ function renderSimilarProducts(currentProduct) {
     card.onclick = () => { closeProductModal(); setTimeout(() => openProductModal(product), 300); };
     grid.appendChild(card);
   });
-}
-
-function getAvailableStock(product) {
-  const stockKey = `${product.categoryKey}_${product.code}`;
-  return state.productStocks.has(stockKey) ? state.productStocks.get(stockKey) : (product.stock || 0);
 }
 
 function updateCartUI() {
