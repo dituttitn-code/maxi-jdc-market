@@ -6037,12 +6037,10 @@ function setupCatalogueEvents() {
       const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
 
       let askedQty = parseInt(input?.value, 10) || 0;
-      const max = parseInt(input?.max, 10) || 0;   // Utilise la même limite que les boutons +/-
+      const max = parseInt(input?.max, 10) || 0;
 
-      // Quantité à ajouter : 1 si le champ est vide ou nul
       const qtyToAdd = askedQty > 0 ? askedQty : 1;
 
-      // Vérification cohérente avec l'affichage "Plus que X en stock"
       if (max <= 0) {
         showToast('❌ Stock limité', 'warning');
         return;
@@ -6056,11 +6054,12 @@ function setupCatalogueEvents() {
       // Ajout sécurisé
       addToCart(productId, product, qtyToAdd);
 
-      // Reset UI après ajout
+      // Met à jour le stock affiché (max et label) après ajout
+      updateCatalogueStockDisplay(productId);
+
+      // Reset UI
       state.catalogueQuantityPicks[productId] = 0;
-
       if (input) input.value = 0;
-
       if (addBtn) {
         addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
         addBtn.classList.remove('has-qty');
@@ -6068,6 +6067,7 @@ function setupCatalogueEvents() {
     });
   });
 }
+
 function updateCatalogueQuantity(productId, quantity) {
   state.catalogueQuantityPicks[productId] = quantity;
 
@@ -6080,6 +6080,39 @@ function updateCatalogueQuantity(productId, quantity) {
     } else {
       addBtn.textContent = `🛒 ${t.addToCart}`;
       addBtn.classList.remove('has-qty');
+    }
+  }
+}
+
+// Met à jour l'attribut max de l'input et l'affichage "Plus que X en stock"
+function updateCatalogueStockDisplay(productId) {
+  const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
+  if (!product) return;
+
+  const availableStock = getAvailableStock(product); // doit exister
+
+  const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+  if (input) {
+    input.max = availableStock;
+    let currentVal = parseInt(input.value, 10) || 0;
+    if (currentVal > availableStock) {
+      input.value = availableStock;
+      updateCatalogueQuantity(productId, availableStock);
+    }
+  }
+
+  // Optionnel : mettre à jour l'affichage texte du stock
+  const stockLabel = document.querySelector(`.catalogue-stock-label[data-id="${productId}"]`);
+  if (stockLabel) {
+    if (availableStock <= 0) {
+      stockLabel.textContent = '⚠️ Rupture de stock';
+      stockLabel.style.color = 'red';
+    } else if (availableStock <= 5) {
+      stockLabel.textContent = `📦 Plus que ${availableStock} en stock`;
+      stockLabel.style.color = 'orange';
+    } else {
+      stockLabel.textContent = `✅ ${availableStock} en stock`;
+      stockLabel.style.color = 'green';
     }
   }
 }
