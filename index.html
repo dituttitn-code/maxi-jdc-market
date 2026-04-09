@@ -4792,7 +4792,7 @@
     };
 
 // ===================== CONFIGURATION & CATEGORIES =====================
-const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbzHAOQc5v5HlZyLBG_aNPupm__SGR6BUEDjd4Hbb0zNhz0A997xPOGbUmU_ux_h67uxOw/exec";
+const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbwwhBmW2nAkmZGJbp2D6XCw_zsRViK2QMWcafaTMeqH3GVvwAS37ceobvvocJO6FZLO6A/exec";
 
 const CATEGORIES = [
   { key: "promotions", label: "🔥 PROMOTIONS", file: "data/PROMOTIONS.csv", isPromo: true },
@@ -6200,172 +6200,88 @@ function getFilteredProducts() {
       saveState();
     }
 
-   // ============================================================
-// GESTION DU PANIER ET DES STOCKS (CORRIGÉ)
-// ============================================================
-
-function addToCart(productId, product, quantity = 1) {
-  if (!product || quantity <= 0) return;
-
-  // Calcul du stock disponible
-  const availableStock = getAvailableStock(product);
-
-  // Vérification stricte du stock avant ajout
-  if (availableStock <= 0) {
-    showToast(`❌ Rupture de stock`, 'warning');
-    return;
-  }
-
-  if (quantity > availableStock) {
-    showToast(`❌ Stock insuffisant. Il ne reste que ${availableStock} unités`, 'error');
-    return;
-  }
-
-  // Mise à jour du stock
-  updateProductStock(product, quantity);
-
-  if (state.cart[productId]) {
-    state.cart[productId].quantity += quantity;
-  } else {
-    state.cart[productId] = {
-      ...product,
-      quantity: quantity
-    };
-  }
-
-  state.quantityPicks[productId] = 0;
-  updateCartUI();
-  renderProducts();
-
-  const t = TRANSLATIONS[state.currentLanguage];
-  if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
-    const saving = (product.oldPrice - product.price) * quantity;
-    showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded} Économie: ${formatPrice(saving)}`);
-  } else {
-    showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded}`);
-  }
-}
-
-function updateProductStock(product, quantity) {
-  const stockKey = `${product.categoryKey}_${product.code}`;
-  const currentStock = state.productStocks.get(stockKey) || product.stock;
-  const newStock = Math.max(0, currentStock - quantity);
-
-  state.productStocks.set(stockKey, newStock);
-  state.pendingStockUpdates.set(stockKey, newStock);
-
-  // Synchronisation avec la liste des produits pour l'affichage
-  for (const [catKey, products] of state.products.entries()) {
-    const index = products.findIndex(p => p.code === product.code);
-    if (index !== -1) {
-      state.products.get(catKey)[index].stock = newStock;
-    }
-  }
-  saveSyncData();
-  return newStock;
-}
-
-/**
- * Nouvelle fonction pour gérer le bouton (-) du panier :
- * Elle diminue de 1 et rend 1 au stock.
- */
-function updateCartItemQuantity(productId, newQuantity) {
-  const item = state.cart[productId];
-  if (!item) return;
-
-  const oldQuantity = item.quantity;
-  const delta = newQuantity - oldQuantity;
-
-  if (delta > 0) {
-    // Cas de l'augmentation (+) : vérifier le stock
-    const availableStock = getAvailableStock(item);
-    if (availableStock <= 0) {
-      showToast('❌ Stock limité', 'warning');
-      return;
-    }
-    updateProductStock(item, 1);
-  } else if (delta < 0) {
-    // Cas de la diminution (-) : rendre 1 au stock
-    const stockKey = `${item.categoryKey}_${item.code}`;
-    const currentStock = state.productStocks.get(stockKey) || 0;
-    const restoredStock = currentStock + 1;
-    
-    state.productStocks.set(stockKey, restoredStock);
-    
-    for (const [catKey, products] of state.products.entries()) {
-      const idx = products.findIndex(p => p.code === item.code);
-      if (idx !== -1) {
-        state.products.get(catKey)[idx].stock = restoredStock;
+    function addToCart(productId, product, quantity = 1) {
+      if (!product || quantity <= 0) return;
+      const availableStock = getAvailableStock(product);
+      if (quantity > availableStock) {
+        showToast(`❌ Stock insuffisant. Il ne reste que ${availableStock} unités`, 'error');
+        return;
+      }
+      updateProductStock(product, quantity);
+      if (state.cart[productId]) {
+        state.cart[productId].quantity += quantity;
+      } else {
+        state.cart[productId] = {
+          ...product,
+          quantity: quantity
+        };
+      }
+      state.quantityPicks[productId] = 0;
+      updateCartUI();
+      renderProducts();
+      const t = TRANSLATIONS[state.currentLanguage];
+      if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
+        const saving = (product.oldPrice - product.price) * quantity;
+        showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded} Économie: ${formatPrice(saving)}`);
+      } else {
+        showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded}`);
       }
     }
-  }
 
-  item.quantity = newQuantity;
-
-  // Si l'article atteint 0, on le supprime proprement
-  if (item.quantity <= 0) {
-    delete state.cart[productId];
-    delete state.quantityPicks[productId];
-  }
-
-  saveSyncData();
-  updateCartUI();
-  renderProducts();
-}
-
-function removeFromCart(productId, quantity = 1) {
-  if (!state.cart[productId]) return;
-  const item = state.cart[productId];
-  
-  // On utilise la quantité réelle présente dans le panier pour restaurer le stock
-  const removeQuantity = item.quantity; 
-  const stockKey = `${item.categoryKey}_${item.code}`;
-  const currentStock = state.productStocks.get(stockKey) || 0;
-  const restoredStock = currentStock + removeQuantity;
-
-  state.productStocks.set(stockKey, restoredStock);
-
-  for (const [catKey, products] of state.products.entries()) {
-    const idx = products.findIndex(p => p.code === item.code);
-    if (idx !== -1) {
-      state.products.get(catKey)[idx].stock = restoredStock;
+    function updateProductStock(product, quantity) {
+      const stockKey = `${product.categoryKey}_${product.code}`;
+      const currentStock = state.productStocks.get(stockKey) || product.stock;
+      const newStock = Math.max(0, currentStock - quantity);
+      state.productStocks.set(stockKey, newStock);
+      state.pendingStockUpdates.set(stockKey, newStock);
+      for (const [catKey, products] of state.products.entries()) {
+        const index = products.findIndex(p => p.code === product.code);
+        if (index !== -1) {
+          state.products.get(catKey)[index].stock = newStock;
+        }
+      }
+      saveSyncData();
+      return newStock;
     }
-  }
 
-  delete state.cart[productId];
-  delete state.quantityPicks[productId];
-  
-  renderProducts();
-  updateCartUI();
-  saveSyncData();
-}
+    function removeFromCart(productId, quantity = 1) {
+      if (!state.cart[productId]) return;
+      const item = state.cart[productId];
+      const removeQuantity = Math.min(quantity, item.quantity);
+      const stockKey = `${item.categoryKey}_${item.code}`;
+      const currentStock = state.productStocks.get(stockKey) || 0;
+      state.productStocks.set(stockKey, currentStock + removeQuantity);
+      item.quantity -= removeQuantity;
+      if (item.quantity <= 0) {
+        delete state.cart[productId];
+        delete state.quantityPicks[productId];
+      }
+      renderProducts();
+      updateCartUI();
+    }
 
-// ============================================================
-// GESTION DE L'INTERFACE UTILISATEUR
-// ============================================================
+    function toggleClientSpace() {
+      state.clientSpaceVisible = !state.clientSpaceVisible;
+      if (state.clientSpaceVisible) {
+        $('clientSpaceSection').classList.add('visible');
+        $('toggleClientSpaceBtn').style.display = 'none';
+        $('accountDetailsSection').classList.remove('visible');
+        $('historySearchSection').classList.remove('visible');
+        $('orderHistorySection').classList.remove('visible');
+      } else {
+        $('clientSpaceSection').classList.remove('visible');
+        $('toggleClientSpaceBtn').style.display = 'block';
+      }
+    }
 
-function toggleClientSpace() {
-  state.clientSpaceVisible = !state.clientSpaceVisible;
-  if (state.clientSpaceVisible) {
-    $('clientSpaceSection').classList.add('visible');
-    $('toggleClientSpaceBtn').style.display = 'none';
-    $('accountDetailsSection').classList.remove('visible');
-    $('historySearchSection').classList.remove('visible');
-    $('orderHistorySection').classList.remove('visible');
-  } else {
-    $('clientSpaceSection').classList.remove('visible');
-    $('toggleClientSpaceBtn').style.display = 'block';
-  }
-}
-
-function closeClientSpace() {
-  state.clientSpaceVisible = false;
-  $('clientSpaceSection').classList.remove('visible');
-  $('toggleClientSpaceBtn').style.display = 'block';
-  $('accountDetailsSection').classList.remove('visible');
-  $('historySearchSection').classList.remove('visible');
-  $('orderHistorySection').classList.remove('visible');
-}
+    function closeClientSpace() {
+      state.clientSpaceVisible = false;
+      $('clientSpaceSection').classList.remove('visible');
+      $('toggleClientSpaceBtn').style.display = 'block';
+      $('accountDetailsSection').classList.remove('visible');
+      $('historySearchSection').classList.remove('visible');
+      $('orderHistorySection').classList.remove('visible');
+    }
 
     // ✅ Fonction pour afficher les commandes en cours
     function afficherCommandesEnCours() {
