@@ -6021,7 +6021,7 @@ function setupCatalogueEvents() {
   });
 
   // =========================
-  // Bouton Ajouter au panier
+  // Bouton Ajouter au panier (CORRIGÉ)
   // =========================
   document.querySelectorAll('.catalogue-add-btn:not([disabled])').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -6036,20 +6036,20 @@ function setupCatalogueEvents() {
       const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
       const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
 
-      const askedQty = parseInt(input?.value, 10) || 0;
+      let askedQty = parseInt(input?.value, 10) || 0;
+      const max = parseInt(input?.max, 10) || 0;   // Utilise la même limite que les boutons +/-
+
+      // Quantité à ajouter : 1 si le champ est vide ou nul
       const qtyToAdd = askedQty > 0 ? askedQty : 1;
 
-      // IMPORTANT :
-      // getAvailableStock(product) = stock restant réel
-      const availableStock = getAvailableStock(product);
-
-      if (availableStock <= 0) {
+      // Vérification cohérente avec l'affichage "Plus que X en stock"
+      if (max <= 0) {
         showToast('❌ Stock limité', 'warning');
         return;
       }
 
-      if (qtyToAdd > availableStock) {
-        showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
+      if (qtyToAdd > max) {
+        showToast(`❌ Stock limité à ${max} unités`, 'warning');
         return;
       }
 
@@ -6068,7 +6068,6 @@ function setupCatalogueEvents() {
     });
   });
 }
-
 function updateCatalogueQuantity(productId, quantity) {
   state.catalogueQuantityPicks[productId] = quantity;
 
