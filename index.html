@@ -5962,9 +5962,9 @@ function setupCatalogueEvents() {
       const productId = e.target.dataset.id;
       const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
       if (!input) return;
-
+      
       let value = parseInt(input.value) || 0;
-
+      
       if (action === 'increase') {
         const availableStock = parseInt(input.max) || 0;
         if (value < availableStock) {
@@ -5975,27 +5975,27 @@ function setupCatalogueEvents() {
       } else if (action === 'decrease') {
         value = Math.max(0, value - 1);
       }
-
+      
       input.value = value;
       updateCatalogueQuantity(productId, value);
     });
   });
-
+  
   document.querySelectorAll('.catalogue-qty-input:not([disabled])').forEach(input => {
     input.addEventListener('input', (e) => {
       const productId = e.target.dataset.id;
       let value = parseInt(e.target.value) || 0;
       const max = parseInt(e.target.max) || 0;
-
+      
       if (value > max) {
         value = max;
         e.target.value = value;
         showToast('❌ Stock limité', 'warning');
       }
-
+      
       updateCatalogueQuantity(productId, value);
     });
-
+    
     input.addEventListener('change', (e) => {
       const productId = e.target.dataset.id;
       let value = parseInt(e.target.value) || 0;
@@ -6004,22 +6004,25 @@ function setupCatalogueEvents() {
       updateCatalogueQuantity(productId, value);
     });
   });
-
+  
   document.querySelectorAll('.catalogue-add-btn:not([disabled])').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const productId = e.target.dataset.id;
       const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
-      const quantity = parseInt(document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`).value) || 0;
-
+      const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+      const quantity = parseInt(input.value) || 0;
+      
       if (product) {
-        // Si quantité 0, on ajoute 1 par défaut, sinon on prend la valeur saisie
-        const qtyToAdd = quantity > 0 ? quantity : 1;
-        addToCart(productId, product, qtyToAdd);
-
+        // Si quantité est 0, on considère que l'utilisateur veut en ajouter 1
+        const finalQty = quantity > 0 ? quantity : 1;
+        
+        // Appel de addToCart qui gère déjà la vérification du stock
+        addToCart(productId, product, finalQty);
+        
+        // Réinitialiser l'interface après l'ajout
         state.catalogueQuantityPicks[productId] = 0;
-        const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
-        const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
         if (input) input.value = 0;
+        const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
         if (addBtn) {
           addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
           addBtn.classList.remove('has-qty');
@@ -6033,7 +6036,7 @@ function setupCatalogueEvents() {
 
 function updateCatalogueQuantity(productId, quantity) {
   state.catalogueQuantityPicks[productId] = quantity;
-
+  
   const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
   if (addBtn && !addBtn.disabled) {
     const t = TRANSLATIONS[state.currentLanguage];
@@ -6195,10 +6198,10 @@ function updateCartUI() {
   const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
   $('cartTopCount').textContent = cartCount;
   $('cartItemsCount').textContent = `${cartCount} ${TRANSLATIONS[state.currentLanguage].items}`;
-
+  
   let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.000;
   let shippingText = formatPrice(shippingFee);
-
+  
   const cartItemsList = $('cartItemsList');
   const cartEmptyMessage = $('cartEmptyMessage');
   if (cartCount === 0) {
@@ -6235,7 +6238,7 @@ function updateCartUI() {
                 <span>Code: ${item.code}</span>
                 <span>Prix: ${formatPrice(item.price)}</span>
                 ${item.oldPrice && item.oldPrice > item.price ?
-          `<span style="color:#ffcc00;font-weight:700;">
+              `<span style="color:#ffcc00;font-weight:700;">
                   Ancien: <del>${formatPrice(item.oldPrice)}</del>
                 </span>` : ''}
                 <span>Cat: ${item.category}</span>
@@ -6243,9 +6246,9 @@ function updateCartUI() {
               ${savingsBadge}
               <div class="cart-item-controls">
                 <div class="cart-item-stepper">
-                  <button class="cart-item-qty-btn" data-action="decrease" data-id="${id}">−</button>
+                  <button class="cart-item-qty-btn decrease-btn" data-id="${id}">−</button>
                   <span class="cart-item-qty">${item.quantity}</span>
-                  <button class="cart-item-qty-btn" data-action="increase" data-id="${id}">+</button>
+                  <button class="cart-item-qty-btn increase-btn" data-id="${id}">+</button>
                 </div>
               </div>
             </div>
@@ -6258,30 +6261,23 @@ function updateCartUI() {
               ` : ''}
             </div>
           `;
+      
+      // Gestionnaire pour augmenter (+1)
+      itemElement.querySelector('.increase-btn').onclick = () => {
+        addToCart(id, item, 1);
+      };
+      
+      // Gestionnaire pour diminuer (Pas de 2 comme demandé)
+      itemElement.querySelector('.decrease-btn').onclick = () => {
+        removeFromCart(id, 2); 
+      };
+      
       cartItemsList.appendChild(itemElement);
     });
-
-    // Ajout des écouteurs d'événements pour les boutons du panier
-    cartItemsList.querySelectorAll('.cart-item-qty-btn').forEach(btn => {
-      btn.onclick = (e) => {
-        const productId = e.target.dataset.id;
-        const action = e.target.dataset.action;
-        const item = state.cart[productId];
-        if (!item) return;
-
-        if (action === 'increase') {
-          addToCart(productId, item, 1);
-        } else if (action === 'decrease') {
-          // Correction demandée : Retrait par pas de 2
-          removeFromCart(productId, 2); 
-        }
-      };
-    });
-
     updateSavingsDisplay();
   }
   $('cartSubtotal').textContent = formatPrice(subtotal);
-
+  
   if (subtotal >= CONFIG.freeShipping) {
     shippingFee = 0;
     shippingText = '<span class="total-value free">GRATUIT</span>';
@@ -6289,7 +6285,7 @@ function updateCartUI() {
     shippingFee = null;
     shippingText = '---';
   }
-
+  
   $('cartShipping').innerHTML = shippingText;
   const total = shippingFee !== null ? subtotal + shippingFee : null;
   if (total !== null) {
@@ -6305,12 +6301,12 @@ function updateCartUI() {
 
 function addToCart(productId, product, quantity = 1) {
   if (!product || quantity <= 0) return;
-
+  
   const availableStock = getAvailableStock(product);
-
-  // Vérification rigoureuse du stock disponible
+  
+  // Correction: On vérifie si l'ajout est possible AVANT de modifier quoi que ce soit
   if (quantity > availableStock) {
-    showToast(`❌ Stock limité. Il ne reste que ${availableStock} unités`, 'error');
+    showToast(`❌ Stock limité. Il ne reste que ${availableStock} unités`, 'warning');
     return;
   }
 
@@ -6342,7 +6338,7 @@ function updateProductStock(product, quantity) {
   const stockKey = `${product.categoryKey}_${product.code}`;
   const currentStock = state.productStocks.get(stockKey) || product.stock;
   const newStock = Math.max(0, currentStock - quantity);
-
+  
   state.productStocks.set(stockKey, newStock);
   state.pendingStockUpdates.set(stockKey, newStock);
 
@@ -6360,18 +6356,18 @@ function removeFromCart(productId, quantity = 1) {
   if (!state.cart[productId]) return;
 
   const item = state.cart[productId];
-  // On ne peut pas retirer plus que ce qu'il y a dans le panier
+  // On diminue de la quantité demandée (2 par défaut ici)
   const removeQuantity = Math.min(quantity, item.quantity);
-
+  
   const stockKey = `${item.categoryKey}_${item.code}`;
   const currentStock = state.productStocks.get(stockKey) || 0;
-
-  // Restitution du stock
+  
+  // On rend la quantité au stock disponible
   state.productStocks.set(stockKey, currentStock + removeQuantity);
 
   item.quantity -= removeQuantity;
 
-  // Si quantity <= 0, suppression totale
+  // Si quantity tombe à 0 ou moins, on retire l'article
   if (item.quantity <= 0) {
     delete state.cart[productId];
     if (state.quantityPicks[productId]) {
@@ -6409,29 +6405,29 @@ function closeClientSpace() {
 // ✅ Fonction pour afficher les commandes en cours
 function afficherCommandesEnCours() {
   if (!state.user || !state.user.phone) {
-    showToast("❌ Veuillez d'abord enregistrer votre compte", 'error');
+    showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
     $('clientAccountBtn').click();
     return;
   }
-
+  
   const phoneClient = state.user.phone.replace(/\s+/g, '');
-
-  const commandesEnCours = state.orderHistory.filter(order =>
-    order.clientPhone &&
-    order.clientPhone.replace(/\s+/g, '').includes(phoneClient) &&
+  
+  const commandesEnCours = state.orderHistory.filter(order => 
+    order.clientPhone && 
+    order.clientPhone.replace(/\s+/g, '').includes(phoneClient) && 
     order.statut !== 'Livré' && order.statut !== 'Annulé'
   );
-
+  
   commandesEnCours.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+  
   if (commandesEnCours.length === 0) {
     showToast('📭 Aucune commande en cours', 'warning');
     return;
   }
-
+  
   const historyItemsList = $('historyItemsList');
   historyItemsList.innerHTML = '';
-
+  
   commandesEnCours.forEach(order => {
     const orderDate = new Date(order.date);
     const formattedDate = orderDate.toLocaleDateString('fr-FR', {
@@ -6443,7 +6439,7 @@ function afficherCommandesEnCours() {
     });
     const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
     const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
-
+    
     const historyItem = document.createElement('div');
     historyItem.className = 'history-item';
     historyItem.innerHTML = `
@@ -6468,39 +6464,39 @@ function afficherCommandesEnCours() {
     });
     historyItemsList.appendChild(historyItem);
   });
-
+  
   $('orderHistorySection').classList.add('visible');
   $('historyCount').textContent = `${commandesEnCours.length} commande(s) en cours`;
   $('historyEmptyMessage').style.display = 'none';
-
+  
   showToast(`📦 ${commandesEnCours.length} commande(s) en cours`);
 }
 
 function afficherHistoriqueCommandes() {
   if (!state.user || !state.user.phone) {
-    showToast("❌ Veuillez d'abord enregistrer votre compte", 'error');
+    showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
     $('clientAccountBtn').click();
     return;
   }
-
+  
   const phoneClient = state.user.phone.replace(/\s+/g, '');
-
-  const historique = state.orderHistory.filter(order =>
-    order.clientPhone &&
-    order.clientPhone.replace(/\s+/g, '').includes(phoneClient) &&
+  
+  const historique = state.orderHistory.filter(order => 
+    order.clientPhone && 
+    order.clientPhone.replace(/\s+/g, '').includes(phoneClient) && 
     (order.statut === 'Livré' || order.statut === 'Annulé')
   );
-
+  
   historique.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+  
   if (historique.length === 0) {
     showToast('📭 Aucun historique trouvé', 'warning');
     return;
   }
-
+  
   const historyItemsList = $('historyItemsList');
   historyItemsList.innerHTML = '';
-
+  
   historique.forEach(order => {
     const orderDate = new Date(order.date);
     const formattedDate = orderDate.toLocaleDateString('fr-FR', {
@@ -6512,7 +6508,7 @@ function afficherHistoriqueCommandes() {
     });
     const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
     const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
-
+    
     const historyItem = document.createElement('div');
     historyItem.className = 'history-item';
     historyItem.innerHTML = `
@@ -6537,22 +6533,22 @@ function afficherHistoriqueCommandes() {
     });
     historyItemsList.appendChild(historyItem);
   });
-
+  
   $('orderHistorySection').classList.add('visible');
   $('historyCount').textContent = `${historique.length} commande(s) dans l'historique`;
   $('historyEmptyMessage').style.display = 'none';
-
+  
   showToast(`📜 ${historique.length} commande(s) dans l'historique`);
 }
 
 function loadHistoryForPhone(phone) {
   const cleanPhone = phone.replace(/\s+/g, '');
-
+  
   const userHistory = state.orderHistory.filter(order =>
-    order.clientPhone &&
+    order.clientPhone && 
     order.clientPhone.replace(/\s+/g, '').includes(cleanPhone)
   );
-
+  
   return userHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
