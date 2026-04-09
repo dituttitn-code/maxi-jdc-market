@@ -5944,7 +5944,7 @@ function renderCatalogue() {
   setupCatalogueEvents();
 }
 
-// Fonction utilitaire pour échapper les caractères HTML
+// ===================== FONCTIONS UTILITAIRES =====================
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/[&<>]/g, function(m) {
@@ -5955,6 +5955,81 @@ function escapeHtml(str) {
   });
 }
 
+// ===================== GESTION CENTRALISÉE DES STOCKS =====================
+function updateProductStock(product, delta) {
+  // delta > 0 : retire du stock (ajout au panier)
+  // delta < 0 : ajoute au stock (retrait du panier)
+  const stockKey = `${product.categoryKey}_${product.code}`;
+  const currentStock = getAvailableStock(product);
+  const newStock = Math.max(0, currentStock - delta);
+  
+  state.productStocks.set(stockKey, newStock);
+  state.pendingStockUpdates.set(stockKey, newStock);
+
+  // Mise à jour dans state.products (pour l'affichage)
+  for (const [catKey, products] of state.products.entries()) {
+    const index = products.findIndex(p => p.code === product.code);
+    if (index !== -1) {
+      state.products.get(catKey)[index].stock = newStock;
+      break;
+    }
+  }
+  saveSyncData();
+}
+
+// ===================== AJOUT AU PANIER (un par un avec blocage strict) =====================
+function addToCart(productId, product, quantity = 1) {
+  if (!product) return;
+  const currentInCart = state.cart[productId] ? state.cart[productId].quantity : 0;
+  const availableStock = getAvailableStock(product);
+  
+  // Blocage strict : on ne peut pas dépasser le stock total
+  if (currentInCart + quantity > availableStock) {
+    showToast('❌ Stock limité', 'warning');
+    return;
+  }
+
+  // Retirer du stock (delta positif)
+  updateProductStock(product, quantity);
+
+  if (state.cart[productId]) {
+    state.cart[productId].quantity += quantity;
+  } else {
+    state.cart[productId] = { ...product, quantity: quantity };
+  }
+
+  updateCartUI();
+  renderProducts();
+  showToast(`✅ ${product.name} ajouté`);
+}
+
+// ===================== RETRAIT DU PANIER (un par un jusqu'à suppression) =====================
+function removeFromCart(productId, quantity = 1) {
+  if (!state.cart[productId]) return;
+  const item = state.cart[productId];
+  
+  // Ne pas retirer plus que ce qui est présent
+  const qtyToRemove = Math.min(quantity, item.quantity);
+  if (qtyToRemove <= 0) return;
+
+  // Restaurer le stock (delta négatif)
+  updateProductStock(item, -qtyToRemove);
+
+  item.quantity -= qtyToRemove;
+
+  // Suppression si quantité atteint zéro
+  if (item.quantity <= 0) {
+    delete state.cart[productId];
+    showToast(`🗑️ ${item.name} retiré`);
+  } else {
+    showToast(`➖ ${item.name} : ${item.quantity} restant(s)`);
+  }
+
+  renderProducts();
+  updateCartUI();
+}
+
+// ===================== ÉVÈNEMENTS CATALOGUE =====================
 function setupCatalogueEvents() {
   document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -6166,66 +6241,6 @@ function updateCartUI() {
   const total = subtotal + (subtotal >= CONFIG.freeShipping ? 0 : 3.000);
   $('cartTotal').textContent = formatPrice(total);
   saveState();
-}
-
-function addToCart(productId, product, quantity = 1) {
-  if (!product) return;
-  const currentInCart = state.cart[productId] ? state.cart[productId].quantity : 0;
-  const availableStock = getAvailableStock(product);
-  
-  // Blocage strict si cumul > stock
-  if (currentInCart + quantity > availableStock) {
-    showToast('❌ Stock limité', 'warning');
-    return;
-  }
-
-  updateProductStock(product, quantity);
-
-  if (state.cart[productId]) {
-    state.cart[productId].quantity += quantity;
-  } else {
-    state.cart[productId] = { ...product, quantity: quantity };
-  }
-
-  updateCartUI();
-  renderProducts();
-  showToast(`✅ ${product.name} ajouté`);
-}
-
-function updateProductStock(product, quantity) {
-  const stockKey = `${product.categoryKey}_${product.code}`;
-  const currentStock = getAvailableStock(product);
-  const newStock = Math.max(0, currentStock - quantity);
-  
-  state.productStocks.set(stockKey, newStock);
-  state.pendingStockUpdates.set(stockKey, newStock);
-
-  for (const [catKey, products] of state.products.entries()) {
-    const index = products.findIndex(p => p.code === product.code);
-    if (index !== -1) state.products.get(catKey)[index].stock = newStock;
-  }
-  saveSyncData();
-}
-
-function removeFromCart(productId, quantity = 1) {
-  if (!state.cart[productId]) return;
-  const item = state.cart[productId];
-  
-  // Diminution par 1
-  const removeQty = 1;
-  const stockKey = `${item.categoryKey}_${item.code}`;
-  state.productStocks.set(stockKey, getAvailableStock(item) + removeQty);
-
-  item.quantity -= removeQty;
-
-  // Suppression si 0
-  if (item.quantity <= 0) {
-    delete state.cart[productId];
-    showToast(`🗑️ ${item.name} retiré`);
-  }
-
-  renderProducts();
-  updateCartUI();
 }
 
 function toggleClientSpace() {
