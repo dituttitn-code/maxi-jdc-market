@@ -5968,12 +5968,12 @@ function setupCatalogueEvents() {
       if (action === 'increase') {
         const availableStock = parseInt(input.max) || 0;
         if (value < availableStock) {
-          value++; // Ajout par 1
+          value++;
         } else {
           showToast('❌ Stock limité', 'warning');
         }
       } else if (action === 'decrease') {
-        value = Math.max(0, value - 1); // Diminution par 1
+        value = Math.max(0, value - 1);
       }
       
       input.value = value;
@@ -5993,14 +5993,6 @@ function setupCatalogueEvents() {
         showToast('❌ Stock limité', 'warning');
       }
       
-      updateCatalogueQuantity(productId, value);
-    });
-    
-    input.addEventListener('change', (e) => {
-      const productId = e.target.dataset.id;
-      let value = parseInt(e.target.value) || 0;
-      if (value < 0) value = 0;
-      e.target.value = value;
       updateCatalogueQuantity(productId, value);
     });
   });
@@ -6023,8 +6015,6 @@ function setupCatalogueEvents() {
           addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
           addBtn.classList.remove('has-qty');
         }
-      } else {
-        showToast('❌ Produit invalide', 'error');
       }
     });
   });
@@ -6035,13 +6025,7 @@ function updateCatalogueQuantity(productId, quantity) {
   const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
   if (addBtn && !addBtn.disabled) {
     const t = TRANSLATIONS[state.currentLanguage];
-    if (quantity > 0) {
-      addBtn.textContent = `🛒 ${t.addToCart}`;
-      addBtn.classList.add('has-qty');
-    } else {
-      addBtn.textContent = `🛒 ${t.addToCart}`;
-      addBtn.classList.remove('has-qty');
-    }
+    addBtn.classList.toggle('has-qty', quantity > 0);
   }
 }
 
@@ -6068,62 +6052,35 @@ function openProductModal(product) {
     const quantity = state.quantityPicks[productId] || 0;
     const availableStock = getAvailableStock(product);
     const stockStatus = getStockStatus(availableStock);
+    
     $('modalProductName').textContent = product.name;
     $('modalProductNameFull').textContent = product.name;
+    
     if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
       $('modalCurrentPrice').textContent = formatPrice(product.price);
       $('modalOldPrice').textContent = formatPrice(product.oldPrice);
       $('modalOldPrice').style.display = 'block';
-      const discountPercent = product.discountPercent || Math.round((1 - product.price / product.oldPrice) * 100);
-      if (discountPercent > 0) {
-        $('modalDiscount').textContent = `-${discountPercent}%`;
-        $('modalDiscount').style.display = 'block';
-        $('modalPromoBadge').style.display = 'block';
-        $('modalPromoBadge').textContent = `${discountPercent}% OFF`;
-      } else {
-        $('modalDiscount').style.display = 'none';
-        $('modalPromoBadge').style.display = 'none';
-      }
     } else {
       $('modalCurrentPrice').textContent = formatPrice(product.price);
       $('modalOldPrice').style.display = 'none';
-      $('modalDiscount').style.display = 'none';
-      $('modalPromoBadge').style.display = 'none';
     }
+    
     $('modalProductCode').textContent = product.code;
     $('modalProductCategory').textContent = product.category;
     $('modalProductStock').textContent = stockStatus.text;
-    $('modalProductStock').style.color = stockStatus.class === 'ok' ? 'var(--accent)' : stockStatus.class === 'low' ? 'var(--warning)' : 'var(--danger)';
+    
     const quantityInput = $('modalQuantityInput');
     quantityInput.value = quantity;
-    quantityInput.max = Math.min(999, availableStock);
-    const addBtn = $('modalAddToCartBtn');
-    addBtn.disabled = !stockStatus.available;
-    const t = TRANSLATIONS[state.currentLanguage];
-    addBtn.textContent = `🛒 ${t.addToCart}`;
+    quantityInput.max = availableStock;
+    
+    $('modalAddToCartBtn').disabled = !stockStatus.available;
+    
     const img = $('modalProductImage');
-    const noPhoto = $('modalNoPhoto');
-    const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-    img.src = imgSrc;
-    img.onload = () => {
-      img.style.display = 'block';
-      noPhoto.style.display = 'none';
-    };
-    img.onerror = () => {
-      img.style.display = 'none';
-      noPhoto.style.display = 'flex';
-      noPhoto.textContent = `Aucune photo pour ${product.code}`;
-    };
-    $('modalPrevImageBtn').style.display = 'none';
-    $('modalNextImageBtn').style.display = 'none';
-    $('imageNavBar').innerHTML = '';
+    img.src = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+    
     renderSimilarProducts(product);
     $('productModal').classList.add('open');
     document.body.style.overflow = 'hidden';
-    setTimeout(() => {
-      quantityInput.focus();
-      quantityInput.select();
-    }, 300);
   }, 300);
 }
 
@@ -6135,134 +6092,90 @@ function closeProductModal() {
 
 function getSimilarProducts(currentProduct) {
   if (!currentProduct) return [];
-  if (currentProduct.categoryKey === 'promotions') {
-    return state.promotions.filter(p =>
-      p.code !== currentProduct.code
-    ).slice(0, 6);
-  }
   const sameCategory = state.products.get(currentProduct.categoryKey) || [];
-  return sameCategory.filter(p =>
-    p.code !== currentProduct.code
-  ).slice(0, 6);
+  return sameCategory.filter(p => p.code !== currentProduct.code).slice(0, 6);
 }
 
 function renderSimilarProducts(currentProduct) {
   const similar = getSimilarProducts(currentProduct);
   const grid = $('similarProductsGrid');
-  const count = $('similarProductsCount');
-  const section = $('similarProductsSection');
-  count.textContent = similar.length;
   if (similar.length === 0) {
-    section.style.display = 'none';
+    $('similarProductsSection').style.display = 'none';
     return;
   }
-  section.style.display = 'block';
+  $('similarProductsSection').style.display = 'block';
   grid.innerHTML = '';
   similar.forEach(product => {
-    const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-    const stockStatus = getStockStatus(product.stock);
     const card = document.createElement('div');
     card.className = 'similar-product-card';
     card.innerHTML = `
-          <div class="similar-product-image">
-            <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
-          </div>
-          <div class="similar-product-info">
-            <div class="similar-product-name">${product.name}</div>
-            <div class="similar-product-price">${formatPrice(product.price)}</div>
-            <div class="similar-product-stock ${stockStatus.class}">
-              ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
-            </div>
-          </div>
-        `;
-    card.addEventListener('click', () => {
-      closeProductModal();
-      setTimeout(() => openProductModal(product), 300);
-    });
+      <div class="similar-product-name">${product.name}</div>
+      <div class="similar-product-price">${formatPrice(product.price)}</div>
+    `;
+    card.onclick = () => { closeProductModal(); setTimeout(() => openProductModal(product), 300); };
     grid.appendChild(card);
   });
 }
 
 function getAvailableStock(product) {
   const stockKey = `${product.categoryKey}_${product.code}`;
-  return state.productStocks.get(stockKey) || product.stock || 0;
+  return state.productStocks.has(stockKey) ? state.productStocks.get(stockKey) : (product.stock || 0);
 }
 
 function updateCartUI() {
   const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  $('cartTopCount').textContent = cartCount;
-  $('cartItemsCount').textContent = `${cartCount} ${TRANSLATIONS[state.currentLanguage].items}`;
   
-  let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.000;
-  let shippingText = formatPrice(shippingFee);
+  $('cartTopCount').textContent = cartCount;
+  $('cartItemsCount').textContent = `${cartCount} articles`;
   
   const cartItemsList = $('cartItemsList');
   const cartEmptyMessage = $('cartEmptyMessage');
-  
+
   if (cartCount === 0) {
     cartItemsList.style.display = 'none';
     cartEmptyMessage.style.display = 'block';
-    $('cartSavingsSection').classList.remove('visible');
   } else {
     cartItemsList.style.display = 'flex';
     cartEmptyMessage.style.display = 'none';
     cartItemsList.innerHTML = '';
-    
+
     Object.entries(state.cart).forEach(([id, item]) => {
-      const itemSaving = calculateItemSavings(item);
-      const itemTotal = item.price * item.quantity;
-      const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
       const itemElement = document.createElement('div');
       itemElement.className = 'cart-item';
-      
-      let savingsBadge = '';
-      if (itemSaving > 0) {
-        savingsBadge = `<div class="cart-item-saving ${item.isPromotion ? 'promo' : ''}">
-                          <span>💰 Économie: ${formatPrice(itemSaving)}</span>
-                        </div>`;
-      }
-      
       itemElement.innerHTML = `
-            <div class="cart-item-info">
-              <div class="cart-item-name">${item.name}</div>
-              <div class="cart-item-details">
-                <span>Code: ${item.code}</span> | <span>Prix: ${formatPrice(item.price)}</span>
-              </div>
-              ${savingsBadge}
-              <div class="cart-item-controls">
-                <div class="cart-item-stepper">
-                  <button class="cart-item-qty-btn cart-decrease" data-id="${id}">−</button>
-                  <span class="cart-item-qty">${item.quantity}</span>
-                  <button class="cart-item-qty-btn cart-increase" data-id="${id}">+</button>
-                </div>
-              </div>
-            </div>
-            <div class="cart-item-price">${formatPrice(itemTotal)}</div>
-          `;
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-stepper">
+            <button class="cart-item-qty-btn dec-btn">−</button>
+            <span class="cart-item-qty">${item.quantity}</span>
+            <button class="cart-item-qty-btn inc-btn">+</button>
+          </div>
+        </div>
+        <div class="cart-item-price">${formatPrice(item.price * item.quantity)}</div>
+      `;
       
-      // LOGIQUE DU PANIER : AJOUT ET DIMINUTION PAR 1
-      itemElement.querySelector('.cart-increase').onclick = () => addToCart(id, item, 1);
-      itemElement.querySelector('.cart-decrease').onclick = () => removeFromCart(id, 1);
+      itemElement.querySelector('.inc-btn').onclick = () => addToCart(id, item, 1);
+      itemElement.querySelector('.dec-btn').onclick = () => removeFromCart(id, 1);
       
       cartItemsList.appendChild(itemElement);
     });
-    updateSavingsDisplay();
   }
-  
+
   $('cartSubtotal').textContent = formatPrice(subtotal);
-  $('cartShipping').innerHTML = subtotal >= CONFIG.freeShipping ? 'GRATUIT' : shippingText;
   const total = subtotal + (subtotal >= CONFIG.freeShipping ? 0 : 3.000);
   $('cartTotal').textContent = formatPrice(total);
   saveState();
 }
 
 function addToCart(productId, product, quantity = 1) {
-  if (!product || quantity <= 0) return;
+  if (!product) return;
+  const currentInCart = state.cart[productId] ? state.cart[productId].quantity : 0;
   const availableStock = getAvailableStock(product);
   
-  if (quantity > availableStock) {
-    showToast(`❌ Stock limité`, 'warning');
+  // Blocage strict si cumul > stock
+  if (currentInCart + quantity > availableStock) {
+    showToast('❌ Stock limité', 'warning');
     return;
   }
 
@@ -6276,15 +6189,17 @@ function addToCart(productId, product, quantity = 1) {
 
   updateCartUI();
   renderProducts();
-  showToast(`✅ ${product.name} ajouté au panier`);
+  showToast(`✅ ${product.name} ajouté`);
 }
 
 function updateProductStock(product, quantity) {
   const stockKey = `${product.categoryKey}_${product.code}`;
-  const currentStock = state.productStocks.get(stockKey) || product.stock;
+  const currentStock = getAvailableStock(product);
   const newStock = Math.max(0, currentStock - quantity);
-  state.productStocks.set(stockKey, newStock);
   
+  state.productStocks.set(stockKey, newStock);
+  state.pendingStockUpdates.set(stockKey, newStock);
+
   for (const [catKey, products] of state.products.entries()) {
     const index = products.findIndex(p => p.code === product.code);
     if (index !== -1) state.products.get(catKey)[index].stock = newStock;
@@ -6295,16 +6210,18 @@ function updateProductStock(product, quantity) {
 function removeFromCart(productId, quantity = 1) {
   if (!state.cart[productId]) return;
   const item = state.cart[productId];
-  const removeQty = Math.min(quantity, item.quantity);
   
-  // Rendre le stock
+  // Diminution par 1
+  const removeQty = 1;
   const stockKey = `${item.categoryKey}_${item.code}`;
-  state.productStocks.set(stockKey, (state.productStocks.get(stockKey) || 0) + removeQty);
+  state.productStocks.set(stockKey, getAvailableStock(item) + removeQty);
 
   item.quantity -= removeQty;
 
+  // Suppression si 0
   if (item.quantity <= 0) {
     delete state.cart[productId];
+    showToast(`🗑️ ${item.name} retiré`);
   }
 
   renderProducts();
@@ -6322,29 +6239,29 @@ function closeClientSpace() {
 }
 
 function afficherCommandesEnCours() {
-  if (!state.user?.phone) return showToast('❌ Compte requis', 'error');
+  if (!state.user?.phone) return;
   const history = state.orderHistory.filter(o => o.clientPhone.includes(state.user.phone) && o.statut !== 'Livré');
   const list = $('historyItemsList');
-  list.innerHTML = history.length ? '' : '<p>Aucune commande</p>';
+  list.innerHTML = '';
   history.forEach(o => {
-    const el = document.createElement('div');
-    el.className = 'history-item';
-    el.innerHTML = `📅 ${o.date} - ${formatPrice(o.total)}`;
-    list.appendChild(el);
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.textContent = `Commande du ${o.date} - ${o.statut}`;
+    list.appendChild(div);
   });
   $('orderHistorySection').classList.add('visible');
 }
 
 function afficherHistoriqueCommandes() {
-  if (!state.user?.phone) return showToast('❌ Compte requis', 'error');
+  if (!state.user?.phone) return;
   const history = state.orderHistory.filter(o => o.clientPhone.includes(state.user.phone) && o.statut === 'Livré');
   const list = $('historyItemsList');
-  list.innerHTML = history.length ? '' : '<p>Historique vide</p>';
+  list.innerHTML = '';
   history.forEach(o => {
-    const el = document.createElement('div');
-    el.className = 'history-item';
-    el.innerHTML = `📅 ${o.date} - ${formatPrice(o.total)} (Livré)`;
-    list.appendChild(el);
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.textContent = `Livré le ${o.date}`;
+    list.appendChild(div);
   });
   $('orderHistorySection').classList.add('visible');
 }
