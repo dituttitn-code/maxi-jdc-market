@@ -6089,7 +6089,7 @@ function updateCatalogueStockDisplay(productId) {
   const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
   if (!product) return;
 
-  const availableStock = getAvailableStock(product); // doit exister
+  const availableStock = getAvailableStock(product);
 
   const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
   if (input) {
@@ -6101,7 +6101,6 @@ function updateCatalogueStockDisplay(productId) {
     }
   }
 
-  // Optionnel : mettre à jour l'affichage texte du stock
   const stockLabel = document.querySelector(`.catalogue-stock-label[data-id="${productId}"]`);
   if (stockLabel) {
     if (availableStock <= 0) {
@@ -6131,273 +6130,400 @@ function findProductIndex(product) {
   );
 }
 
-    function openProductModal(product) {
-      closeCatalogueModal();
-      setTimeout(() => {
-        if (!product) return;
-        state.currentModalProduct = product;
-        const productId = generateProductId(product);
-        const quantity = state.quantityPicks[productId] || 0;
-        const availableStock = getAvailableStock(product);
-        const stockStatus = getStockStatus(availableStock);
-        $('modalProductName').textContent = product.name;
-        $('modalProductNameFull').textContent = product.name;
-        if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
-          $('modalCurrentPrice').textContent = formatPrice(product.price);
-          $('modalOldPrice').textContent = formatPrice(product.oldPrice);
-          $('modalOldPrice').style.display = 'block';
-          const discountPercent = product.discountPercent || Math.round((1 - product.price / product.oldPrice) * 100);
-          if (discountPercent > 0) {
-            $('modalDiscount').textContent = `-${discountPercent}%`;
-            $('modalDiscount').style.display = 'block';
-            $('modalPromoBadge').style.display = 'block';
-            $('modalPromoBadge').textContent = `${discountPercent}% OFF`;
-          } else {
-            $('modalDiscount').style.display = 'none';
-            $('modalPromoBadge').style.display = 'none';
-          }
-        } else {
-          $('modalCurrentPrice').textContent = formatPrice(product.price);
-          $('modalOldPrice').style.display = 'none';
-          $('modalDiscount').style.display = 'none';
-          $('modalPromoBadge').style.display = 'none';
-        }
-        $('modalProductCode').textContent = product.code;
-        $('modalProductCategory').textContent = product.category;
-        $('modalProductStock').textContent = stockStatus.text;
-        $('modalProductStock').style.color = stockStatus.class === 'ok' ? 'var(--accent)' : stockStatus.class === 'low' ? 'var(--warning)' : 'var(--danger)';
-        const quantityInput = $('modalQuantityInput');
-        quantityInput.value = quantity;
-        quantityInput.max = Math.min(999, availableStock);
-        const addBtn = $('modalAddToCartBtn');
-        addBtn.disabled = !stockStatus.available;
-        const t = TRANSLATIONS[state.currentLanguage];
-        addBtn.textContent = `🛒 ${t.addToCart}`;
-        const img = $('modalProductImage');
-        const noPhoto = $('modalNoPhoto');
-        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-        img.src = imgSrc;
-        img.onload = () => {
-          img.style.display = 'block';
-          noPhoto.style.display = 'none';
-        };
-        img.onerror = () => {
-          img.style.display = 'none';
-          noPhoto.style.display = 'flex';
-          noPhoto.textContent = `Aucune photo pour ${product.code}`;
-        };
-        $('modalPrevImageBtn').style.display = 'none';
-        $('modalNextImageBtn').style.display = 'none';
-        $('imageNavBar').innerHTML = '';
-        renderSimilarProducts(product);
-        $('productModal').classList.add('open');
-        document.body.style.overflow = 'hidden';
-        setTimeout(() => {
-          quantityInput.focus();
-          quantityInput.select();
-        }, 300);
-      }, 300);
-    }
-
-    function closeProductModal() {
-      $('productModal').classList.remove('open');
-      document.body.style.overflow = '';
-      state.currentModalProduct = null;
-    }
-
-    function getSimilarProducts(currentProduct) {
-      if (!currentProduct) return [];
-      if (currentProduct.categoryKey === 'promotions') {
-        return state.promotions.filter(p =>
-          p.code !== currentProduct.code
-        ).slice(0, 6);
+function openProductModal(product) {
+  closeCatalogueModal();
+  setTimeout(() => {
+    if (!product) return;
+    state.currentModalProduct = product;
+    const productId = generateProductId(product);
+    const quantity = state.quantityPicks[productId] || 0;
+    const availableStock = getAvailableStock(product);
+    const stockStatus = getStockStatus(availableStock);
+    $('modalProductName').textContent = product.name;
+    $('modalProductNameFull').textContent = product.name;
+    if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
+      $('modalCurrentPrice').textContent = formatPrice(product.price);
+      $('modalOldPrice').textContent = formatPrice(product.oldPrice);
+      $('modalOldPrice').style.display = 'block';
+      const discountPercent = product.discountPercent || Math.round((1 - product.price / product.oldPrice) * 100);
+      if (discountPercent > 0) {
+        $('modalDiscount').textContent = `-${discountPercent}%`;
+        $('modalDiscount').style.display = 'block';
+        $('modalPromoBadge').style.display = 'block';
+        $('modalPromoBadge').textContent = `${discountPercent}% OFF`;
+      } else {
+        $('modalDiscount').style.display = 'none';
+        $('modalPromoBadge').style.display = 'none';
       }
-      const sameCategory = state.products.get(currentProduct.categoryKey) || [];
-      return sameCategory.filter(p =>
-        p.code !== currentProduct.code
-      ).slice(0, 6);
+    } else {
+      $('modalCurrentPrice').textContent = formatPrice(product.price);
+      $('modalOldPrice').style.display = 'none';
+      $('modalDiscount').style.display = 'none';
+      $('modalPromoBadge').style.display = 'none';
     }
+    $('modalProductCode').textContent = product.code;
+    $('modalProductCategory').textContent = product.category;
+    $('modalProductStock').textContent = stockStatus.text;
+    $('modalProductStock').style.color = stockStatus.class === 'ok' ? 'var(--accent)' : stockStatus.class === 'low' ? 'var(--warning)' : 'var(--danger)';
+    const quantityInput = $('modalQuantityInput');
+    quantityInput.value = quantity;
+    quantityInput.max = Math.min(999, availableStock);
+    const addBtn = $('modalAddToCartBtn');
+    addBtn.disabled = !stockStatus.available;
+    const t = TRANSLATIONS[state.currentLanguage];
+    addBtn.textContent = `🛒 ${t.addToCart}`;
+    const img = $('modalProductImage');
+    const noPhoto = $('modalNoPhoto');
+    const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+    img.src = imgSrc;
+    img.onload = () => {
+      img.style.display = 'block';
+      noPhoto.style.display = 'none';
+    };
+    img.onerror = () => {
+      img.style.display = 'none';
+      noPhoto.style.display = 'flex';
+      noPhoto.textContent = `Aucune photo pour ${product.code}`;
+    };
+    $('modalPrevImageBtn').style.display = 'none';
+    $('modalNextImageBtn').style.display = 'none';
+    $('imageNavBar').innerHTML = '';
+    renderSimilarProducts(product);
+    $('productModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => {
+      quantityInput.focus();
+      quantityInput.select();
+    }, 300);
+  }, 300);
+}
 
-    function renderSimilarProducts(currentProduct) {
-      const similar = getSimilarProducts(currentProduct);
-      const grid = $('similarProductsGrid');
-      const count = $('similarProductsCount');
-      const section = $('similarProductsSection');
-      count.textContent = similar.length;
-      if (similar.length === 0) {
-        section.style.display = 'none';
-        return;
+function closeProductModal() {
+  $('productModal').classList.remove('open');
+  document.body.style.overflow = '';
+  state.currentModalProduct = null;
+}
+
+function getSimilarProducts(currentProduct) {
+  if (!currentProduct) return [];
+  if (currentProduct.categoryKey === 'promotions') {
+    return state.promotions.filter(p =>
+      p.code !== currentProduct.code
+    ).slice(0, 6);
+  }
+  const sameCategory = state.products.get(currentProduct.categoryKey) || [];
+  return sameCategory.filter(p =>
+    p.code !== currentProduct.code
+  ).slice(0, 6);
+}
+
+function renderSimilarProducts(currentProduct) {
+  const similar = getSimilarProducts(currentProduct);
+  const grid = $('similarProductsGrid');
+  const count = $('similarProductsCount');
+  const section = $('similarProductsSection');
+  count.textContent = similar.length;
+  if (similar.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  grid.innerHTML = '';
+  similar.forEach(product => {
+    const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+    const stockStatus = getStockStatus(product.stock);
+    const card = document.createElement('div');
+    card.className = 'similar-product-card';
+    card.innerHTML = `
+      <div class="similar-product-image">
+        <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
+      </div>
+      <div class="similar-product-info">
+        <div class="similar-product-name">${product.name}</div>
+        <div class="similar-product-price">${formatPrice(product.price)}</div>
+        <div class="similar-product-stock ${stockStatus.class}">
+          ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
+        </div>
+      </div>
+    `;
+    card.addEventListener('click', () => {
+      closeProductModal();
+      setTimeout(() => openProductModal(product), 300);
+    });
+    grid.appendChild(card);
+  });
+}
+
+function getAvailableStock(product) {
+  const stockKey = `${product.categoryKey}_${product.code}`;
+  return state.productStocks.get(stockKey) || product.stock || 0;
+}
+
+// ============================================================
+// GESTION DES ÉVÉNEMENTS DU PANIER (CORRIGÉE)
+// ============================================================
+function setupCartEvents() {
+  // Boutons "-" du panier
+  document.querySelectorAll('.cart-item-qty-btn[data-action="decrease"]').forEach(btn => {
+    btn.removeEventListener('click', handleCartDecrease);
+    btn.addEventListener('click', handleCartDecrease);
+  });
+  // Boutons "+" du panier
+  document.querySelectorAll('.cart-item-qty-btn[data-action="increase"]').forEach(btn => {
+    btn.removeEventListener('click', handleCartIncrease);
+    btn.addEventListener('click', handleCartIncrease);
+  });
+
+  function handleCartDecrease(e) {
+    const btn = e.currentTarget;
+    const productId = btn.dataset.id;
+    const item = state.cart[productId];
+    if (!item) return;
+
+    // Diminution de 1
+    const newQuantity = item.quantity - 1;
+    if (newQuantity <= 0) {
+      // Supprimer l'article
+      removeFromCart(productId, item.quantity);
+    } else {
+      // Mettre à jour la quantité
+      updateCartItemQuantity(productId, newQuantity);
+    }
+  }
+
+  function handleCartIncrease(e) {
+    const btn = e.currentTarget;
+    const productId = btn.dataset.id;
+    const item = state.cart[productId];
+    if (!item) return;
+
+    const availableStock = getAvailableStock(item);
+    const newQuantity = item.quantity + 1;
+    if (newQuantity <= availableStock) {
+      updateCartItemQuantity(productId, newQuantity);
+    } else {
+      showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
+    }
+  }
+}
+
+// Met à jour la quantité d'un article dans le panier (gère le stock)
+function updateCartItemQuantity(productId, newQuantity) {
+  const item = state.cart[productId];
+  if (!item) return;
+
+  const oldQuantity = item.quantity;
+  const delta = newQuantity - oldQuantity;
+
+  if (delta > 0) {
+    // Ajout : vérifier le stock
+    const availableStock = getAvailableStock(item);
+    if (newQuantity > availableStock) {
+      showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
+      return;
+    }
+    // Mettre à jour le stock (diminuer)
+    updateProductStock(item, delta);
+  } else if (delta < 0) {
+    // Retrait : augmenter le stock
+    const stockKey = `${item.categoryKey}_${item.code}`;
+    const currentStock = state.productStocks.get(stockKey) || 0;
+    state.productStocks.set(stockKey, currentStock - delta); // -delta est positif
+    // Mettre à jour dans state.products
+    for (const [catKey, products] of state.products.entries()) {
+      const idx = products.findIndex(p => p.code === item.code);
+      if (idx !== -1) {
+        state.products.get(catKey)[idx].stock = currentStock - delta;
+        break;
       }
-      section.style.display = 'block';
-      grid.innerHTML = '';
-      similar.forEach(product => {
-        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-        const stockStatus = getStockStatus(product.stock);
-        const card = document.createElement('div');
-        card.className = 'similar-product-card';
-        card.innerHTML = `
-          <div class="similar-product-image">
-            <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
-          </div>
-          <div class="similar-product-info">
-            <div class="similar-product-name">${product.name}</div>
-            <div class="similar-product-price">${formatPrice(product.price)}</div>
-            <div class="similar-product-stock ${stockStatus.class}">
-              ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
-            </div>
+    }
+  }
+
+  // Mettre à jour la quantité dans le panier
+  item.quantity = newQuantity;
+  if (item.quantity <= 0) {
+    delete state.cart[productId];
+    delete state.quantityPicks[productId];
+  }
+
+  // Sauvegarder et rafraîchir l'affichage
+  saveSyncData();
+  updateCartUI(); // cela va rappeler setupCartEvents() automatiquement
+}
+
+// Fonction removeFromCart existante (à garder, mais on l'utilise aussi)
+function removeFromCart(productId, quantity = 1) {
+  if (!state.cart[productId]) return;
+  const item = state.cart[productId];
+  const removeQuantity = Math.min(quantity, item.quantity);
+  const stockKey = `${item.categoryKey}_${item.code}`;
+  const currentStock = state.productStocks.get(stockKey) || 0;
+  state.productStocks.set(stockKey, currentStock + removeQuantity);
+  // Mettre à jour dans state.products
+  for (const [catKey, products] of state.products.entries()) {
+    const idx = products.findIndex(p => p.code === item.code);
+    if (idx !== -1) {
+      state.products.get(catKey)[idx].stock = currentStock + removeQuantity;
+      break;
+    }
+  }
+  item.quantity -= removeQuantity;
+  if (item.quantity <= 0) {
+    delete state.cart[productId];
+    delete state.quantityPicks[productId];
+  }
+  saveSyncData();
+  updateCartUI();
+}
+
+function updateCartUI() {
+  const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  $('cartTopCount').textContent = cartCount;
+  $('cartItemsCount').textContent = `${cartCount} ${TRANSLATIONS[state.currentLanguage].items}`;
+  
+  let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.000;
+  let shippingText = formatPrice(shippingFee);
+  
+  const cartItemsList = $('cartItemsList');
+  const cartEmptyMessage = $('cartEmptyMessage');
+  if (cartCount === 0) {
+    cartItemsList.style.display = 'none';
+    cartEmptyMessage.style.display = 'block';
+    $('cartSavingsSection').classList.remove('visible');
+  } else {
+    cartItemsList.style.display = 'flex';
+    cartEmptyMessage.style.display = 'none';
+    cartItemsList.innerHTML = '';
+    Object.entries(state.cart).forEach(([id, item]) => {
+      const itemSaving = calculateItemSavings(item);
+      const itemTotal = item.price * item.quantity;
+      const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
+      const itemElement = document.createElement('div');
+      itemElement.className = 'cart-item';
+      let savingsBadge = '';
+      if (itemSaving > 0) {
+        savingsBadge = `
+          <div class="cart-item-saving ${item.isPromotion ? 'promo' : ''}">
+            <span>💰</span>
+            <span>Économie: ${formatPrice(itemSaving)}</span>
+            ${item.discountPercent ? `<span class="savings-percentage">(-${item.discountPercent}%)</span>` : ''}
           </div>
         `;
-        card.addEventListener('click', () => {
-          closeProductModal();
-          setTimeout(() => openProductModal(product), 300);
-        });
-        grid.appendChild(card);
-      });
-    }
-
-    function getAvailableStock(product) {
-      const stockKey = `${product.categoryKey}_${product.code}`;
-      return state.productStocks.get(stockKey) || product.stock || 0;
-    }
-
-    function updateCartUI() {
-      const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
-      const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      $('cartTopCount').textContent = cartCount;
-      $('cartItemsCount').textContent = `${cartCount} ${TRANSLATIONS[state.currentLanguage].items}`;
-      
-      let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.000;
-      let shippingText = formatPrice(shippingFee);
-      
-      const cartItemsList = $('cartItemsList');
-      const cartEmptyMessage = $('cartEmptyMessage');
-      if (cartCount === 0) {
-        cartItemsList.style.display = 'none';
-        cartEmptyMessage.style.display = 'block';
-        $('cartSavingsSection').classList.remove('visible');
-      } else {
-        cartItemsList.style.display = 'flex';
-        cartEmptyMessage.style.display = 'none';
-        cartItemsList.innerHTML = '';
-        Object.entries(state.cart).forEach(([id, item]) => {
-          const itemSaving = calculateItemSavings(item);
-          const itemTotal = item.price * item.quantity;
-          const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
-          const itemElement = document.createElement('div');
-          itemElement.className = 'cart-item';
-          let savingsBadge = '';
-          if (itemSaving > 0) {
-            savingsBadge = `
-              <div class="cart-item-saving ${item.isPromotion ? 'promo' : ''}">
-                <span>💰</span>
-                <span>Économie: ${formatPrice(itemSaving)}</span>
-                ${item.discountPercent ? `<span class="savings-percentage">(-${item.discountPercent}%)</span>` : ''}
-              </div>
-            `;
-          }
-          itemElement.innerHTML = `
-            <div class="cart-item-info">
-              <div class="cart-item-name">
-                ${item.name}
-                ${item.isPromotion ? '<span class="savings-badge">PROMO</span>' : ''}
-              </div>
-              <div class="cart-item-details">
-                <span>Code: ${item.code}</span>
-                <span>Prix: ${formatPrice(item.price)}</span>
-                ${item.oldPrice && item.oldPrice > item.price ?
+      }
+      itemElement.innerHTML = `
+        <div class="cart-item-info">
+          <div class="cart-item-name">
+            ${item.name}
+            ${item.isPromotion ? '<span class="savings-badge">PROMO</span>' : ''}
+          </div>
+          <div class="cart-item-details">
+            <span>Code: ${item.code}</span>
+            <span>Prix: ${formatPrice(item.price)}</span>
+            ${item.oldPrice && item.oldPrice > item.price ?
               `<span style="color:#ffcc00;font-weight:700;">
                   Ancien: <del>${formatPrice(item.oldPrice)}</del>
                 </span>` : ''}
-                <span>Cat: ${item.category}</span>
-              </div>
-              ${savingsBadge}
-              <div class="cart-item-controls">
-                <div class="cart-item-stepper">
-                  <button class="cart-item-qty-btn" data-action="decrease" data-id="${id}">−</button>
-                  <span class="cart-item-qty">${item.quantity}</span>
-                  <button class="cart-item-qty-btn" data-action="increase" data-id="${id}">+</button>
-                </div>
-              </div>
+            <span>Cat: ${item.category}</span>
+          </div>
+          ${savingsBadge}
+          <div class="cart-item-controls">
+            <div class="cart-item-stepper">
+              <button class="cart-item-qty-btn" data-action="decrease" data-id="${id}">−</button>
+              <span class="cart-item-qty">${item.quantity}</span>
+              <button class="cart-item-qty-btn" data-action="increase" data-id="${id}">+</button>
             </div>
-            <div class="cart-item-price">
-              ${formatPrice(itemTotal)}
-              ${itemSaving > 0 ? `
-                <div style="font-size:9px;color:#ffcc00;margin-top:2px;">
-                  <del style="opacity:0.7;">${formatPrice(originalTotal)}</del>
-                </div>
-              ` : ''}
+          </div>
+        </div>
+        <div class="cart-item-price">
+          ${formatPrice(itemTotal)}
+          ${itemSaving > 0 ? `
+            <div style="font-size:9px;color:#ffcc00;margin-top:2px;">
+              <del style="opacity:0.7;">${formatPrice(originalTotal)}</del>
             </div>
-          `;
-          cartItemsList.appendChild(itemElement);
-        });
-        updateSavingsDisplay();
-      }
-      $('cartSubtotal').textContent = formatPrice(subtotal);
-      
-      if (subtotal >= CONFIG.freeShipping) {
-        shippingFee = 0;
-        shippingText = '<span class="total-value free">GRATUIT</span>';
-      } else if (subtotal < CONFIG.minOrder) {
-        shippingFee = null;
-        shippingText = '---';
-      }
-      
-      $('cartShipping').innerHTML = shippingText;
-      const total = shippingFee !== null ? subtotal + shippingFee : null;
-      if (total !== null) {
-        $('cartTotal').textContent = formatPrice(total);
-        $('placeOrderBtn').disabled = false;
-      } else {
-        $('cartTotal').textContent = `Minimum: ${formatPrice(CONFIG.minOrder)}`;
-        $('cartTotal').style.color = 'var(--danger)';
-        $('placeOrderBtn').disabled = true;
-      }
-      saveState();
-    }
+          ` : ''}
+        </div>
+      `;
+      cartItemsList.appendChild(itemElement);
+    });
+    updateSavingsDisplay();
+    // ATTACHER LES ÉVÉNEMENTS APRÈS MISE À JOUR DU DOM
+    setupCartEvents();
+  }
+  $('cartSubtotal').textContent = formatPrice(subtotal);
+  
+  if (subtotal >= CONFIG.freeShipping) {
+    shippingFee = 0;
+    shippingText = '<span class="total-value free">GRATUIT</span>';
+  } else if (subtotal < CONFIG.minOrder) {
+    shippingFee = null;
+    shippingText = '---';
+  }
+  
+  $('cartShipping').innerHTML = shippingText;
+  const total = shippingFee !== null ? subtotal + shippingFee : null;
+  if (total !== null) {
+    $('cartTotal').textContent = formatPrice(total);
+    $('cartTotal').style.color = ''; // réinitialiser couleur
+    $('placeOrderBtn').disabled = false;
+  } else {
+    $('cartTotal').textContent = `Minimum: ${formatPrice(CONFIG.minOrder)}`;
+    $('cartTotal').style.color = 'var(--danger)';
+    $('placeOrderBtn').disabled = true;
+  }
+  saveState();
+}
 
-    function addToCart(productId, product, quantity = 1) {
-      if (!product || quantity <= 0) return;
-      const availableStock = getAvailableStock(product);
-      if (quantity > availableStock) {
-        showToast(`❌ Stock insuffisant. Il ne reste que ${availableStock} unités`, 'error');
-        return;
-      }
-      updateProductStock(product, quantity);
-      if (state.cart[productId]) {
-        state.cart[productId].quantity += quantity;
-      } else {
-        state.cart[productId] = {
-          ...product,
-          quantity: quantity
-        };
-      }
-      state.quantityPicks[productId] = 0;
-      updateCartUI();
-      renderProducts();
-      const t = TRANSLATIONS[state.currentLanguage];
-      if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
-        const saving = (product.oldPrice - product.price) * quantity;
-        showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded} Économie: ${formatPrice(saving)}`);
-      } else {
-        showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded}`);
-      }
-    }
+function addToCart(productId, product, quantity = 1) {
+  if (!product || quantity <= 0) return;
+  const availableStock = getAvailableStock(product);
+  if (quantity > availableStock) {
+    showToast(`❌ Stock insuffisant. Il ne reste que ${availableStock} unités`, 'error');
+    return;
+  }
+  updateProductStock(product, quantity);
+  if (state.cart[productId]) {
+    state.cart[productId].quantity += quantity;
+  } else {
+    state.cart[productId] = {
+      ...product,
+      quantity: quantity
+    };
+  }
+  state.quantityPicks[productId] = 0;
+  updateCartUI();
+  renderProducts();
+  const t = TRANSLATIONS[state.currentLanguage];
+  if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
+    const saving = (product.oldPrice - product.price) * quantity;
+    showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded} Économie: ${formatPrice(saving)}`);
+  } else {
+    showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded}`);
+  }
+}
 
-    function updateProductStock(product, quantity) {
-      const stockKey = `${product.categoryKey}_${product.code}`;
-      const currentStock = state.productStocks.get(stockKey) || product.stock;
-      const newStock = Math.max(0, currentStock - quantity);
-      state.productStocks.set(stockKey, newStock);
-      state.pendingStockUpdates.set(stockKey, newStock);
-      for (const [catKey, products] of state.products.entries()) {
-        const index = products.findIndex(p => p.code === product.code);
-        if (index !== -1) {
-          state.products.get(catKey)[index].stock = newStock;
-        }
-      }
-      saveSyncData();
-      return newStock;
+function updateProductStock(product, quantity) {
+  const stockKey = `${product.categoryKey}_${product.code}`;
+  const currentStock = state.productStocks.get(stockKey) || product.stock;
+  const newStock = Math.max(0, currentStock - quantity);
+  state.productStocks.set(stockKey, newStock);
+  state.pendingStockUpdates.set(stockKey, newStock);
+  for (const [catKey, products] of state.products.entries()) {
+    const index = products.findIndex(p => p.code === product.code);
+    if (index !== -1) {
+      state.products.get(catKey)[index].stock = newStock;
     }
+  }
+  saveSyncData();
+  return newStock;
+}
+
+// ============================================================
+// FIN DE LA PARTIE CORRIGÉE (le reste de votre code continue)
+// ============================================================
+// (Les fonctions suivantes sont celles que vous aviez déjà :
+//  toggleClientSpace, closeClientSpace, afficherCommandesEnCours...)
+// Je les laisse telles quelles, mais assurez-vous qu'elles sont bien présentes.
 
     function removeFromCart(productId, quantity = 1) {
       if (!state.cart[productId]) return;
