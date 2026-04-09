@@ -5956,85 +5956,60 @@ function escapeHtml(str) {
 }
 
 // ===================== GESTION CENTRALISÉE DES STOCKS =====================
-// Retourne le stock physique (en base, hors panier)
-function getPhysicalStock(product) {
+// Retourne le stock physique restant (hors panier)
+function getAvailableStock(product) {
   if (!product) return 0;
   const stockKey = `${product.categoryKey}_${product.code}`;
+  // Si la clé n'existe pas encore dans productStocks, on l'initialise avec product.stock
   if (!state.productStocks.has(stockKey)) {
     const initialStock = product.stock || 0;
     state.productStocks.set(stockKey, initialStock);
     state.pendingStockUpdates.set(stockKey, initialStock);
+    // On met à jour également le champ stock du produit pour cohérence
     product.stock = initialStock;
   }
   return state.productStocks.get(stockKey);
 }
 
-// Retourne le stock encore disponible pour commande (physique - déjà dans panier)
-function getRemainingStock(product) {
-  const physical = getPhysicalStock(product);
-  const productId = generateProductId(product);
-  const inCart = state.cart[productId] ? state.cart[productId].quantity : 0;
-  return Math.max(0, physical - inCart);
-}
-
 // Met à jour le stock physique (delta positif = retrait, négatif = ajout)
 function updateProductStock(product, delta) {
   const stockKey = `${product.categoryKey}_${product.code}`;
-  const currentPhysical = getPhysicalStock(product);
-  const newPhysical = Math.max(0, currentPhysical - delta);
+  const currentStock = getAvailableStock(product); // utilise la fonction ci-dessus qui initialise si besoin
+  const newStock = Math.max(0, currentStock - delta);
   
-  state.productStocks.set(stockKey, newPhysical);
-  state.pendingStockUpdates.set(stockKey, newPhysical);
+  state.productStocks.set(stockKey, newStock);
+  state.pendingStockUpdates.set(stockKey, newStock);
 
-  // Synchroniser dans toutes les copies du produit
+  // Synchroniser dans state.products (pour l'affichage des grilles)
   for (const [catKey, products] of state.products.entries()) {
-    const idx = products.findIndex(p => p.code === product.code);
-    if (idx !== -1) state.products.get(catKey)[idx].stock = newPhysical;
-  }
-  if (state.catalogueProducts) {
-    const idx = state.catalogueProducts.findIndex(p => p.code === product.code);
-    if (idx !== -1) state.catalogueProducts[idx].stock = newPhysical;
-  }
-  product.stock = newPhysical;
-  
-  saveSyncData();
-  
-  // Rafraîchir l'affichage du stock dans le catalogue (si ouvert)
-  refreshCatalogueStockDisplay(product);
-}
-
-// Met à jour l'attribut max de l'input du catalogue pour un produit donné
-function refreshCatalogueStockDisplay(product) {
-  if (!product) return;
-  const productId = generateProductId(product);
-  const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
-  if (input) {
-    const remaining = getRemainingStock(product);
-    input.max = remaining;
-    // Si la valeur actuelle dépasse le nouveau max, on la réduit
-    let currentVal = parseInt(input.value) || 0;
-    if (currentVal > remaining) {
-      input.value = remaining;
-      updateCatalogueQuantity(productId, remaining);
-      if (remaining === 0) showToast('❌ Stock épuisé', 'warning');
+    const index = products.findIndex(p => p.code === product.code);
+    if (index !== -1) {
+      state.products.get(catKey)[index].stock = newStock;
+      break;
     }
   }
-  // Mettre à jour l'affichage texte du stock si présent
-  const stockSpan = document.querySelector(`.catalogue-stock[data-id="${productId}"]`);
-  if (stockSpan) {
-    const remaining = getRemainingStock(product);
-    stockSpan.textContent = `${remaining} restant(s)`;
+  
+  // Synchroniser également dans state.catalogueProducts (si le produit y est présent)
+  if (state.catalogueProducts) {
+    const idx = state.catalogueProducts.findIndex(p => p.code === product.code);
+    if (idx !== -1) state.catalogueProducts[idx].stock = newStock;
   }
+  
+  // Mettre à jour directement la propriété stock de l'objet product passé
+  product.stock = newStock;
+  
+  saveSyncData();
 }
 
 // ===================== AJOUT AU PANIER (un par un avec blocage strict) =====================
 function addToCart(productId, product, quantity = 1) {
   if (!product) return;
-  const physicalStock = getPhysicalStock(product);
+  // Récupérer le stock physique restant (synchronisé)
+  const availableStock = getAvailableStock(product);
   const currentInCart = state.cart[productId] ? state.cart[productId].quantity : 0;
   
-  // Blocage strict : ne pas dépasser le stock physique
-  if (currentInCart + quantity > physicalStock) {
+  // Blocage strict : on ne peut pas dépasser le stock physique
+  if (currentInCart + quantity > availableStock) {
     showToast('❌ Stock limité', 'warning');
     return;
   }
@@ -6049,7 +6024,7 @@ function addToCart(productId, product, quantity = 1) {
   }
 
   updateCartUI();
-  renderProducts();     // Reconstruit les grilles (doit utiliser getRemainingStock pour les max)
+  renderProducts();
   showToast(`✅ ${product.name} ajouté`);
 }
 
@@ -6057,13 +6032,15 @@ function addToCart(productId, product, quantity = 1) {
 function removeFromCart(productId, quantity = 1) {
   if (!state.cart[productId]) return;
   const item = state.cart[productId];
+  
   const qtyToRemove = Math.min(quantity, item.quantity);
   if (qtyToRemove <= 0) return;
 
-  // Restaurer le stock physique
+  // Restaurer le stock physique (delta négatif)
   updateProductStock(item, -qtyToRemove);
 
   item.quantity -= qtyToRemove;
+
   if (item.quantity <= 0) {
     delete state.cart[productId];
     showToast(`🗑️ ${item.name} retiré`);
@@ -6085,9 +6062,10 @@ function setupCatalogueEvents() {
       if (!input) return;
       
       let value = parseInt(input.value) || 0;
-      const maxAllowed = parseInt(input.max) || 0;
       
       if (action === 'increase') {
+        // La valeur max affichée est déjà le stock restant (mis à jour par renderProducts)
+        const maxAllowed = parseInt(input.max) || 0;
         if (value < maxAllowed) {
           value++;
         } else {
@@ -6113,6 +6091,7 @@ function setupCatalogueEvents() {
         e.target.value = value;
         showToast('❌ Stock limité', 'warning');
       }
+      
       updateCatalogueQuantity(productId, value);
     });
   });
@@ -6144,6 +6123,7 @@ function updateCatalogueQuantity(productId, quantity) {
   state.catalogueQuantityPicks[productId] = quantity;
   const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
   if (addBtn && !addBtn.disabled) {
+    const t = TRANSLATIONS[state.currentLanguage];
     addBtn.classList.toggle('has-qty', quantity > 0);
   }
 }
@@ -6169,8 +6149,8 @@ function openProductModal(product) {
     state.currentModalProduct = product;
     const productId = generateProductId(product);
     const quantity = state.quantityPicks[productId] || 0;
-    const remainingStock = getRemainingStock(product);
-    const stockStatus = getStockStatus(remainingStock);
+    const availableStock = getAvailableStock(product);
+    const stockStatus = getStockStatus(availableStock);
     
     $('modalProductName').textContent = product.name;
     $('modalProductNameFull').textContent = product.name;
@@ -6190,7 +6170,7 @@ function openProductModal(product) {
     
     const quantityInput = $('modalQuantityInput');
     quantityInput.value = quantity;
-    quantityInput.max = remainingStock;
+    quantityInput.max = availableStock;
     
     $('modalAddToCartBtn').disabled = !stockStatus.available;
     
@@ -6280,11 +6260,6 @@ function updateCartUI() {
   const total = subtotal + (subtotal >= CONFIG.freeShipping ? 0 : 3.000);
   $('cartTotal').textContent = formatPrice(total);
   saveState();
-  
-  // Après mise à jour du panier, rafraîchir tous les affichages de stock du catalogue
-  if (state.catalogueProducts) {
-    state.catalogueProducts.forEach(product => refreshCatalogueStockDisplay(product));
-  }
 }
 
 function toggleClientSpace() {
