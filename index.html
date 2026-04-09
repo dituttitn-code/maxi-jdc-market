@@ -6294,14 +6294,19 @@ function escapeHtml(str) {
       saveState();
     }
 
-    function addToCart(productId, product, quantity = 1) {
+   function addToCart(productId, product, quantity = 1) {
       if (!product || quantity <= 0) return;
+      
       const availableStock = getAvailableStock(product);
+      
+      // Correction : Vérifier si l'ajout dépasse le stock total disponible
       if (quantity > availableStock) {
-        showToast(`❌ Stock insuffisant. Il ne reste que ${availableStock} unités`, 'error');
+        showToast(`❌ Stock limité. Il ne reste que ${availableStock} unités`, 'error');
         return;
       }
+
       updateProductStock(product, quantity);
+
       if (state.cart[productId]) {
         state.cart[productId].quantity += quantity;
       } else {
@@ -6310,9 +6315,11 @@ function escapeHtml(str) {
           quantity: quantity
         };
       }
+
       state.quantityPicks[productId] = 0;
       updateCartUI();
       renderProducts();
+
       const t = TRANSLATIONS[state.currentLanguage];
       if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
         const saving = (product.oldPrice - product.price) * quantity;
@@ -6326,8 +6333,10 @@ function escapeHtml(str) {
       const stockKey = `${product.categoryKey}_${product.code}`;
       const currentStock = state.productStocks.get(stockKey) || product.stock;
       const newStock = Math.max(0, currentStock - quantity);
+      
       state.productStocks.set(stockKey, newStock);
       state.pendingStockUpdates.set(stockKey, newStock);
+
       for (const [catKey, products] of state.products.entries()) {
         const index = products.findIndex(p => p.code === product.code);
         if (index !== -1) {
@@ -6340,16 +6349,28 @@ function escapeHtml(str) {
 
     function removeFromCart(productId, quantity = 1) {
       if (!state.cart[productId]) return;
+
       const item = state.cart[productId];
+      // On diminue de 'quantity' (par défaut 1), sans descendre en dessous de ce qu'il y a dans le panier
       const removeQuantity = Math.min(quantity, item.quantity);
+      
       const stockKey = `${item.categoryKey}_${item.code}`;
       const currentStock = state.productStocks.get(stockKey) || 0;
+      
+      // On remet l'article dans le stock disponible
       state.productStocks.set(stockKey, currentStock + removeQuantity);
+
+      // Mise à jour de la quantité dans le panier
       item.quantity -= removeQuantity;
+
+      // Si la quantité arrive à 0, on supprime l'article du panier
       if (item.quantity <= 0) {
         delete state.cart[productId];
-        delete state.quantityPicks[productId];
+        if (state.quantityPicks[productId]) {
+          delete state.quantityPicks[productId];
+        }
       }
+
       renderProducts();
       updateCartUI();
     }
