@@ -6039,7 +6039,135 @@ function escapeHtml(str) {
         });
       });
     }
+// Fonction utilitaire pour échapper les caractères HTML
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
 
+function setupCatalogueEvents() {
+
+  // =========================
+  // Boutons + et -
+  // =========================
+  document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const action = e.currentTarget.dataset.action;
+      const productId = e.currentTarget.dataset.id;
+
+      const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+      if (!input) return;
+
+      let value = parseInt(input.value) || 0;
+      const max = parseInt(input.max) || 0;
+
+      if (action === 'increase') {
+        if (value < max) {
+          value++;
+        } else {
+          showToast('❌ Stock limité', 'warning');
+        }
+      } else if (action === 'decrease') {
+        value = Math.max(0, value - 1);
+      }
+
+      input.value = value;
+      updateCatalogueQuantity(productId, value);
+    });
+  });
+
+  // =========================
+  // Input manuel
+  // =========================
+  document.querySelectorAll('.catalogue-qty-input:not([disabled])').forEach(input => {
+    input.addEventListener('input', (e) => {
+      const productId = e.target.dataset.id;
+
+      let value = parseInt(e.target.value) || 0;
+      const max = parseInt(e.target.max) || 0;
+
+      if (value > max) {
+        value = max;
+        e.target.value = value;
+        showToast('❌ Stock limité', 'warning');
+      }
+
+      updateCatalogueQuantity(productId, value);
+    });
+
+    input.addEventListener('change', (e) => {
+      const productId = e.target.dataset.id;
+
+      let value = parseInt(e.target.value) || 0;
+      if (value < 0) value = 0;
+
+      e.target.value = value;
+      updateCatalogueQuantity(productId, value);
+    });
+  });
+
+  // =========================
+  // Bouton Ajouter au panier (CORRIGÉ)
+  // =========================
+  document.querySelectorAll('.catalogue-add-btn:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+
+      const productId = e.currentTarget.dataset.id;
+      const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
+
+      if (!product) {
+        showToast('❌ Produit invalide', 'error');
+        return;
+      }
+
+      const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+      const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
+
+      const askedQty = parseInt(input?.value) || 0;
+      const qtyToAdd = askedQty > 0 ? askedQty : 1;
+
+      const currentQty = state.cart[productId]?.quantity || 0;
+
+      // 🔥 IMPORTANT : même logique que bouton +
+      const availableStock = getAvailableStock(product);
+
+      if (availableStock <= 0) {
+        showToast('❌ Stock limité', 'warning');
+        return;
+      }
+
+      if (currentQty + qtyToAdd > availableStock) {
+        const restant = Math.max(0, availableStock - currentQty);
+
+        if (restant <= 0) {
+          showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
+        } else {
+          showToast(`❌ Stock limité, il reste ${restant} unité(s)`, 'warning');
+        }
+        return;
+      }
+
+      // ✅ Ajout sécurisé
+      addToCart(productId, product, qtyToAdd);
+
+      // Reset UI
+      state.catalogueQuantityPicks[productId] = 0;
+
+      if (input) input.value = 0;
+
+      if (addBtn) {
+        addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
+        addBtn.classList.remove('has-qty');
+      }
+
+    });
+  });
+}
     function updateCatalogueQuantity(productId, quantity) {
       state.catalogueQuantityPicks[productId] = quantity;
       
