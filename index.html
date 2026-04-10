@@ -6052,9 +6052,133 @@ function removeFromCart(productId, quantity = 1) {
   updateCartUI();
 }
 
+// ===================== GESTION CENTRALISÉE DES STOCKS =====================
+function getStockKey(product) {
+  return `${product.categoryKey}_${product.code}`;
+}
+
+function getPhysicalStockByKey(stockKey) {
+  if (!state.productStocks.has(stockKey)) {
+    state.productStocks.set(stockKey, 0);
+    state.pendingStockUpdates.set(stockKey, 0);
+  }
+  return state.productStocks.get(stockKey);
+}
+
+function getPhysicalStock(product) {
+  const key = getStockKey(product);
+  return getPhysicalStockByKey(key);
+}
+
+function getCartQuantity(productId) {
+  return state.cart[productId] ? state.cart[productId].quantity : 0;
+}
+
+function getRemainingStock(product) {
+  if (!product) return 0;
+  const physical = getPhysicalStock(product);
+  const productId = generateProductId(product);
+  const inCart = getCartQuantity(productId);
+  return Math.max(0, physical - inCart);
+}
+
+function getAvailableStock(product) {
+  return getRemainingStock(product);
+}
+
+function updateProductStock(product, delta) {
+  const key = getStockKey(product);
+  const currentPhysical = getPhysicalStockByKey(key);
+  const newPhysical = Math.max(0, currentPhysical - delta);
+  
+  state.productStocks.set(key, newPhysical);
+  state.pendingStockUpdates.set(key, newPhysical);
+
+  const syncProduct = (p) => {
+    if (p && p.code === product.code && p.categoryKey === product.categoryKey) {
+      p.stock = newPhysical;
+    }
+  };
+  
+  for (const products of state.products.values()) {
+    products.forEach(p => syncProduct(p));
+  }
+  if (state.catalogueProducts) {
+    state.catalogueProducts.forEach(p => syncProduct(p));
+  }
+  product.stock = newPhysical;
+  
+  saveSyncData();
+  refreshCatalogueStockDisplay(product);
+}
+
+function refreshCatalogueStockDisplay(product) {
+  if (!product) return;
+  const productId = generateProductId(product);
+  const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+  if (input) {
+    const remaining = getRemainingStock(product);
+    input.max = remaining;
+    let currentVal = parseInt(input.value) || 0;
+    if (currentVal > remaining) {
+      input.value = remaining;
+      updateCatalogueQuantity(productId, remaining);
+    }
+  }
+  const stockSpan = document.querySelector(`.catalogue-stock[data-id="${productId}"]`);
+  if (stockSpan) {
+    stockSpan.textContent = `${getRemainingStock(product)} restant(s)`;
+  }
+}
+
+// ===================== AJOUT AU PANIER =====================
+function addToCart(productId, product, quantity = 1) {
+  if (!product) return;
+  
+  const physicalStock = getPhysicalStock(product);
+  const currentInCart = getCartQuantity(productId);
+  
+  if (currentInCart + quantity > physicalStock) {
+    showToast('❌ Stock limité', 'warning');
+    return;
+  }
+
+  updateProductStock(product, quantity);
+
+  if (state.cart[productId]) {
+    state.cart[productId].quantity += quantity;
+  } else {
+    state.cart[productId] = { ...product, quantity: quantity };
+  }
+
+  updateCartUI();
+  renderProducts();
+  showToast(`✅ ${product.name} ajouté`);
+}
+
+// ===================== CSS (intégré dans une balise style) =====================
+(function addStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .catalogue-add-btn.disabled-btn {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: auto;
+      border-color: var(--muted, #aaa);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--muted, #aaa);
+    }
+    .catalogue-add-btn.has-qty {
+      background: rgba(0, 212, 255, 0.2);
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
 // ===================== ÉVÈNEMENTS CATALOGUE =====================
 function setupCatalogueEvents() {
-  // Gestion des boutons + et -
   document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const action = e.target.dataset.action;
@@ -6080,7 +6204,6 @@ function setupCatalogueEvents() {
     });
   });
   
-  // Gestion de la saisie manuelle
   document.querySelectorAll('.catalogue-qty-input:not([disabled])').forEach(input => {
     input.addEventListener('input', (e) => {
       const productId = e.target.dataset.id;
@@ -6097,9 +6220,7 @@ function setupCatalogueEvents() {
     });
   });
   
-  // Gestion du bouton "Ajouter au panier"
   document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
-    // Appliquer l'état visuel initial
     const productId = btn.dataset.id;
     const initialQty = state.catalogueQuantityPicks[productId] || 0;
     if (initialQty === 0) {
@@ -6114,7 +6235,6 @@ function setupCatalogueEvents() {
       const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
       let quantity = parseInt(input.value) || 0;
       
-      // Blocage si quantité = 0
       if (quantity === 0) {
         showToast('⚠️ Pour commander, veuillez utiliser le bouton +.', 'info');
         return;
@@ -6123,7 +6243,6 @@ function setupCatalogueEvents() {
       if (product) {
         addToCart(productId, product, quantity);
         
-        // Réinitialiser
         state.catalogueQuantityPicks[productId] = 0;
         if (input) input.value = 0;
         const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
@@ -6327,22 +6446,20 @@ function loadHistoryForPhone(phone) {
 }
 
 // ===================== FONCTIONS API =====================
-    async function fetchUserOrdersFromAPI(phone) {
-      const cleanPhone = phone.replace(/\s+/g, '');
-      const url = `${CONFIG.commandeApiUrl}?method=getOrderHistory&telephone=${encodeURIComponent(cleanPhone)}&t=${Date.now()}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      if (data.success && data.history) {
-        return data.history;
-      } else {
-        throw new Error(data.error || 'Erreur inconnue');
-      }
-    }
+async function fetchUserOrdersFromAPI(phone) {
+  const cleanPhone = phone.replace(/\s+/g, '');
+  const url = `${CONFIG.commandeApiUrl}?method=getOrderHistory&telephone=${encodeURIComponent(cleanPhone)}&t=${Date.now()}`;
+  const response = await fetch(url);
+  const data = await response.json();
+  if (data.success && data.history) {
+    return data.history;
+  } else {
+    throw new Error(data.error || 'Erreur inconnue');
+  }
+}
 
-  function renderHistoryFromAPI(orders) {
-  // ✅ Trier par date décroissante (la plus récente en premier)
+function renderHistoryFromAPI(orders) {
   const sorted = [...orders].sort((a, b) => new Date(b.date) - new Date(a.date));
-
   const historyItemsList = $('historyItemsList');
   const historyEmptyMessage = $('historyEmptyMessage');
   const historyCount = $('historyCount');
@@ -6364,7 +6481,6 @@ function loadHistoryForPhone(phone) {
       day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
     });
     
-    // Compter les lignes d'articles (sans l'en-tête)
     const articlesLines = (order.articles || '')
       .split('\n')
       .filter(l => l.trim() && !l.startsWith('COMMANDE') && !l.startsWith('CMD-MAXI'))
@@ -6392,21 +6508,25 @@ function loadHistoryForPhone(phone) {
 
 function getStatusClass(status) {
   const s = String(status || "").toUpperCase();
-
   if (s.includes("❌") || s.includes("ANNUL")) return "status-cancel";
   if (s.includes("✅") || s.includes("LIVRÉE") || s.includes("LIVREE")) return "status-done";
   if (s.includes("🟠") || s.includes("EN LIVRAISON")) return "status-delivery";
   if (s.includes("🔵") || s.includes("PRÉPARATION") || s.includes("PREPARATION")) return "status-prep";
   if (s.includes("⏳") || s.includes("ATTENTE")) return "status-wait";
   if (s.includes("🟡") || s.includes("NOUVELLE")) return "status-new";
-
   return "status-new";
+}
+
+// Fonction minimale pour afficher les détails d'une commande (à compléter selon vos besoins)
+function showOrderDetailsFromAPI(order) {
+  console.log("Détails de la commande :", order);
+  // Implémentez ici l'affichage d'une modale ou d'une section dédiée
+  showToast(`Commande ${order.commande_id} - Total: ${formatPrice(order.total)}`, 'info');
 }
 
 /* ============================= */
 /* TIMELINE SUIVI COMMANDE */
 /* ============================= */
-
 function getTrackingStep(status) {
   const s = String(status || "").toUpperCase();
 
