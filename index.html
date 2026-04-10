@@ -5953,95 +5953,101 @@ function escapeHtml(str) {
     return m;
   });
 }
-    function setupCatalogueEvents() {
-      document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const action = e.target.dataset.action;
-          const productId = e.target.dataset.id;
-          const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
-          if (!input) return;
-          
-          let value = parseInt(input.value) || 0;
-          
-          if (action === 'increase') {
-            const availableStock = parseInt(input.max) || 0;
-            if (value < availableStock) {
-              value++;
-            } else {
-              showToast('❌ Stock limité', 'warning');
-            }
-          } else if (action === 'decrease') {
-            value = Math.max(0, value - 1);
-          }
-          
-          input.value = value;
-          updateCatalogueQuantity(productId, value);
-        });
-      });
-      
-      document.querySelectorAll('.catalogue-qty-input:not([disabled])').forEach(input => {
-        input.addEventListener('input', (e) => {
-          const productId = e.target.dataset.id;
-          let value = parseInt(e.target.value) || 0;
-          const max = parseInt(e.target.max) || 0;
-          
-          if (value > max) {
-            value = max;
-            e.target.value = value;
-            showToast('❌ Stock limité', 'warning');
-          }
-          
-          updateCatalogueQuantity(productId, value);
-        });
-        
-        input.addEventListener('change', (e) => {
-          const productId = e.target.dataset.id;
-          let value = parseInt(e.target.value) || 0;
-          if (value < 0) value = 0;
-          e.target.value = value;
-          updateCatalogueQuantity(productId, value);
-        });
-      });
-      
-     document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
-  btn.addEventListener('click', function(e) {
-    const productId = this.dataset.id;
-    const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
-    const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
-    const quantity = parseInt(input?.value) || 0;
+  function setupCatalogueEvents() {
+  document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const action = e.target.dataset.action;
+      const productId = e.target.dataset.id;
+      const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+      if (!input) return;
 
-    if (this.disabled || quantity <= 0) {
-      e.preventDefault();
-      showToast('Veuillez sélectionner une quantité avec le bouton +.', 'info');
-      return;
-    }
+      let value = parseInt(input.value) || 0;
 
-    if (!product) {
-      showToast('❌ Produit invalide', 'error');
-      return;
-    }
-
-    const added = addToCart(productId, product, quantity);
-
-    if (added) {
-      state.catalogueQuantityPicks[productId] = 0;
-
-      if (input) {
-        input.value = 0;
+      if (action === 'increase') {
+        const availableStock = parseInt(input.max) || 0;
+        if (value < availableStock) {
+          value++;
+        } else {
+          showToast('❌ Stock limité', 'warning');
+        }
+      } else if (action === 'decrease') {
+        value = Math.max(0, value - 1);
       }
 
-      updateCatalogueQuantity(productId, 0);
-      showToast(`✅ ${quantity} x ${product.name} ajouté(s) au panier`);
-    }
+      input.value = value;
+      updateCatalogueQuantity(productId, value);
+    });
   });
-});
+
+  document.querySelectorAll('.catalogue-qty-input:not([disabled])').forEach(input => {
+    input.addEventListener('input', (e) => {
+      const productId = e.target.dataset.id;
+      let value = parseInt(e.target.value) || 0;
+      const max = parseInt(e.target.max) || 0;
+
+      if (value < 0) value = 0;
+
+      if (value > max) {
+        value = max;
+        e.target.value = value;
+        showToast('❌ Stock limité', 'warning');
+      }
+
+      updateCatalogueQuantity(productId, value);
+    });
+
+    input.addEventListener('change', (e) => {
+      const productId = e.target.dataset.id;
+      let value = parseInt(e.target.value) || 0;
+      if (value < 0) value = 0;
+      e.target.value = value;
+      updateCatalogueQuantity(productId, value);
+    });
+  });
+
+  document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const productId = this.dataset.id;
+      const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
+      const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+      const quantity = parseInt(input?.value) || 0;
+
+      if (this.disabled || quantity <= 0) {
+        e.preventDefault();
+        showToast('Veuillez sélectionner une quantité avec le bouton +.', 'info');
+        return;
+      }
+
+      if (!product) {
+        showToast('❌ Produit invalide', 'error');
+        return;
+      }
+
+      const added = addToCart(productId, product, quantity);
+
+      if (added) {
+        state.catalogueQuantityPicks[productId] = 0;
+
+        if (input) {
+          input.value = 0;
+        }
+
+        updateCatalogueQuantity(productId, 0);
+        showToast(`✅ ${quantity} x ${product.name} ajouté(s) au panier`);
+      }
+    });
+  });
+}
+
 function updateCatalogueQuantity(productId, quantity) {
   state.catalogueQuantityPicks[productId] = quantity;
-  
+
   const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
   const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
 
-  if (input) input.value = quantity;
+  if (input) {
+    input.value = quantity;
+  }
 
   if (!addBtn) return;
 
