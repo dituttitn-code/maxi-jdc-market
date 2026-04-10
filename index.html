@@ -5864,7 +5864,7 @@ function getDiscountPercent(product) {
   return 0;
 }
 
-function renderCatalogue() {
+function renderCatalogue() { 
   const grid = $('catalogueGrid');
   const empty = $('catalogueEmpty');
   
@@ -5908,8 +5908,58 @@ function renderCatalogue() {
     if (!isOutOfStock && availableStock <= 3) {
       stockAlert = `<span class="catalogue-stock-alert">⚠️ Plus que ${availableStock} en stock</span>`;
     }
+
+    item.innerHTML = `
+      <div class="catalogue-product-image-wrap">
+        ${stockOutBadge}
+        <img 
+          src="${imgSrc}" 
+          alt="${product.name}" 
+          class="catalogue-product-image"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        >
+        <div class="catalogue-product-image-placeholder" style="display:none;">📦</div>
+      </div>
+
+      <div class="catalogue-product-info">
+        <div class="catalogue-product-name">${product.name}</div>
+        <div class="catalogue-product-code">Code: ${product.code}</div>
+        <div class="catalogue-product-price">${formatPrice(product.price)}</div>
+        <div class="catalogue-product-stock">
+          Stock: ${stockStatus}
+          ${stockAlert}
+        </div>
+
+        <div class="catalogue-product-actions">
+          <div class="catalogue-qty-box">
+            <button class="catalogue-qty-btn minus" data-id="${productId}">-</button>
+            <input 
+              type="number" 
+              class="catalogue-qty-input" 
+              data-id="${productId}" 
+              value="${quantity}" 
+              min="0"
+            >
+            <button class="catalogue-qty-btn plus" data-id="${productId}">+</button>
+          </div>
+
+          <button 
+            class="catalogue-add-btn" 
+            data-id="${productId}"
+            ${isOutOfStock ? 'disabled' : ''}
+          >
+            🛒 Ajouter au panier
+          </button>
+        </div>
+      </div>
+    `;
     
-    // --- Détection promotion ---
+    grid.appendChild(item);
+
+    updateCatalogueQuantity(productId, quantity);
+  });
+  
+  // --- Détection promotion ---
     const isPromo = (product.isPromotion || product.isPromo) && 
                     product.oldPrice && 
                     product.oldPrice > product.price;
