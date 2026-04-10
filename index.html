@@ -6432,6 +6432,14 @@ function updateProductStock(product, quantity) {
 function removeFromCart(productId) {
   if (!state.cart[productId]) return;
 
+  if (!state.cartActionLocks) state.cartActionLocks = {};
+
+  const now = Date.now();
+  if (state.cartActionLocks[productId] && now - state.cartActionLocks[productId] < 200) {
+    return;
+  }
+  state.cartActionLocks[productId] = now;
+
   const item = state.cart[productId];
   const removeQuantity = 1;
 
