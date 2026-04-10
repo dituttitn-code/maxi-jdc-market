@@ -6001,26 +6001,35 @@ function updateProductStock(product, delta) {
   saveSyncData();
 }
 
-// ===================== CSS (Couleurs du bouton Panier) =====================
+// ===================== CSS (Bouton et Design) =====================
 (function addStyles() {
   const style = document.createElement('style');
   style.textContent = `
-    /* Bouton Gris quand la quantité est à 0 */
+    /* Style de base du bouton Envoyer au Panier */
+    .catalogue-add-btn {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 8px !important;
+      width: 100% !important;
+      padding: 10px !important;
+      border-radius: 8px !important;
+      font-weight: bold !important;
+      transition: background-color 0.3s ease !important;
+      border: none !important;
+      cursor: pointer !important;
+    }
+
+    /* Bouton Gris (Quantité 0) */
     .catalogue-add-btn.disabled-btn {
       background-color: #7a7a7a !important; 
       color: #ffffff !important;
-      opacity: 1;
-      cursor: pointer; /* Pointer car on veut cliquer pour voir le message */
-      border: none !important;
     }
     
-    /* Bouton Vert quand la quantité est > 0 */
+    /* Bouton Vert (Quantité > 0) */
     .catalogue-add-btn.has-qty {
-      background-color: #28a745 !important; /* Vert succès */
+      background-color: #28a745 !important; 
       color: #ffffff !important;
-      opacity: 1;
-      cursor: pointer;
-      border: none !important;
     }
   `;
   document.head.appendChild(style);
@@ -6048,101 +6057,88 @@ function removeFromCart(productId, quantity = 1) {
 
 // ===================== ÉVÈNEMENTS CATALOGUE =====================
 function setupCatalogueEvents() {
-  // Gestion des boutons + et -
+  // Boutons + et -
   document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.onclick = (e) => {
       const action = e.target.dataset.action;
       const productId = e.target.dataset.id;
       const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
       if (!input) return;
       
       let value = parseInt(input.value) || 0;
-      
       if (action === 'increase') {
         const maxAllowed = parseInt(input.max) || 0;
-        if (value < maxAllowed) {
-          value++;
-        } else {
-          showToast('❌ Stock limité', 'warning');
-        }
+        if (value < maxAllowed) value++;
+        else showToast('❌ Stock limité', 'warning');
       } else if (action === 'decrease') {
         value = Math.max(0, value - 1);
       }
       
       input.value = value;
       updateCatalogueQuantity(productId, value);
-    });
+    };
   });
-  
-  // Gestion de la saisie manuelle
+
+  // Saisie manuelle
   document.querySelectorAll('.catalogue-qty-input:not([disabled])').forEach(input => {
-    input.addEventListener('input', (e) => {
+    input.oninput = (e) => {
       const productId = e.target.dataset.id;
       let value = parseInt(e.target.value) || 0;
       const max = parseInt(e.target.max) || 0;
-      
       if (value > max) {
         value = max;
         e.target.value = value;
         showToast('❌ Stock limité', 'warning');
       }
       updateCatalogueQuantity(productId, value);
-    });
+    };
   });
-  
-  // Gestion du bouton "Ajouter au panier"
+
+  // BOUTON ENVOYER AU PANIER
   document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
-    const productId = btn.dataset.id;
-    const initialQty = state.catalogueQuantityPicks[productId] || 0;
-    
-    // Application de la couleur initiale
-    if (initialQty === 0) {
-      btn.classList.add('disabled-btn');
-    } else {
-      btn.classList.add('has-qty');
-    }
-    
-    btn.addEventListener('click', (e) => {
-      const productId = e.target.dataset.id;
+    btn.onclick = function(e) {
+      const productId = this.dataset.id;
       const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
       const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
-      let quantity = parseInt(input.value) || 0;
-      
-      // ✅ SI 0 : ON AFFICHE LE MESSAGE (Le catalogue ne bouge pas)
+      const quantity = parseInt(input.value) || 0;
+
       if (quantity === 0) {
         showToast('Pour commander, veuillez utiliser le bouton +.', 'info');
         return;
       }
-      
-      // ✅ SI > 0 : ON AJOUTE (Le catalogue reste ouvert)
+
       if (product) {
         addToCart(productId, product, quantity);
         
-        // Remise à zéro de la ligne
+        // Remise à zéro locale
         state.catalogueQuantityPicks[productId] = 0;
         if (input) input.value = 0;
-        updateCatalogueQuantity(productId, 0); // Repasse en gris
+        updateCatalogueQuantity(productId, 0); 
+        
+        showToast(`✅ ${quantity} x ${product.name} ajouté(s)`);
       }
-    });
+    };
   });
 }
 
 function updateCatalogueQuantity(productId, quantity) {
   state.catalogueQuantityPicks[productId] = quantity;
   const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
+  
   if (addBtn) {
+    const btnContent = `🛒 Envoyer au Panier`;
+
     if (quantity > 0) {
       addBtn.classList.remove('disabled-btn');
       addBtn.classList.add('has-qty');
+      addBtn.innerHTML = btnContent;
     } else {
       addBtn.classList.add('disabled-btn');
       addBtn.classList.remove('has-qty');
+      addBtn.innerHTML = btnContent;
     }
   }
 }
-
-// Les autres fonctions (closeCatalogueModal, updateCartUI, etc.) restent telles quelles.
-// ... (reste du code inchangé : openProductModal, updateCartUI, etc.)
 
 function closeCatalogueModal() {
   $('catalogueModal').classList.remove('open');
@@ -6177,7 +6173,7 @@ function openProductModal(product) {
       $('modalOldPrice').style.display = 'block';
     } else {
       $('modalCurrentPrice').textContent = formatPrice(product.price);
-      $('modalOldOldPrice').style.display = 'none';
+      $('modalOldPrice').style.display = 'none';
     }
     
     $('modalProductCode').textContent = product.code;
