@@ -6469,30 +6469,156 @@ function removeFromCart(productId) {
   renderProducts();
   updateCartUI();
 }
-    function toggleClientSpace() {
-      state.clientSpaceVisible = !state.clientSpaceVisible;
-      if (state.clientSpaceVisible) {
-        $('clientSpaceSection').classList.add('visible');
-        $('toggleClientSpaceBtn').style.display = 'none';
-        $('accountDetailsSection').classList.remove('visible');
-        $('historySearchSection').classList.remove('visible');
-        $('orderHistorySection').classList.remove('visible');
-      } else {
-        $('clientSpaceSection').classList.remove('visible');
-        $('toggleClientSpaceBtn').style.display = 'block';
+
+function toggleClientSpace() {
+  state.clientSpaceVisible = !state.clientSpaceVisible;
+  if (state.clientSpaceVisible) {
+    $('clientSpaceSection').classList.add('visible');
+    $('toggleClientSpaceBtn').style.display = 'none';
+    $('accountDetailsSection').classList.remove('visible');
+    $('historySearchSection').classList.remove('visible');
+    $('orderHistorySection').classList.remove('visible');
+  } else {
+    $('clientSpaceSection').classList.remove('visible');
+    $('toggleClientSpaceBtn').style.display = 'block';
+  }
+}
+
+function closeClientSpace() {
+  state.clientSpaceVisible = false;
+  $('clientSpaceSection').classList.remove('visible');
+  $('toggleClientSpaceBtn').style.display = 'block';
+  $('accountDetailsSection').classList.remove('visible');
+  $('historySearchSection').classList.remove('visible');
+  $('orderHistorySection').classList.remove('visible');
+}
+
+function updateCartUI() {
+  const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  $('cartTopCount').textContent = cartCount;
+  $('cartItemsCount').textContent = `${cartCount} ${TRANSLATIONS[state.currentLanguage].items}`;
+
+  let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.000;
+  let shippingText = formatPrice(shippingFee);
+
+  const cartItemsList = $('cartItemsList');
+  const cartEmptyMessage = $('cartEmptyMessage');
+
+  if (cartCount === 0) {
+    cartItemsList.style.display = 'none';
+    cartEmptyMessage.style.display = 'block';
+    cartItemsList.innerHTML = '';
+    $('cartSavingsSection').classList.remove('visible');
+  } else {
+    cartItemsList.style.display = 'flex';
+    cartEmptyMessage.style.display = 'none';
+    cartItemsList.innerHTML = '';
+
+    Object.entries(state.cart).forEach(([id, item]) => {
+      const itemSaving = calculateItemSavings(item);
+      const itemTotal = item.price * item.quantity;
+      const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
+
+      const itemElement = document.createElement('div');
+      itemElement.className = 'cart-item';
+
+      let savingsBadge = '';
+      if (itemSaving > 0) {
+        savingsBadge = `
+          <div class="cart-item-saving ${item.isPromotion ? 'promo' : ''}">
+            <span>💰</span>
+            <span>Économie: ${formatPrice(itemSaving)}</span>
+            ${item.discountPercent ? `<span class="savings-percentage">(-${item.discountPercent}%)</span>` : ''}
+          </div>
+        `;
       }
-    }
 
-    function closeClientSpace() {
-      state.clientSpaceVisible = false;
-      $('clientSpaceSection').classList.remove('visible');
-      $('toggleClientSpaceBtn').style.display = 'block';
-      $('accountDetailsSection').classList.remove('visible');
-      $('historySearchSection').classList.remove('visible');
-      $('orderHistorySection').classList.remove('visible');
-    }
+      itemElement.innerHTML = `
+        <div class="cart-item-info">
+          <div class="cart-item-name">
+            ${item.name}
+            ${item.isPromotion ? '<span class="savings-badge">PROMO</span>' : ''}
+          </div>
+          <div class="cart-item-details">
+            <span>Code: ${item.code}</span>
+            <span>Prix: ${formatPrice(item.price)}</span>
+            ${item.oldPrice && item.oldPrice > item.price ? `
+              <span style="color:#ffcc00;font-weight:700;">
+                Ancien: <del>${formatPrice(item.oldPrice)}</del>
+              </span>
+            ` : ''}
+            <span>Cat: ${item.category}</span>
+          </div>
+          ${savingsBadge}
+          <div class="cart-item-controls">
+            <div class="cart-item-stepper">
+              <button class="cart-item-qty-btn" data-action="decrease" data-id="${id}">−</button>
+              <span class="cart-item-qty">${item.quantity}</span>
+              <button class="cart-item-qty-btn" data-action="increase" data-id="${id}">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="cart-item-price">
+          ${formatPrice(itemTotal)}
+          ${itemSaving > 0 ? `
+            <div style="font-size:9px;color:#ffcc00;margin-top:2px;">
+              <del style="opacity:0.7;">${formatPrice(originalTotal)}</del>
+            </div>
+          ` : ''}
+        </div>
+      `;
 
-    // ✅ Fonction pour afficher les commandes en cours
+      const decreaseBtn = itemElement.querySelector('[data-action="decrease"]');
+      const increaseBtn = itemElement.querySelector('[data-action="increase"]');
+
+      if (decreaseBtn) {
+        decreaseBtn.onclick = () => {
+          removeFromCart(id);
+        };
+      }
+
+      if (increaseBtn) {
+        increaseBtn.onclick = () => {
+          addToCart(id, item, 1);
+        };
+      }
+
+      cartItemsList.appendChild(itemElement);
+    });
+
+    updateSavingsDisplay();
+  }
+
+  $('cartSubtotal').textContent = formatPrice(subtotal);
+
+  if (subtotal >= CONFIG.freeShipping) {
+    shippingFee = 0;
+    shippingText = '<span class="total-value free">GRATUIT</span>';
+  } else if (subtotal < CONFIG.minOrder) {
+    shippingFee = null;
+    shippingText = '---';
+  }
+
+  $('cartShipping').innerHTML = shippingText;
+
+  const total = shippingFee !== null ? subtotal + shippingFee : null;
+
+  if (total !== null) {
+    $('cartTotal').textContent = formatPrice(total);
+    $('cartTotal').style.color = '';
+    $('placeOrderBtn').disabled = false;
+  } else {
+    $('cartTotal').textContent = `Minimum: ${formatPrice(CONFIG.minOrder)}`;
+    $('cartTotal').style.color = 'var(--danger)';
+    $('placeOrderBtn').disabled = true;
+  }
+
+  saveState();
+}
+
+// ✅ Fonction pour afficher les commandes en cours
     function afficherCommandesEnCours() {
       if (!state.user || !state.user.phone) {
         showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
