@@ -4792,7 +4792,7 @@
     };
 
 // ===================== CONFIGURATION & CATEGORIES =====================
-const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbwwhBmW2nAkmZGJbp2D6XCw_zsRViK2QMWcafaTMeqH3GVvwAS37ceobvvocJO6FZLO6A/exec";
+const STOCK_API_URL = "https://script.google.com/macros/s/AKfycbzHAOQc5v5HlZyLBG_aNPupm__SGR6BUEDjd4Hbb0zNhz0A997xPOGbUmU_ux_h67uxOw/exec";
 
 const CATEGORIES = [
   { key: "promotions", label: "🔥 PROMOTIONS", file: "data/PROMOTIONS.csv", isPromo: true },
@@ -5268,7 +5268,8 @@ function setLanguage(lang) {
     }
 
     function calculateItemSavings(item) {
-      if (!(item.isPromo || item.isPromotion) || !item.oldPrice || item.oldPrice <= item.price) {
+      // Changement de isPromotion vers isPromo pour correspondre au script Google
+      if (!item.isPromo || !item.oldPrice || item.oldPrice <= item.price) {
         return 0;
       }
       const savingPerUnit = item.oldPrice - item.price;
@@ -5279,16 +5280,17 @@ function setLanguage(lang) {
       let totalSavings = 0;
       let totalOriginalPrice = 0;
       let totalCurrentPrice = 0;
-
+      
       Object.values(state.cart).forEach(item => {
-        if ((item.isPromo || item.isPromotion) && item.oldPrice && item.oldPrice > item.price) {
+        // Utilisation de isPromo pour détecter si l'article est en réduction
+        if (item.isPromo && item.oldPrice && item.oldPrice > item.price) {
           const saving = calculateItemSavings(item);
           totalSavings += saving;
           totalOriginalPrice += item.oldPrice * item.quantity;
           totalCurrentPrice += item.price * item.quantity;
         }
       });
-
+      
       return {
         totalSavings,
         totalOriginalPrice,
@@ -5296,7 +5298,6 @@ function setLanguage(lang) {
         percentage: totalOriginalPrice > 0 ? Math.round((totalSavings / totalOriginalPrice) * 100) : 0
       };
     }
-
     function updateSavingsDisplay() {
       const savings = calculateTotalSavings();
       const savingsSection = $('cartSavingsSection');
@@ -5325,129 +5326,101 @@ function setLanguage(lang) {
     }
 
     async function loadCategoryData(categoryKey) {
-      try {
-        const category = CATEGORIES.find(c => c.key === categoryKey);
-        if (!category) return [];
-
-        const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`); // Anti-cache ajouté
-
-        if (!response.ok) {
-          console.error("Erreur API");
-          return [];
-        }
-
-        const data = await response.json();
-        let products = data.products || [];
-
-        products = products.filter(p => p.Actif === "oui");
-        products = products.filter(p => p.Categorie === category.label);
-
-        const finalProducts = [];
-
-        products.forEach(p => {
-          const googleStock = parseInt(p.Stock) || 0;
-          let basePrice = parseFloat(p.Prix) || 0;
-          let finalPrice = basePrice;
-          let oldPrice = null;
-          let isPromo = false;
-          let discText = "";
-
-          // --- LOGIQUE DE CALCUL DES PROMOTIONS ---
-          const valPromo = (p.Promotion || p.promo || "").toString().trim();
-
-          if (valPromo !== "" && valPromo !== "0") {
-            isPromo = true;
-            if (valPromo.includes('%')) {
-              // Calcul automatique : ex 7.000 - 20% = 5.600
-              const percent = parseFloat(valPromo.replace('%', ''));
-              finalPrice = basePrice - (basePrice * (percent / 100));
-              oldPrice = basePrice;
-              discText = `-${percent}%`;
-            } else {
-              // Prix fixe : ex 11 DT
-              const fixed = parseFloat(valPromo.replace(',', '.'));
-              if (!isNaN(fixed)) {
-                finalPrice = fixed;
-                oldPrice = basePrice;
-                discText = "PROMO";
-              }
-            }
-          }
-
-          const product = {
-            code: p.Article,
-            name: p.Produits,
-            price: finalPrice,
-            category: p.Categorie,
-            categoryKey: category.key,
-            isPromo: isPromo,
-            isPromotion: isPromo,
-            stock: googleStock,
-            originalStock: googleStock,
-            oldPrice: oldPrice,
-            discountText: discText
-          };
-
-          finalProducts.push(product);
-
-          const stockKey = `${category.key}_${p.Article}`;
-          if (!state.productStocks.has(stockKey)) {
-            state.productStocks.set(stockKey, googleStock);
-          }
-        });
-
-        state.products.set(categoryKey, finalProducts);
-        return finalProducts;
-
-      } catch (error) {
-        console.error(`Erreur chargement ${categoryKey}:`, error);
-        return [];
-      }
-    }
-
-    async function loadPromotionsData() {
-      try {
-        let allPromos = [];
-        // Scan de toutes les catégories pour trouver les articles isPromo
-        state.products.forEach(prods => {
-          allPromos.push(...prods.filter(p => p.isPromo === true));
-        });
-
-        const formattedPromos = allPromos.map(p => ({
-          ...p,
-          categoryKey: 'promotions',
-          category: '🔥 PROMOTIONS',
-          isPromotion: true 
-        }));
-
-        console.log(`${formattedPromos.length} promotions détectées`);
-        return formattedPromos;
-
-      } catch (error) {
-        console.error('Erreur promotions:', error);
-        return [];
-      }
-    }
-// =========================================================
-// CHARGEMENT ET SYNC DES PRODUITS
-// =========================================================
-
-async function loadAllProducts() {
   try {
-    console.log('Chargement du stock depuis Google Sheets...');
+    const category = CATEGORIES.find(c => c.key === categoryKey);
+    if (!category) return [];
 
-    // 1. Appel à l'API Google Sheets avec timestamp anti-cache
-    const response = await fetch(`${STOCK_API_URL}?t=${Date.now()}`);
+    // 👉 API GOOGLE (remplace CSV)
+   const response = await fetch(STOCK_API_URL);
+
     if (!response.ok) {
-      throw new Error(`Erreur HTTP ${response.status}`);
+      console.error("Erreur API");
+      return [];
     }
 
     const data = await response.json();
-    console.log('Données reçues de Google Sheets :', data);
 
-    const rows = Array.isArray(data) ? data : (Array.isArray(data.products) ? data.products : []);
+    console.log("DATA API =", data);
 
-    // Réinitialisation de l'état global
+    let products = data.products || [];
+
+    console.log("Produits API total :", products.length);
+
+    // 👉 Garde seulement les produits actifs
+    products = products.filter(p => p.Actif === "oui");
+
+    // 👉 Filtrer par catégorie
+    products = products.filter(p => p.Categorie === category.label);
+
+    const finalProducts = [];
+
+    products.forEach(p => {
+
+      const googleStock = parseInt(p.Stock) || 0;
+
+      const product = {
+        code: p.Article,
+        name: p.Produits,
+        price: parseFloat(p.Prix) || 0,
+        category: p.Categorie,
+        categoryKey: category.key,
+        isPromotion: false,
+        stock: googleStock,
+        originalStock: googleStock,
+        oldPrice: null,
+        discountPercent: 0
+      };
+
+      finalProducts.push(product);
+
+      const stockKey = `${category.key}_${p.Article}`;
+      if (!state.productStocks.has(stockKey)) {
+        state.productStocks.set(stockKey, googleStock);
+      }
+    });
+
+    console.log(`${categoryKey}: ${finalProducts.length} produits chargés`);
+
+    return finalProducts;
+
+  } catch (error) {
+    console.error(`Erreur chargement ${categoryKey}:`, error);
+    return [];
+  }
+}
+
+    async function loadPromotionsData() {
+      try {
+        // On ne cherche plus de fichier CSV séparé.
+        // On utilise directement la liste globale des produits déjà chargée.
+        if (!state.allProducts || state.allProducts.length === 0) {
+          console.warn('Les produits ne sont pas encore chargés');
+          return [];
+        }
+
+        // On filtre simplement les produits qui ont isPromo = true
+        const promotions = state.allProducts.filter(product => product.isPromo === true);
+
+        // On s'assure que chaque produit de promotion a les bonnes propriétés pour l'affichage
+        const finalPromotions = promotions.map(product => {
+          return {
+            ...product,
+            // On force la catégorie pour l'affichage dans l'onglet spécial
+            categoryKey: 'promotions',
+            // On s'assure que isPromotion existe aussi si votre code l'utilise ailleurs
+            isPromotion: true 
+          };
+        });
+
+        console.log(`${finalPromotions.length} promotions détectées depuis Google Sheets`);
+        return finalPromotions;
+      } catch (error) {
+        console.error('Erreur lors du filtrage des promotions:', error);
+        return [];
+      }
+    }
+
+// 1. Réinitialisation de l'état global
     state.products = new Map();
     state.allProducts = [];
     state.promotions = [];
@@ -5482,49 +5455,20 @@ async function loadAllProducts() {
 
       let categoryKey = SHEET_CATEGORY_MAP[categoryName] || "epicerie_salee";
 
-      // --- Prix de base (tel que lu dans la cellule "Prix" de Sheets) ---
-      let basePrice = price > 1000 ? price / 1000 : price;
-      let originalPrice = null;
-      let finalPrice = basePrice;
-      let isPromo = false;
-      let discountPercent = 0;
-
-      // 1️⃣ Si une colonne "DiscountPercent" ou "Promo%" est présente
-      let promoPercent = raw.discountPercent || raw.promoPercent || raw["Promotion (%)"];
-      if (promoPercent && !isNaN(parseFloat(promoPercent))) {
-        discountPercent = parseFloat(promoPercent);
-        originalPrice = basePrice;                     // 7,000 DT
-        finalPrice = basePrice * (1 - discountPercent / 100); // 5,600 DT
-        isPromo = true;
-      }
-      // 2️⃣ Sinon, si oldPrice est déjà fourni
-      else if (raw.oldPrice && !isNaN(parseFloat(raw.oldPrice))) {
-        originalPrice = parseFloat(raw.oldPrice);
-        // On considère que le prix lu est le prix promo
-        finalPrice = basePrice;
-        if (originalPrice > finalPrice) isPromo = true;
-        discountPercent = Math.round((1 - finalPrice / originalPrice) * 100);
-      }
-      // 3️⃣ Sinon, pas de promotion
-      else {
-        finalPrice = basePrice;
-        originalPrice = null;
-        isPromo = false;
-      }
-
+      // --- CRÉATION DE L'OBJET PRODUIT AVEC INFOS PROMO ---
       const product = {
         code,
         name,
-        price: finalPrice,                // prix promo (ou normal)
-        oldPrice: originalPrice,          // prix barré (si promo)
+        price: price > 1000 ? price / 1000 : price, // Correction millimes
         stock: stock,
         originalStock: stock,
         category: categoryName || "Épicerie Salée",
         categoryKey,
-        isPromo: isPromo,
-        isPromotion: isPromo,
-        discountPercent: discountPercent,
-        discountText: raw.discountText || (discountPercent ? `-${discountPercent}%` : ""),
+        // Récupération des données promo de code.gs
+        isPromo: raw.isPromo === true || raw.isPromo === "true",
+        isPromotion: raw.isPromo === true || raw.isPromo === "true", // Double sécurité
+        oldPrice: raw.oldPrice ? parseFloat(raw.oldPrice) : null,
+        discountText: raw.discountText || "",
         image: `images/products/${code}.jpg`
       };
 
@@ -5536,8 +5480,8 @@ async function loadAllProducts() {
       state.productStocks.set(code, stock);
     }
 
-    // 3. Gestion des Promotions (Version sécurisée Google Sheets)
-    state.allProducts = allProducts; 
+    // 3. Gestion des Promotions (Extraction automatique)
+    state.allProducts = allProducts; // On définit allProducts avant d'extraire les promos
 
     if (typeof loadPromotionsData === 'function') {
       try {
@@ -5546,31 +5490,30 @@ async function loadAllProducts() {
           state.promotions = promos;
           state.products.set('promotions', promos);
           
-          if (typeof applyPromotions === 'function') {
-            applyPromotions(allProducts, promos);
-          }
+          // Affiche la bannière défilante si elle existe
           if (typeof showPromoBanner === 'function') {
             showPromoBanner(promos);
           }
-        } else {
-          state.promotions = [];
-          state.products.set('promotions', []);
+          
+          // Applique les prix barrés sur la liste générale
+          if (typeof applyPromotions === 'function') {
+            applyPromotions(allProducts, promos);
+          }
         }
       } catch (e) {
-        console.warn("Info: Pas de promotions chargées ou erreur de filtrage.");
+        console.warn("Info: Pas de promotions détectées.");
       }
     }
 
     // 4. Mise à jour finale de l'état
-    state.allProducts = allProducts;
     state.filteredProducts = [...allProducts];
     state.showAllCategories = true;
     state.activeCategory = null; 
     state.currentPage = 1;
 
     // 5. Mise à jour de l'interface
-    renderCategories();
-    updateCategoriesUI();
+    if (typeof renderCategories === 'function') renderCategories();
+    if (typeof updateCategoriesUI === 'function') updateCategoriesUI();
     
     if (typeof filterAndRender === 'function') {
       filterAndRender();
@@ -5578,7 +5521,7 @@ async function loadAllProducts() {
       renderProducts();
     }
 
-    console.log(`✅ Succès : ${allProducts.length} produits affichés.`);
+    console.log(`✅ Succès : ${allProducts.length} produits affichés (dont ${state.promotions.length} promos).`);
     if (typeof showToast === 'function') showToast(`✅ ${allProducts.length} produits chargés`);
 
   } catch (error) {
@@ -5586,7 +5529,6 @@ async function loadAllProducts() {
     if (typeof showToast === 'function') showToast('❌ Erreur de connexion aux données');
   }
 }
-
 // =========================================================
 // FONCTIONS COMPLÉMENTAIRES
 // =========================================================
@@ -5734,7 +5676,7 @@ function getFilteredProducts() {
         return;
       }
       
-  productsToShow.forEach(product => {
+      productsToShow.forEach(product => {
         const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
         const stockStatus = getStockStatus(product.stock);
         const card = document.createElement('div');
@@ -5798,703 +5740,711 @@ function getFilteredProducts() {
       });
     }
 
-// ✅ Ouvre le catalogue et affiche le produit spécifique en tête de liste
-function openCatalogueForProduct(targetProduct) {
-  const category = CATEGORIES.find(c => c.key === targetProduct.categoryKey);
-  if (!category) return;
-  
-  const products = state.products.get(targetProduct.categoryKey) || [];
-  if (products.length === 0) {
-    showToast('⚠️ Aucun produit dans cette catégorie', 'warning');
-    return;
-  }
-  
-  // Placer le produit ciblé en tête de liste, suivi des autres triés par nom
-  const otherProducts = products.filter(p => p.code !== targetProduct.code || p.name !== targetProduct.name);
-  otherProducts.sort((a, b) => a.name.localeCompare(b.name));
-  
-  state.catalogueProducts = [targetProduct, ...otherProducts];
-  state.catalogueSearchQuery = '';
-  $('catalogueTitle').textContent = category.label;
-  $('catalogueSearchInput').value = '';
-  
-  state.catalogueQuantityPicks = {};
-  
-  renderCatalogue();
-  $('catalogueModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-// Calcule le pourcentage de réduction si non fourni
-function getDiscountPercent(product) {
-  if (product.discountPercent && product.discountPercent > 0) return product.discountPercent;
-  if (product.oldPrice && product.price && product.oldPrice > product.price) {
-    return Math.round((1 - product.price / product.oldPrice) * 100);
-  }
-  return 0;
-}
-
-function renderCatalogue() {
-  const grid = $('catalogueGrid');
-  const empty = $('catalogueEmpty');
-  
-  let filteredProducts = state.catalogueProducts;
-  if (state.catalogueSearchQuery) {
-    const query = state.catalogueSearchQuery.toLowerCase();
-    filteredProducts = filteredProducts.filter(p =>
-      p.name.toLowerCase().includes(query) ||
-      p.code.toLowerCase().includes(query)
-    );
-  }
-  
-  if (filteredProducts.length === 0) {
-    grid.style.display = 'none';
-    empty.style.display = 'block';
-    return;
-  }
-  
-  grid.style.display = 'grid';
-  empty.style.display = 'none';
-  grid.innerHTML = '';
-  
-  filteredProducts.forEach(product => {
-    const productId = generateProductId(product);
-    const quantity = state.catalogueQuantityPicks[productId] || 0;
-    let availableStock = getAvailableStock(product);
-    availableStock = typeof availableStock === 'number' ? availableStock : 0;
-    const stockStatus = getStockStatus(availableStock);
-    const isOutOfStock = availableStock <= 0;
-    const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-    
-    const item = document.createElement('div');
-    item.className = `catalogue-item ${isOutOfStock ? 'stock-out' : ''}`;
-    
-    let stockOutBadge = '';
-    if (isOutOfStock) {
-      stockOutBadge = '<div class="stock-out-badge">⚠️ RUPTURE</div>';
-    }
-    
-    let stockAlert = '';
-    if (!isOutOfStock && availableStock <= 3) {
-      stockAlert = `<span class="catalogue-stock-alert">⚠️ Plus que ${availableStock} en stock</span>`;
-    }
-    
-    // --- Détection promotion ---
-    const isPromo = (product.isPromotion || product.isPromo) && 
-                    product.oldPrice && 
-                    product.oldPrice > product.price;
-    const discountPercent = getDiscountPercent(product);
-    
-    // Badge promotion (style identique à l'onglet PROMOTIONS)
-    let promoBadgeHtml = '';
-    if (isPromo && discountPercent > 0) {
-      promoBadgeHtml = `<div class="product-discount" style="position:absolute; top:8px; left:8px; z-index:5; background: linear-gradient(135deg, #ff0000, #ff6b00); color:white; font-weight:900; font-size:10px; padding:3px 6px; border-radius:4px; box-shadow:0 2px 6px rgba(255,0,0,0.3);">-${discountPercent}%</div>`;
-    }
-    
-    // Prix original barré + prix promo en vert
-    const oldPriceHtml = isPromo
-      ? `<span class="catalogue-item-old-price" style="text-decoration: line-through; color: var(--muted); margin-right: 8px;">${formatPrice(product.oldPrice)}</span>`
-      : '';
-    
-    item.innerHTML = `
-      ${stockOutBadge}
-      <div class="catalogue-item-header" style="position: relative;">
-        ${promoBadgeHtml}
-        <div class="catalogue-item-image">
-          <img src="${imgSrc}" alt="${escapeHtml(product.name)}" loading="lazy" onerror="this.style.display='none'">
-        </div>
-        <div class="catalogue-item-info">
-          <div class="catalogue-item-name">${escapeHtml(product.name)}</div>
-          <div class="catalogue-item-code">Code: ${product.code}</div>
-          <div class="catalogue-item-price">
-            ${oldPriceHtml}
-            <span style="color: var(--accent); font-weight: 900;">${formatPrice(product.price)}</span>
-          </div>
-          <div style="font-size:11px;margin-top:2px;${isOutOfStock ? 'color: var(--danger);' : 'color: var(--muted);'}">
-            Stock: ${stockStatus.text}
-            ${stockAlert}
-          </div>
-        </div>
-      </div>
-      <div class="catalogue-item-actions">
-        <div class="catalogue-qty-controls">
-          <button class="catalogue-qty-btn" data-action="decrease" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>−</button>
-          <input type="number" class="catalogue-qty-input" 
-            data-id="${productId}"
-            value="${quantity}"
-            min="0"
-            max="${availableStock}"
-            step="1"
-            ${isOutOfStock ? 'disabled' : ''}>
-          <button class="catalogue-qty-btn" data-action="increase" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>+</button>
-        </div>
-        <button class="catalogue-add-btn ${quantity > 0 ? 'has-qty' : ''}" 
-                data-id="${productId}"
-                ${stockStatus.available ? '' : 'disabled'}>
-          ${isOutOfStock 
-            ? '❌ RUPTURE' 
-            : `🛒 ${(TRANSLATIONS[state.currentLanguage] || {}).addToCart || 'Ajouter au panier'}`}
-        </button>
-      </div>
-    `;
-    
-    grid.appendChild(item);
-  });
-  
-  setupCatalogueEvents();
-}
-
-// ===================== FONCTIONS UTILITAIRES =====================
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
-    if (m === '&') return '&amp;';
-    if (m === '<') return '&lt;';
-    if (m === '>') return '&gt;';
-    return m;
-  });
-}
-
-// ===================== GESTION CENTRALISÉE DES STOCKS =====================
-function getAvailableStock(product) {
-  if (!product) return 0;
-
-  const stockKey = `${product.categoryKey}_${product.code}`;
-
-  if (!state.productStocks.has(stockKey)) {
-    const initialStock = product.stock || 0;
-    state.productStocks.set(stockKey, initialStock);
-    state.pendingStockUpdates.set(stockKey, initialStock);
-    product.stock = initialStock;
-  }
-
-  return state.productStocks.get(stockKey);
-}
-
-function updateProductStock(product, delta) {
-  const stockKey = `${product.categoryKey}_${product.code}`;
-  const currentStock = getAvailableStock(product);
-  const newStock = Math.max(0, currentStock - delta);
-
-  state.productStocks.set(stockKey, newStock);
-  state.pendingStockUpdates.set(stockKey, newStock);
-
-  for (const [catKey, products] of state.products.entries()) {
-    const index = products.findIndex(p => p.code === product.code);
-    if (index !== -1) {
-      state.products.get(catKey)[index].stock = newStock;
-      break;
-    }
-  }
-
-  if (state.catalogueProducts) {
-    const idx = state.catalogueProducts.findIndex(p => p.code === product.code);
-    if (idx !== -1) {
-      state.catalogueProducts[idx].stock = newStock;
-    }
-  }
-
-  product.stock = newStock;
-  saveSyncData();
-}
-
-// ===================== AJOUT AU PANIER =====================
-function addToCart(productId, product, quantity = 1) {
-  if (!product) return false;
-
-  const stockReel = getAvailableStock(product);
-
-  if (quantity <= 0) {
-    showToast('Veuillez sélectionner une quantité', 'info');
-    return false;
-  }
-
-  if (quantity > stockReel) {
-    showToast('❌ Stock insuffisant', 'warning');
-    return false;
-  }
-
-  updateProductStock(product, quantity);
-
-  if (state.cart[productId]) {
-    state.cart[productId].quantity += quantity;
-  } else {
-    state.cart[productId] = { ...product, quantity: quantity };
-  }
-
-  updateCartUI();
-  renderProducts();
-  return true;
-}
-
-// ===================== RETRAIT DU PANIER =====================
-function removeFromCart(productId, quantity = 1) {
-  if (!state.cart[productId]) return;
-
-  const item = state.cart[productId];
-  const qtyToRemove = Math.min(quantity, item.quantity);
-
-  updateProductStock(item, -qtyToRemove);
-  item.quantity -= qtyToRemove;
-
-  if (item.quantity <= 0) {
-    delete state.cart[productId];
-    showToast(`🗑️ ${item.name} retiré`);
-  } else {
-    showToast(`➖ ${item.name} : ${item.quantity} restant(s)`);
-  }
-
-  renderProducts();
-  updateCartUI();
-}
-
-// ===================== VIDER LE PANIER =====================
-function clearCart() {
-  Object.entries(state.cart).forEach(([_, item]) => {
-    updateProductStock(item, -item.quantity);
-  });
-
-  state.cart = {};
-  state.catalogueQuantityPicks = {};
-  state.quantityPicks = {};
-
-  document.querySelectorAll('.catalogue-qty-input').forEach(input => {
-    input.value = 0;
-  });
-
-  document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
-    const productId = btn.dataset.id;
-    updateCatalogueQuantity(productId, 0);
-  });
-
-  updateCartUI();
-  renderProducts();
-  saveState();
-
-  showToast('🗑️ Panier vidé');
-}
-
-// ===================== ÉVÈNEMENTS CATALOGUE =====================
-function setupCatalogueEvents() {
-  document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
-    btn.onclick = (e) => {
-      const action = e.currentTarget.dataset.action;
-      const productId = e.currentTarget.dataset.id;
-      const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
-      if (!input) return;
-
-      let value = parseInt(input.value) || 0;
-      const maxAllowed = parseInt(input.max) || 0;
-
-      if (action === 'increase') {
-        if (value < maxAllowed) {
-          value++;
-        } else {
-          showToast(`❌ Limite atteinte (${maxAllowed})`, 'warning');
-        }
-      } else if (action === 'decrease') {
-        value = Math.max(0, value - 1);
-      }
-
-      input.value = value;
-      updateCatalogueQuantity(productId, value);
-    };
-  });
-
-  document.querySelectorAll('.catalogue-qty-input:not([disabled])').forEach(input => {
-    input.oninput = (e) => {
-      const productId = e.target.dataset.id;
-      let value = parseInt(e.target.value) || 0;
-      const max = parseInt(e.target.max) || 0;
-
-      if (value < 0) value = 0;
-
-      if (value > max) {
-        value = max;
-        showToast(`❌ Stock limité à ${max}`, 'warning');
-      }
-
-      e.target.value = value;
-      updateCatalogueQuantity(productId, value);
-    };
-  });
-
-  document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
-    btn.onclick = function() {
-      const productId = this.dataset.id;
-      const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
-      const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
-      const quantity = parseInt(input?.value) || 0;
-
-      if (quantity === 0) {
-        showToast('Veuillez sélectionner une quantité', 'info');
+    // ✅ Nouvelle fonction : Ouvre le catalogue et affiche le produit spécifique en tête de liste
+    function openCatalogueForProduct(targetProduct) {
+      const category = CATEGORIES.find(c => c.key === targetProduct.categoryKey);
+      if (!category) return;
+      
+      const products = state.products.get(targetProduct.categoryKey) || [];
+      if (products.length === 0) {
+        showToast('⚠️ Aucun produit dans cette catégorie', 'warning');
         return;
       }
+      
+      // Placer le produit ciblé en tête de liste, suivi des autres triés par nom
+      const otherProducts = products.filter(p => p.code !== targetProduct.code || p.name !== targetProduct.name);
+      otherProducts.sort((a, b) => a.name.localeCompare(b.name));
+      
+      state.catalogueProducts = [targetProduct, ...otherProducts];
+      state.catalogueSearchQuery = '';
+      $('catalogueTitle').textContent = category.label;
+      $('catalogueSearchInput').value = '';
+      
+      state.catalogueQuantityPicks = {};
+      
+      renderCatalogue();
+      $('catalogueModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
 
-      if (product) {
-        const added = addToCart(productId, product, quantity);
+    function renderCatalogue() {
+      const grid = $('catalogueGrid');
+      const empty = $('catalogueEmpty');
+      
+      let filteredProducts = state.catalogueProducts;
+      if (state.catalogueSearchQuery) {
+        const query = state.catalogueSearchQuery.toLowerCase();
+        filteredProducts = filteredProducts.filter(p =>
+          p.name.toLowerCase().includes(query) ||
+          p.code.toLowerCase().includes(query)
+        );
+      }
+      
+      if (filteredProducts.length === 0) {
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+      
+      grid.style.display = 'grid';
+      empty.style.display = 'none';
+      grid.innerHTML = '';
+      
+      filteredProducts.forEach(product => {
+        const productId = generateProductId(product);
+        const quantity = state.catalogueQuantityPicks[productId] || 0;
+        const availableStock = getAvailableStock(product);
+        const stockStatus = getStockStatus(availableStock);
+        const isOutOfStock = availableStock <= 0;
+        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+        
+        const item = document.createElement('div');
+        item.className = `catalogue-item ${isOutOfStock ? 'stock-out' : ''}`;
+        
+        let stockOutBadge = '';
+        if (isOutOfStock) {
+          stockOutBadge = '<div class="stock-out-badge">⚠️ RUPTURE</div>';
+        }
+        
+        let stockAlert = '';
+        if (!isOutOfStock && availableStock <= 3) {
+          stockAlert = `<span class="catalogue-stock-alert">⚠️ Plus que ${availableStock} en stock</span>`;
+        }
+        
+        item.innerHTML = `
+          ${stockOutBadge}
+          <div class="catalogue-item-header">
+            <div class="catalogue-item-image">
+              <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
+            </div>
+            <div class="catalogue-item-info">
+              <div class="catalogue-item-name">${product.name}</div>
+              <div class="catalogue-item-code">Code: ${product.code}</div>
+              <div class="catalogue-item-price">
+                ${product.isPromotion && product.oldPrice && product.oldPrice > product.price
+                  ? `<span class="catalogue-item-old-price">${formatPrice(product.oldPrice)}</span>`
+                  : ''}
+                <span>${formatPrice(product.price)}</span>
+              </div>
+              <div style="font-size:11px;margin-top:2px;${isOutOfStock ? 'color: var(--danger);' : 'color: var(--muted);'}">
+                Stock: ${stockStatus.text}
+                ${stockAlert}
+              </div>
+            </div>
+          </div>
+          <div class="catalogue-item-actions">
+            <div class="catalogue-qty-controls">
+              <button class="catalogue-qty-btn" data-action="decrease" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>−</button>
+              <input type="number" class="catalogue-qty-input" 
+                data-id="${productId}"
+                value="${quantity}"
+                min="0"
+                max="${availableStock}"
+                step="1"
+                ${isOutOfStock ? 'disabled' : ''}>
+              <button class="catalogue-qty-btn" data-action="increase" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>+</button>
+            </div>
+            <button class="catalogue-add-btn ${quantity > 0 ? 'has-qty' : ''}" 
+                    data-id="${productId}"
+                    ${stockStatus.available ? '' : 'disabled'}>
+              ${isOutOfStock 
+                ? '❌ RUPTURE' 
+                : `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`}
+            </button>
+          </div>
+        `;
+        
+        grid.appendChild(item);
+      });
+      
+      setupCatalogueEvents();
+    }
 
-        if (added) {
-          showToast(`✅ ${quantity} x ${product.name} ajouté(s) au panier`);
+    function setupCatalogueEvents() {
+      document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const action = e.target.dataset.action;
+          const productId = e.target.dataset.id;
+          const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+          if (!input) return;
+          
+          let value = parseInt(input.value) || 0;
+          
+          if (action === 'increase') {
+            const availableStock = parseInt(input.max) || 0;
+            if (value < availableStock) {
+              value++;
+            } else {
+              showToast('❌ Stock limité', 'warning');
+            }
+          } else if (action === 'decrease') {
+            value = Math.max(0, value - 1);
+          }
+          
+          input.value = value;
+          updateCatalogueQuantity(productId, value);
+        });
+      });
+      
+      document.querySelectorAll('.catalogue-qty-input:not([disabled])').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const productId = e.target.dataset.id;
+          let value = parseInt(e.target.value) || 0;
+          const max = parseInt(e.target.max) || 0;
+          
+          if (value > max) {
+            value = max;
+            e.target.value = value;
+            showToast('❌ Stock limité', 'warning');
+          }
+          
+          updateCatalogueQuantity(productId, value);
+        });
+        
+        input.addEventListener('change', (e) => {
+          const productId = e.target.dataset.id;
+          let value = parseInt(e.target.value) || 0;
+          if (value < 0) value = 0;
+          e.target.value = value;
+          updateCatalogueQuantity(productId, value);
+        });
+      });
+      
+      document.querySelectorAll('.catalogue-add-btn:not([disabled])').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const productId = e.target.dataset.id;
+          const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
+          const quantity = parseInt(document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`).value) || 0;
+          
+          if (product && quantity > 0) {
+            addToCart(productId, product, quantity);
+            // Réinitialiser la quantité pour cet article après ajout
+            state.catalogueQuantityPicks[productId] = 0;
+            const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+            const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
+            if (input) input.value = 0;
+            if (addBtn) {
+              addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
+              addBtn.classList.remove('has-qty');
+            }
+          } else if (product && quantity === 0) {
+            // Si la quantité est 0, on ajoute quand même 1 par défaut
+            addToCart(productId, product, 1);
+            // Mettre à jour l'input pour afficher 0 après ajout (car on a ajouté 1)
+            const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+            if (input) input.value = 0;
+            state.catalogueQuantityPicks[productId] = 0;
+            const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
+            if (addBtn) {
+              addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
+              addBtn.classList.remove('has-qty');
+            }
+          } else {
+            showToast('❌ Produit invalide', 'error');
+          }
+        });
+      });
+    }
 
-          state.catalogueQuantityPicks[productId] = 0;
-
-          if (input) input.value = 0;
-
-          updateCatalogueQuantity(productId, 0);
+    function updateCatalogueQuantity(productId, quantity) {
+      state.catalogueQuantityPicks[productId] = quantity;
+      
+      const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
+      if (addBtn && !addBtn.disabled) {
+        const t = TRANSLATIONS[state.currentLanguage];
+        if (quantity > 0) {
+          addBtn.textContent = `🛒 ${t.addToCart}`;
+          addBtn.classList.add('has-qty');
+        } else {
+          addBtn.textContent = `🛒 ${t.addToCart}`;
+          addBtn.classList.remove('has-qty');
         }
       }
-    };
-  });
-}
-
-function updateCatalogueQuantity(productId, quantity) {
-  state.catalogueQuantityPicks[productId] = quantity;
-  const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
-
-  if (addBtn) {
-    const baseText = "Ajouter au panier";
-
-    if (quantity > 0) {
-      addBtn.classList.remove('disabled-btn');
-      addBtn.classList.add('has-qty');
-      addBtn.innerHTML = `🛒 ${baseText} (${quantity})`;
-    } else {
-      addBtn.classList.add('disabled-btn');
-      addBtn.classList.remove('has-qty');
-      addBtn.innerHTML = `🛒 ${baseText}`;
-    }
-  }
-}
-
-function closeCatalogueModal() {
-  $('catalogueModal').classList.remove('open');
-  document.body.style.overflow = '';
-  state.catalogueProducts = [];
-  state.catalogueQuantityPicks = {};
-}
-
-function findProductIndex(product) {
-  if (!product || !state.filteredProducts) return -1;
-  return state.filteredProducts.findIndex(p =>
-    p.code === product.code && p.name === product.name
-  );
-}
-
-function openProductModal(product) {
-  closeCatalogueModal();
-
-  setTimeout(() => {
-    if (!product) return;
-
-    state.currentModalProduct = product;
-    const productId = generateProductId(product);
-    const quantity = state.quantityPicks[productId] || 0;
-    const availableStock = getAvailableStock(product);
-    const stockStatus = getStockStatus(availableStock);
-
-    $('modalProductName').textContent = product.name;
-    $('modalProductNameFull').textContent = product.name;
-
-    if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
-      $('modalCurrentPrice').textContent = formatPrice(product.price);
-      $('modalOldPrice').textContent = formatPrice(product.oldPrice);
-      $('modalOldPrice').style.display = 'block';
-    } else {
-      $('modalCurrentPrice').textContent = formatPrice(product.price);
-      $('modalOldPrice').style.display = 'none';
     }
 
-    $('modalProductCode').textContent = product.code;
-    $('modalProductCategory').textContent = product.category;
-    $('modalProductStock').textContent = stockStatus.text;
+    function closeCatalogueModal() {
+      $('catalogueModal').classList.remove('open');
+      document.body.style.overflow = '';
+      state.catalogueProducts = [];
+      state.catalogueQuantityPicks = {};
+    }
 
-    const quantityInput = $('modalQuantityInput');
-    quantityInput.value = quantity;
-    quantityInput.max = availableStock;
+    function findProductIndex(product) {
+      if (!product || !state.filteredProducts) return -1;
+      return state.filteredProducts.findIndex(p =>
+        p.code === product.code && p.name === product.name
+      );
+    }
 
-    $('modalAddToCartBtn').disabled = !stockStatus.available;
-
-    const img = $('modalProductImage');
-    img.src = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-
-    renderSimilarProducts(product);
-    $('productModal').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }, 300);
-}
-
-function closeProductModal() {
-  $('productModal').classList.remove('open');
-  document.body.style.overflow = '';
-  state.currentModalProduct = null;
-}
-
-function getSimilarProducts(currentProduct) {
-  if (!currentProduct) return [];
-  const sameCategory = state.products.get(currentProduct.categoryKey) || [];
-  return sameCategory.filter(p => p.code !== currentProduct.code).slice(0, 6);
-}
-
-function renderSimilarProducts(currentProduct) {
-  const similar = getSimilarProducts(currentProduct);
-  const grid = $('similarProductsGrid');
-
-  if (similar.length === 0) {
-    $('similarProductsSection').style.display = 'none';
-    return;
-  }
-
-  $('similarProductsSection').style.display = 'block';
-  grid.innerHTML = '';
-
-  similar.forEach(product => {
-    const card = document.createElement('div');
-    card.className = 'similar-product-card';
-    card.innerHTML = `
-      <div class="similar-product-name">${product.name}</div>
-      <div class="similar-product-price">${formatPrice(product.price)}</div>
-    `;
-    card.onclick = () => {
-      closeProductModal();
-      setTimeout(() => openProductModal(product), 300);
-    };
-    grid.appendChild(card);
-  });
-}
-
-// ===================== INTERFACE PANIER & LIVRAISON =====================
-function updateCartUI() {
-  const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-  const minimumCommande = 15.000;
-  const fraisLivraison = 3.000;
-  const livraisonGratuiteAPartir = 100.000;
-
-  let deliveryFee = 0;
-
-  // Conditions de livraison
-  if (subtotal === 0) {
-    deliveryFee = 0;
-  } else if (subtotal >= livraisonGratuiteAPartir) {
-    deliveryFee = 0;
-  } else {
-    deliveryFee = fraisLivraison;
-  }
-
-  const total = subtotal + deliveryFee;
-
-  $('cartTopCount').textContent = cartCount;
-  $('cartItemsCount').textContent = `${cartCount} articles`;
-
-  const cartItemsList = $('cartItemsList');
-  const cartEmptyMessage = $('cartEmptyMessage');
-
-  if (cartCount === 0) {
-    cartItemsList.innerHTML = '';
-    cartItemsList.style.display = 'none';
-    cartEmptyMessage.style.display = 'block';
-  } else {
-    cartItemsList.style.display = 'flex';
-    cartEmptyMessage.style.display = 'none';
-    cartItemsList.innerHTML = '';
-
-    Object.entries(state.cart).forEach(([id, item]) => {
-      const itemElement = document.createElement('div');
-      itemElement.className = 'cart-item';
-
-      const productOrig =
-        Array.from(state.products.values()).flat().find(p => generateProductId(p) === id) || item;
-
-      itemElement.innerHTML = `
-        <div class="cart-item-info">
-          <div class="cart-item-name">${item.name}</div>
-          <div class="cart-item-stepper">
-            <button class="cart-item-qty-btn dec-btn">−</button>
-            <span class="cart-item-qty">${item.quantity}</span>
-            <button class="cart-item-qty-btn inc-btn">+</button>
-          </div>
-        </div>
-        <div class="cart-item-price">${formatPrice(item.price * item.quantity)}</div>
-      `;
-
-      itemElement.querySelector('.inc-btn').onclick = () => {
-        const added = addToCart(id, productOrig, 1);
-        if (!added) {
-          showToast('❌ Stock maximum atteint', 'warning');
+    function openProductModal(product) {
+      closeCatalogueModal();
+      setTimeout(() => {
+        if (!product) return;
+        state.currentModalProduct = product;
+        const productId = generateProductId(product);
+        const quantity = state.quantityPicks[productId] || 0;
+        const availableStock = getAvailableStock(product);
+        const stockStatus = getStockStatus(availableStock);
+        $('modalProductName').textContent = product.name;
+        $('modalProductNameFull').textContent = product.name;
+        if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
+          $('modalCurrentPrice').textContent = formatPrice(product.price);
+          $('modalOldPrice').textContent = formatPrice(product.oldPrice);
+          $('modalOldPrice').style.display = 'block';
+          const discountPercent = product.discountPercent || Math.round((1 - product.price / product.oldPrice) * 100);
+          if (discountPercent > 0) {
+            $('modalDiscount').textContent = `-${discountPercent}%`;
+            $('modalDiscount').style.display = 'block';
+            $('modalPromoBadge').style.display = 'block';
+            $('modalPromoBadge').textContent = `${discountPercent}% OFF`;
+          } else {
+            $('modalDiscount').style.display = 'none';
+            $('modalPromoBadge').style.display = 'none';
+          }
+        } else {
+          $('modalCurrentPrice').textContent = formatPrice(product.price);
+          $('modalOldPrice').style.display = 'none';
+          $('modalDiscount').style.display = 'none';
+          $('modalPromoBadge').style.display = 'none';
         }
-      };
-
-      itemElement.querySelector('.dec-btn').onclick = () => removeFromCart(id, 1);
-
-      cartItemsList.appendChild(itemElement);
-    });
-  }
-
-  $('cartSubtotal').textContent = formatPrice(subtotal);
-
-  // Compatibilité avec les 2 ids possibles
-  if ($('cartDeliveryFee')) {
-    $('cartDeliveryFee').textContent = formatPrice(deliveryFee);
-  }
-  if ($('cartDelivery')) {
-    $('cartDelivery').textContent = formatPrice(deliveryFee);
-  }
-
-  $('cartTotal').textContent = formatPrice(total);
-
-  const orderBtn = $('commanderBtn') || $('checkoutBtn');
-  if (orderBtn) {
-    if (subtotal === 0) {
-      orderBtn.disabled = true;
-      orderBtn.innerHTML = '🚀 Commander';
-      orderBtn.style.opacity = '0.5';
-    } else if (subtotal < minimumCommande) {
-      orderBtn.disabled = true;
-      orderBtn.innerHTML = `Minimum ${formatPrice(minimumCommande)} requis`;
-      orderBtn.style.opacity = '0.5';
-    } else {
-      orderBtn.disabled = false;
-      orderBtn.innerHTML = '🚀 Commander';
-      orderBtn.style.opacity = '1';
-    }
-  }
-
-  saveState();
-}
-
-function toggleClientSpace() {
-  state.clientSpaceVisible = !state.clientSpaceVisible;
-  $('clientSpaceSection').classList.toggle('visible', state.clientSpaceVisible);
-}
-
-function closeClientSpace() {
-  state.clientSpaceVisible = false;
-  $('clientSpaceSection').classList.remove('visible');
-}
-
-function afficherCommandesEnCours() {
-  if (!state.user?.phone) return;
-
-  const history = state.orderHistory.filter(
-    o => o.clientPhone.includes(state.user.phone) && o.statut !== 'Livré'
-  );
-
-  const list = $('historyItemsList');
-  list.innerHTML = '';
-
-  history.forEach(o => {
-    const div = document.createElement('div');
-    div.className = 'history-item';
-    div.textContent = `Commande du ${o.date} - ${o.statut}`;
-    list.appendChild(div);
-  });
-
-  $('orderHistorySection').classList.add('visible');
-}
-
-function afficherHistoriqueCommandes() {
-  if (!state.user?.phone) return;
-
-  const history = state.orderHistory.filter(
-    o => o.clientPhone.includes(state.user.phone) && o.statut === 'Livré'
-  );
-
-  const list = $('historyItemsList');
-  list.innerHTML = '';
-
-  history.forEach(o => {
-    const div = document.createElement('div');
-    div.className = 'history-item';
-    div.textContent = `Livré le ${o.date}`;
-    list.appendChild(div);
-  });
-
-  $('orderHistorySection').classList.add('visible');
-}
-
-function loadHistoryForPhone(phone) {
-  return state.orderHistory.filter(o =>
-    o.clientPhone.includes(phone.replace(/\s+/g, ''))
-  );
-}
-
-// ===================== BOUTONS PANIER =====================
-if ($('clearCartBtn')) {
-  $('clearCartBtn').onclick = clearCart;
-}
-
-if ($('commanderBtn')) {
-  $('commanderBtn').onclick = function() {
-    const subtotal = Object.values(state.cart).reduce(
-      (sum, item) => sum + (item.price * item.quantity),
-      0
-    );
-
-    if (subtotal <= 0) {
-      showToast('Votre panier est vide', 'warning');
-      return;
+        $('modalProductCode').textContent = product.code;
+        $('modalProductCategory').textContent = product.category;
+        $('modalProductStock').textContent = stockStatus.text;
+        $('modalProductStock').style.color = stockStatus.class === 'ok' ? 'var(--accent)' : stockStatus.class === 'low' ? 'var(--warning)' : 'var(--danger)';
+        const quantityInput = $('modalQuantityInput');
+        quantityInput.value = quantity;
+        quantityInput.max = Math.min(999, availableStock);
+        const addBtn = $('modalAddToCartBtn');
+        addBtn.disabled = !stockStatus.available;
+        const t = TRANSLATIONS[state.currentLanguage];
+        addBtn.textContent = `🛒 ${t.addToCart}`;
+        const img = $('modalProductImage');
+        const noPhoto = $('modalNoPhoto');
+        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+        img.src = imgSrc;
+        img.onload = () => {
+          img.style.display = 'block';
+          noPhoto.style.display = 'none';
+        };
+        img.onerror = () => {
+          img.style.display = 'none';
+          noPhoto.style.display = 'flex';
+          noPhoto.textContent = `Aucune photo pour ${product.code}`;
+        };
+        $('modalPrevImageBtn').style.display = 'none';
+        $('modalNextImageBtn').style.display = 'none';
+        $('imageNavBar').innerHTML = '';
+        renderSimilarProducts(product);
+        $('productModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+          quantityInput.focus();
+          quantityInput.select();
+        }, 300);
+      }, 300);
     }
 
-    if (subtotal < 15) {
-      showToast('Minimum de commande : 15 dt', 'warning');
-      return;
+    function closeProductModal() {
+      $('productModal').classList.remove('open');
+      document.body.style.overflow = '';
+      state.currentModalProduct = null;
     }
 
-    showToast('✅ Commande prête à être envoyée', 'success');
-  };
-}
-
-if ($('checkoutBtn')) {
-  $('checkoutBtn').onclick = function() {
-    const subtotal = Object.values(state.cart).reduce(
-      (sum, item) => sum + (item.price * item.quantity),
-      0
-    );
-
-    if (subtotal <= 0) {
-      showToast('Votre panier est vide', 'warning');
-      return;
+    function getSimilarProducts(currentProduct) {
+      if (!currentProduct) return [];
+      if (currentProduct.categoryKey === 'promotions') {
+        return state.promotions.filter(p =>
+          p.code !== currentProduct.code
+        ).slice(0, 6);
+      }
+      const sameCategory = state.products.get(currentProduct.categoryKey) || [];
+      return sameCategory.filter(p =>
+        p.code !== currentProduct.code
+      ).slice(0, 6);
     }
 
-    if (subtotal < 15) {
-      showToast('Minimum de commande : 15 dt', 'warning');
-      return;
+    function renderSimilarProducts(currentProduct) {
+      const similar = getSimilarProducts(currentProduct);
+      const grid = $('similarProductsGrid');
+      const count = $('similarProductsCount');
+      const section = $('similarProductsSection');
+      count.textContent = similar.length;
+      if (similar.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+      section.style.display = 'block';
+      grid.innerHTML = '';
+      similar.forEach(product => {
+        const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
+        const stockStatus = getStockStatus(product.stock);
+        const card = document.createElement('div');
+        card.className = 'similar-product-card';
+        card.innerHTML = `
+          <div class="similar-product-image">
+            <img src="${imgSrc}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'">
+          </div>
+          <div class="similar-product-info">
+            <div class="similar-product-name">${product.name}</div>
+            <div class="similar-product-price">${formatPrice(product.price)}</div>
+            <div class="similar-product-stock ${stockStatus.class}">
+              ${stockStatus.class === 'ok' ? '✓' : stockStatus.class === 'low' ? '⚠️' : '✗'} ${stockStatus.text}
+            </div>
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          closeProductModal();
+          setTimeout(() => openProductModal(product), 300);
+        });
+        grid.appendChild(card);
+      });
     }
 
-    showToast('✅ Commande prête à être envoyée', 'success');
-  };
-}
-
-// ===================== FONCTIONS API =====================
-if ($('clearCartBtn')) {
-  $('clearCartBtn').onclick = clearCart;
-}
-
-if ($('commanderBtn')) {
-  $('commanderBtn').onclick = function() {
-    const subtotal = Object.values(state.cart).reduce(
-      (sum, item) => sum + (item.price * item.quantity),
-      0
-    );
-
-    if (subtotal <= 0) {
-      showToast('Votre panier est vide', 'warning');
-      return;
+    function getAvailableStock(product) {
+      const stockKey = `${product.categoryKey}_${product.code}`;
+      return state.productStocks.get(stockKey) || product.stock || 0;
     }
 
-    if (subtotal < 15) {
-      showToast('Minimum de commande : 15 dt', 'warning');
-      return;
+    function updateCartUI() {
+      const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
+      const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      $('cartTopCount').textContent = cartCount;
+      $('cartItemsCount').textContent = `${cartCount} ${TRANSLATIONS[state.currentLanguage].items}`;
+      
+      let shippingFee = subtotal >= CONFIG.freeShipping ? 0 : 3.000;
+      let shippingText = formatPrice(shippingFee);
+      
+      const cartItemsList = $('cartItemsList');
+      const cartEmptyMessage = $('cartEmptyMessage');
+      if (cartCount === 0) {
+        cartItemsList.style.display = 'none';
+        cartEmptyMessage.style.display = 'block';
+        $('cartSavingsSection').classList.remove('visible');
+      } else {
+        cartItemsList.style.display = 'flex';
+        cartEmptyMessage.style.display = 'none';
+        cartItemsList.innerHTML = '';
+        Object.entries(state.cart).forEach(([id, item]) => {
+          const itemSaving = calculateItemSavings(item);
+          const itemTotal = item.price * item.quantity;
+          const originalTotal = item.oldPrice ? item.oldPrice * item.quantity : itemTotal;
+          const itemElement = document.createElement('div');
+          itemElement.className = 'cart-item';
+          let savingsBadge = '';
+          if (itemSaving > 0) {
+            savingsBadge = `
+              <div class="cart-item-saving ${item.isPromotion ? 'promo' : ''}">
+                <span>💰</span>
+                <span>Économie: ${formatPrice(itemSaving)}</span>
+                ${item.discountPercent ? `<span class="savings-percentage">(-${item.discountPercent}%)</span>` : ''}
+              </div>
+            `;
+          }
+          itemElement.innerHTML = `
+            <div class="cart-item-info">
+              <div class="cart-item-name">
+                ${item.name}
+                ${item.isPromotion ? '<span class="savings-badge">PROMO</span>' : ''}
+              </div>
+              <div class="cart-item-details">
+                <span>Code: ${item.code}</span>
+                <span>Prix: ${formatPrice(item.price)}</span>
+                ${item.oldPrice && item.oldPrice > item.price ?
+              `<span style="color:#ffcc00;font-weight:700;">
+                  Ancien: <del>${formatPrice(item.oldPrice)}</del>
+                </span>` : ''}
+                <span>Cat: ${item.category}</span>
+              </div>
+              ${savingsBadge}
+              <div class="cart-item-controls">
+                <div class="cart-item-stepper">
+                  <button class="cart-item-qty-btn" data-action="decrease" data-id="${id}">−</button>
+                  <span class="cart-item-qty">${item.quantity}</span>
+                  <button class="cart-item-qty-btn" data-action="increase" data-id="${id}">+</button>
+                </div>
+              </div>
+            </div>
+            <div class="cart-item-price">
+              ${formatPrice(itemTotal)}
+              ${itemSaving > 0 ? `
+                <div style="font-size:9px;color:#ffcc00;margin-top:2px;">
+                  <del style="opacity:0.7;">${formatPrice(originalTotal)}</del>
+                </div>
+              ` : ''}
+            </div>
+          `;
+          cartItemsList.appendChild(itemElement);
+        });
+        updateSavingsDisplay();
+      }
+      $('cartSubtotal').textContent = formatPrice(subtotal);
+      
+      if (subtotal >= CONFIG.freeShipping) {
+        shippingFee = 0;
+        shippingText = '<span class="total-value free">GRATUIT</span>';
+      } else if (subtotal < CONFIG.minOrder) {
+        shippingFee = null;
+        shippingText = '---';
+      }
+      
+      $('cartShipping').innerHTML = shippingText;
+      const total = shippingFee !== null ? subtotal + shippingFee : null;
+      if (total !== null) {
+        $('cartTotal').textContent = formatPrice(total);
+        $('placeOrderBtn').disabled = false;
+      } else {
+        $('cartTotal').textContent = `Minimum: ${formatPrice(CONFIG.minOrder)}`;
+        $('cartTotal').style.color = 'var(--danger)';
+        $('placeOrderBtn').disabled = true;
+      }
+      saveState();
     }
 
-    // Ici tu mets ta logique normale de commande
-    showToast('✅ Commande prête à être envoyée', 'success');
-  };
-}
+    function addToCart(productId, product, quantity = 1) {
+      if (!product || quantity <= 0) return;
+      const availableStock = getAvailableStock(product);
+      if (quantity > availableStock) {
+        showToast(`❌ Stock insuffisant. Il ne reste que ${availableStock} unités`, 'error');
+        return;
+      }
+      updateProductStock(product, quantity);
+      if (state.cart[productId]) {
+        state.cart[productId].quantity += quantity;
+      } else {
+        state.cart[productId] = {
+          ...product,
+          quantity: quantity
+        };
+      }
+      state.quantityPicks[productId] = 0;
+      updateCartUI();
+      renderProducts();
+      const t = TRANSLATIONS[state.currentLanguage];
+      if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
+        const saving = (product.oldPrice - product.price) * quantity;
+        showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded} Économie: ${formatPrice(saving)}`);
+      } else {
+        showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded}`);
+      }
+    }
 
-// ===================== FONCTIONS API =====================
+    function updateProductStock(product, quantity) {
+      const stockKey = `${product.categoryKey}_${product.code}`;
+      const currentStock = state.productStocks.get(stockKey) || product.stock;
+      const newStock = Math.max(0, currentStock - quantity);
+      state.productStocks.set(stockKey, newStock);
+      state.pendingStockUpdates.set(stockKey, newStock);
+      for (const [catKey, products] of state.products.entries()) {
+        const index = products.findIndex(p => p.code === product.code);
+        if (index !== -1) {
+          state.products.get(catKey)[index].stock = newStock;
+        }
+      }
+      saveSyncData();
+      return newStock;
+    }
+
+    function removeFromCart(productId, quantity = 1) {
+      if (!state.cart[productId]) return;
+      const item = state.cart[productId];
+      const removeQuantity = Math.min(quantity, item.quantity);
+      const stockKey = `${item.categoryKey}_${item.code}`;
+      const currentStock = state.productStocks.get(stockKey) || 0;
+      state.productStocks.set(stockKey, currentStock + removeQuantity);
+      item.quantity -= removeQuantity;
+      if (item.quantity <= 0) {
+        delete state.cart[productId];
+        delete state.quantityPicks[productId];
+      }
+      renderProducts();
+      updateCartUI();
+    }
+
+    function toggleClientSpace() {
+      state.clientSpaceVisible = !state.clientSpaceVisible;
+      if (state.clientSpaceVisible) {
+        $('clientSpaceSection').classList.add('visible');
+        $('toggleClientSpaceBtn').style.display = 'none';
+        $('accountDetailsSection').classList.remove('visible');
+        $('historySearchSection').classList.remove('visible');
+        $('orderHistorySection').classList.remove('visible');
+      } else {
+        $('clientSpaceSection').classList.remove('visible');
+        $('toggleClientSpaceBtn').style.display = 'block';
+      }
+    }
+
+    function closeClientSpace() {
+      state.clientSpaceVisible = false;
+      $('clientSpaceSection').classList.remove('visible');
+      $('toggleClientSpaceBtn').style.display = 'block';
+      $('accountDetailsSection').classList.remove('visible');
+      $('historySearchSection').classList.remove('visible');
+      $('orderHistorySection').classList.remove('visible');
+    }
+
+    // ✅ Fonction pour afficher les commandes en cours
+    function afficherCommandesEnCours() {
+      if (!state.user || !state.user.phone) {
+        showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
+        $('clientAccountBtn').click();
+        return;
+      }
+      
+      // Nettoyer le numéro de téléphone (enlever les espaces)
+      const phoneClient = state.user.phone.replace(/\s+/g, '');
+      
+      // Filtrer les commandes en cours (statut différent de "Livré" et "Annulé")
+      const commandesEnCours = state.orderHistory.filter(order => 
+        order.clientPhone && 
+        order.clientPhone.replace(/\s+/g, '').includes(phoneClient) && 
+        order.statut !== 'Livré' && order.statut !== 'Annulé'
+      );
+      
+      // Trier par date (plus récent d'abord)
+      commandesEnCours.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      if (commandesEnCours.length === 0) {
+        showToast('📭 Aucune commande en cours', 'warning');
+        return;
+      }
+      
+      // Afficher les commandes en cours
+      const historyItemsList = $('historyItemsList');
+      historyItemsList.innerHTML = '';
+      
+      commandesEnCours.forEach(order => {
+        const orderDate = new Date(order.date);
+        const formattedDate = orderDate.toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+        const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
+        
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+          <div class="history-date">📅 ${formattedDate}</div>
+          <div class="history-summary">
+            <span class="history-items-count">${itemCount} article(s)</span>
+            <span class="history-total">${formatPrice(order.total)}</span>
+          </div>
+          ${orderSavings > 0 ? `
+            <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
+              💰 Économies: ${formatPrice(orderSavings)}
+            </div>
+          ` : ''}
+          ${order.orderId ? `
+            <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
+              📦 N°: ${order.orderId}
+            </div>
+          ` : ''}
+        `;
+        historyItem.addEventListener('click', () => {
+          showOrderDetails(order, true);
+        });
+        historyItemsList.appendChild(historyItem);
+      });
+      
+      $('orderHistorySection').classList.add('visible');
+      $('historyCount').textContent = `${commandesEnCours.length} commande(s) en cours`;
+      $('historyEmptyMessage').style.display = 'none';
+      
+      showToast(`📦 ${commandesEnCours.length} commande(s) en cours`);
+    }
+
+    // ✅ Fonction pour afficher l'historique des commandes (terminées)
+    function afficherHistoriqueCommandes() {
+      if (!state.user || !state.user.phone) {
+        showToast('❌ Veuillez d\'abord enregistrer votre compte', 'error');
+        $('clientAccountBtn').click();
+        return;
+      }
+      
+      // Nettoyer le numéro de téléphone
+      const phoneClient = state.user.phone.replace(/\s+/g, '');
+      
+      // Filtrer les commandes terminées (statut "Livré" ou "Annulé")
+      const historique = state.orderHistory.filter(order => 
+        order.clientPhone && 
+        order.clientPhone.replace(/\s+/g, '').includes(phoneClient) && 
+        (order.statut === 'Livré' || order.statut === 'Annulé')
+      );
+      
+      // Trier par date (plus récent d'abord)
+      historique.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      if (historique.length === 0) {
+        showToast('📭 Aucun historique trouvé', 'warning');
+        return;
+      }
+      
+      // Afficher l'historique
+      const historyItemsList = $('historyItemsList');
+      historyItemsList.innerHTML = '';
+      
+      historique.forEach(order => {
+        const orderDate = new Date(order.date);
+        const formattedDate = orderDate.toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+        const orderSavings = order.items.reduce((sum, item) => sum + (item.saving || 0), 0);
+        
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+          <div class="history-date">📅 ${formattedDate}</div>
+          <div class="history-summary">
+            <span class="history-items-count">${itemCount} article(s)</span>
+            <span class="history-total">${formatPrice(order.total)}</span>
+          </div>
+          ${orderSavings > 0 ? `
+            <div style="font-size:10px;color:#00ff88;margin-top:4px;font-weight:700;">
+              💰 Économies: ${formatPrice(orderSavings)}
+            </div>
+          ` : ''}
+          ${order.orderId ? `
+            <div style="font-size:10px;color:#00d4ff;margin-top:4px;font-weight:700;">
+              📦 N°: ${order.orderId}
+            </div>
+          ` : ''}
+        `;
+        historyItem.addEventListener('click', () => {
+          showOrderDetails(order, true);
+        });
+        historyItemsList.appendChild(historyItem);
+      });
+      
+      $('orderHistorySection').classList.add('visible');
+      $('historyCount').textContent = `${historique.length} commande(s) dans l'historique`;
+      $('historyEmptyMessage').style.display = 'none';
+      
+      showToast(`📜 ${historique.length} commande(s) dans l'historique`);
+    }
+
+    // ✅ Fonction pour charger l'historique par numéro de téléphone
+    function loadHistoryForPhone(phone) {
+      const cleanPhone = phone.replace(/\s+/g, '');
+      
+      // Filtrer toutes les commandes pour ce numéro
+      const userHistory = state.orderHistory.filter(order =>
+        order.clientPhone && 
+        order.clientPhone.replace(/\s+/g, '').includes(cleanPhone)
+      );
+      
+      return userHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    // ===================== FONCTIONS API =====================
     async function fetchUserOrdersFromAPI(phone) {
       const cleanPhone = phone.replace(/\s+/g, '');
       const url = `${CONFIG.commandeApiUrl}?method=getOrderHistory&telephone=${encodeURIComponent(cleanPhone)}&t=${Date.now()}`;
@@ -7924,3 +7874,5 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
   </script>
 </body>
 </html>
+
+
