@@ -5840,78 +5840,119 @@ function openCatalogueForProduct(targetProduct) {
   }
   
   // Placer le produit ciblé en tête de liste, suivi des autres triés par nom
-  const otherProducts = products.filter(p => p.code !== targetProduct.code || p.name !== targetProduct.name);
-  otherProducts.sort((a, b) => a.name.localeCompare(b.name));
-  
-  state.catalogueProducts = [targetProduct, ...otherProducts];
-  state.catalogueSearchQuery = '';
-  $('catalogueTitle').textContent = category.label;
-  $('catalogueSearchInput').value = '';
-  
-  state.catalogueQuantityPicks = {};
-  
-  renderCatalogue();
-  $('catalogueModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+const otherProducts = products.filter(
+  p => p.code !== targetProduct.code || p.name !== targetProduct.name
+);
+otherProducts.sort((a, b) => a.name.localeCompare(b.name));
+
+state.catalogueProducts = [targetProduct, ...otherProducts];
+state.catalogueSearchQuery = '';
+$('catalogueTitle').textContent = category.label;
+$('catalogueSearchInput').value = '';
+
+state.catalogueQuantityPicks = {};
+
+renderCatalogue();
+$('catalogueModal').classList.add('open');
+document.body.style.overflow = 'hidden';
 }
 
 // Calcule le pourcentage de réduction si non fourni
 function getDiscountPercent(product) {
-  if (product.discountPercent && product.discountPercent > 0) return product.discountPercent;
+  if (product.discountPercent && product.discountPercent > 0) {
+    return product.discountPercent;
+  }
+
   if (product.oldPrice && product.price && product.oldPrice > product.price) {
     return Math.round((1 - product.price / product.oldPrice) * 100);
   }
+
   return 0;
 }
 
-function renderCatalogue() { 
+function renderCatalogue() {
   const grid = $('catalogueGrid');
   const empty = $('catalogueEmpty');
-  
-  let filteredProducts = state.catalogueProducts;
+
+  let filteredProducts = state.catalogueProducts || [];
+
   if (state.catalogueSearchQuery) {
     const query = state.catalogueSearchQuery.toLowerCase();
     filteredProducts = filteredProducts.filter(p =>
-      p.name.toLowerCase().includes(query) ||
-      p.code.toLowerCase().includes(query)
+      (p.name || '').toLowerCase().includes(query) ||
+      String(p.code || '').toLowerCase().includes(query)
     );
   }
-  
+
   if (filteredProducts.length === 0) {
     grid.style.display = 'none';
     empty.style.display = 'block';
     grid.innerHTML = '';
     return;
   }
-  
+
   grid.style.display = 'grid';
   empty.style.display = 'none';
   grid.innerHTML = '';
-  
+
   filteredProducts.forEach(product => {
     const productId = generateProductId(product);
     const quantity = state.catalogueQuantityPicks[productId] || 0;
+
     let availableStock = getAvailableStock(product);
     availableStock = typeof availableStock === 'number' ? availableStock : 0;
+
     const stockStatus = getStockStatus(availableStock);
     const isOutOfStock = availableStock <= 0;
     const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
-    
+
     const item = document.createElement('div');
     item.className = `catalogue-item ${isOutOfStock ? 'stock-out' : ''}`;
-    
+
     let stockOutBadge = '';
     if (isOutOfStock) {
       stockOutBadge = '<div class="stock-out-badge">⚠️ RUPTURE</div>';
     }
-    
+
     let stockAlert = '';
     if (!isOutOfStock && availableStock <= 3) {
       stockAlert = `<span class="catalogue-stock-alert">⚠️ Plus que ${availableStock} en stock</span>`;
     }
 
+    // --- Détection promotion ---
+    const isPromo =
+      (product.isPromotion || product.isPromo) &&
+      product.oldPrice &&
+      product.oldPrice > product.price;
+
+    const discountPercent = getDiscountPercent(product);
+
+    // Badge promotion
+    let promoBadgeHtml = '';
+    if (isPromo && discountPercent > 0) {
+      promoBadgeHtml = `
+        <div class="product-discount" style="position:absolute; top:8px; left:8px; z-index:5; background:linear-gradient(135deg, #ff0000, #ff6b00); color:white; font-weight:900; font-size:10px; padding:3px 6px; border-radius:4px; box-shadow:0 2px 6px rgba(255,0,0,0.3);">
+          -${discountPercent}%
+        </div>
+      `;
+    }
+
+    // Prix original barré + prix promo
+    let priceHtml = `<div class="catalogue-product-price">${formatPrice(product.price)}</div>`;
+    if (isPromo) {
+      priceHtml = `
+        <div class="catalogue-product-old-price" style="text-decoration:line-through; opacity:0.7; font-size:13px; color:#ff8a8a; margin-bottom:2px;">
+          ${formatPrice(product.oldPrice)}
+        </div>
+        <div class="catalogue-product-price" style="color:#00ff88; font-weight:900;">
+          ${formatPrice(product.price)}
+        </div>
+      `;
+    }
+
     item.innerHTML = `
-      <div class="catalogue-product-image-wrap">
+      <div class="catalogue-product-image-wrap" style="position:relative;">
+        ${promoBadgeHtml}
         ${stockOutBadge}
         <img 
           src="${imgSrc}" 
@@ -5925,7 +5966,7 @@ function renderCatalogue() {
       <div class="catalogue-product-info">
         <div class="catalogue-product-name">${product.name}</div>
         <div class="catalogue-product-code">Code: ${product.code}</div>
-        <div class="catalogue-product-price">${formatPrice(product.price)}</div>
+        ${priceHtml}
         <div class="catalogue-product-stock">
           Stock: ${stockStatus}
           ${stockAlert}
@@ -5954,73 +5995,11 @@ function renderCatalogue() {
         </div>
       </div>
     `;
-    
-    grid.appendChild(item);
+
+  grid.appendChild(item);
     updateCatalogueQuantity(productId, quantity);
   });
-}
-  // --- Détection promotion ---
-    const isPromo = (product.isPromotion || product.isPromo) && 
-                    product.oldPrice && 
-                    product.oldPrice > product.price;
-    const discountPercent = getDiscountPercent(product);
-    
-    // Badge promotion (style identique à l'onglet PROMOTIONS)
-    let promoBadgeHtml = '';
-    if (isPromo && discountPercent > 0) {
-      promoBadgeHtml = `<div class="product-discount" style="position:absolute; top:8px; left:8px; z-index:5; background: linear-gradient(135deg, #ff0000, #ff6b00); color:white; font-weight:900; font-size:10px; padding:3px 6px; border-radius:4px; box-shadow:0 2px 6px rgba(255,0,0,0.3);">-${discountPercent}%</div>`;
-    }
-    
-    // Prix original barré + prix promo en vert
-    const oldPriceHtml = isPromo
-      ? `<span class="catalogue-item-old-price" style="text-decoration: line-through; color: var(--muted); margin-right: 8px;">${formatPrice(product.oldPrice)}</span>`
-      : '';
-    
-    item.innerHTML = `
-      ${stockOutBadge}
-      <div class="catalogue-item-header" style="position: relative;">
-        ${promoBadgeHtml}
-        <div class="catalogue-item-image">
-          <img src="${imgSrc}" alt="${escapeHtml(product.name)}" loading="lazy" onerror="this.style.display='none'">
-        </div>
-        <div class="catalogue-item-info">
-          <div class="catalogue-item-name">${escapeHtml(product.name)}</div>
-          <div class="catalogue-item-code">Code: ${product.code}</div>
-          <div class="catalogue-item-price">
-            ${oldPriceHtml}
-            <span style="color: var(--accent); font-weight: 900;">${formatPrice(product.price)}</span>
-          </div>
-          <div style="font-size:11px;margin-top:2px;${isOutOfStock ? 'color: var(--danger);' : 'color: var(--muted);'}">
-            Stock: ${stockStatus.text}
-            ${stockAlert}
-          </div>
-        </div>
-      </div>
-      <div class="catalogue-item-actions">
-        <div class="catalogue-qty-controls">
-          <button class="catalogue-qty-btn" data-action="decrease" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>−</button>
-          <input type="number" class="catalogue-qty-input" 
-            data-id="${productId}"
-            value="${quantity}"
-            min="0"
-            max="${availableStock}"
-            step="1"
-            ${isOutOfStock ? 'disabled' : ''}>
-          <button class="catalogue-qty-btn" data-action="increase" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>+</button>
-        </div>
-        <button class="catalogue-add-btn ${quantity > 0 ? 'has-qty' : ''}" 
-                data-id="${productId}"
-                ${stockStatus.available ? '' : 'disabled'}>
-          ${isOutOfStock 
-            ? '❌ RUPTURE' 
-            : `🛒 ${(TRANSLATIONS[state.currentLanguage] || {}).addToCart || 'Ajouter au panier'}`}
-        </button>
-      </div>
-    `;
-    
-    grid.appendChild(item);
-  });
-  
+
   setupCatalogueEvents();
 }
 
