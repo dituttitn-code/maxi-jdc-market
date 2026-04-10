@@ -8081,12 +8081,7 @@ Pour consulter vos commandes et leur historique, accédez à Panier > Espace Cli
             showToast(`❌ Stock limité à ${availableStock} unités`, 'warning');
           }
         } else if (action === 'decrease' && state.cart[id]) {
-          state.cart[id].quantity--;
-          if (state.cart[id].quantity <= 0) {
-            delete state.cart[id];
-            delete state.quantityPicks[id];
-          }
-          removeFromCart(id, 1);
+  removeFromCart(id);
         }
       });
 
