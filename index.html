@@ -6305,65 +6305,110 @@ function updateCatalogueQuantity(productId, quantity) {
     }
 
     function addToCart(productId, product, quantity = 1) {
-      if (!product || quantity <= 0) return;
-      const availableStock = getAvailableStock(product);
-      if (quantity > availableStock) {
-        showToast(`❌ Stock insuffisant. Il ne reste que ${availableStock} unités`, 'error');
-        return;
-      }
-      updateProductStock(product, quantity);
-      if (state.cart[productId]) {
-        state.cart[productId].quantity += quantity;
-      } else {
-        state.cart[productId] = {
-          ...product,
-          quantity: quantity
-        };
-      }
-      state.quantityPicks[productId] = 0;
-      updateCartUI();
-      renderProducts();
-      const t = TRANSLATIONS[state.currentLanguage];
-      if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
-        const saving = (product.oldPrice - product.price) * quantity;
-        showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded} Économie: ${formatPrice(saving)}`);
-      } else {
-        showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded}`);
-      }
-    }
+  if (!product || quantity <= 0) return false;
 
-    function updateProductStock(product, quantity) {
-      const stockKey = `${product.categoryKey}_${product.code}`;
-      const currentStock = state.productStocks.get(stockKey) || product.stock;
-      const newStock = Math.max(0, currentStock - quantity);
-      state.productStocks.set(stockKey, newStock);
-      state.pendingStockUpdates.set(stockKey, newStock);
-      for (const [catKey, products] of state.products.entries()) {
-        const index = products.findIndex(p => p.code === product.code);
-        if (index !== -1) {
-          state.products.get(catKey)[index].stock = newStock;
-        }
-      }
-      saveSyncData();
-      return newStock;
-    }
+  const availableStock = getAvailableStock(product);
 
-    function removeFromCart(productId, quantity = 1) {
-      if (!state.cart[productId]) return;
-      const item = state.cart[productId];
-      const removeQuantity = Math.min(quantity, item.quantity);
-      const stockKey = `${item.categoryKey}_${item.code}`;
-      const currentStock = state.productStocks.get(stockKey) || 0;
-      state.productStocks.set(stockKey, currentStock + removeQuantity);
-      item.quantity -= removeQuantity;
-      if (item.quantity <= 0) {
-        delete state.cart[productId];
-        delete state.quantityPicks[productId];
-      }
-      renderProducts();
-      updateCartUI();
-    }
+  if (quantity > availableStock) {
+    showToast(`❌ Stock insuffisant. Il ne reste que ${availableStock} unités`, 'error');
+    return false;
+  }
 
+  updateProductStock(product, quantity);
+
+  if (state.cart[productId]) {
+    state.cart[productId].quantity += quantity;
+  } else {
+    state.cart[productId] = {
+      ...product,
+      quantity: quantity
+    };
+  }
+
+  state.quantityPicks[productId] = 0;
+  updateCartUI();
+  renderProducts();
+
+  const t = TRANSLATIONS[state.currentLanguage];
+  if (product.isPromotion && product.oldPrice && product.oldPrice > product.price) {
+    const saving = (product.oldPrice - product.price) * quantity;
+    showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded} Économie: ${formatPrice(saving)}`);
+  } else {
+    showToast(`✅ ${quantity} × ${product.name} ${t.toastAdded}`);
+  }
+
+  return true;
+}
+
+function updateProductStock(product, quantity) {
+  const stockKey = `${product.categoryKey}_${product.code}`;
+  const currentStock = state.productStocks.get(stockKey) || product.stock || 0;
+  const newStock = Math.max(0, currentStock - quantity);
+
+  state.productStocks.set(stockKey, newStock);
+  state.pendingStockUpdates.set(stockKey, newStock);
+
+  for (const [catKey, products] of state.products.entries()) {
+    const index = products.findIndex(p => p.code === product.code);
+    if (index !== -1) {
+      state.products.get(catKey)[index].stock = newStock;
+      break;
+    }
+  }
+
+  if (state.catalogueProducts) {
+    const idx = state.catalogueProducts.findIndex(p => p.code === product.code);
+    if (idx !== -1) {
+      state.catalogueProducts[idx].stock = newStock;
+    }
+  }
+
+  product.stock = newStock;
+
+  saveSyncData();
+  return newStock;
+}
+
+function removeFromCart(productId, quantity = 1) {
+  if (!state.cart[productId]) return;
+
+  const item = state.cart[productId];
+  const removeQuantity = Math.min(quantity, item.quantity);
+
+  const stockKey = `${item.categoryKey}_${item.code}`;
+  const currentStock = state.productStocks.get(stockKey) || 0;
+  const newStock = currentStock + removeQuantity;
+
+  state.productStocks.set(stockKey, newStock);
+  state.pendingStockUpdates.set(stockKey, newStock);
+
+  for (const [catKey, products] of state.products.entries()) {
+    const index = products.findIndex(p => p.code === item.code);
+    if (index !== -1) {
+      state.products.get(catKey)[index].stock = newStock;
+      break;
+    }
+  }
+
+  if (state.catalogueProducts) {
+    const idx = state.catalogueProducts.findIndex(p => p.code === item.code);
+    if (idx !== -1) {
+      state.catalogueProducts[idx].stock = newStock;
+    }
+  }
+
+  item.stock = newStock;
+  item.quantity -= removeQuantity;
+
+  if (item.quantity <= 0) {
+    delete state.cart[productId];
+    delete state.quantityPicks[productId];
+  }
+
+  saveSyncData();
+  renderProducts();
+  updateCartUI();
+}
     function toggleClientSpace() {
       state.clientSpaceVisible = !state.clientSpaceVisible;
       if (state.clientSpaceVisible) {
