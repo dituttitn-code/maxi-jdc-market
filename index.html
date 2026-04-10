@@ -6162,12 +6162,12 @@ function addToCart(productId, product, quantity = 1) {
   style.textContent = `
     /* État grisé quand la quantité est à 0 */
     .catalogue-add-btn.disabled-btn {
-      background-color: #666 !important; /* Gris neutre */
-      color: #aaa !important;
+      background-color: #555 !important; /* Gris foncé neutre */
+      color: #999 !important;
       opacity: 0.7;
       cursor: not-allowed;
       border: 1px solid #444 !important;
-      filter: none !important; /* On retire le grayscale pour ne pas griser tout le produit */
+      filter: none !important; 
     }
     
     /* État actif quand il y a une quantité > 0 */
@@ -6186,13 +6186,9 @@ function addToCart(productId, product, quantity = 1) {
 function removeFromCart(productId, quantity = 1) {
   if (!state.cart[productId]) return;
   const item = state.cart[productId];
-  
-  // Toujours retirer 1 par 1 pour la logique 5, 4, 3, 2, 1...
   const qtyToRemove = 1; 
 
-  // Restaurer le stock physique (on ajoute au stock disponible)
   updateProductStock(item, -qtyToRemove);
-
   item.quantity -= qtyToRemove;
 
   if (item.quantity <= 0) {
@@ -6208,7 +6204,7 @@ function removeFromCart(productId, quantity = 1) {
 
 // ===================== ÉVÈNEMENTS CATALOGUE =====================
 function setupCatalogueEvents() {
-  // Gestion des boutons + et -
+  // Boutons + et -
   document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const action = e.target.dataset.action;
@@ -6234,7 +6230,7 @@ function setupCatalogueEvents() {
     });
   });
   
-  // Gestion de la saisie manuelle
+  // Saisie manuelle
   document.querySelectorAll('.catalogue-qty-input:not([disabled])').forEach(input => {
     input.addEventListener('input', (e) => {
       const productId = e.target.dataset.id;
@@ -6246,21 +6242,22 @@ function setupCatalogueEvents() {
         e.target.value = value;
         showToast('❌ Stock limité', 'warning');
       }
-      
       updateCatalogueQuantity(productId, value);
     });
   });
   
-  // Gestion du bouton "Ajouter au panier"
+  // Bouton "Ajouter au panier"
   document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
     const productId = btn.dataset.id;
     const initialQty = state.catalogueQuantityPicks[productId] || 0;
     
-    // Initialisation du style
+    // État initial
     if (initialQty === 0) {
       btn.classList.add('disabled-btn');
+      btn.classList.remove('has-qty');
     } else {
       btn.classList.add('has-qty');
+      btn.classList.remove('disabled-btn');
     }
     
     btn.addEventListener('click', (e) => {
@@ -6269,16 +6266,15 @@ function setupCatalogueEvents() {
       const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
       let quantity = parseInt(input.value) || 0;
       
-      // Blocage avec Toast si quantité = 0
       if (quantity === 0) {
-        showToast('⚠️ Pour commander, veuillez utiliser le bouton +.', 'info');
+        showToast('⚠️ Veuillez d\'abord choisir une quantité avec le bouton +.', 'info');
         return;
       }
       
       if (product) {
         addToCart(productId, product, quantity);
         
-        // Réinitialisation après ajout
+        // Remise à zéro locale sans fermer le catalogue
         state.catalogueQuantityPicks[productId] = 0;
         if (input) input.value = 0;
         updateCatalogueQuantity(productId, 0); // Repasse le bouton en gris
@@ -6300,6 +6296,8 @@ function updateCatalogueQuantity(productId, quantity) {
     }
   }
 }
+
+// ... (reste du code inchangé : openProductModal, updateCartUI, etc.)
 
 function closeCatalogueModal() {
   $('catalogueModal').classList.remove('open');
