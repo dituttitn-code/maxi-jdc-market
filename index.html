@@ -6003,67 +6003,62 @@ function escapeHtml(str) {
         });
       });
       
-      document.querySelectorAll('.catalogue-add-btn:not([disabled])').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const productId = e.target.dataset.id;
-          const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
-          const quantity = parseInt(document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`).value) || 0;
-          
-          if (product && quantity > 0) {
-            addToCart(productId, product, quantity);
-            // Réinitialiser la quantité pour cet article après ajout
-            state.catalogueQuantityPicks[productId] = 0;
-            const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
-            const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
-            if (input) input.value = 0;
-            if (addBtn) {
-              addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
-              addBtn.classList.remove('has-qty');
-            }
-          } else if (product && quantity === 0) {
-            // Si la quantité est 0, on ajoute quand même 1 par défaut
-            addToCart(productId, product, 1);
-            // Mettre à jour l'input pour afficher 0 après ajout (car on a ajouté 1)
-            const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
-            if (input) input.value = 0;
-            state.catalogueQuantityPicks[productId] = 0;
-            const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
-            if (addBtn) {
-              addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
-              addBtn.classList.remove('has-qty');
-            }
-          } else {
-            showToast('❌ Produit invalide', 'error');
-          }
-        });
-      });
+     document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    const productId = this.dataset.id;
+    const product = state.catalogueProducts.find(p => generateProductId(p) === productId);
+    const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
+    const quantity = parseInt(input?.value) || 0;
+
+    if (this.disabled || quantity <= 0) {
+      e.preventDefault();
+      showToast('Veuillez sélectionner une quantité avec le bouton +.', 'info');
+      return;
     }
 
- function updateCatalogueQuantity(productId, quantity) {
+    if (!product) {
+      showToast('❌ Produit invalide', 'error');
+      return;
+    }
+
+    const added = addToCart(productId, product, quantity);
+
+    if (added) {
+      state.catalogueQuantityPicks[productId] = 0;
+
+      if (input) {
+        input.value = 0;
+      }
+
+      updateCatalogueQuantity(productId, 0);
+      showToast(`✅ ${quantity} x ${product.name} ajouté(s) au panier`);
+    }
+  });
+});
+function updateCatalogueQuantity(productId, quantity) {
   state.catalogueQuantityPicks[productId] = quantity;
   
   const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
   const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
 
-  if (input) {
-    input.value = quantity;
-  }
+  if (input) input.value = quantity;
 
-  if (addBtn) {
-    const t = TRANSLATIONS[state.currentLanguage];
+  if (!addBtn) return;
 
-    if (quantity > 0) {
-      addBtn.disabled = false;
-      addBtn.classList.remove('disabled-btn');
-      addBtn.classList.add('has-qty');
-      addBtn.textContent = `🛒 ${t.addToCart} (${quantity})`;
-    } else {
-      addBtn.disabled = true;
-      addBtn.classList.add('disabled-btn');
-      addBtn.classList.remove('has-qty');
-      addBtn.textContent = `🛒 ${t.addToCart}`;
-    }
+  const t = TRANSLATIONS[state.currentLanguage];
+
+  if (quantity > 0) {
+    addBtn.disabled = false;
+    addBtn.classList.remove('disabled-btn');
+    addBtn.classList.add('has-qty');
+    addBtn.textContent = `🛒 ${t.addToCart} (${quantity})`;
+  } else {
+    addBtn.disabled = true;
+    addBtn.classList.add('disabled-btn');
+    addBtn.classList.remove('has-qty');
+    addBtn.textContent = `🛒 ${t.addToCart}`;
   }
+}
 }
     function closeCatalogueModal() {
       $('catalogueModal').classList.remove('open');
