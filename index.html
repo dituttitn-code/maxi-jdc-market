@@ -5976,7 +5976,6 @@ function updateProductStock(product, delta) {
   state.productStocks.set(stockKey, newStock);
   state.pendingStockUpdates.set(stockKey, newStock);
 
-  // Synchronisation avec l'état global
   for (const [catKey, products] of state.products.entries()) {
     const index = products.findIndex(p => p.code === product.code);
     if (index !== -1) {
@@ -5994,13 +5993,11 @@ function updateProductStock(product, delta) {
   saveSyncData();
 }
 
-// ===================== AJOUT AU PANIER (Correction décalage) =====================
+// ===================== AJOUT AU PANIER =====================
 function addToCart(productId, product, quantity = 1) {
   if (!product) return;
-  
   const stockReel = getAvailableStock(product);
   
-  // Vérification directe pour supprimer le décalage de 2
   if (quantity > stockReel) {
     showToast(`❌ Stock insuffisant`, 'warning');
     return;
@@ -6041,7 +6038,6 @@ function removeFromCart(productId, quantity = 1) {
 
 // ===================== ÉVÈNEMENTS CATALOGUE =====================
 function setupCatalogueEvents() {
-  // Boutons + et - du catalogue
   document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
     btn.onclick = (e) => {
       const action = e.target.dataset.action;
@@ -6067,7 +6063,6 @@ function setupCatalogueEvents() {
     };
   });
 
-  // Saisie manuelle
   document.querySelectorAll('.catalogue-qty-input:not([disabled])').forEach(input => {
     input.oninput = (e) => {
       const productId = e.target.dataset.id;
@@ -6082,7 +6077,6 @@ function setupCatalogueEvents() {
     };
   });
 
-  // Bouton Envoyer au panier
   document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
     btn.onclick = function(e) {
       const productId = this.dataset.id;
@@ -6111,7 +6105,6 @@ function updateCatalogueQuantity(productId, quantity) {
   
   if (addBtn) {
     const baseText = "Ajouter au panier";
-    // Nettoyage forcé pour éviter le double chariot
     if (quantity > 0) {
       addBtn.classList.remove('disabled-btn');
       addBtn.classList.add('has-qty');
@@ -6212,11 +6205,11 @@ function renderSimilarProducts(currentProduct) {
   });
 }
 
+// ===================== INTERFACE PANIER (Livraison Supprimée) =====================
 function updateCartUI() {
   const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
   
-  // Affichage "0 articles"
   $('cartTopCount').textContent = cartCount;
   $('cartItemsCount').textContent = `${cartCount} articles`;
   
@@ -6262,9 +6255,9 @@ function updateCartUI() {
     });
   }
 
+  // ✅ Mise à jour des totaux sans frais de livraison
   $('cartSubtotal').textContent = formatPrice(subtotal);
-  const total = subtotal + (subtotal >= CONFIG.freeShipping ? 0 : 3.000);
-  $('cartTotal').textContent = formatPrice(total);
+  $('cartTotal').textContent = formatPrice(subtotal); // Le total est égal au sous-total
   saveState();
 }
 
