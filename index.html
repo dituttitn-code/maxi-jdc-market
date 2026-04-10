@@ -5954,11 +5954,11 @@ function renderCatalogue() {
             value="${quantity}"
             min="0"
             max="${availableStock}"
-            step="1"
+            step="1" 
             ${isOutOfStock ? 'disabled' : ''}>
           <button class="catalogue-qty-btn" data-action="increase" data-id="${productId}" ${isOutOfStock ? 'disabled' : ''}>+</button>
         </div>
-        <button class="catalogue-add-btn ${quantity > 0 ? 'has-qty' : ''}" 
+        <button class="catalogue-add-btn ${quantity > 0 ? 'has-qty' : 'disabled-btn'}" 
                 data-id="${productId}"
                 ${stockStatus.available ? '' : 'disabled'}>
           ${isOutOfStock 
@@ -5969,6 +5969,7 @@ function renderCatalogue() {
     `;
     
     grid.appendChild(item);
+    updateCatalogueQuantity(productId, quantity);
   });
   
   setupCatalogueEvents();
