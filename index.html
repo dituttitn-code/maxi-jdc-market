@@ -6105,6 +6105,7 @@ function updateCatalogueQuantity(productId, quantity) {
   
   if (addBtn) {
     const baseText = "Ajouter au panier";
+    // Correction : Un seul chariot affiché
     if (quantity > 0) {
       addBtn.classList.remove('disabled-btn');
       addBtn.classList.add('has-qty');
@@ -6205,7 +6206,7 @@ function renderSimilarProducts(currentProduct) {
   });
 }
 
-// ===================== INTERFACE PANIER (Livraison Supprimée) =====================
+// ===================== INTERFACE PANIER & LIVRAISON =====================
 function updateCartUI() {
   const cartCount = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = Object.values(state.cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -6227,7 +6228,6 @@ function updateCartUI() {
     Object.entries(state.cart).forEach(([id, item]) => {
       const itemElement = document.createElement('div');
       itemElement.className = 'cart-item';
-      
       const productOrig = Array.from(state.products.values()).flat().find(p => generateProductId(p) === id);
 
       itemElement.innerHTML = `
@@ -6255,9 +6255,29 @@ function updateCartUI() {
     });
   }
 
-  // ✅ Mise à jour des totaux sans frais de livraison
+  // ✅ Logique des frais de livraison
+  const deliveryFee = (subtotal >= 100 || subtotal === 0) ? 0 : 3.000;
+  const total = subtotal + deliveryFee;
+  const minOrder = 15.000;
+
   $('cartSubtotal').textContent = formatPrice(subtotal);
-  $('cartTotal').textContent = formatPrice(subtotal); // Le total est égal au sous-total
+  $('cartDeliveryFee').textContent = formatPrice(deliveryFee);
+  $('cartTotal').textContent = formatPrice(total);
+
+  // Gestion du bouton commander (Minimum 15 dt)
+  const orderBtn = $('commanderBtn');
+  if (orderBtn) {
+    if (subtotal < minOrder && subtotal > 0) {
+      orderBtn.disabled = true;
+      orderBtn.innerHTML = `Minimum ${formatPrice(minOrder)} requis`;
+      orderBtn.style.opacity = "0.5";
+    } else {
+      orderBtn.disabled = (subtotal === 0);
+      orderBtn.innerHTML = "🚀 Commander";
+      orderBtn.style.opacity = "1";
+    }
+  }
+
   saveState();
 }
 
