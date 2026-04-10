@@ -5888,6 +5888,7 @@ function renderCatalogue() {
     grid.style.display = 'none';
     empty.style.display = 'block';
     grid.innerHTML = '';
+    setupCatalogueEvents();
     return;
   }
 
@@ -5903,6 +5904,7 @@ function renderCatalogue() {
     availableStock = typeof availableStock === 'number' ? availableStock : 0;
 
     const stockStatus = getStockStatus(availableStock);
+    const stockText = stockStatus?.label || stockStatus?.text || stockStatus || 'En stock';
     const isOutOfStock = availableStock <= 0;
     const imgSrc = `${CONFIG.imagesBasePath}${product.code}.jpg`;
 
@@ -5911,7 +5913,7 @@ function renderCatalogue() {
 
     let stockOutBadge = '';
     if (isOutOfStock) {
-      stockOutBadge = '<div class="stock-out-badge">⚠️ RUPTURE</div>';
+      stockOutBadge = `<div class="stock-out-badge">⚠️ RUPTURE</div>`;
     }
 
     let stockAlert = '';
@@ -5919,7 +5921,6 @@ function renderCatalogue() {
       stockAlert = `<span class="catalogue-stock-alert">⚠️ Plus que ${availableStock} en stock</span>`;
     }
 
-    // --- Détection promotion ---
     const isPromo =
       (product.isPromotion || product.isPromo) &&
       product.oldPrice &&
@@ -5927,40 +5928,33 @@ function renderCatalogue() {
 
     const discountPercent = getDiscountPercent(product);
 
-    // Badge promotion
     let promoBadgeHtml = '';
     if (isPromo && discountPercent > 0) {
-      promoBadgeHtml = `
-        <div class="product-discount" style="position:absolute; top:8px; left:8px; z-index:5; background:linear-gradient(135deg, #ff0000, #ff6b00); color:white; font-weight:900; font-size:10px; padding:3px 6px; border-radius:4px; box-shadow:0 2px 6px rgba(255,0,0,0.3);">
-          -${discountPercent}%
-        </div>
-      `;
+      promoBadgeHtml = `<div class="product-discount">-${discountPercent}%</div>`;
     }
 
-    // Prix original barré + prix promo
-    let priceHtml = `<div class="catalogue-product-price">${formatPrice(product.price)}</div>`;
+    let priceHtml = `
+      <div class="catalogue-product-price">${formatPrice(product.price)}</div>
+    `;
+
     if (isPromo) {
       priceHtml = `
-        <div class="catalogue-product-old-price" style="text-decoration:line-through; opacity:0.7; font-size:13px; color:#ff8a8a; margin-bottom:2px;">
-          ${formatPrice(product.oldPrice)}
-        </div>
-        <div class="catalogue-product-price" style="color:#00ff88; font-weight:900;">
-          ${formatPrice(product.price)}
-        </div>
+        <div class="catalogue-product-old-price">${formatPrice(product.oldPrice)}</div>
+        <div class="catalogue-product-price promo-price">${formatPrice(product.price)}</div>
       `;
     }
 
     item.innerHTML = `
-      <div class="catalogue-product-image-wrap" style="position:relative;">
+      <div class="catalogue-product-image-wrap">
         ${promoBadgeHtml}
         ${stockOutBadge}
-        <img 
-          src="${imgSrc}" 
-          alt="${product.name}" 
+        <img
+          src="${imgSrc}"
+          alt="${product.name}"
           class="catalogue-product-image"
           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
         >
-        <div class="catalogue-product-image-placeholder" style="display:none;">📦</div>
+        <div class="catalogue-product-image-placeholder" style="display:none;"></div>
       </div>
 
       <div class="catalogue-product-info">
@@ -5968,25 +5962,25 @@ function renderCatalogue() {
         <div class="catalogue-product-code">Code: ${product.code}</div>
         ${priceHtml}
         <div class="catalogue-product-stock">
-          Stock: ${stockStatus}
+          Stock: ${stockText}
           ${stockAlert}
         </div>
 
         <div class="catalogue-product-actions">
-          <div class="catalogue-qty-box">
-            <button class="catalogue-qty-btn minus" data-id="${productId}">-</button>
-            <input 
-              type="number" 
-              class="catalogue-qty-input" 
-              data-id="${productId}" 
-              value="${quantity}" 
+          <div class="catalogue-qty-controls">
+            <button class="catalogue-qty-btn minus" data-id="${productId}">−</button>
+            <input
+              type="number"
+              class="catalogue-qty-input"
+              data-id="${productId}"
+              value="${quantity}"
               min="0"
             >
             <button class="catalogue-qty-btn plus" data-id="${productId}">+</button>
           </div>
 
-          <button 
-            class="catalogue-add-btn" 
+          <button
+            class="catalogue-add-btn"
             data-id="${productId}"
             ${isOutOfStock ? 'disabled' : ''}
           >
@@ -5996,7 +5990,7 @@ function renderCatalogue() {
       </div>
     `;
 
-  grid.appendChild(item);
+    grid.appendChild(item);
     updateCatalogueQuantity(productId, quantity);
   });
 
