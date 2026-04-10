@@ -6040,22 +6040,32 @@ function escapeHtml(str) {
       });
     }
 
-    function updateCatalogueQuantity(productId, quantity) {
-      state.catalogueQuantityPicks[productId] = quantity;
-      
-      const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
-      if (addBtn && !addBtn.disabled) {
-        const t = TRANSLATIONS[state.currentLanguage];
-        if (quantity > 0) {
-          addBtn.textContent = `🛒 ${t.addToCart}`;
-          addBtn.classList.add('has-qty');
-        } else {
-          addBtn.textContent = `🛒 ${t.addToCart}`;
-          addBtn.classList.remove('has-qty');
-        }
-      }
-    }
+  function updateCatalogueQuantity(productId, quantity) {
+  state.catalogueQuantityPicks[productId] = quantity;
+  
+  const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
+  const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
 
+  if (input) {
+    input.value = quantity;
+  }
+
+  if (addBtn) {
+    const t = TRANSLATIONS[state.currentLanguage];
+
+    if (quantity > 0) {
+      addBtn.textContent = `🛒 ${t.addToCart} (${quantity})`;
+      addBtn.classList.add('has-qty');
+      addBtn.classList.remove('disabled-btn');
+      addBtn.setAttribute('aria-disabled', 'false');
+    } else {
+      addBtn.textContent = `🛒 ${t.addToCart}`;
+      addBtn.classList.remove('has-qty');
+      addBtn.classList.add('disabled-btn');
+      addBtn.setAttribute('aria-disabled', 'true');
+    }
+  }
+}
     function closeCatalogueModal() {
       $('catalogueModal').classList.remove('open');
       document.body.style.overflow = '';
