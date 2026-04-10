@@ -6160,25 +6160,55 @@ function addToCart(productId, product, quantity = 1) {
 (function addStyles() {
   const style = document.createElement('style');
   style.textContent = `
+    /* État grisé quand la quantité est à 0 */
     .catalogue-add-btn.disabled-btn {
-      opacity: 0.5;
+      background-color: #666 !important; /* Gris neutre */
+      color: #aaa !important;
+      opacity: 0.7;
       cursor: not-allowed;
-      pointer-events: auto;
-      border-color: var(--muted, #aaa);
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--muted, #aaa);
+      border: 1px solid #444 !important;
+      filter: none !important; /* On retire le grayscale pour ne pas griser tout le produit */
     }
+    
+    /* État actif quand il y a une quantité > 0 */
     .catalogue-add-btn.has-qty {
-      background: rgba(0, 212, 255, 0.2);
-      border-color: var(--accent2);
-      color: var(--accent2);
+      background-color: var(--accent2, #00d4ff) !important;
+      color: #fff !important;
+      opacity: 1;
+      cursor: pointer;
+      border: 1px solid var(--accent2, #00d4ff) !important;
     }
   `;
   document.head.appendChild(style);
 })();
 
+// ===================== RETRAIT DU PANIER (un par un) =====================
+function removeFromCart(productId, quantity = 1) {
+  if (!state.cart[productId]) return;
+  const item = state.cart[productId];
+  
+  // Toujours retirer 1 par 1 pour la logique 5, 4, 3, 2, 1...
+  const qtyToRemove = 1; 
+
+  // Restaurer le stock physique (on ajoute au stock disponible)
+  updateProductStock(item, -qtyToRemove);
+
+  item.quantity -= qtyToRemove;
+
+  if (item.quantity <= 0) {
+    delete state.cart[productId];
+    showToast(`🗑️ ${item.name} retiré`);
+  } else {
+    showToast(`➖ ${item.name} : ${item.quantity} restant(s)`);
+  }
+
+  renderProducts();
+  updateCartUI();
+}
+
 // ===================== ÉVÈNEMENTS CATALOGUE =====================
 function setupCatalogueEvents() {
+  // Gestion des boutons + et -
   document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const action = e.target.dataset.action;
@@ -6204,6 +6234,7 @@ function setupCatalogueEvents() {
     });
   });
   
+  // Gestion de la saisie manuelle
   document.querySelectorAll('.catalogue-qty-input:not([disabled])').forEach(input => {
     input.addEventListener('input', (e) => {
       const productId = e.target.dataset.id;
@@ -6220,13 +6251,16 @@ function setupCatalogueEvents() {
     });
   });
   
+  // Gestion du bouton "Ajouter au panier"
   document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
     const productId = btn.dataset.id;
     const initialQty = state.catalogueQuantityPicks[productId] || 0;
+    
+    // Initialisation du style
     if (initialQty === 0) {
       btn.classList.add('disabled-btn');
     } else {
-      btn.classList.remove('disabled-btn');
+      btn.classList.add('has-qty');
     }
     
     btn.addEventListener('click', (e) => {
@@ -6235,6 +6269,7 @@ function setupCatalogueEvents() {
       const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
       let quantity = parseInt(input.value) || 0;
       
+      // Blocage avec Toast si quantité = 0
       if (quantity === 0) {
         showToast('⚠️ Pour commander, veuillez utiliser le bouton +.', 'info');
         return;
@@ -6243,14 +6278,10 @@ function setupCatalogueEvents() {
       if (product) {
         addToCart(productId, product, quantity);
         
+        // Réinitialisation après ajout
         state.catalogueQuantityPicks[productId] = 0;
         if (input) input.value = 0;
-        const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
-        if (addBtn) {
-          addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
-          addBtn.classList.remove('has-qty');
-          addBtn.classList.add('disabled-btn');
-        }
+        updateCatalogueQuantity(productId, 0); // Repasse le bouton en gris
       }
     });
   });
@@ -6262,10 +6293,11 @@ function updateCatalogueQuantity(productId, quantity) {
   if (addBtn) {
     if (quantity > 0) {
       addBtn.classList.remove('disabled-btn');
+      addBtn.classList.add('has-qty');
     } else {
       addBtn.classList.add('disabled-btn');
+      addBtn.classList.remove('has-qty');
     }
-    addBtn.classList.toggle('has-qty', quantity > 0);
   }
 }
 
@@ -6302,7 +6334,7 @@ function openProductModal(product) {
       $('modalOldPrice').style.display = 'block';
     } else {
       $('modalCurrentPrice').textContent = formatPrice(product.price);
-      $('modalOldPrice').style.display = 'none';
+      $('modalOldOldPrice').style.display = 'none';
     }
     
     $('modalProductCode').textContent = product.code;
