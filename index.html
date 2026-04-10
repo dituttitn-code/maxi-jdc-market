@@ -6052,6 +6052,26 @@ function removeFromCart(productId, quantity = 1) {
   updateCartUI();
 }
 
+<style>
+  /* Désactivation visuelle du bouton "Ajouter au panier" (quantité = 0) */
+  .catalogue-add-btn.disabled-btn {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: auto; /* Permet au clic d’afficher le toast */
+    border-color: var(--muted, #aaa);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--muted, #aaa);
+  }
+
+  /* Mise en valeur du bouton quand une quantité est sélectionnée */
+  .catalogue-add-btn.has-qty {
+    background: rgba(0, 212, 255, 0.2);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+</style>
+
+<script>
 // ===================== ÉVÈNEMENTS CATALOGUE =====================
 function setupCatalogueEvents() {
   // Gestion des boutons + et -
