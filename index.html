@@ -6396,11 +6396,11 @@ function updateProductStock(product, quantity) {
   return newStock;
 }
 
-function removeFromCart(productId, quantity = 1) {
+function removeFromCart(productId) {
   if (!state.cart[productId]) return;
 
   const item = state.cart[productId];
-  const removeQuantity = Math.min(quantity, item.quantity);
+  const removeQuantity = 1;
 
   const stockKey = `${item.categoryKey}_${item.code}`;
   const currentStock = state.productStocks.get(stockKey) || 0;
@@ -6425,7 +6425,7 @@ function removeFromCart(productId, quantity = 1) {
   }
 
   item.stock = newStock;
-  item.quantity -= removeQuantity;
+  item.quantity -= 1;
 
   if (item.quantity <= 0) {
     delete state.cart[productId];
