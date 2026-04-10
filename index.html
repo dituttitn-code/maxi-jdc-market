@@ -5880,6 +5880,7 @@ function renderCatalogue() {
   if (filteredProducts.length === 0) {
     grid.style.display = 'none';
     empty.style.display = 'block';
+    grid.innerHTML = '';
     return;
   }
   
@@ -5955,10 +5956,9 @@ function renderCatalogue() {
     `;
     
     grid.appendChild(item);
-
     updateCatalogueQuantity(productId, quantity);
   });
-  
+}
   // --- Détection promotion ---
     const isPromo = (product.isPromotion || product.isPromo) && 
                     product.oldPrice && 
