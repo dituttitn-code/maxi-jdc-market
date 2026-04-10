@@ -6045,21 +6045,16 @@ function updateCatalogueQuantity(productId, quantity) {
   const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
   const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
 
-  if (input) {
-    input.value = quantity;
-  }
-
+  if (input) input.value = quantity;
   if (!addBtn) return;
 
   const t = TRANSLATIONS[state.currentLanguage];
 
   if (quantity > 0) {
-    addBtn.disabled = false;
     addBtn.classList.remove('disabled-btn');
     addBtn.classList.add('has-qty');
     addBtn.textContent = `🛒 ${t.addToCart} (${quantity})`;
   } else {
-    addBtn.disabled = true;
     addBtn.classList.add('disabled-btn');
     addBtn.classList.remove('has-qty');
     addBtn.textContent = `🛒 ${t.addToCart}`;
