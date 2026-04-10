@@ -6054,6 +6054,7 @@ function removeFromCart(productId, quantity = 1) {
 
 // ===================== ÉVÈNEMENTS CATALOGUE =====================
 function setupCatalogueEvents() {
+  // Gestion des boutons + et -
   document.querySelectorAll('.catalogue-qty-btn:not([disabled])').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const action = e.target.dataset.action;
@@ -6079,6 +6080,7 @@ function setupCatalogueEvents() {
     });
   });
   
+  // Gestion de la saisie manuelle
   document.querySelectorAll('.catalogue-qty-input:not([disabled])').forEach(input => {
     input.addEventListener('input', (e) => {
       const productId = e.target.dataset.id;
@@ -6095,13 +6097,15 @@ function setupCatalogueEvents() {
     });
   });
   
-  document.querySelectorAll('.catalogue-add-btn:not([disabled])').forEach(btn => {
-    // Initialisation : désactiver si quantité 0
+  // Gestion du bouton "Ajouter au panier"
+  document.querySelectorAll('.catalogue-add-btn').forEach(btn => {
+    // Appliquer l'état visuel initial
     const productId = btn.dataset.id;
     const initialQty = state.catalogueQuantityPicks[productId] || 0;
-    btn.disabled = (initialQty === 0);
-    if (btn.disabled) {
-      btn.title = "Veuillez utiliser le bouton + pour ajouter des articles";
+    if (initialQty === 0) {
+      btn.classList.add('disabled-btn');
+    } else {
+      btn.classList.remove('disabled-btn');
     }
     
     btn.addEventListener('click', (e) => {
@@ -6110,6 +6114,7 @@ function setupCatalogueEvents() {
       const input = document.querySelector(`.catalogue-qty-input[data-id="${productId}"]`);
       let quantity = parseInt(input.value) || 0;
       
+      // Blocage si quantité = 0
       if (quantity === 0) {
         showToast('⚠️ Pour commander, veuillez utiliser le bouton +.', 'info');
         return;
@@ -6125,8 +6130,7 @@ function setupCatalogueEvents() {
         if (addBtn) {
           addBtn.textContent = `🛒 ${TRANSLATIONS[state.currentLanguage].addToCart}`;
           addBtn.classList.remove('has-qty');
-          addBtn.disabled = true;
-          addBtn.title = "Veuillez utiliser le bouton + pour ajouter des articles";
+          addBtn.classList.add('disabled-btn');
         }
       }
     });
@@ -6136,13 +6140,11 @@ function setupCatalogueEvents() {
 function updateCatalogueQuantity(productId, quantity) {
   state.catalogueQuantityPicks[productId] = quantity;
   const addBtn = document.querySelector(`.catalogue-add-btn[data-id="${productId}"]`);
-  if (addBtn && !addBtn.disabled) {
+  if (addBtn) {
     if (quantity > 0) {
-      addBtn.disabled = false;
-      addBtn.title = "";
+      addBtn.classList.remove('disabled-btn');
     } else {
-      addBtn.disabled = true;
-      addBtn.title = "Veuillez utiliser le bouton + pour ajouter des articles";
+      addBtn.classList.add('disabled-btn');
     }
     addBtn.classList.toggle('has-qty', quantity > 0);
   }
