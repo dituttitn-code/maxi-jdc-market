@@ -897,7 +897,7 @@ const alerteAudio = new Audio(urlSon);
         state.topProducts = computeTopProductsFromOrders(state.orders);
 
 // ─────────────────────────────────────────────────────────
-        // CONFIGURATION PRO MULTILINGUE : FORCE LE FRANÇAIS + RÉPÉTITION 3X
+        // CONFIGURATION ULTRA-FORCE : BLOCAGE FRANÇAIS + RÉPÉTITION 3X
         // ─────────────────────────────────────────────────────────
         const nouvellesCommandes = state.orders.filter(cmd => {
           const st = String(cmd.statut).trim().toUpperCase();
@@ -927,35 +927,49 @@ const alerteAudio = new Audio(urlSon);
             }
           }
 
-          // 3. Synthèse vocale avec forçage absolu de la voix française et répétition 3x
+          // 3. Synthèse vocale avec forçage de voix système
           if ('speechSynthesis' in window && numeroCourtPourLaVoix) {
-            window.speechSynthesis.cancel(); // On stoppe tout d'abord
+            window.speechSynthesis.cancel(); // On nettoie les anciennes voix en cours
 
-            // Création de la fonction qui parle pour pouvoir la réutiliser si les voix mettent du temps à charger
-            const parlerEnFrancais = () => {
-              const texteAnnonce = `Nouvelle commande Maxi, numéro ${numeroCourtPourLaVoix}. Nouvelle commande Maxi, numéro ${numeroCourtPourLaVoix}. Nouvelle commande Maxi, numéro ${numeroCourtPourLaVoix}.`;
-              const annonce = new SpeechSynthesisUtterance(texteAnnonce);
-              
-              // On force la recherche d'une voix française
-              const voixDisponibles = window.speechSynthesis.getVoices();
-              const voixFrancaise = voixDisponibles.find(v => v.lang.startsWith('fr-') || v.lang === 'fr');
-              
-              if (voixFrancaise) {
-                annonce.voice = voixFrancaise;
+            const texteAnnonce = "Nouvelle commande Maxi numéro " + numeroCourtPourLaVoix + ". " +
+                                 "Nouvelle commande Maxi numéro " + numeroCourtPourLaVoix + ". " +
+                                 "Nouvelle commande Maxi numéro " + numeroCourtPourLaVoix;
+            
+            const annonce = new SpeechSynthesisUtterance(texteAnnonce);
+            
+            // Configuration de base
+            annonce.lang = 'fr-FR';
+            annonce.rate = 0.85; // Un poil plus lent pour forcer la bonne articulation
+            annonce.pitch = 1.0;
+
+            // BOUCLE DE FORÇAGE : On scanne TOUTES les voix du téléphone
+            const toutesLesVoix = window.speechSynthesis.getVoices();
+            let voixTrouvee = false;
+
+            for (let i = 0; i < toutesLesVoix.length; i++) {
+              const v = toutesLesVoix[i];
+              // Si la voix contient "fr" ou "FR" dans son nom ou sa langue, on la prend immédiatement !
+              if (v.lang.toLowerCase().includes('fr') || v.name.toLowerCase().includes('fr')) {
+                annonce.voice = v;
+                annonce.lang = v.lang; // On aligne la langue exacte de la voix trouvée
+                voixTrouvee = true;
+                break;
               }
-              annonce.lang = 'fr-FR';
-              annonce.rate = 0.90; // Un tout petit peu plus lent pour être très clair
-              window.speechSynthesis.speak(annonce);
-            };
+            }
 
-            // Si la liste des voix est déjà chargée, on parle immédiatement
-            if (window.speechSynthesis.getVoices().length > 0) {
-              parlerEnFrancais();
-            } else {
-              // Sinon, on attend que le navigateur ait fini de charger ses voix
+            // Si le téléphone est très têtu, on réessaye au cas où les voix chargent en retard
+            if (!voixTrouvee) {
               window.speechSynthesis.onvoiceschanged = () => {
-                parlerEnFrancais();
+                const voixApresChargement = window.speechSynthesis.getVoices();
+                const vFr = voixApresChargement.find(v => v.lang.toLowerCase().includes('fr') || v.name.toLowerCase().includes('fr'));
+                if (vFr) {
+                  annonce.voice = vFr;
+                  annonce.lang = vFr.lang;
+                }
+                window.speechSynthesis.speak(annonce);
               };
+            } else {
+              window.speechSynthesis.speak(annonce);
             }
           }
 
