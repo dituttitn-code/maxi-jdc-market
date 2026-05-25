@@ -927,24 +927,36 @@ const alerteAudio = new Audio(urlSon);
             }
           }
 
-          // 3. Synthèse vocale avec forçage de la voix française et répétition
+          // 3. Synthèse vocale avec forçage absolu de la voix française et répétition 3x
           if ('speechSynthesis' in window && numeroCourtPourLaVoix) {
-            window.speechSynthesis.cancel(); // Arrête les anciennes voix
-            
-            // On crée le message qui répète le numéro 3 fois
-            const texteAnnonce = `Nouvelle commande Maxi, numéro ${numeroCourtPourLaVoix}. numéro ${numeroCourtPourLaVoix}. numéro ${numeroCourtPourLaVoix}.`;
-            const annonce = new SpeechSynthesisUtterance(texteAnnonce);
-            
-            // FORCE LE SYSTÈME À CHERCHER UNE VOIX FRANÇAISE INSTALLÉE
-            const voixDisponibles = window.speechSynthesis.getVoices();
-            const voixFrancaise = voixDisponibles.find(v => v.lang.startsWith('fr'));
-            if (voixFrancaise) {
-              annonce.voice = voixFrancaise;
+            window.speechSynthesis.cancel(); // On stoppe tout d'abord
+
+            // Création de la fonction qui parle pour pouvoir la réutiliser si les voix mettent du temps à charger
+            const parlerEnFrancais = () => {
+              const texteAnnonce = `Nouvelle commande Maxi, numéro ${numeroCourtPourLaVoix}. Nouvelle commande Maxi, numéro ${numeroCourtPourLaVoix}. Nouvelle commande Maxi, numéro ${numeroCourtPourLaVoix}.`;
+              const annonce = new SpeechSynthesisUtterance(texteAnnonce);
+              
+              // On force la recherche d'une voix française
+              const voixDisponibles = window.speechSynthesis.getVoices();
+              const voixFrancaise = voixDisponibles.find(v => v.lang.startsWith('fr-') || v.lang === 'fr');
+              
+              if (voixFrancaise) {
+                annonce.voice = voixFrancaise;
+              }
+              annonce.lang = 'fr-FR';
+              annonce.rate = 0.90; // Un tout petit peu plus lent pour être très clair
+              window.speechSynthesis.speak(annonce);
+            };
+
+            // Si la liste des voix est déjà chargée, on parle immédiatement
+            if (window.speechSynthesis.getVoices().length > 0) {
+              parlerEnFrancais();
+            } else {
+              // Sinon, on attend que le navigateur ait fini de charger ses voix
+              window.speechSynthesis.onvoiceschanged = () => {
+                parlerEnFrancais();
+              };
             }
-            
-            annonce.lang = 'fr-FR';
-            annonce.rate = 0.90; // Vitesse bien articulée
-            window.speechSynthesis.speak(annonce);
           }
 
           ancienNombreCommandes = nouvellesCommandes.length;
