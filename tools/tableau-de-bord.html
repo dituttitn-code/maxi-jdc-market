@@ -897,7 +897,7 @@ const alerteAudio = new Audio(urlSon);
         state.topProducts = computeTopProductsFromOrders(state.orders);
 
 // ─────────────────────────────────────────────────────────
-        // CONFIGURATION PRO : ALERTE SONORE + ANNONCE VOCALE DU NUMÉRO
+        // CONFIGURATION PRO : ALERTE SONORE + ANNONCE PERSONNALISÉE MAXI
         // ─────────────────────────────────────────────────────────
         const nouvellesCommandes = state.orders.filter(cmd => {
           const st = String(cmd.statut).trim().toUpperCase();
@@ -911,28 +911,38 @@ const alerteAudio = new Audio(urlSon);
           // 1. Déclenchement immédiat du bip sonore
           alerteAudio.play().catch(e => console.log("Audio bloqué par le navigateur :", e));
 
-          // 2. Récupération du numéro de commande de manière sécurisée
+          // 2. Récupération et nettoyage du numéro de commande
           const derniereCommande = nouvellesCommandes[nouvellesCommandes.length - 1];
-          let numeroCommande = "";
+          let numeroComplet = "";
+          let numeroCourtPourLaVoix = "";
+
           if (derniereCommande) {
-            numeroCommande = derniereCommande.commande_id || derniereCommande.commande || "";
+            numeroComplet = derniereCommande.commande_id || derniereCommande.commande || "";
+            
+            // Si le numéro ressemble à #CMD-MAXI-20260525-066, on prend ce qu'il y a après le dernier tiret
+            if (numeroComplet.includes('-')) {
+              const parties = numeroComplet.split('-');
+              const dernierMorceau = parties[parties.length - 1]; // Récupère "066"
+              numeroCourtPourLaVoix = parseInt(dernierMorceau, 10) || dernierMorceau; // Transforme "066" en 66
+            } else {
+              numeroCourtPourLaVoix = numeroComplet;
+            }
           }
 
-          // 3. Synthèse vocale : Le téléphone annonce le numéro à voix haute
-          if ('speechSynthesis' in window && numeroCommande) {
-            // Petit nettoyage pour que la voix lise bien le numéro (ex: "105" au lieu de "N° 105")
-            const cleanNum = String(numeroCommande).replace('#', '').trim();
-            const annonce = new SpeechSynthesisUtterance(`Nouvelle commande numéro ${cleanNum}`);
-            annonce.lang = 'fr-FR'; // Langue Française
-            annonce.rate = 0.95;    // Vitesse légèrement posée pour bien comprendre
-            annonce.pitch = 1.0;    // Tonalité de voix normale
+          // 3. Synthèse vocale personnalisée en Français
+          if ('speechSynthesis' in window && numeroCourtPourLaVoix) {
+            const texteAnnonce = `Nouvelle commande Maxi numéro ${numeroCourtPourLaVoix}`;
+            const annonce = new SpeechSynthesisUtterance(texteAnnonce);
+            annonce.lang = 'fr-FR'; // Voix Française
+            annonce.rate = 0.95;    // Vitesse fluide et naturelle
+            annonce.pitch = 1.0;    // Tonalité normale
             window.speechSynthesis.speak(annonce);
           }
 
           ancienNombreCommandes = nouvellesCommandes.length;
           
           if (typeof showToast === "function") {
-            showToast(`🔔 Nouvelle commande N°${numeroCommande} reçue !`, 'success');
+            showToast(`🔔 Nouvelle commande ${numeroComplet || 'reçue'} !`, 'success');
           }
         } 
         else {
