@@ -895,8 +895,9 @@ const alerteAudio = new Audio(urlSon);
         $('dataSourceInfo').textContent = 'Source : API Google Sheets';
 
         state.topProducts = computeTopProductsFromOrders(state.orders);
+
 // ─────────────────────────────────────────────────────────
-        // DETECTION ET DECLENCHEMENT AUTOMATIQUE DE LA SONNERIE
+        // CONFIGURATION PRO : ALERTE SONORE + ANNONCE VOCALE DU NUMÉRO
         // ─────────────────────────────────────────────────────────
         const nouvellesCommandes = state.orders.filter(cmd => {
           const st = String(cmd.statut).trim().toUpperCase();
@@ -907,18 +908,38 @@ const alerteAudio = new Audio(urlSon);
           ancienNombreCommandes = nouvellesCommandes.length;
         } 
         else if (nouvellesCommandes.length > ancienNombreCommandes) {
-          alerteAudio.play().catch(e => {
-            console.log("Lecture audio bloquée par le navigateur :", e);
-          });
+          // 1. Déclenchement immédiat du bip sonore
+          alerteAudio.play().catch(e => console.log("Audio bloqué par le navigateur :", e));
+
+          // 2. Récupération du numéro de commande de manière sécurisée
+          const derniereCommande = nouvellesCommandes[nouvellesCommandes.length - 1];
+          let numeroCommande = "";
+          if (derniereCommande) {
+            numeroCommande = derniereCommande.commande_id || derniereCommande.commande || "";
+          }
+
+          // 3. Synthèse vocale : Le téléphone annonce le numéro à voix haute
+          if ('speechSynthesis' in window && numeroCommande) {
+            // Petit nettoyage pour que la voix lise bien le numéro (ex: "105" au lieu de "N° 105")
+            const cleanNum = String(numeroCommande).replace('#', '').trim();
+            const annonce = new SpeechSynthesisUtterance(`Nouvelle commande numéro ${cleanNum}`);
+            annonce.lang = 'fr-FR'; // Langue Française
+            annonce.rate = 0.95;    // Vitesse légèrement posée pour bien comprendre
+            annonce.pitch = 1.0;    // Tonalité de voix normale
+            window.speechSynthesis.speak(annonce);
+          }
+
           ancienNombreCommandes = nouvellesCommandes.length;
+          
           if (typeof showToast === "function") {
-            showToast('🔔 Nouvelle commande reçue !', 'success');
+            showToast(`🔔 Nouvelle commande N°${numeroCommande} reçue !`, 'success');
           }
         } 
         else {
           ancienNombreCommandes = nouvellesCommandes.length;
         }
         // ─────────────────────────────────────────────────────────
+        
        return true;
       } catch (error) {
         console.error('Erreur chargement:', error);
