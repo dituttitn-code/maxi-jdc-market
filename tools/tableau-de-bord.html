@@ -897,7 +897,7 @@ const alerteAudio = new Audio(urlSon);
         state.topProducts = computeTopProductsFromOrders(state.orders);
 
 // ─────────────────────────────────────────────────────────
-        // CONFIGURATION ULTRA-PRO : BIP ÉLECTRONIQUE + VOIX FRANÇAISE 3X
+        // CONFIGURATION FIABLE : ALERTE INTEGREE + VOIX FRANÇAISE 3X
         // ─────────────────────────────────────────────────────────
         const nouvellesCommandes = state.orders.filter(cmd => {
           const st = String(cmd.statut).trim().toUpperCase();
@@ -909,29 +909,7 @@ const alerteAudio = new Audio(urlSon);
         } 
         else if (nouvellesCommandes.length > ancienNombreCommandes) {
           
-          // 1. GÉNÉRATION DU SON "PUP" ÉLECTRONIQUE (Pas besoin de fichier mp3)
-          try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            
-            osc.type = 'sine';          // Son doux de type "Plop/Pup"
-            osc.frequency.setValueAtTime(580, audioCtx.currentTime); // Fréquence du bip
-            
-            // Gestion du volume et de la durée (très court pour faire "Pup")
-            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-            
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.15);
-          } catch (e) {
-            console.log("Le bip électronique n'a pas pu se lancer :", e);
-          }
-
-          // 2. Extraction du numéro court (ex: 66)
+          // 1. Extraction du numéro court (ex: 66)
           const derniereCommande = nouvellesCommandes[nouvellesCommandes.length - 1];
           let numeroComplet = "";
           let numeroCourtPourLaVoix = "";
@@ -947,29 +925,28 @@ const alerteAudio = new Audio(urlSon);
             }
           }
 
-          // 3. Synthèse vocale en Français (Répétition 3 fois)
+          // 2. Synthèse vocale en Français avec "Bip" parlé intégré
           if ('speechSynthesis' in window && numeroCourtPourLaVoix) {
-            window.speechSynthesis.cancel(); // Sécurité
+            window.speechSynthesis.cancel(); // Sécurité pour couper les anciennes alertes
 
-            const texteAnnonce = "Nouvelle commande Maxi numéro " + numeroCourtPourLaVoix + ". " +
+            // On ajoute un "Bip !" sonore écrit au tout début du texte
+            const texteAnnonce = "Bip. Nouvelle commande Maxi numéro " + numeroCourtPourLaVoix + ". " +
                                  "Nouvelle commande Maxi numéro " + numeroCourtPourLaVoix + ". " +
                                  "Nouvelle commande Maxi numéro " + numeroCourtPourLaVoix;
             
             const annonce = new SpeechSynthesisUtterance(texteAnnonce);
             annonce.lang = 'fr-FR';
-            annonce.rate = 0.90; // Vitesse naturelle
+            annonce.rate = 0.92; // Vitesse claire pour le magasin
+            annonce.pitch = 1.05; // Une tonalité légèrement plus haute pour capter l'attention
 
-            // Application de la voix française du système
+            // Recherche et application forcée de la voix française du magasin
             const toutesLesVoix = window.speechSynthesis.getVoices();
             const vFr = toutesLesVoix.find(v => v.lang.toLowerCase().includes('fr'));
             if (vFr) {
               annonce.voice = vFr;
             }
 
-            // On attend 200 millisecondes après le "Pup" pour lancer la voix
-            setTimeout(() => {
-              window.speechSynthesis.speak(annonce);
-            }, 200);
+            window.speechSynthesis.speak(annonce);
           }
 
           ancienNombreCommandes = nouvellesCommandes.length;
