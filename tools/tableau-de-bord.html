@@ -897,7 +897,7 @@ const alerteAudio = new Audio(urlSon);
         state.topProducts = computeTopProductsFromOrders(state.orders);
 
 // ─────────────────────────────────────────────────────────
-        // CONFIGURATION FIABLE : 3 VRAIS BIPS (PIP) + ANNONCE VOCALE
+        // CONFIGURATION ULTIME : 5 BIPS (PIP) + ANNONCE VOCALE 3X
         // ─────────────────────────────────────────────────────────
         const nouvellesCommandes = state.orders.filter(cmd => {
           const st = String(cmd.statut).trim().toUpperCase();
@@ -914,11 +914,11 @@ const alerteAudio = new Audio(urlSon);
             const osc = contexteAudio.createOscillator();
             const gain = contexteAudio.createGain();
             
-            osc.type = 'sine'; // Son pur
-            osc.frequency.setValueAtTime(650, tempsDeDepart); // Fréquence aiguë pour le "Pip"
+            osc.type = 'sine'; // Son pur électronique
+            osc.frequency.setValueAtTime(650, tempsDeDepart); // Son aigu type scanner de caisse
             
             gain.gain.setValueAtTime(0.4, tempsDeDepart);
-            gain.gain.exponentialRampToValueAtTime(0.01, tempsDeDepart + 0.12); // Son très court
+            gain.gain.exponentialRampToValueAtTime(0.01, tempsDeDepart + 0.12); // Durée très courte
             
             osc.connect(gain);
             gain.connect(contexteAudio.destination);
@@ -927,7 +927,7 @@ const alerteAudio = new Audio(urlSon);
             osc.stop(tempsDeDepart + 0.12);
           };
 
-          // DÉCLENCHEMENT DES 3 BIPS (Chaque bip est espacé de 0.25 seconde)
+          // DÉCLENCHEMENT DES 5 BIPS (Espacés de 0.25 seconde)
           try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const maintenant = audioCtx.currentTime;
@@ -935,6 +935,8 @@ const alerteAudio = new Audio(urlSon);
             faireUnPip(audioCtx, maintenant);         // 1er Pip
             faireUnPip(audioCtx, maintenant + 0.25);    // 2ème Pip
             faireUnPip(audioCtx, maintenant + 0.50);    // 3ème Pip
+            faireUnPip(audioCtx, maintenant + 0.75);    // 4ème Pip
+            faireUnPip(audioCtx, maintenant + 1.00);    // 5ème Pip
           } catch (e) {
             console.log("Erreur bips électroniques :", e);
           }
@@ -955,26 +957,29 @@ const alerteAudio = new Audio(urlSon);
             }
           }
 
-          // 3. Synthèse vocale en Français (Annonce simple après les bips)
+          // 3. Synthèse vocale en Français (Répétition 3 fois après les 5 bips)
           if ('speechSynthesis' in window && numeroCourtPourLaVoix) {
-            window.speechSynthesis.cancel(); // Coupe les voix en cours
+            window.speechSynthesis.cancel(); // Sécurité pour nettoyer les voix
 
-            const texteAnnonce = "Nouvelle commande Maxi, numéro " + numeroCourtPourLaVoix;
+            const texteAnnonce = "Nouvelle commande Maxi, numéro " + numeroCourtPourLaVoix + ". " +
+                                 "Nouvelle commande Maxi, numéro " + numeroCourtPourLaVoix + ". " +
+                                 "Nouvelle commande Maxi, numéro " + numeroCourtPourLaVoix;
+            
             const annonce = new SpeechSynthesisUtterance(texteAnnonce);
             annonce.lang = 'fr-FR';
-            annonce.rate = 0.92;
+            annonce.rate = 0.92; // Vitesse bien articulée
 
-            // Force l'utilisation de la voix française configurée dans le magasin
+            // Force l'utilisation de la voix française configurée
             const toutesLesVoix = window.speechSynthesis.getVoices();
             const vFr = toutesLesVoix.find(v => v.lang.toLowerCase().includes('fr'));
             if (vFr) {
               annonce.voice = vFr;
             }
 
-            // On attend 1 seconde entière (1000 ms) pour laisser les 3 bips finir de sonner tranquille
+            // On attend 1.5 seconde (1500 ms) pour laisser le temps aux 5 bips de finir proprement
             setTimeout(() => {
               window.speechSynthesis.speak(annonce);
-            }, 1000);
+            }, 1500);
           }
 
           ancienNombreCommandes = nouvellesCommandes.length;
