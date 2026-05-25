@@ -919,7 +919,7 @@ const alerteAudio = new Audio(urlSon);
           if (derniereCommande) {
             numeroComplet = derniereCommande.commande_id || derniereCommande.commande || "";
             
-            // Si le numéro ressemble à #CMD-MAXI-20260525-066, on prend ce qu'il y a après le dernier tiret
+            // Correction ici : On utilise bien le tiret du 6 '-' pour couper le numéro
             if (numeroComplet.includes('-')) {
               const parties = numeroComplet.split('-');
               const dernierMorceau = parties[parties.length - 1]; // Récupère "066"
@@ -929,13 +929,16 @@ const alerteAudio = new Audio(urlSon);
             }
           }
 
-          // 3. Synthèse vocale personnalisée en Français
+          // 3. Synthèse vocale personnalisée STRICTEMENT en Français
           if ('speechSynthesis' in window && numeroCourtPourLaVoix) {
+            // On stoppe les voix en cours pour éviter les bugs
+            window.speechSynthesis.cancel();
+            
             const texteAnnonce = `Nouvelle commande Maxi numéro ${numeroCourtPourLaVoix}`;
             const annonce = new SpeechSynthesisUtterance(texteAnnonce);
-            annonce.lang = 'fr-FR'; // Voix Française
-            annonce.rate = 0.95;    // Vitesse fluide et naturelle
-            annonce.pitch = 1.0;    // Tonalité normale
+            annonce.lang = 'fr-FR'; // Forcer la langue française
+            annonce.rate = 0.90;    // Vitesse légèrement posée pour bien articuler
+            annonce.pitch = 1.0;    
             window.speechSynthesis.speak(annonce);
           }
 
