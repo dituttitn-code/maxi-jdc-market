@@ -897,7 +897,7 @@ const alerteAudio = new Audio(urlSon);
         state.topProducts = computeTopProductsFromOrders(state.orders);
 
 // ─────────────────────────────────────────────────────────
-        // CONFIGURATION FIABLE : ALERTE INTEGREE + VOIX FRANÇAISE 3X
+        // CONFIGURATION FIABLE : 3 VRAIS BIPS (PIP) + ANNONCE VOCALE
         // ─────────────────────────────────────────────────────────
         const nouvellesCommandes = state.orders.filter(cmd => {
           const st = String(cmd.statut).trim().toUpperCase();
@@ -909,7 +909,37 @@ const alerteAudio = new Audio(urlSon);
         } 
         else if (nouvellesCommandes.length > ancienNombreCommandes) {
           
-          // 1. Extraction du numéro court (ex: 66)
+          // 1. FONCTION MAISON POUR FAIRE UN VRAI "PIP" ÉLECTRONIQUE
+          const faireUnPip = (contexteAudio, tempsDeDepart) => {
+            const osc = contexteAudio.createOscillator();
+            const gain = contexteAudio.createGain();
+            
+            osc.type = 'sine'; // Son pur
+            osc.frequency.setValueAtTime(650, tempsDeDepart); // Fréquence aiguë pour le "Pip"
+            
+            gain.gain.setValueAtTime(0.4, tempsDeDepart);
+            gain.gain.exponentialRampToValueAtTime(0.01, tempsDeDepart + 0.12); // Son très court
+            
+            osc.connect(gain);
+            gain.connect(contexteAudio.destination);
+            
+            osc.start(tempsDeDepart);
+            osc.stop(tempsDeDepart + 0.12);
+          };
+
+          // DÉCLENCHEMENT DES 3 BIPS (Chaque bip est espacé de 0.25 seconde)
+          try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const maintenant = audioCtx.currentTime;
+            
+            faireUnPip(audioCtx, maintenant);         // 1er Pip
+            faireUnPip(audioCtx, maintenant + 0.25);    // 2ème Pip
+            faireUnPip(audioCtx, maintenant + 0.50);    // 3ème Pip
+          } catch (e) {
+            console.log("Erreur bips électroniques :", e);
+          }
+
+          // 2. Extraction du numéro court (ex: 66)
           const derniereCommande = nouvellesCommandes[nouvellesCommandes.length - 1];
           let numeroComplet = "";
           let numeroCourtPourLaVoix = "";
@@ -925,28 +955,26 @@ const alerteAudio = new Audio(urlSon);
             }
           }
 
-          // 2. Synthèse vocale en Français avec "Bip" parlé intégré
+          // 3. Synthèse vocale en Français (Annonce simple après les bips)
           if ('speechSynthesis' in window && numeroCourtPourLaVoix) {
-            window.speechSynthesis.cancel(); // Sécurité pour couper les anciennes alertes
+            window.speechSynthesis.cancel(); // Coupe les voix en cours
 
-            // On ajoute un "Bip !" sonore écrit au tout début du texte
-            const texteAnnonce = "Bip. Nouvelle commande Maxi numéro " + numeroCourtPourLaVoix + ". " +
-                                 "Nouvelle commande Maxi numéro " + numeroCourtPourLaVoix + ". " +
-                                 "Nouvelle commande Maxi numéro " + numeroCourtPourLaVoix;
-            
+            const texteAnnonce = "Nouvelle commande Maxi, numéro " + numeroCourtPourLaVoix;
             const annonce = new SpeechSynthesisUtterance(texteAnnonce);
             annonce.lang = 'fr-FR';
-            annonce.rate = 0.92; // Vitesse claire pour le magasin
-            annonce.pitch = 1.05; // Une tonalité légèrement plus haute pour capter l'attention
+            annonce.rate = 0.92;
 
-            // Recherche et application forcée de la voix française du magasin
+            // Force l'utilisation de la voix française configurée dans le magasin
             const toutesLesVoix = window.speechSynthesis.getVoices();
             const vFr = toutesLesVoix.find(v => v.lang.toLowerCase().includes('fr'));
             if (vFr) {
               annonce.voice = vFr;
             }
 
-            window.speechSynthesis.speak(annonce);
+            // On attend 1 seconde entière (1000 ms) pour laisser les 3 bips finir de sonner tranquille
+            setTimeout(() => {
+              window.speechSynthesis.speak(annonce);
+            }, 1000);
           }
 
           ancienNombreCommandes = nouvellesCommandes.length;
