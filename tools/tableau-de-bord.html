@@ -8,8 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root{
-      --bg1:#0a1929;
-      --bg2:#112240; --card:#162447; --line:rgba(255,255,255,.15);
+      --bg1:#0a1929; --bg2:#112240; --card:#162447; --line:rgba(255,255,255,.15);
       --txt:#f0f6fc; --muted:#8b949e; --green:#00ff88; --blue:#00d4ff; --orange:#ffa726; --red:#ff6b6b;
       --purple:#9c27b0; --yellow:#FFC107; --shadow:0 10px 40px rgba(0,0,0,.45); --r:14px;
     }
@@ -68,8 +67,7 @@
       width:44px;height:44px;border-radius:10px;
       border:2px solid var(--green);
       display:flex;align-items:center;justify-content:center;
-      background:rgba(0,255,136,.12);
-      font-size:18px; font-weight:900;
+      background:rgba(0,255,136,.12); font-size:18px; font-weight:900;
     }
 
     h1{
@@ -156,8 +154,7 @@
     .statTop{display:flex;justify-content:space-between;align-items:center;gap:8px}
 
     .icon{
-      width:40px;
-      height:40px; border-radius:10px;
+      width:40px; height:40px; border-radius:10px;
       display:flex; align-items:center; justify-content:center;
       font-size:18px; background:rgba(255,255,255,.06); border:1px solid var(--line);
       flex-shrink:0;
@@ -358,8 +355,7 @@
       max-width:90vw;
     }
 
-    .toast.show{ display:block;
-      animation:pop .2s ease }
+    .toast.show{ display:block; animation:pop .2s ease }
     @keyframes pop{ from{transform:translateY(-8px);opacity:0} to{transform:translateY(0);opacity:1} }
 
     @media (max-width: 768px) {
@@ -488,7 +484,7 @@
     <div class="card" style="margin-top:12px;">
       <div class="sectionTitle">
         <h3><i class="fas fa-sliders-h"></i> Recherche & filtres</h3>
-        <span class="sub">Gestion des filtres</span>
+        <span class="sub">Sans toucher aux commandes fonctionnelles</span>
       </div>
       <div class="filters-row">
         <input id="searchInput" class="search-input" type="text" placeholder="Rechercher nom, téléphone, adresse, commande..." />
@@ -642,7 +638,7 @@
     </div>
 
     <footer class="footer">
-      <div>© 2026 MAXI JDC MARKET — Tableau de bord</div>
+      <div>© 2024 MAXI JDC MARKET — Tableau de bord</div>
       <div style="margin-top:4px; font-size:11px;">Mise à jour : <span id="lastUpdate">—</span></div>
       <div style="margin-top:4px; font-size:10px; color:var(--orange);" id="dataSourceInfo"></div>
     </footer>
@@ -654,10 +650,10 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbz9ztyd8kQz8VC4r9RKZqDU8rz79nRwZsYDuY26Os0wjZLdn70xTZX7N52FaUCptw9q/exec";
     const STATUTS = ["🟡 NOUVELLE","⏳ EN ATTENTE","🔵 EN PRÉPARATION","🟠 EN LIVRAISON","✅ LIVRÉE","❌ ANNULÉE"];
 
-    // CONFIGURATION DE LA SONNERIE AUTOMATIQUE
-    const alerteAudio = new Audio('https://dituttitn-code.github.io/maxi-jdc-market/tools/sonnerie.mp3');
-    let ancienNombreCommandes = null;
-
+let ancienNombreCommandes = null;
+const urlSon = "https://dituttitn-code.github.io/maxi-jdc-market/tools/sonnerie.mp3";
+const alerteAudio = new Audio(urlSon);
+    
     const state = {
       orders: [],
       topProducts: [],
@@ -701,10 +697,10 @@
 
     function escapeHtml(str) {
       return safeText(str)
-        .replace(/&/g, '&')
-        .replace(/</g, '<')
-        .replace(/>/g, '>')
-        .replace(/"/g, '"')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
     }
 
@@ -733,8 +729,10 @@
         .replace(/\\n/g, '\n')
         .replace(/<br\s*\/?>/gi, '\n')
         .replace(/\r/g, '');
+
       const lines = t.split('\n').map(s => s.trim()).filter(Boolean);
       const out = [];
+
       for (const line of lines) {
         if (/^COMMANDE\s*[:=]/i.test(line)) continue;
         if (/^CMD[-_ ]?MAXI/i.test(line)) continue;
@@ -749,6 +747,7 @@
           const p = rest.match(/-\s*([0-9]+(?:[.,][0-9]{1,3})?)\s*dt\b/i);
           if (p && p[1]) unit = num(p[1]);
           rest = rest.replace(/\s*-\s*[0-9]+(?:[.,][0-9]{1,3})?\s*dt\b/i, '').trim();
+
           out.push({ produit: rest || 'Produit', quantite: q, prix_unitaire: unit, prix_total: unit * q });
           continue;
         }
@@ -760,16 +759,19 @@
 
     function computeTopProductsFromOrders(orders) {
       const map = new Map();
+
       for (const order of orders) {
         const orderTotal = num(order.total);
         const articles = parseArticles(order.articles);
         if (articles.length === 0) continue;
 
         const totalQty = articles.reduce((s,a) => s + num(a.quantite), 0) || 1;
+
         for (const a of articles) {
           const name = (a.produit || 'Produit').trim();
           const q = num(a.quantite);
           const lineRevenue = a.prix_total > 0 ? num(a.prix_total) : (orderTotal * (q / totalQty));
+
           if (!map.has(name)) map.set(name, { name, quantity:0, revenue:0 });
           const it = map.get(name);
           it.quantity += q;
@@ -786,8 +788,11 @@
     function normalizeWhatsAppPhone(phone) {
       let p = String(phone || '').trim();
       p = p.replace(/[^\d+]/g, '');
+
       if (p.indexOf('+') > 0) p = p.replace(/\+/g, '');
+
       const digits = p.replace(/\D/g, '');
+
       if (!p.startsWith('+') && digits.length === 8) return '216' + digits;
       if (!p.startsWith('+') && digits.length === 11 && digits.startsWith('216')) return digits;
       if (p.startsWith('+') && digits.length >= 8) return digits;
@@ -797,6 +802,7 @@
     function normalizeClientPhoneForDisplay(phone) {
       const digits = normalizeWhatsAppPhone(phone);
       if (!digits) return '';
+
       if (digits.startsWith('216') && digits.length === 11) {
         return '+216 ' + digits.slice(3,5) + ' ' + digits.slice(5,8) + ' ' + digits.slice(8);
       }
@@ -807,6 +813,7 @@
       const s = String(text || '');
       const m1 = s.match(/GPS:\s*([0-9.-]+)\s*,\s*([0-9.-]+)/i);
       if (m1) return `${m1[1]},${m1[2]}`;
+
       const m2 = s.match(/([0-9]{1,3}\.[0-9]+)\s*,\s*([0-9]{1,3}\.[0-9]+)/);
       if (m2) return `${m2[1]},${m2[2]}`;
       return '';
@@ -821,15 +828,17 @@
 
     function buildGoogleMapsLink(addressText) {
       const gps = extractGpsFromAddressText(addressText);
-      if (gps) return `https://maps.google.com/?q=${gps}`;
+      if (gps) return `https://www.google.com/maps?q=${gps}`;
+
       const cleanAddress = cleanAddressForWhatsApp(addressText);
       if (!cleanAddress) return '';
-      return `https://maps.google.com/?q=${encodeURIComponent(cleanAddress)}`;
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanAddress)}`;
     }
 
     function formatArticlesForWhatsapp(articlesText) {
       const articles = parseArticles(articlesText || '');
       if (!articles.length) return '• Aucun article';
+
       return articles.map(a => {
         const qty = num(a.quantite) || 1;
         const name = safeText(a.produit) || 'Produit';
@@ -851,12 +860,14 @@
       const mapsLink = buildGoogleMapsLink(adresseBrute);
       const articles = formatArticlesForWhatsapp(order.articles || '');
       const total = normalizeDisplayedTotal(order.total || '0');
+
       return `📋 Détails de votre commande\n\n📦 COMMANDE - MAXI JDC MARKET\n📅 ${dateText}\n\n👤 CLIENT\nNom : ${nom}\nTéléphone : ${telephone}\nAdresse : ${adresse}\n\n📍 Google Maps :\n${mapsLink || 'Non disponible'}\n\n🛒 ARTICLES\n────────────────────\n${articles}\n────────────────────\nTOTAL : ${total} dt\n\n🕒 Heures : 7h - 1h\n📱 WhatsApp magasin : +216 25 600 978`;
     }
 
     function sendOrderToWhatsApp(order) {
       const askSend = confirm('Voulez-vous envoyer cette commande vers WhatsApp ?\n\nCommande : ' + (order.commande_id || 'N/A'));
       if (!askSend) return;
+
       showWhatsAppPhoneModal(order);
     }
 
@@ -866,7 +877,7 @@
         if (!ordersResponse.ok) throw new Error('API commandes non disponible');
         const ordersData = await ordersResponse.json();
         if (!ordersData.success || !ordersData.orders) throw new Error('Aucune donnée valide');
-        
+
         state.orders = ordersData.orders.map(order => ({
           date: order.date,
           nom: order.nom || order.name || '',
@@ -882,9 +893,11 @@
         $('apiStatus').className = 'api-status api-online';
         $('apiStatus').innerHTML = '<i class="fas fa-circle"></i> API Connectée';
         $('dataSourceInfo').textContent = 'Source : API Google Sheets';
-        state.topProducts = computeTopProductsFromOrders(state.orders);
 
-        // --- SECTION SYNC ET DECLENCHEMENT SONNERIE ---
+        state.topProducts = computeTopProductsFromOrders(state.orders);
+// ─────────────────────────────────────────────────────────
+        // DETECTION ET DECLENCHEMENT AUTOMATIQUE DE LA SONNERIE
+        // ─────────────────────────────────────────────────────────
         const nouvellesCommandes = state.orders.filter(cmd => {
           const st = String(cmd.statut).trim().toUpperCase();
           return st.includes("NOUVELLE") || st.includes("NOUVE");
@@ -898,14 +911,15 @@
             console.log("Lecture audio bloquée par le navigateur :", e);
           });
           ancienNombreCommandes = nouvellesCommandes.length;
-          showToast('🔔 Nouvelle commande reçue !', 'success');
+          if (typeof showToast === "function") {
+            showToast('🔔 Nouvelle commande reçue !', 'success');
+          }
         } 
         else {
           ancienNombreCommandes = nouvellesCommandes.length;
         }
-        // ----------------------------------------------
-
-        return true;
+        // ─────────────────────────────────────────────────────────
+       return true;
       } catch (error) {
         console.error('Erreur chargement:', error);
         state.apiStatus = 'demo';
@@ -920,30 +934,40 @@
     function calculateAnalytics() {
       const orders = state.orders || [];
       state.analytics = {
-        totalRevenue:0, totalOrders:0, avgOrderValue:0, statusDistribution:{}, salesByDay:{}, salesByHourRevenue:{},
-        ordersByHour:{}, ordersByDay:{}, conversionRate:0, avgCustomerValue:0, ordersToday:0, revenueToday:0, topProduct:null
+        totalRevenue:0, totalOrders:0, avgOrderValue:0,
+        statusDistribution:{}, salesByDay:{}, salesByHourRevenue:{},
+        ordersByHour:{}, ordersByDay:{}, conversionRate:0,
+        avgCustomerValue:0, ordersToday:0, revenueToday:0, topProduct:null
       };
+
       state.analytics.totalRevenue = orders.reduce((sum, order) => sum + num(order.total), 0);
       state.analytics.totalOrders = orders.length;
       state.analytics.avgOrderValue = state.analytics.totalOrders > 0 ? state.analytics.totalRevenue / state.analytics.totalOrders : 0;
+
       const now = new Date();
       const todayKey = now.toISOString().slice(0,10);
+
       for (const order of orders) {
         const statut = order.statut || '🟡 NOUVELLE';
         state.analytics.statusDistribution[statut] = (state.analytics.statusDistribution[statut] || 0) + 1;
+
         const d = parseOrderDate(order.date);
         if (!d) continue;
+
         const dayKey = d.toISOString().slice(0,10);
         const hour = d.getHours();
+
         state.analytics.salesByDay[dayKey] = (state.analytics.salesByDay[dayKey] || 0) + num(order.total);
         state.analytics.salesByHourRevenue[hour] = (state.analytics.salesByHourRevenue[hour] || 0) + num(order.total);
         state.analytics.ordersByHour[hour] = (state.analytics.ordersByHour[hour] || 0) + 1;
         state.analytics.ordersByDay[dayKey] = (state.analytics.ordersByDay[dayKey] || 0) + 1;
+
         if (dayKey === todayKey) {
           state.analytics.ordersToday += 1;
           state.analytics.revenueToday += num(order.total);
         }
       }
+
       if (state.topProducts.length > 0) state.analytics.topProduct = state.topProducts[0];
       state.analytics.conversionRate = Math.min(100, Math.round((orders.length / 100) * 100));
       state.analytics.avgCustomerValue = state.analytics.totalOrders > 0 ? state.analytics.totalRevenue / (state.analytics.totalOrders * 0.7) : 0;
@@ -953,7 +977,9 @@
       const q = safeText($('searchInput')?.value).trim().toLowerCase();
       const statut = $('tableStatusFilter')?.value || '';
       const sortMode = $('tableSortMode')?.value || 'date_desc';
+
       let rows = [...state.orders];
+
       if (q) {
         rows = rows.filter(order => {
           const hay = [order.date, order.nom, order.telephone, order.adresse, order.commande_id, order.articles, order.total, order.statut]
@@ -963,13 +989,16 @@
           return hay.includes(q);
         });
       }
+
       if (statut) rows = rows.filter(order => safeText(order.statut) === statut);
+
       rows.sort((a,b) => {
         const da = parseOrderDate(a.date)?.getTime() || 0;
         const db = parseOrderDate(b.date)?.getTime() || 0;
         const ta = num(a.total);
         const tb = num(b.total);
         const na = safeText(a.nom).localeCompare(safeText(b.nom), 'fr', { sensitivity:'base' });
+
         switch (sortMode) {
           case 'date_asc': return da - db;
           case 'total_desc': return tb - ta;
@@ -979,270 +1008,450 @@
           default: return db - da;
         }
       });
+
       return rows;
     }
 
     function updateUI() {
-      calculateAnalytics();
       $('totalRevenue').textContent = formatPrice(state.analytics.totalRevenue);
       $('totalOrders').textContent = state.analytics.totalOrders;
       $('avgOrderValue').textContent = formatPrice(state.analytics.avgOrderValue);
+
       const selectedStatut = $('statusSelector').value;
-      $('selectedStatusCount').textContent = state.analytics.statusDistribution[selectedStatut] || 0;
+      const count = state.analytics.statusDistribution[selectedStatut] || 0;
+      $('selectedStatusCount').textContent = count;
       $('selectedStatusLabel').textContent = selectedStatut;
-      $('conversionRate').textContent = state.analytics.conversionRate + '%';
-      $('avgCustomerValue').textContent = formatPrice(state.analytics.avgCustomerValue);
-      $('ordersToday').textContent = state.analytics.ordersToday;
-      $('revenueToday').textContent = formatPrice(state.analytics.revenueToday);
+
       if (state.analytics.topProduct) {
+        const totalQuantity = state.topProducts.reduce((sum, p) => sum + num(p.quantity), 0);
+        const percentage = totalQuantity > 0 ? Math.round((num(state.analytics.topProduct.quantity) / totalQuantity) * 100) : 0;
+
         $('topProductName').textContent = state.analytics.topProduct.name;
-        $('topProductQty').textContent = state.analytics.topProduct.quantity;
+        $('topProductQty').textContent = num(state.analytics.topProduct.quantity);
         $('topProductRevenue').textContent = formatPrice(state.analytics.topProduct.revenue);
-        const totalQty = state.topProducts.reduce((sum, p) => sum + p.quantity, 0) || 1;
-        $('topProductPercentage').textContent = Math.round((state.analytics.topProduct.quantity / totalQty) * 100) + '%';
+        $('topProductPercentage').textContent = percentage + '%';
         $('topProductCard').style.display = 'block';
       } else {
         $('topProductCard').style.display = 'none';
       }
-      const filtered = getFilteredOrders();
-      state.filteredOrders = filtered;
-      $('visibleCount').textContent = filtered.length;
-      const tbody = $('allOrdersBody');
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted)">Aucune commande trouvée</td></tr>`;
+
+      $('conversionRate').textContent = state.analytics.conversionRate + '%';
+      $('avgCustomerValue').textContent = formatPrice(state.analytics.avgCustomerValue);
+      $('ordersToday').textContent = state.analytics.ordersToday;
+      $('revenueToday').textContent = formatPrice(state.analytics.revenueToday);
+
+      const allOrdersBody = $('allOrdersBody');
+      allOrdersBody.innerHTML = '';
+
+      const filteredOrders = getFilteredOrders();
+      state.filteredOrders = filteredOrders;
+      $('visibleCount').textContent = filteredOrders.length;
+
+      if (filteredOrders.length === 0) {
+        allOrdersBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted)">Aucune commande</td></tr>`;
       } else {
-        let html = '';
-        for (const order of filtered) {
-          const mapsLink = buildGoogleMapsLink(order.adresse);
-          let addrHtml = escapeHtml(order.adresse);
-          if (mapsLink) {
-            addrHtml = `<a class="address-link" href="${mapsLink}" target="_blank"><i class="fas fa-map-marker-alt"></i> ${addrHtml}</a>`;
-          }
-          let optionsHtml = '';
-          for (const st of STATUTS) {
-            const selected = order.statut === st ? 'selected' : '';
-            optionsHtml += `<option value="${escapeHtml(st)}" ${selected}>${escapeHtml(st)}</option>`;
-          }
-          const isUpdating = state.statusUpdateInProgress && state.statusUpdateForId === order.commande_id;
-          const selectDisabled = isUpdating ? 'disabled' : '';
-          const selectHtml = `<select class="statut-select" ${selectDisabled} onchange="updateOrderStatus('${escapeHtml(order.commande_id)}', this.value)">${optionsHtml}</select>`;
-          
-          // FORCE LE FUSEAU HORAIRE DE TUNIS À L'AFFICHAGE DU TABLEAU
+        filteredOrders.slice(0, 100).forEach(order => {
+          const statut = order.statut || '🟡 NOUVELLE';
+          const articlesText = escapeHtml(order.articles).replace(/\n/g, '<br>');
+
           const d = parseOrderDate(order.date);
           const dateStr = d
-            ? d.toLocaleDateString('fr-FR', { timeZone: 'Africa/Tunis', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+            ? d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
             : safeText(order.date);
 
-          html += `<tr class="clickable-order-row" onclick="if(event.target.tagName!=='SELECT'&&event.target.tagName!=='A') sendOrderToWhatsApp(${JSON.stringify(order).replace(/"/g, '&quot;')})">
+          const addressText = safeText(order.adresse);
+          let addressLink = escapeHtml(addressText);
+          const mapsUrl = buildGoogleMapsLink(addressText);
+
+          if (mapsUrl && addressText.length > 3) {
+            addressLink = `
+              <a href="${mapsUrl}"
+                 target="_blank"
+                 class="address-link"
+                 onclick="event.stopPropagation()"
+                 title="Localiser le client sur Google Maps">
+                 <i class="fas fa-map-marker-alt"></i> ${escapeHtml(addressText.substring(0,40))}
+              </a>`;
+          }
+
+          const tr = document.createElement('tr');
+          tr.className = 'clickable-order-row';
+          tr.title = 'Cliquer pour envoyer cette commande vers WhatsApp';
+
+          tr.innerHTML = `
             <td>${escapeHtml(dateStr)}</td>
-            <td style="font-weight:700; color:var(--green)">${escapeHtml(order.nom)}</td>
-            <td>${escapeHtml(normalizeClientPhoneForDisplay(order.telephone))}</td>
-            <td>${addrHtml}</td>
-            <td style="font-weight:600; font-family:monospace">${escapeHtml(order.commande_id)}</td>
-            <td class="articles-cell">${escapeHtml(order.articles)}</td>
-            <td style="font-weight:800; color:var(--blue)">${formatPrice(order.total)}</td>
-            <td>${selectHtml}</td>
-          </tr>`;
-        }
-        tbody.innerHTML = html;
-      }
-      const topProductsBody = $('topProductsBody');
-      if (state.topProducts.length === 0) {
-        topProductsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:var(--muted)">Aucun produit trouvé</td></tr>`;
-      } else {
-        let html = '';
-        state.topProducts.forEach((p, index) => {
-          html += `<tr>
-            <td style="font-weight:700; color:var(--muted)">${index + 1}</td>
-            <td style="font-weight:600">${escapeHtml(p.name)}</td>
-            <td style="font-weight:700; color:var(--green)">${p.quantity}</td>
-            <td style="font-weight:700; color:var(--blue)">${formatPrice(p.revenue)}</td>
-          </tr>`;
+            <td><strong>${escapeHtml(safeText(order.nom).substring(0,15))}</strong></td>
+            <td>${escapeHtml(normalizeClientPhoneForDisplay(order.telephone) || order.telephone)}</td>
+            <td>${addressLink}</td>
+            <td><strong>${escapeHtml(safeText(order.commande_id) || 'N/A')}</strong></td>
+            <td class="articles-cell">${articlesText}</td>
+            <td><strong>${formatPrice(order.total)}</strong></td>
+            <td>
+              <select class="statut-select">
+                ${STATUTS.map(s => `<option value="${s}" ${s===statut?'selected':''}>${escapeHtml(s.substring(0,8))}</option>`).join('')}
+              </select>
+            </td>
+          `;
+
+          const select = tr.querySelector('.statut-select');
+          select.addEventListener('click', e => e.stopPropagation());
+          select.addEventListener('change', function(e) {
+            e.stopPropagation();
+            updateOrderStatus(order.commande_id, this.value);
+          });
+
+          const addressAnchor = tr.querySelector('.address-link');
+          if (addressAnchor) {
+            addressAnchor.addEventListener('click', e => e.stopPropagation());
+          }
+
+          tr.addEventListener('click', function() {
+            sendOrderToWhatsApp({
+              date: dateStr,
+              nom: order.nom,
+              telephone: order.telephone,
+              adresse: order.adresse,
+              commande_id: order.commande_id,
+              articles: order.articles,
+              total: order.total,
+              statut: order.statut
+            });
+          });
+
+          allOrdersBody.appendChild(tr);
         });
-        topProductsBody.innerHTML = html;
       }
-      updateCharts();
-      $('lastUpdate').textContent = new Date().toLocaleTimeString('fr-FR');
+
+      const topProductsBody = $('topProductsBody');
+      topProductsBody.innerHTML = '';
+      if (state.topProducts.length === 0) {
+        topProductsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:var(--muted)">Aucune donnée</td></tr>`;
+      } else {
+        state.topProducts.forEach((product, index) => {
+          const tr = document.createElement('tr');
+          const name = safeText(product.name);
+          tr.innerHTML = `
+            <td style="text-align:center; font-weight:900;">${index + 1}</td>
+            <td><div style="font-weight:900">${escapeHtml(name.length > 45 ? name.substring(0,45) + '...' : name)}</div></td>
+            <td style="font-weight:900; color:var(--blue); text-align:center">${num(product.quantity)}</td>
+            <td style="font-weight:900; color:var(--green)">${formatPrice(product.revenue)}</td>
+          `;
+          topProductsBody.appendChild(tr);
+        });
+      }
+
+      $('lastUpdate').textContent = new Date().toLocaleString('fr-FR');
+    }
+
+    function chartCommonOptions() {
+      return {
+        responsive:true,
+        maintainAspectRatio:false,
+        scales: {
+          x: { ticks:{ color:'#f0f6fc', font:{ size:10 } }, grid:{ color:'rgba(255,255,255,.08)' } },
+          y: { ticks:{ color:'#f0f6fc', font:{ size:10 } }, grid:{ color:'rgba(255,255,255,.08)' } }
+        },
+        plugins: {
+          legend: { labels: { color:'#f0f6fc', font:{ size:11 } } }
+        }
+      };
     }
 
     function initCharts() {
       const salesCtx = $('salesChart').getContext('2d');
       state.charts.sales = new Chart(salesCtx, {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: 'Ventes (dt)', data: [], borderColor: '#00ff88', backgroundColor: 'rgba(0,255,136,0.1)', tension: 0.3, fill: true }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#8b949e' } }, x: { grid: { display: false }, ticks: { color: '#8b949e' } } } }
+        type:'line',
+        data:{ labels:[], datasets:[{ label:'CA (dt)', data:[], borderWidth:2, fill:true, tension:.35, backgroundColor:'rgba(0,212,255,0.15)', borderColor:'#00d4ff' }] },
+        options: chartCommonOptions()
       });
+
       const statusCtx = $('statusChart').getContext('2d');
       state.charts.status = new Chart(statusCtx, {
-        type: 'doughnut',
-        data: { labels: [], datasets: [{ data: [], backgroundColor: ['#ffa726', '#00d4ff', '#9c27b0', '#FFC107', '#00ff88', '#ff6b6b'] }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#f0f6fc', font: { size: 10 } } } } }
+        type:'doughnut',
+        data:{ labels:[], datasets:[{ data:[], borderWidth:1, backgroundColor:[
+          'rgba(255, 204, 0, 0.8)','rgba(255, 153, 0, 0.8)','rgba(0, 102, 204, 0.8)',
+          'rgba(255, 102, 0, 0.8)','rgba(0, 170, 0, 0.8)','rgba(204, 0, 0, 0.8)'
+        ] }] },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          cutout:'60%',
+          plugins:{ legend:{ position:'right', labels:{ color:'#f0f6fc', font:{ size:11 } } } }
+        }
       });
+
       const productsCtx = $('productsChart').getContext('2d');
       state.charts.products = new Chart(productsCtx, {
-        type: 'bar',
-        data: { labels: [], datasets: [{ label: 'Quantité', data: [], backgroundColor: '#00d4ff', borderRadius: 4 }] },
-        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#8b949e' } }, y: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 10 } } } } }
+        type:'bar',
+        data:{ labels:[], datasets:[{ label:'Quantité', data:[], backgroundColor:'rgba(0,255,136,0.6)', borderColor:'#00ff88', borderWidth:1 }] },
+        options:{
+          ...chartCommonOptions(),
+          indexAxis:'y'
+        }
       });
+
       const hourlyCtx = $('hourlyChart').getContext('2d');
       state.charts.hourly = new Chart(hourlyCtx, {
-        type: 'bar',
-        data: { labels: [], datasets: [{ label: 'Commandes', data: [], backgroundColor: '#9c27b0', borderRadius: 4 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#8b949e' } }, x: { grid: { display: false }, ticks: { color: '#8b949e' } } } }
+        type:'bar',
+        data:{ labels:[], datasets:[{ label:'Commandes', data:[], backgroundColor:'rgba(156,39,176,0.5)', borderColor:'#9c27b0', borderWidth:1 }] },
+        options: chartCommonOptions()
       });
     }
 
     function updateCharts() {
-      if (!state.charts.sales) return;
-      const daysParam = parseInt($('salesPeriod').value, 10) || 30;
-      const salesLabels = [];
-      const salesData = [];
-      for (let i = daysParam - 1; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const k = d.toISOString().slice(0, 10);
-        const displayLabel = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-        salesLabels.push(displayLabel);
-        salesData.push(Number((state.analytics.salesByDay[k] || 0).toFixed(3)));
+      const period = parseInt($('salesPeriod').value || 30, 10);
+      updateSalesChart(period);
+      updateStatusChart();
+      updateProductsChart();
+      updateActivityChart();
+    }
+
+    function updateSalesChart(period = 30) {
+      const labels = [];
+      const data = [];
+      const today = new Date();
+
+      for (let i = period - 1; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toISOString().substring(0, 10);
+        labels.push(date.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' }));
+        data.push(num(state.analytics.salesByDay[dateKey] || 0));
       }
-      state.charts.sales.data.labels = salesLabels;
-      state.charts.sales.data.datasets[0].data = salesData;
+
+      state.charts.sales.data.labels = labels;
+      state.charts.sales.data.datasets[0].data = data;
       state.charts.sales.update();
-      const statusLabels = [];
-      const statusData = [];
-      STATUTS.forEach(st => {
-        const count = state.analytics.statusDistribution[st] || 0;
-        if (count > 0) {
-          statusLabels.push(st.split(' ')[1] || st);
-          statusData.push(count);
-        }
-      });
-      state.charts.status.data.labels = statusLabels;
-      state.charts.status.data.datasets[0].data = statusData;
-      state.charts.status.update();
-      const topP = state.topProducts || [];
-      state.charts.products.data.labels = topP.map(p => p.name.substring(0, 18));
-      state.charts.products.data.datasets[0].data = topP.map(p => p.quantity);
-      state.charts.products.update();
-      const hourlyLabels = [];
-      const hourlyData = [];
-      const mode = $('activityMode').value;
-      if (mode === 'hour') {
-        for (let h = 0; h < 24; h++) {
-          hourlyLabels.push(h + 'h');
-          hourlyData.push(state.analytics.ordersByHour[h] || 0);
-        }
-      } else {
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          const k = d.toISOString().slice(0, 10);
-          hourlyLabels.push(d.toLocaleDateString('fr-FR', { weekday: 'short' }));
-          hourlyData.push(state.analytics.ordersByDay[k] || 0);
-        }
+    }
+
+    function updateStatusChart() {
+      const order = ['🟡 NOUVELLE','⏳ EN ATTENTE','🔵 EN PRÉPARATION','🟠 EN LIVRAISON','✅ LIVRÉE','❌ ANNULÉE'];
+      const labels = [];
+      const data = [];
+
+      for (const s of order) {
+        const c = state.analytics.statusDistribution[s] || 0;
+        if (c > 0) { labels.push(s.substring(0,10)); data.push(c); }
       }
-      state.charts.hourly.data.labels = hourlyLabels;
-      state.charts.hourly.data.datasets[0].data = hourlyData;
+
+      state.charts.status.data.labels = labels;
+      state.charts.status.data.datasets[0].data = data;
+      state.charts.status.update();
+    }
+
+    function updateProductsChart() {
+      const top10 = state.topProducts.slice(0, 10);
+      const labels = top10.map(p => p.name.length > 18 ? p.name.substring(0, 18) + '...' : p.name);
+      const data = top10.map(p => num(p.quantity));
+
+      state.charts.products.data.labels = labels;
+      state.charts.products.data.datasets[0].data = data;
+      state.charts.products.update();
+    }
+
+    function updateActivityChart() {
+      const mode = $('activityMode').value;
+
+      if (mode === 'hour') {
+        const labels = [];
+        const data = [];
+        for (let h = 0; h < 24; h++) {
+          labels.push(`${h}h`);
+          data.push(num(state.analytics.ordersByHour[h] || 0));
+        }
+        state.charts.hourly.data.labels = labels;
+        state.charts.hourly.data.datasets[0].data = data;
+        state.charts.hourly.update();
+        return;
+      }
+
+      const labels = [];
+      const data = [];
+      const today = new Date();
+      const period = 30;
+
+      for (let i = period - 1; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const key = date.toISOString().slice(0,10);
+        labels.push(date.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' }));
+        data.push(num(state.analytics.ordersByDay[key] || 0));
+      }
+
+      state.charts.hourly.data.labels = labels;
+      state.charts.hourly.data.datasets[0].data = data;
       state.charts.hourly.update();
     }
 
-    async function updateOrderStatus(orderId, newStatus) {
-      if (state.statusUpdateInProgress) return;
-      state.statusUpdateInProgress = true;
-      state.statusUpdateForId = orderId;
-      updateUI();
-      showToast('⏳ Mise à jour du statut...', 'info');
+    async function updateOrderStatus(commandeId, nouveauStatut) {
       try {
-        const url = `${API_URL}?method=updatestatus&order_id=${encodeURIComponent(orderId)}&status=${encodeURIComponent(newStatus)}&t=${Date.now()}`;
-        const response = await fetch(url, { method: 'POST' });
-        const resData = await response.json();
-        if (resData.success) {
-          showToast('✅ Statut mis à jour avec succès', 'success');
-          const matched = state.orders.find(o => o.commande_id === orderId);
-          if (matched) matched.statut = newStatus;
-        } else {
-          throw new Error(resData.message || 'Erreur inconnue');
-        }
+        showToast('⏳ Mise à jour...', 'info');
+        state.statusUpdateInProgress = true;
+        state.statusUpdateForId = commandeId;
+
+        if (state.apiStatus === 'demo') return;
+
+        const url = `${API_URL}?method=updateOrderStatus&commande_id=${encodeURIComponent(commandeId)}&statut=${encodeURIComponent(nouveauStatut)}&t=${Date.now()}`;
+        const response = await fetch(url, { cache:'no-store' });
+        const result = await response.json();
+
+        if (!result.success) throw new Error(result.error || 'Erreur API');
+
+        const i = state.orders.findIndex(o => o.commande_id === commandeId);
+        if (i !== -1) state.orders[i].statut = nouveauStatut;
+
+        calculateAnalytics();
+        updateUI();
+        updateCharts();
+        showToast('✅ Statut mis à jour', 'success');
       } catch (e) {
         console.error(e);
-        showToast('❌ Erreur de liaison avec Google Sheets', 'error');
+        showToast(`❌ ${e.message}`, 'error');
       } finally {
-        state.statusUpdateInProgress = false;
-        state.statusUpdateForId = null;
-        updateUI();
+        setTimeout(() => {
+          state.statusUpdateInProgress = false;
+          state.statusUpdateForId = null;
+        }, 1200);
       }
     }
 
     async function createTestOrder() {
-      showToast('⏳ Création commande test...', 'info');
       try {
-        const url = `${API_URL}?method=createtest&t=${Date.now()}`;
-        const response = await fetch(url, { method: 'POST' });
-        const resData = await response.json();
-        if (resData.success) {
-          showToast('✅ Commande test ajoutée !', 'success');
-          await loadData();
-          updateUI();
-        } else {
-          throw new Error(resData.message || 'Erreur');
-        }
+        showToast('⏳ Création test...', 'info');
+
+        const payload = new URLSearchParams({
+          method:'saveOrder',
+          nom_client:'TEST ADMIN',
+          telephone:'+216 20000000',
+          adresse:'Adresse test | GPS: 36.858546, 10.301467',
+          articles:'2x PRODUIT TEST A\n1x PRODUIT TEST B',
+          total:'30.000'
+        });
+
+        const resp = await fetch(API_URL, {
+          method:'POST',
+          headers:{ 'Content-Type':'application/x-www-form-urlencoded' },
+          body:payload.toString()
+        });
+
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.error || 'Erreur API');
+
+        showToast('✅ Test créé', 'success');
+        setTimeout(() => refreshAll(true), 900);
       } catch (e) {
-        showToast('❌ Impossible de créer le test', 'error');
+        console.error(e);
+        showToast(`❌ ${e.message}`, 'error');
       }
     }
 
-    async function refreshAll(withToast = false) {
-      if (withToast) showToast('🔄 Actualisation des données...', 'info');
-      const ok = await loadData();
-      if (ok && withToast) showToast('📊 Tableau de bord à jour', 'success');
-      updateUI();
+    async function refreshAll(force = false) {
+      if (!force && state.statusUpdateInProgress) return;
+
+      try {
+        $('btnRefresh').disabled = true;
+        $('btnRefresh').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
+
+        await loadData();
+        calculateAnalytics();
+        updateUI();
+        updateCharts();
+
+        showToast('✅ Données actualisées', 'success');
+      } catch (e) {
+        console.error(e);
+        showToast('❌ Erreur chargement', 'error');
+      } finally {
+        $('btnRefresh').disabled = false;
+        $('btnRefresh').innerHTML = '<i class="fas fa-sync-alt"></i> Actualiser';
+      }
     }
 
     function ensureWhatsAppPhoneModal() {
-      if ($('whatsappPhoneModal')) return;
-      const html = `<div id="whatsappPhoneModal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,25,47,0.85);z-index:999999;display:none;align-items:center;justify-content:center;padding:15px;backdrop-filter:blur(4px);">
-        <div style="background:var(--card);border:2px solid var(--green);border-radius:var(--r);padding:20px;width:100%;max-width:400px;box-shadow:var(--shadow);">
-          <h3 style="color:var(--green);margin-bottom:12px;font-size:15px;"><i class="fab fa-whatsapp"></i> Envoyer au livreur</h3>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Entrez le numéro WhatsApp du livreur (ex: 25600978) ou laissez vide pour utiliser le numéro du client.</p>
-          <input type="text" id="waPhoneInput" placeholder="Numéro du livreur (8 chiffres)" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,0.05);color:var(--txt);font-size:14px;margin-bottom:15px;font-weight:700;text-align:center;" maxlength="12" />
-          <div style="display:flex;gap:10px;justify-content:flex-end;">
-            <button class="btn" onclick="$('whatsappPhoneModal').style.display='none'" style="border-color:var(--red);color:var(--red);">Annuler</button>
-            <button class="btn" onclick=\"executeWhatsAppSend()\" style="background:var(--green);color:#0a1929;border:none;">Ouvrir WhatsApp</button>
+      if (document.getElementById('whatsappPhoneModal')) return;
+
+      const modal = document.createElement('div');
+      modal.id = 'whatsappPhoneModal';
+      modal.style.cssText = `
+        position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+        background:rgba(0,0,0,.55); z-index:100000; padding:16px;
+      `;
+
+      modal.innerHTML = `
+        <div style="width:min(420px,100%); background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:16px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;">
+            <div>
+              <div style="font-size:15px; font-weight:900; color:var(--green);">Envoyer vers WhatsApp</div>
+              <div style="font-size:11px; color:var(--muted);">Saisir un numéro au format téléphone</div>
+            </div>
+            <button id="waModalClose" class="btn" type="button"><i class="fas fa-times"></i></button>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <label for="waPhoneInput" style="font-size:12px; font-weight:700; color:var(--txt);">Numéro WhatsApp</label>
+            <input
+              id="waPhoneInput"
+              type="tel"
+              inputmode="tel"
+              autocomplete="tel"
+              placeholder="Ex: 21655532482 ou 55532482"
+              style="width:100%; padding:12px; border:1px solid var(--line); border-radius:8px; background:rgba(255,255,255,.08); color:var(--txt); font-size:15px;"
+            />
+            <div style="font-size:11px; color:var(--muted);">Sur mobile, le clavier téléphone s’ouvre automatiquement.</div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+            <button id="waModalCancel" class="btn" type="button">Annuler</button>
+            <button id="waModalSend" class="btn" type="button"><i class="fab fa-whatsapp"></i> Envoyer</button>
           </div>
         </div>
-      </div>`;
-      document.body.insertAdjacentHTML('beforeend', html);
+      `;
+
+      document.body.appendChild(modal);
+
+      const closeModal = () => {
+        modal.style.display = 'none';
+        modal.dataset.order = '';
+      };
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      modal.querySelector('#waModalClose').addEventListener('click', closeModal);
+      modal.querySelector('#waModalCancel').addEventListener('click', closeModal);
+
+      modal.querySelector('#waModalSend').addEventListener('click', () => {
+        const input = modal.querySelector('#waPhoneInput');
+        const rawPhone = input.value;
+        const phoneNormalized = normalizeWhatsAppPhone(rawPhone);
+
+        if (!phoneNormalized) {
+          input.focus();
+          showToast('❌ Numéro WhatsApp invalide', 'error');
+          return;
+        }
+
+        const order = JSON.parse(modal.dataset.order || '{}');
+        const message = buildWhatsAppOrderMessage(order);
+        const whatsappUrl = `https://wa.me/${phoneNormalized}?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
+        closeModal();
+      });
+
+      modal.querySelector('#waPhoneInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') modal.querySelector('#waModalSend').click();
+      });
     }
 
     function showWhatsAppPhoneModal(order) {
+      ensureWhatsAppPhoneModal();
       const modal = document.getElementById('whatsappPhoneModal');
       const input = document.getElementById('waPhoneInput');
       modal.dataset.order = JSON.stringify(order || {});
       input.value = '';
       modal.style.display = 'flex';
       setTimeout(() => input.focus(), 50);
-    }
-
-    function executeWhatsAppSend() {
-      const modal = document.getElementById('whatsappPhoneModal');
-      const input = document.getElementById('waPhoneInput');
-      const order = JSON.parse(modal.dataset.order || '{}');
-      modal.style.display = 'none';
-      let targetPhone = String(input.value).replace(/\s+/g, '');
-      if (!targetPhone) {
-        targetPhone = normalizeWhatsAppPhone(order.telephone);
-      } else {
-        if (targetPhone.length === 8 && !targetPhone.startsWith('216')) {
-          targetPhone = '216' + targetPhone;
-        }
-      }
-      if (!targetPhone) {
-        showToast('❌ Aucun numéro de téléphone valide', 'error');
-        return;
-      }
-      const msg = buildWhatsAppOrderMessage(order);
-      const url = `https://api.whatsapp.com/send?phone=${encodeURIComponent(targetPhone)}&text=${encodeURIComponent(msg)}`;
-      window.open(url, '_blank');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
