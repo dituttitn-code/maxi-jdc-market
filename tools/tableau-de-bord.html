@@ -897,7 +897,7 @@ const alerteAudio = new Audio(urlSon);
         state.topProducts = computeTopProductsFromOrders(state.orders);
 
 // ─────────────────────────────────────────────────────────
-        // CONFIGURATION PRO : ALERTE SONORE + ANNONCE PERSONNALISÉE MAXI
+        // CONFIGURATION PRO MULTILINGUE : FORCE LE FRANÇAIS + RÉPÉTITION 3X
         // ─────────────────────────────────────────────────────────
         const nouvellesCommandes = state.orders.filter(cmd => {
           const st = String(cmd.statut).trim().toUpperCase();
@@ -908,37 +908,42 @@ const alerteAudio = new Audio(urlSon);
           ancienNombreCommandes = nouvellesCommandes.length;
         } 
         else if (nouvellesCommandes.length > ancienNombreCommandes) {
-          // 1. Déclenchement immédiat du bip sonore
-          alerteAudio.play().catch(e => console.log("Audio bloqué par le navigateur :", e));
+          // 1. Déclenchement du bip sonore
+          alerteAudio.play().catch(e => console.log("Audio bloqué :", e));
 
-          // 2. Récupération et nettoyage du numéro de commande
+          // 2. Extraction du numéro court (ex: 66)
           const derniereCommande = nouvellesCommandes[nouvellesCommandes.length - 1];
           let numeroComplet = "";
           let numeroCourtPourLaVoix = "";
 
           if (derniereCommande) {
             numeroComplet = derniereCommande.commande_id || derniereCommande.commande || "";
-            
-            // Correction ici : On utilise bien le tiret du 6 '-' pour couper le numéro
             if (numeroComplet.includes('-')) {
               const parties = numeroComplet.split('-');
-              const dernierMorceau = parties[parties.length - 1]; // Récupère "066"
-              numeroCourtPourLaVoix = parseInt(dernierMorceau, 10) || dernierMorceau; // Transforme "066" en 66
+              const dernierMorceau = parties[parties.length - 1];
+              numeroCourtPourLaVoix = parseInt(dernierMorceau, 10) || dernierMorceau;
             } else {
               numeroCourtPourLaVoix = numeroComplet;
             }
           }
 
-          // 3. Synthèse vocale personnalisée STRICTEMENT en Français
+          // 3. Synthèse vocale avec forçage de la voix française et répétition
           if ('speechSynthesis' in window && numeroCourtPourLaVoix) {
-            // On stoppe les voix en cours pour éviter les bugs
-            window.speechSynthesis.cancel();
+            window.speechSynthesis.cancel(); // Arrête les anciennes voix
             
-            const texteAnnonce = `Nouvelle commande Maxi numéro ${numeroCourtPourLaVoix}`;
+            // On crée le message qui répète le numéro 3 fois
+            const texteAnnonce = `Nouvelle commande Maxi, numéro ${numeroCourtPourLaVoix}. numéro ${numeroCourtPourLaVoix}. numéro ${numeroCourtPourLaVoix}.`;
             const annonce = new SpeechSynthesisUtterance(texteAnnonce);
-            annonce.lang = 'fr-FR'; // Forcer la langue française
-            annonce.rate = 0.90;    // Vitesse légèrement posée pour bien articuler
-            annonce.pitch = 1.0;    
+            
+            // FORCE LE SYSTÈME À CHERCHER UNE VOIX FRANÇAISE INSTALLÉE
+            const voixDisponibles = window.speechSynthesis.getVoices();
+            const voixFrancaise = voixDisponibles.find(v => v.lang.startsWith('fr'));
+            if (voixFrancaise) {
+              annonce.voice = voixFrancaise;
+            }
+            
+            annonce.lang = 'fr-FR';
+            annonce.rate = 0.90; // Vitesse bien articulée
             window.speechSynthesis.speak(annonce);
           }
 
