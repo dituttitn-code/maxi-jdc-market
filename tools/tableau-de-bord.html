@@ -488,7 +488,7 @@
     <div class="card" style="margin-top:12px;">
       <div class="sectionTitle">
         <h3><i class="fas fa-sliders-h"></i> Recherche & filtres</h3>
-        <span class="sub">Sans toucher aux commandes fonctionnelles</span>
+        <span class="sub">Gestion des filtres</span>
       </div>
       <div class="filters-row">
         <input id="searchInput" class="search-input" type="text" placeholder="Rechercher nom, téléphone, adresse, commande..." />
@@ -642,7 +642,7 @@
     </div>
 
     <footer class="footer">
-      <div>© 2024 MAXI JDC MARKET — Tableau de bord</div>
+      <div>© 2026 MAXI JDC MARKET — Tableau de bord</div>
       <div style="margin-top:4px; font-size:11px;">Mise à jour : <span id="lastUpdate">—</span></div>
       <div style="margin-top:4px; font-size:10px; color:var(--orange);" id="dataSourceInfo"></div>
     </footer>
@@ -701,11 +701,11 @@
 
     function escapeHtml(str) {
       return safeText(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+        .replace(/&/g, '&')
+        .replace(/</g, '<')
+        .replace(/>/g, '>')
+        .replace(/"/g, '"')
+        .replace(/'/g, ''');
     }
 
     function num(x) {
@@ -885,17 +885,14 @@
         state.topProducts = computeTopProductsFromOrders(state.orders);
 
         // --- SECTION SYNC ET DECLENCHEMENT SONNERIE ---
-        // On isole et compte les commandes avec le statut exact "🟡 NOUVELLE"
         const nouvellesCommandes = state.orders.filter(cmd => {
           const st = String(cmd.statut).trim().toUpperCase();
           return st.includes("NOUVELLE") || st.includes("NOUVE");
         });
 
-        // Premier chargement de la page : on initialise le compteur sans sonner
         if (ancienNombreCommandes === null) {
           ancienNombreCommandes = nouvellesCommandes.length;
         } 
-        // Si le nombre de nouvelles commandes a augmenté, on lance la musique !
         else if (nouvellesCommandes.length > ancienNombreCommandes) {
           alerteAudio.play().catch(e => {
             console.log("Lecture audio bloquée par le navigateur :", e);
@@ -903,7 +900,6 @@
           ancienNombreCommandes = nouvellesCommandes.length;
           showToast('🔔 Nouvelle commande reçue !', 'success');
         } 
-        // Si des commandes ont été traitées ou validées, on met à jour le compteur
         else {
           ancienNombreCommandes = nouvellesCommandes.length;
         }
@@ -1030,8 +1026,15 @@
           const isUpdating = state.statusUpdateInProgress && state.statusUpdateForId === order.commande_id;
           const selectDisabled = isUpdating ? 'disabled' : '';
           const selectHtml = `<select class="statut-select" ${selectDisabled} onchange="updateOrderStatus('${escapeHtml(order.commande_id)}', this.value)">${optionsHtml}</select>`;
-          html += `<tr class="clickable-order-row" onclick="if(event.target.tagName!=='SELECT'&&event.target.tagName!=='A') sendOrderToWhatsApp(${JSON.stringify(order).replace(/"/g, '&quot;')})">
-            <td>${escapeHtml(order.date)}</td>
+          
+          // FORCE LE FUSEAU HORAIRE DE TUNIS À L'AFFICHAGE DU TABLEAU
+          const d = parseOrderDate(order.date);
+          const dateStr = d
+            ? d.toLocaleDateString('fr-FR', { timeZone: 'Africa/Tunis', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+            : safeText(order.date);
+
+          html += `<tr class="clickable-order-row" onclick="if(event.target.tagName!=='SELECT'&&event.target.tagName!=='A') sendOrderToWhatsApp(${JSON.stringify(order).replace(/"/g, '"')})">
+            <td>${escapeHtml(dateStr)}</td>
             <td style="font-weight:700; color:var(--green)">${escapeHtml(order.nom)}</td>
             <td>${escapeHtml(normalizeClientPhoneForDisplay(order.telephone))}</td>
             <td>${addrHtml}</td>
